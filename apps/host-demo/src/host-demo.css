@@ -49,3 +49,11 @@ body {
   overflow-x: auto;
   font-size: 0.8125rem;
 }
+
+/* The check timeline: a diagnostic list, readable at a glance in a failure snapshot. */
+.host-demo__timeline {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}

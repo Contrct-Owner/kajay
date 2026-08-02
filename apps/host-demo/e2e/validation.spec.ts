@@ -130,3 +130,31 @@ test('parity/D5-validation-scope', async ({ page }) => {
   await expect(page.getByRole('alert')).toHaveText('Please enter a value no greater than 1000.');
   await expect(page.getByTestId('page-position')).toHaveText('Page 2 of 3');
 });
+
+test('parity/D3-async-validators: the check timeline records both ends of a check', async ({
+  page,
+}) => {
+  // Not a parity requirement — it is the instrumentation for an intermittent stuck
+  // check, and a diagnostic nobody exercises is a diagnostic that has quietly stopped
+  // working by the time it is needed.
+  const log = page.getByTestId('check-log');
+  await expect(page.getByTestId('check-state')).toHaveText('idle');
+
+  await page.getByLabel(/What is your name\?/u).fill('Ada');
+  await page.getByLabel(/What should we call you\?/u).fill('Ada');
+  await page.getByRole('button', { name: 'Next' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Logic showcase' })).toBeVisible();
+  await expect(page.getByTestId('check-state')).toHaveText('idle');
+  // Both ends of the host's own validator and of the server hook, and both ends of the
+  // check itself. A snapshot missing the second half of any pair says which one never
+  // came back — the thing the failure artefacts could not show before.
+  await expect(log.getByRole('listitem')).toHaveText([
+    /check started/u,
+    /nickname lookup started/u,
+    /server check started/u,
+    /server check returned/u,
+    /nickname lookup returned/u,
+    /check settled/u,
+  ]);
+});

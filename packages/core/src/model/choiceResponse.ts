@@ -1,0 +1,108 @@
+import type { DependencyPattern } from '../dependencies/DependencyPattern.js';
+import { collectReferences } from '../expressions/collectReferences.js';
+import { formatPath } from '../expressions/ExpressionNode.js';
+import { parseExpression } from '../expressions/parseExpression.js';
+import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
+import { ItemValue } from './ItemValue.js';
+
+/** How a URL response is turned into choices. Part of the cache identity. */
+export interface ChoiceSettings {
+  /** Dotted path to the array inside the response. Empty means the response itself. */
+  readonly path: string;
+  readonly valueName: string;
+  readonly titleName: string;
+}
+
+const PLACEHOLDER: RegExp = /\{([^{}]+)\}/gu;
+
+/**
+ * Identity of a converted response.
+ *
+ * The conversion settings belong in the key, not just the URL: two questions reading
+ * one URL with different `choicesValueName` produce different choices, and keying on
+ * the URL alone served each of them the other's list.
+ */
+export function createCacheKey(url: string, settings: ChoiceSettings): string {
+  return JSON.stringify([url, settings.path, settings.valueName, settings.titleName]);
+}
+
+/** Substitutes `{question}` placeholders with current answers. */
+export function resolveUrl(template: string, resolve: (name: string) => unknown): string {
+  return template.replaceAll(PLACEHOLDER, (_match, reference: string) => {
+    const value = resolve(reference.trim());
+    return value === null || value === undefined ? '' : encodeURIComponent(String(value));
+  });
+}
+
+/** Walks a dotted path into the response. */
+function readPath(payload: unknown, path: string): unknown {
+  if (path.trim().length === 0) {
+    return payload;
+  }
+  let current = payload;
+  for (const segment of path.split('.')) {
+    if (current === null || current === undefined) {
+      return undefined;
+    }
+    current = (current as Record<string, unknown>)[segment];
+  }
+  return current;
+}
+
+function toPropertyValue(value: unknown): PropertyValue {
+  if (typeof value === 'string' || typeof value === 'boolean') {
+    return value;
+  }
+  return typeof value === 'number' && Number.isFinite(value) ? value : String(value ?? '');
+}
+
+function toChoices(rows: readonly unknown[], settings: ChoiceSettings): readonly ItemValue[] {
+  return rows.map((row) => {
+    const item = new ItemValue();
+    if (typeof row !== 'object' || row === null) {
+      // A bare array of scalars is a legitimate response shape.
+      item.value = toPropertyValue(row);
+      item.text = String(row ?? '');
+      return item;
+    }
+    const record = row as Record<string, unknown>;
+    const value = settings.valueName.length > 0 ? record[settings.valueName] : row;
+    const title = settings.titleName.length > 0 ? record[settings.titleName] : value;
+    item.value = toPropertyValue(value);
+    item.text = title === null || title === undefined ? '' : String(title);
+    return item;
+  });
+}
+
+/** Throws rather than reporting: the caller owns error capture for the whole load. */
+export function choicesFromResponse(
+  payload: unknown,
+  url: string,
+  settings: ChoiceSettings,
+): readonly ItemValue[] {
+  const rows = readPath(payload, settings.path);
+  if (!Array.isArray(rows)) {
+    throw new TypeError(`"${url}" did not return an array at path "${settings.path}".`);
+  }
+  return toChoices(rows, settings);
+}
+
+/** `{question}` in a URL is a dependency exactly as it is in an expression. */
+export function placeholderDependencies(url: string): readonly DependencyPattern[] {
+  const seen = new Set<string>();
+  const reads: DependencyPattern[] = [];
+  for (const match of url.matchAll(PLACEHOLDER)) {
+    const reference = match[1];
+    if (reference === undefined) {
+      continue;
+    }
+    for (const path of collectReferences(parseExpression(`{${reference}}`).node)) {
+      const formatted = formatPath(path);
+      if (!seen.has(formatted)) {
+        seen.add(formatted);
+        reads.push(path);
+      }
+    }
+  }
+  return reads;
+}

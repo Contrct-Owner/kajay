@@ -1,13 +1,11 @@
 import { collectReferences } from '../expressions/collectReferences.js';
 import { parseExpression } from '../expressions/parseExpression.js';
 import { CONDITIONAL_PROPERTIES } from '../logic/conditionalProperties.js';
-import { createCarryForwardRule } from '../logic/createCarryForwardRule.js';
-import type { CarryForwardMode } from '../logic/createCarryForwardRule.js';
 import { createTriggerRule } from '../logic/createTriggerRule.js';
 import { createValueRule } from '../logic/createValueRule.js';
 import type { LogicEngine } from '../logic/LogicEngine.js';
 import type { CalculatedValue } from './CalculatedValue.js';
-import type { ChoiceSourceController } from './ChoiceSourceController.js';
+import type { CarryForwardMode, ChoiceSourceController } from './ChoiceSourceController.js';
 import type { ElementStateController } from './ElementStateController.js';
 import type { Question } from './Question.js';
 import { SelectQuestion } from './SelectQuestion.js';
@@ -30,12 +28,6 @@ export interface RuleHost {
   readonly resolveValue: (name: string) => unknown;
 }
 
-/**
- * A question's choices may come from elsewhere: carried forward from another
- * question, or loaded from a URL. At most one source is active — declaring both is an
- * authoring mistake, and carry-forward wins because it is the one that resolves
- * synchronously and therefore predictably.
- */
 function registerCarryForward(
   question: SelectQuestion,
   sourceName: string,
@@ -43,24 +35,20 @@ function registerCarryForward(
   host: RuleHost,
 ): void {
   host.logic.addRule(
-    createCarryForwardRule(
-      `${owner}:choicesFromQuestion`,
+    host.choiceSources.createCarryForwardRule({
+      key: `${owner}:choicesFromQuestion`,
+      question,
       sourceName,
-      toMode(question.choicesFromQuestionMode),
-      {
-        getSourceChoices: () => {
-          const source = host.findQuestion(sourceName);
-          return source instanceof SelectQuestion ? source.visibleChoices : undefined;
-        },
-        getSourceValue: () => host.resolveValue(sourceName),
-        installProvider: (provider) => {
-          question.setChoiceProvider(provider);
-        },
-        announce: () => {
-          host.announceChoices(question);
-        },
+      mode: toMode(question.choicesFromQuestionMode),
+      getSourceChoices: () => {
+        const source = host.findQuestion(sourceName);
+        return source instanceof SelectQuestion ? source.visibleChoices : undefined;
       },
-    ),
+      getSourceValue: () => host.resolveValue(sourceName),
+      announce: () => {
+        host.announceChoices(question);
+      },
+    }),
   );
 }
 

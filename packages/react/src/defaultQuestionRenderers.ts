@@ -1,3 +1,4 @@
+import { CollapsedSelectRenderer } from './CollapsedSelectRenderer.js';
 import { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
 import { SelectQuestionRenderer } from './SelectQuestionRenderer.js';
 import { TextQuestionRenderer } from './TextQuestionRenderer.js';
@@ -7,6 +8,8 @@ function createDefaultRenderers(): QuestionRendererRegistry {
   registry.register('text', TextQuestionRenderer);
   registry.register('radiogroup', SelectQuestionRenderer);
   registry.register('checkbox', SelectQuestionRenderer);
+  registry.register('dropdown', CollapsedSelectRenderer);
+  registry.register('tagbox', CollapsedSelectRenderer);
   return registry;
 }
 

@@ -117,6 +117,10 @@ export type {
 export { registerBuiltInTypes } from './metadata/registerBuiltInTypes.js';
 export { CalculatedValue } from './model/CalculatedValue.js';
 export { CheckboxQuestion } from './model/CheckboxQuestion.js';
+export { DropdownQuestion } from './model/DropdownQuestion.js';
+export { MultiSelectQuestion } from './model/MultiSelectQuestion.js';
+export { SingleSelectQuestion } from './model/SingleSelectQuestion.js';
+export { TagboxQuestion } from './model/TagboxQuestion.js';
 export { ItemValue } from './model/ItemValue.js';
 export { RadiogroupQuestion } from './model/RadiogroupQuestion.js';
 export { NONE_VALUE, OTHER_VALUE, SelectQuestion } from './model/SelectQuestion.js';

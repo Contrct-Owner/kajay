@@ -117,6 +117,20 @@
   cursor: pointer;
 }
 
+.kajay-question__select {
+  padding: calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+}
+
+.kajay-question__select:focus-visible {
+  outline: 2px solid var(--kajay-color-accent);
+  outline-offset: 1px;
+}
+
 .kajay-question--unsupported {
   color: var(--kajay-color-muted);
   font-style: italic;

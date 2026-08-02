@@ -67,8 +67,8 @@ Proof naming convention: `parity/<row-id>-<slug>` (e.g. `parity/B3-visible-if`).
 | C2 | comment (multi-line, autoGrow, character counter) | ☐ | |
 | C3 | radiogroup (choices, otherItem, noneItem, showClearButton, colCount, choicesOrder) | ☑ | `parity/C3-radiogroup` (unit), `parity/C3-C4-select-questions` (host E2E), browser proof for selection. `choicesOrder` supports none/asc/desc; random is deferred as it would make the suite non-deterministic |
 | C4 | checkbox (selectAll, none, other, maxSelectedChoices, colCount) | ☑ | `parity/C4-checkbox` (unit), `parity/C3-C4-select-questions` (host E2E), browser proof for multi-select |
-| C5 | dropdown (search/filter, lazy loading, placeholder, showOtherItem) | ☐ | |
-| C6 | tagbox (multi-select dropdown with search + lazy load) | ☐ | |
+| C5 | dropdown (search/filter, lazy loading, placeholder, showOtherItem) | ☐ | Partial: `parity/C5-dropdown` (unit + browser) covers single-select, placeholder, showOtherItem, and model-level search (`filterChoices`). **Lazy loading** needs an async choice source, which §B10 (`choicesByUrl`) will introduce. The searchable combobox *UI* is deferred to Phase 2's a11y pass — the renderer uses a native `<select>` |
+| C6 | tagbox (multi-select dropdown with search + lazy load) | ☐ | Partial: `parity/C6-tagbox` (unit + browser) covers multi-select with the shared none/max-selected rules and model-level search. Lazy load and the combobox UI are deferred with C5 |
 | C7 | boolean (switch + radio render modes, labelTrue/False, valueTrue/False) | ☐ | |
 | C8 | rating (numeric, stars, smileys, rateValues, min/max descriptions, display mode auto-switch) | ☐ | |
 | C9 | ranking (drag reorder, selectToRankEnabled, keyboard support) | ☐ | |

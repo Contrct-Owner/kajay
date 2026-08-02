@@ -204,6 +204,48 @@ test('parity/B3-visible-if: a choice appears once its own condition holds', asyn
   await expect.element(screen.getByLabelText('sometimes')).toBeVisible();
 });
 
+test('parity/C5-dropdown: choosing an option records it', async () => {
+  const model = parseSurvey({
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          {
+            type: 'dropdown',
+            name: 'plan',
+            title: 'Plan',
+            placeholder: 'Choose a plan',
+            choices: ['free', 'paid'],
+          },
+        ],
+      },
+    ],
+  }).survey;
+
+  const screen = await render(<Survey model={model} />);
+
+  await screen.getByLabelText('Plan').selectOptions('paid');
+  expect(model.data).toEqual({ plan: 'paid' });
+});
+
+test('parity/C6-tagbox: several options accumulate', async () => {
+  const model = parseSurvey({
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          { type: 'tagbox', name: 'langs', title: 'Languages', choices: ['ts', 'go', 'rust'] },
+        ],
+      },
+    ],
+  }).survey;
+
+  const screen = await render(<Survey model={model} />);
+
+  await screen.getByLabelText('Languages').selectOptions(['ts', 'rust']);
+  expect(model.data).toEqual({ langs: ['ts', 'rust'] });
+});
+
 test('an answer typed in the browser survives serialization', async () => {
   const model = buildModel();
   const screen = await render(<Survey model={model} />);

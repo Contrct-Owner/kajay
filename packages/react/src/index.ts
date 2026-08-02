@@ -1,5 +1,6 @@
 // The entire public surface of @kajay/react.
 
+export { CollapsedSelectRenderer } from './CollapsedSelectRenderer.js';
 export { defaultQuestionRenderers } from './defaultQuestionRenderers.js';
 export type { QuestionRendererProps } from './QuestionRendererProps.js';
 export { QuestionRendererRegistry } from './QuestionRendererRegistry.js';

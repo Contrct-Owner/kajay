@@ -76,6 +76,13 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
           showNoneItem: true,
         },
         {
+          type: 'dropdown',
+          name: 'timezone',
+          title: 'Where are you?',
+          placeholder: 'Choose a region',
+          choices: ['Europe', 'Americas', 'Asia-Pacific'],
+        },
+        {
           type: 'radiogroup',
           name: 'seniority',
           title: 'How senior are you?',

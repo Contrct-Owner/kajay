@@ -90,6 +90,32 @@ export abstract class SelectQuestion extends Question {
     return order === 'asc' ? sorted : sorted.toReversed();
   }
 
+  /** Prompt shown while nothing is chosen. Meaningful for collapsed lists. */
+  get placeholder(): string {
+    return this.getStringProperty('placeholder');
+  }
+
+  /** Whether the respondent may narrow a long list by typing. Defaults to on. */
+  get searchEnabled(): boolean {
+    const enabled = this.getPropertyValue('searchEnabled');
+    return typeof enabled === 'boolean' ? enabled : true;
+  }
+
+  /**
+   * Choices matching a search term.
+   *
+   * Filtering lives here rather than in the renderer so every adapter narrows a list
+   * identically, and so the rule is testable without a DOM. Matching is
+   * case-insensitive against the display text, which is what the respondent sees.
+   */
+  filterChoices(query: string): readonly ItemValue[] {
+    const trimmed = query.trim().toLowerCase();
+    if (trimmed.length === 0 || !this.searchEnabled) {
+      return this.visibleChoices;
+    }
+    return this.visibleChoices.filter((choice) => choice.text.toLowerCase().includes(trimmed));
+  }
+
   /** True when `choiceValue` is part of the current answer. */
   abstract isSelected(choiceValue: PropertyValue): boolean;
 

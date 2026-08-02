@@ -111,6 +111,15 @@
           "type": "string",
           "default": "None"
         },
+        "placeholder": {
+          "type": "string",
+          "default": ""
+        },
+        "searchEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether a long list may be narrowed by typing."
+        },
         "showSelectAllItem": {
           "type": "boolean",
           "default": false
@@ -183,6 +192,107 @@
       ],
       "additionalProperties": true
     },
+    "dropdown": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "dropdown"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique question identifier, and the key its answer is stored under."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the question is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the question is editable only while it evaluates truthy."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "choicesOrder": {
+          "type": "string",
+          "default": "",
+          "description": "none, asc or desc."
+        },
+        "colCount": {
+          "type": "number",
+          "default": 0
+        },
+        "showOtherItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "otherText": {
+          "type": "string",
+          "default": "Other"
+        },
+        "showNoneItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "noneText": {
+          "type": "string",
+          "default": "None"
+        },
+        "placeholder": {
+          "type": "string",
+          "default": ""
+        },
+        "searchEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether a long list may be narrowed by typing."
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/itemvalue"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
     "itemvalue": {
       "type": "object",
       "properties": {
@@ -212,6 +322,17 @@
         "value"
       ],
       "additionalProperties": true
+    },
+    "multiselectbase": {
+      "description": "Any concrete \"multiselectbase\".",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/checkbox"
+        },
+        {
+          "$ref": "#/$defs/tagbox"
+        }
+      ]
     },
     "page": {
       "type": "object",
@@ -252,7 +373,13 @@
           "$ref": "#/$defs/checkbox"
         },
         {
+          "$ref": "#/$defs/dropdown"
+        },
+        {
           "$ref": "#/$defs/radiogroup"
+        },
+        {
+          "$ref": "#/$defs/tagbox"
         },
         {
           "$ref": "#/$defs/text"
@@ -338,6 +465,15 @@
           "type": "string",
           "default": "None"
         },
+        "placeholder": {
+          "type": "string",
+          "default": ""
+        },
+        "searchEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether a long list may be narrowed by typing."
+        },
         "showClearButton": {
           "type": "boolean",
           "default": false
@@ -389,7 +525,13 @@
           "$ref": "#/$defs/checkbox"
         },
         {
+          "$ref": "#/$defs/dropdown"
+        },
+        {
           "$ref": "#/$defs/radiogroup"
+        },
+        {
+          "$ref": "#/$defs/tagbox"
         }
       ]
     },
@@ -487,6 +629,120 @@
           }
         }
       },
+      "additionalProperties": true
+    },
+    "tagbox": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "tagbox"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique question identifier, and the key its answer is stored under."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the question is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the question is editable only while it evaluates truthy."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "choicesOrder": {
+          "type": "string",
+          "default": "",
+          "description": "none, asc or desc."
+        },
+        "colCount": {
+          "type": "number",
+          "default": 0
+        },
+        "showOtherItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "otherText": {
+          "type": "string",
+          "default": "Other"
+        },
+        "showNoneItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "noneText": {
+          "type": "string",
+          "default": "None"
+        },
+        "placeholder": {
+          "type": "string",
+          "default": ""
+        },
+        "searchEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether a long list may be narrowed by typing."
+        },
+        "showSelectAllItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "selectAllText": {
+          "type": "string",
+          "default": "Select all"
+        },
+        "maxSelectedChoices": {
+          "type": "number",
+          "default": 0,
+          "description": "0 means no limit."
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/itemvalue"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
       "additionalProperties": true
     },
     "text": {

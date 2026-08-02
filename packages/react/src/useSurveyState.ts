@@ -1,0 +1,27 @@
+import type { Survey } from '@kajay/core';
+import { useCallback, useSyncExternalStore } from 'react';
+
+/**
+ * Subscribes to one question's answer.
+ *
+ * `useSyncExternalStore` over the core event surface is the whole integration: core
+ * owns the state, React only reads it. That is what keeps the renderer swappable —
+ * another framework's adapter subscribes to the same events.
+ */
+export function useSurveyValue(survey: Survey, name: string): unknown {
+  const subscribe = useCallback(
+    (onStoreChange: () => void): (() => void) => survey.onValueChanged.add(onStoreChange),
+    [survey],
+  );
+  const getSnapshot = useCallback((): unknown => survey.getValue(name), [survey, name]);
+  return useSyncExternalStore(subscribe, getSnapshot);
+}
+
+export function useSurveyCompleted(survey: Survey): boolean {
+  const subscribe = useCallback(
+    (onStoreChange: () => void): (() => void) => survey.onComplete.add(onStoreChange),
+    [survey],
+  );
+  const getSnapshot = useCallback((): boolean => survey.isCompleted, [survey]);
+  return useSyncExternalStore(subscribe, getSnapshot);
+}

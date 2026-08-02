@@ -1,0 +1,10 @@
+/* Opt-in dark preset. Imported as `@kajay/themes/themes/dark.css`, proving the
+ * wildcard subpath export in ADR-0010 resolves from an installed tarball. */
+
+[data-kajay-theme="dark"] {
+  --kajay-color-surface: #12161f;
+  --kajay-color-text: #e7ecf3;
+  --kajay-color-muted: #98a2b3;
+  --kajay-color-accent: #7aa2f7;
+  --kajay-color-border: #2b3444;
+}

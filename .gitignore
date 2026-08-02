@@ -1,0 +1,19 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.tsbuild/
+
+# Build + test output
+coverage/
+playwright-report/
+test-results/
+apps/host-demo/dist/
+
+# Pack test scratch area (created outside the workspace, but ignore any stray local copy)
+.pack-scratch/
+*.tgz
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/

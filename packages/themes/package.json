@@ -1,0 +1,31 @@
+{
+  "name": "@kajay/themes",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CSS-variable design tokens and theme presets.",
+  "license": "UNLICENSED",
+  "sideEffects": [
+    "*.css"
+  ],
+  "engines": {
+    "node": ">=22.12.0",
+    "npm": ">=10"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles.css": "./styles/styles.css",
+    "./themes/*.css": "./styles/themes/*.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "styles"
+  ],
+  "scripts": {
+    "build": "tsc -b"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "@kajay/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Headless survey model, metadata registry, and serializer.",
+  "license": "UNLICENSED",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22.12.0",
+    "npm": ">=10"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b"
+  }
+}

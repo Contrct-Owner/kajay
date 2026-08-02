@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kajay:survey-definition:1",
+  "title": "Kajay survey definition",
+  "description": "Generated from the metadata registry. Do not edit by hand: `npm run check:contract` fails on drift.",
+  "$ref": "#/$defs/survey",
+  "$defs": {
+    "page": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "page"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique page identifier."
+        },
+        "title": {
+          "type": "string",
+          "default": ""
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/question"
+          }
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "question": {
+      "description": "Any concrete \"question\".",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/text"
+        }
+      ]
+    },
+    "survey": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ],
+          "description": "Format version. Absent means current; an unknown value is refused, not guessed."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Survey title shown above the first page."
+        },
+        "description": {
+          "type": "string",
+          "default": ""
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/page"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "text": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "text"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique question identifier, and the key its answer is stored under."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "inputType": {
+          "type": "string",
+          "default": "text"
+        },
+        "placeholder": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    }
+  }
+}

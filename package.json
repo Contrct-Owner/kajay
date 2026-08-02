@@ -1,0 +1,50 @@
+{
+  "name": "kajay-survey-workspace",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Workspace root for the Kajay survey engine. Not published.",
+  "engines": {
+    "node": ">=22.12.0",
+    "npm": ">=10"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean && rm -rf .tsbuild",
+    "lint": "oxlint --deny-warnings",
+    "typecheck": "npm run typecheck:tsc7 && npm run typecheck:tsc",
+    "typecheck:tsc": "tsc -b --force",
+    "typecheck:tsc7": "node node_modules/typescript7/bin/tsc -b --force",
+    "check:arch": "node scripts/check-arch.mjs",
+    "check:contract": "node scripts/check-contract.mjs",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
+    "test:e2e": "playwright test",
+    "test:pack": "node scripts/pack-test.mjs",
+    "verify": "npm run lint && npm run typecheck && npm run check:arch && npm run test:unit && npm run test:browser && npm run check:contract && npm run test:e2e && npm run test:pack"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@changesets/cli": "^2.31.1",
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.0.5",
+    "@vitest/browser": "^4.1.10",
+    "@vitest/browser-playwright": "^4.1.10",
+    "oxlint": "^1.76.0",
+    "playwright": "^1.62.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "~6.0.3",
+    "typescript7": "npm:typescript@^7.0.2",
+    "vite": "^8.2.0",
+    "vitest": "^4.1.10",
+    "vitest-browser-react": "^2.2.0"
+  }
+}

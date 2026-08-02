@@ -1,0 +1,32 @@
+{
+  "name": "@kajay/react",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "React renderer over @kajay/core.",
+  "license": "UNLICENSED",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22.12.0",
+    "npm": ">=10"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@kajay/core": "0.0.0"
+  },
+  "peerDependencies": {
+    "react": "^19"
+  },
+  "scripts": {
+    "build": "tsc -b"
+  }
+}

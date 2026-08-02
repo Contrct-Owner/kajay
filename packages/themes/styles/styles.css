@@ -1,0 +1,105 @@
+/*
+ * Kajay design tokens and base component styles.
+ *
+ * Hosts import this explicitly (`import "@kajay/themes/styles.css"`). No JavaScript
+ * package imports it — see ADR-0010. Overriding a token is the supported way to
+ * restyle; no CSS framework is imposed on the host.
+ */
+
+:root {
+  --kajay-color-surface: #ffffff;
+  --kajay-color-text: #101828;
+  --kajay-color-muted: #667085;
+  --kajay-color-accent: #2f6feb;
+  --kajay-color-border: #d0d5dd;
+  --kajay-radius: 8px;
+  --kajay-spacing: 16px;
+  --kajay-font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.kajay-survey {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kajay-spacing);
+  max-width: 640px;
+  padding: calc(var(--kajay-spacing) * 1.5);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: var(--kajay-color-text);
+  font-family: var(--kajay-font-family);
+}
+
+.kajay-survey__title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.kajay-survey__description {
+  margin: 0;
+  color: var(--kajay-color-muted);
+}
+
+.kajay-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kajay-spacing);
+}
+
+.kajay-page__title {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.kajay-question {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 3);
+}
+
+.kajay-question__title {
+  font-weight: 600;
+}
+
+.kajay-question__required {
+  color: var(--kajay-color-accent);
+}
+
+.kajay-question__input {
+  padding: calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+}
+
+.kajay-question__input:focus-visible {
+  outline: 2px solid var(--kajay-color-accent);
+  outline-offset: 1px;
+}
+
+.kajay-question--unsupported {
+  color: var(--kajay-color-muted);
+  font-style: italic;
+}
+
+.kajay-survey__complete {
+  align-self: flex-start;
+  padding: calc(var(--kajay-spacing) / 2) var(--kajay-spacing);
+  border: none;
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-accent);
+  color: #ffffff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kajay-survey--completed {
+  align-items: flex-start;
+}
+
+.kajay-toolbox {
+  margin: 0;
+  padding-left: var(--kajay-spacing);
+}

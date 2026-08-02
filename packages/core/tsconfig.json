@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    // No DOM. The architecture check asserts this, but the compiler is the first
+    // line of defence: `document` and `window` must not even resolve here.
+    "lib": ["es2023"],
+    "types": [],
+    "isolatedDeclarations": true,
+    "tsBuildInfoFile": "../../.tsbuild/core.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts"]
+}

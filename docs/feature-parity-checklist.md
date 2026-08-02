@@ -48,14 +48,14 @@ Proof naming convention: `parity/<row-id>-<slug>` (e.g. `parity/B3-visible-if`).
 
 | ID | Feature | Status | Proof |
 | --- | --- | --- | --- |
-| B1 | Expression language: literals, `{question}` refs incl. composite paths (`{matrix.row.col}`, `{panel[0].q}`), arithmetic, comparison, and/or/not, contains/anyof/allof, empty/notempty | ☐ | |
-| B2 | Built-in function library (iif, sum, avg, min, max, count, age, today, currentDate, getDate, diffDays, ...) + custom sync and async function registration | ☐ | |
+| B1 | Expression language: literals, `{question}` refs incl. composite paths (`{matrix.row.col}`, `{panel[0].q}`), arithmetic, comparison, and/or/not, contains/anyof/allof, empty/notempty | ☑ | `parity/B1-expression-grammar` (precedence/associativity via print round-trip) + `parity/B1-operators` (evaluation), unit, through public API |
+| B2 | Built-in function library (iif, sum, avg, min, max, count, age, today, currentDate, getDate, diffDays, ...) + custom sync and async function registration | ☐ | Partial: library and **sync** custom registration proven by `built-in function library`; async registration not built |
 | B3 | `visibleIf` on questions, panels, pages, and individual choices | ☐ | |
 | B4 | `enableIf` / `requiredIf` | ☐ | |
 | B5 | `setValueIf` + `setValueExpression`, `resetValueIf`, `defaultValueExpression` | ☐ | |
 | B6 | Calculated values (survey-level `calculatedValues`, usable in expressions and completed HTML) | ☐ | |
 | B7 | Triggers: complete, setvalue, copyvalue, runexpression, skip | ☐ | |
-| B8 | Dependency graph: value change re-evaluates only dependents; cycles detected and reported | ☐ | |
+| B8 | Dependency graph: value change re-evaluates only dependents; cycles detected and reported | ☐ | Partial: static reference extraction from the AST (the graph's input) proven by `reference collection for the dependency graph`; the graph itself is not built |
 | B9 | Carry-forward choices (`choicesFromQuestion`, selected/unselected modes) | ☐ | |
 | B10 | REST choices (`choicesByUrl`: url/path/valueName/titleName, caching, url with `{question}` placeholders) | ☐ | |
 

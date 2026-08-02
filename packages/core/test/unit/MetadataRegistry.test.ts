@@ -1,4 +1,11 @@
-import { MetadataRegistry, SurveyElement, globalRegistry } from '@kajay/core';
+import {
+  DropdownQuestion,
+  MetadataRegistry,
+  SurveyElement,
+  TagboxQuestion,
+  TextQuestion,
+  globalRegistry,
+} from '@kajay/core';
 import { describe, expect, test } from 'vitest';
 import { createTestRegistry } from '../support/createTestRegistry.js';
 
@@ -71,6 +78,33 @@ describe('parity/A3-metadata-registry', () => {
 
     expect(element.getPropertyValue('label')).toBeUndefined();
     expect(element.label).toBe('From metadata');
+  });
+
+  test('public constructors resolve defaults from the built-in metadata', () => {
+    const text = new TextQuestion();
+    const dropdown = new DropdownQuestion();
+    const tagbox = new TagboxQuestion();
+
+    expect(text.inputType).toBe('text');
+    expect(dropdown.searchEnabled).toBe(true);
+    expect([dropdown.otherText, dropdown.noneText]).toEqual(['Other', 'None']);
+    expect(dropdown.choicesFromQuestionMode).toBe('all');
+    expect(tagbox.selectAllText).toBe('Select all');
+
+    text.inputType = '';
+    expect(text.inputType).toBe('');
+  });
+
+  test('a creating registry overrides the built-in fallback for the same class name', () => {
+    const registry = new MetadataRegistry();
+    registry.addClass({
+      name: 'text',
+      properties: [{ name: 'inputType', type: 'string', defaultValue: 'email' }],
+      create: () => new TextQuestion(),
+    });
+
+    const text = registry.createInstance('text') as TextQuestion;
+    expect(text.inputType).toBe('email');
   });
 
   test('addProperty injects into an existing class', () => {

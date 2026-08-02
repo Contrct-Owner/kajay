@@ -96,6 +96,6 @@ export abstract class SurveyElement {
   }
 
   #resolvedPropertyValue(name: string): PropertyValue | undefined {
-    return this.#values.has(name) ? this.#values.get(name) : getPropertyDefault(this, name);
+    return this.#values.has(name) ? this.#values.get(name) : getPropertyDefault(this, this.type, name);
   }
 }

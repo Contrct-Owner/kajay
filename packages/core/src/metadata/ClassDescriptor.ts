@@ -46,6 +46,12 @@ export interface ClassDefinition {
   readonly create?: () => SurveyElement;
 }
 
+/**
+ * A class's authoritative metadata without its model-construction factory.
+ * Property and child-collection order remains the canonical serialization order.
+ */
+export type ClassMetadataDefinition = Omit<ClassDefinition, 'create'>;
+
 /** Stored form of a class registration. */
 export interface ClassDescriptor {
   readonly name: string;

@@ -9,6 +9,15 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env['CI']),
   retries: 0,
+  expect: {
+    // Longer than the 5s default, because the whole suite runs three browsers and a
+    // build on one machine and the page's own timers get starved by it. Measured, not
+    // guessed: the demo's check timeline recorded a 60ms timer and a 300ms timer both
+    // firing at +6.7s under full load, with everything downstream of them correct.
+    // The library was never slow; the machine was busy. See the notes on the
+    // stuck-"Checking…" investigation.
+    timeout: 15_000,
+  },
   reporter: process.env['CI'] ? [['github'], ['html', { open: 'never' }]] : [['list']],
   use: {
     baseURL: 'http://localhost:4173',

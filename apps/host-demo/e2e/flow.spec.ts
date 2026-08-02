@@ -203,3 +203,26 @@ test('parity/E4-preview', async ({ page }) => {
     'readonly',
   );
 });
+
+test('parity/E3-progress-and-toc', async ({ page }) => {
+  const bar = page.getByRole('progressbar');
+  // Nothing behind them yet, on the first of three pages.
+  await expect(bar).toHaveAttribute('aria-label', '0 of 3 pages completed');
+
+  const contents = page.getByRole('navigation', { name: 'Survey pages' });
+  // "You are here", said out loud rather than only drawn.
+  await expect(contents.getByRole('button', { name: 'About you' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+
+  // Jumping does not run the gate: a table of contents is for looking around, and
+  // page one has a required question nobody has answered.
+  await contents.getByRole('button', { name: 'Question types' }).click();
+  await expect(page.getByRole('heading', { name: 'Question types' })).toBeVisible();
+  await expect(bar).toHaveAttribute('aria-label', '2 of 3 pages completed');
+  await expect(contents.getByRole('button', { name: 'Question types' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+});

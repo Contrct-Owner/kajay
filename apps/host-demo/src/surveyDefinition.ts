@@ -63,6 +63,11 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
   // A last look before submitting, showing only what they actually answered — a review
   // screen listing every untouched optional question buries the ones that matter.
   showPreviewBeforeComplete: 'showAnsweredQuestions',
+  // Both a bar and a list, because they answer different questions: how far through
+  // am I, and what else is there.
+  showProgressBar: 'top',
+  progressBarType: 'pages',
+  showTOC: true,
   // The ending is authored, and reads back what the respondent told us. `{fullName}` is
   // an answer and `{answeredCount}` is a calculated value — the completed page makes no
   // distinction, which is the half of B6 that had nowhere to be proven.

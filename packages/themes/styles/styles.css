@@ -728,3 +728,47 @@
   padding-inline: 0;
   font-weight: 600;
 }
+
+/* --- Progress and contents (E3) -------------------------------------------- */
+
+.kajay-progress {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 4);
+}
+
+.kajay-progress__bar {
+  width: 100%;
+  height: 0.5rem;
+}
+
+.kajay-progress__label {
+  margin: 0;
+  color: var(--kajay-color-muted);
+  font-size: 0.8125em;
+}
+
+.kajay-toc__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--kajay-spacing) / 4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kajay-toc__page {
+  padding: calc(var(--kajay-spacing) / 4) calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* "You are here" for anyone reading the highlight; `aria-current` says it out loud. */
+.kajay-toc__page[aria-current] {
+  border-color: var(--kajay-color-accent);
+  font-weight: 600;
+}

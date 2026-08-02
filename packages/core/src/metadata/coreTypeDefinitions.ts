@@ -47,6 +47,23 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         description: 'The whole survey is for reading rather than answering.',
       },
       {
+        name: 'showProgressBar',
+        type: 'string',
+        defaultValue: 'off',
+        description: 'off, top, bottom or both.',
+      },
+      {
+        name: 'progressBarType',
+        type: 'string',
+        defaultValue: 'pages',
+        description: 'pages, questions or requiredQuestions.',
+      },
+      {
+        name: 'showTOC',
+        type: 'boolean',
+        description: 'Offer a list of pages the respondent can jump between.',
+      },
+      {
         name: 'showPreviewBeforeComplete',
         type: 'string',
         defaultValue: 'noPreview',

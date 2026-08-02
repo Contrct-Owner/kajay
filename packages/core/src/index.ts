@@ -130,6 +130,16 @@ export { Survey } from './model/Survey.js';
 export { HtmlCondition } from './model/HtmlCondition.js';
 export { readProgress, restoreProgress } from './model/SurveyProgress.js';
 export { collectPreviewQuestions, toPreviewMode } from './model/previewQuestions.js';
+export {
+  measureProgress,
+  toProgressBarLocation,
+  toProgressBarType,
+} from './model/progressBar.js';
+export type {
+  ProgressBarLocation,
+  ProgressBarType,
+  ProgressCount,
+} from './model/progressBar.js';
 export type { PreviewMode } from './model/previewQuestions.js';
 export type { SurveyProgress } from './model/SurveyProgress.js';
 export {

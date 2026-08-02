@@ -2111,6 +2111,21 @@
           "default": false,
           "description": "The whole survey is for reading rather than answering."
         },
+        "showProgressBar": {
+          "type": "string",
+          "default": "off",
+          "description": "off, top, bottom or both."
+        },
+        "progressBarType": {
+          "type": "string",
+          "default": "pages",
+          "description": "pages, questions or requiredQuestions."
+        },
+        "showTOC": {
+          "type": "boolean",
+          "default": false,
+          "description": "Offer a list of pages the respondent can jump between."
+        },
         "showPreviewBeforeComplete": {
           "type": "string",
           "default": "noPreview",

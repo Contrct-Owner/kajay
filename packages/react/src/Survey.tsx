@@ -1,5 +1,5 @@
 import type { Survey as SurveyModel } from '@kajay/core';
-import type { FormEvent, ReactElement } from 'react';
+import type { FormEvent, ReactElement, RefObject } from 'react';
 import { defaultQuestionRenderers } from './defaultQuestionRenderers.js';
 import { HtmlSanitizerProvider } from './HtmlSanitizerContext.js';
 import type { HtmlSanitizer } from './HtmlSanitizerContext.js';
@@ -7,6 +7,8 @@ import type { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
 import { SurveyNavigation } from './SurveyNavigation.js';
 import { SurveyPage } from './SurveyPage.js';
 import { SurveyPreview } from './SurveyPreview.js';
+import { SurveyProgressBar } from './SurveyProgressBar.js';
+import { SurveyToc } from './SurveyToc.js';
 import { SurveyStatusPage } from './SurveyStatusPage.js';
 import { useErrorFocus } from './useErrorFocus.js';
 import {
@@ -75,6 +77,28 @@ export function Survey({
     );
   }
 
+  return (
+    <HtmlSanitizerProvider sanitize={sanitizeHtml}>
+      <SurveyForm model={model} renderers={renderers} onErrors={requestFocus} formRef={formRef} />
+    </HtmlSanitizerProvider>
+  );
+}
+
+interface SurveyFormProps {
+  readonly model: SurveyModel;
+  readonly renderers: QuestionRendererRegistry;
+  readonly onErrors: () => void;
+  readonly formRef: RefObject<HTMLFormElement | null>;
+}
+
+/**
+ * The answerable survey: header, progress, contents, the page, and the navigation.
+ *
+ * Split from `Survey` so the component that *chooses* what to draw is not also the one
+ * drawing it — the four states above are a different decision from the layout of the
+ * form, and reading either was getting harder for the other being there.
+ */
+function SurveyForm({ model, renderers, onErrors, formRef }: SurveyFormProps): ReactElement {
   // Submitting means "advance", which on the last page means complete. Keeping that
   // decision in the model stops each adapter reinventing "am I at the end".
   //
@@ -85,28 +109,24 @@ export function Survey({
     // Only `blocked`. A `pending` move has no error to point at yet — moving focus
     // would land it on a field with nothing wrong with it.
     if (model.nextPageOrComplete() === 'blocked') {
-      requestFocus();
+      onErrors();
     }
   };
 
   const currentPage = model.currentPage;
 
   return (
-    <HtmlSanitizerProvider sanitize={sanitizeHtml}>
-      <form className="kajay-survey" ref={formRef} onSubmit={handleSubmit} noValidate>
-        <SurveyHeader survey={model} />
+    <form className="kajay-survey" ref={formRef} onSubmit={handleSubmit} noValidate>
+      <SurveyHeader survey={model} />
+      <SurveyProgressBar survey={model} at="top" />
+      <SurveyToc survey={model} />
 
-        {currentPage === undefined ? null : (
-          <SurveyPage
-            key={currentPage.name}
-            survey={model}
-            page={currentPage}
-            renderers={renderers}
-          />
-        )}
+      {currentPage === undefined ? null : (
+        <SurveyPage key={currentPage.name} survey={model} page={currentPage} renderers={renderers} />
+      )}
 
-        <SurveyNavigation survey={model} />
-      </form>
-    </HtmlSanitizerProvider>
+      <SurveyProgressBar survey={model} at="bottom" />
+      <SurveyNavigation survey={model} />
+    </form>
   );
 }

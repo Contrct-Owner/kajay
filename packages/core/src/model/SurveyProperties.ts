@@ -2,6 +2,8 @@ import { toClearPolicy } from './clearInvisibleAnswers.js';
 import type { ClearInvisibleValues } from './clearInvisibleAnswers.js';
 import { toPreviewMode } from './previewQuestions.js';
 import type { PreviewMode } from './previewQuestions.js';
+import { toProgressBarLocation, toProgressBarType } from './progressBar.js';
+import type { ProgressBarLocation, ProgressBarType } from './progressBar.js';
 import { SurveyElement } from './SurveyElement.js';
 
 /**
@@ -53,6 +55,21 @@ export abstract class SurveyProperties extends SurveyElement {
    */
   get isReadOnly(): boolean {
     return this.getBooleanProperty('readOnly');
+  }
+
+  /** Where the progress bar is drawn, if at all. */
+  get showProgressBar(): ProgressBarLocation {
+    return toProgressBarLocation(this.getStringProperty('showProgressBar'));
+  }
+
+  /** What the bar measures: pages behind them, or questions answered. */
+  get progressBarType(): ProgressBarType {
+    return toProgressBarType(this.getStringProperty('progressBarType'));
+  }
+
+  /** Whether the respondent gets a list of pages they can jump between. */
+  get showTOC(): boolean {
+    return this.getBooleanProperty('showTOC');
   }
 
   /** Whether the respondent sees their answers before submitting, and which of them. */

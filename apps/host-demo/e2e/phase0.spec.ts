@@ -100,6 +100,19 @@ test('parity/B6-calculated-values', async ({ page }) => {
   await expect(answers).toContainText('"answeredCount": 2');
 });
 
+test('parity/B7-triggers', async ({ page }) => {
+  const status = page.getByLabel('Status');
+  await expect(status).toHaveCount(0);
+
+  await page.getByLabel(/What is your name\?/u).fill('Ada Lovelace');
+  await page.getByLabel('What should we call you?').fill('Ada');
+  await expect(status).toHaveCount(0);
+
+  // Third answer takes answeredCount to 3, and the trigger fires once.
+  await page.getByLabel('Email address').fill('ada@example.com');
+  await expect(status).toHaveValue('complete');
+});
+
 test('parity/E5-completion-flow', async ({ page }) => {
   await page.getByLabel(/What is your name\?/u).fill('Ada');
   await page.getByRole('button', { name: 'Complete' }).click();

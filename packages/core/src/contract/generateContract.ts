@@ -7,7 +7,7 @@ type JsonSchemaNode = Record<string, unknown>;
 
 const JSON_SCHEMA_DIALECT = 'https://json-schema.org/draft/2020-12/schema';
 
-function jsonTypeFor(type: PropertyType): string {
+function jsonTypeFor(type: PropertyType): string | readonly string[] {
   switch (type) {
     case 'string':
       return 'string';
@@ -15,6 +15,9 @@ function jsonTypeFor(type: PropertyType): string {
       return 'number';
     case 'boolean':
       return 'boolean';
+    // A literal of whichever scalar the author wrote.
+    case 'value':
+      return ['string', 'number', 'boolean'];
   }
 }
 

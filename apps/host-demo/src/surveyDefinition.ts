@@ -8,6 +8,16 @@
 export const surveyDefinition: Readonly<Record<string, unknown>> = {
   // Deliberately not named for a phase: it goes stale every time the demo grows.
   title: 'Kajay demo',
+  triggers: [
+    {
+      // Fires on the transition into true, so it stamps once rather than on every
+      // keystroke afterwards.
+      type: 'setvalue',
+      expression: '{answeredCount} == 3',
+      setToName: 'status',
+      setValue: 'complete',
+    },
+  ],
   calculatedValues: [
     {
       name: 'answeredCount',
@@ -50,6 +60,13 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
           // Editable only once we know what to call them: a second link in the chain,
           // which the dependency graph orders without being told.
           enableIf: '{nickname} notempty',
+        },
+        {
+          type: 'text',
+          name: 'status',
+          title: 'Status',
+          // Written by the trigger above once everything is answered.
+          visibleIf: '{status} notempty',
         },
         {
           type: 'text',

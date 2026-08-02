@@ -1,13 +1,15 @@
 import { collectReferences } from '../expressions/collectReferences.js';
 import { parseExpression } from '../expressions/parseExpression.js';
 import { CONDITIONAL_PROPERTIES } from '../logic/conditionalProperties.js';
+import { createTriggerRule } from '../logic/createTriggerRule.js';
 import { createValueRule } from '../logic/createValueRule.js';
 import type { LogicEngine } from '../logic/LogicEngine.js';
 import type { CalculatedValue } from './CalculatedValue.js';
 import type { ElementStateController } from './ElementStateController.js';
-import type { Page } from './Page.js';
 import type { Question } from './Question.js';
+import type { SurveyChildren } from './SurveyChildren.js';
 import type { SurveyElement } from './SurveyElement.js';
+import type { Trigger } from './Trigger.js';
 
 /** What rule registration needs from the survey, without reaching into it. */
 export interface RuleHost {
@@ -16,6 +18,37 @@ export interface RuleHost {
   readonly getValue: (name: string) => unknown;
   readonly setValue: (name: string, value: unknown) => void;
   readonly setCalculated: (calculated: CalculatedValue, value: unknown) => void;
+  readonly complete: () => void;
+  readonly goTo: (name: string) => void;
+}
+
+function optionalString(value: string): string | undefined {
+  return value.length > 0 ? value : undefined;
+}
+
+function registerTrigger(trigger: Trigger, index: number, host: RuleHost): void {
+  const setValue = trigger.getPropertyValue('setValue');
+  const rule = createTriggerRule(
+    `trigger:${index}:${trigger.kind}`,
+    {
+      kind: trigger.kind,
+      expression: trigger.expression,
+      setToName: optionalString(trigger.setToName),
+      setValue,
+      fromName: optionalString(trigger.fromName),
+      runExpression: optionalString(trigger.runExpression),
+      gotoName: optionalString(trigger.gotoName),
+    },
+    {
+      getValue: host.getValue,
+      setValue: host.setValue,
+      complete: host.complete,
+      goTo: host.goTo,
+    },
+  );
+  if (rule !== undefined) {
+    host.logic.addRule(rule);
+  }
 }
 
 /** A non-blank string property, or undefined. */
@@ -93,15 +126,14 @@ function registerValueRule(question: Question, owner: string, host: RuleHost): v
  * Calculated values go first only for readability — the dependency graph orders
  * execution from declared reads and writes, not from registration order.
  */
-export function registerSurveyRules(
-  pages: readonly Page[],
-  calculatedValues: readonly CalculatedValue[],
-  host: RuleHost,
-): void {
-  for (const calculated of calculatedValues) {
+export function registerSurveyRules(children: SurveyChildren, host: RuleHost): void {
+  for (const calculated of children.calculatedValues) {
     registerCalculatedValue(calculated, host);
   }
-  for (const page of pages) {
+  for (const [index, trigger] of children.triggers.entries()) {
+    registerTrigger(trigger, index, host);
+  }
+  for (const page of children.pages) {
     registerConditions(page, `page:${page.name}`, host);
     for (const question of page.elements) {
       const owner = `question:${question.name}`;

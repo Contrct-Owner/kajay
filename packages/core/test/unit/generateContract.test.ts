@@ -39,7 +39,9 @@ describe('parity/A6-contract-generated-from-registry', () => {
     const contract = generateContract(createTestRegistry());
     const definitions = contract['$defs'] as Record<string, Record<string, unknown>>;
     for (const [name, definition] of Object.entries(definitions)) {
-      if (name === 'question') {
+      // Abstract classes project as a `oneOf` union and carry no properties of their
+      // own. Detected rather than named, so a new abstract base does not break this.
+      if (definition['oneOf'] !== undefined) {
         continue;
       }
       expect(definition['additionalProperties'], `${name} must accept unknown properties`).toBe(

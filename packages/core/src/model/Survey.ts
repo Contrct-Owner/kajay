@@ -1,4 +1,3 @@
-import type { DependencyError } from '../dependencies/DependencyError.js';
 import { EventEmitter } from '../events/EventEmitter.js';
 import type {
   CompleteEvent,
@@ -6,32 +5,34 @@ import type {
   ElementStateChangedEvent,
   ValueChangedEvent,
 } from '../events/SurveyEvents.js';
-import type { ExpressionError } from '../expressions/ExpressionError.js';
 import type { PathSegment } from '../expressions/ExpressionNode.js';
+import { LogicDiagnosticsCollector } from '../logic/LogicDiagnosticsCollector.js';
 import { LogicEngine } from '../logic/LogicEngine.js';
 import type {
   LogicDiagnostics,
   LogicEngineOptions,
   LogicRunResult,
 } from '../logic/LogicEngine.js';
-import { CalculatedValue } from './CalculatedValue.js';
+import type { CalculatedValue } from './CalculatedValue.js';
 import { CalculatedValueStore } from './CalculatedValueStore.js';
 import { createPathResolver } from './createPathResolver.js';
 import { ElementStateController } from './ElementStateController.js';
 import { Page } from './Page.js';
 import type { Question } from './Question.js';
+import { SurveyChildren } from './SurveyChildren.js';
 import { registerSurveyRules } from './registerSurveyRules.js';
 import { SurveyElement } from './SurveyElement.js';
+import type { Trigger } from './Trigger.js';
 import type { ValueHost } from './ValueHost.js';
 
 /** Root of the model, and the value host every question writes through. */
 export class Survey extends SurveyElement implements ValueHost {
-  readonly #pages: Page[] = [];
-  readonly #calculatedValues: CalculatedValue[] = [];
+  readonly #children: SurveyChildren = new SurveyChildren();
   readonly #data: Map<string, unknown> = new Map();
   readonly #calculated: CalculatedValueStore = new CalculatedValueStore();
   readonly #logic: LogicEngine;
   readonly #states: ElementStateController = new ElementStateController();
+  readonly #diagnostics: LogicDiagnosticsCollector = new LogicDiagnosticsCollector();
   readonly #resolvePath: (path: readonly PathSegment[]) => unknown = createPathResolver((name) =>
     this.#data.has(name) ? this.#data.get(name) : this.#calculated.get(name),
   );
@@ -40,8 +41,6 @@ export class Survey extends SurveyElement implements ValueHost {
   #isCompleted = false;
   #isSettling = false;
   #pendingValueChanges: ValueChangedEvent[] = [];
-  #dependencyErrors: DependencyError[] = [];
-  #expressionErrors: ExpressionError[] = [];
 
   readonly onValueChanged: EventEmitter<ValueChangedEvent> = new EventEmitter();
   readonly onComplete: EventEmitter<CompleteEvent> = new EventEmitter();
@@ -74,16 +73,16 @@ export class Survey extends SurveyElement implements ValueHost {
   }
 
   get pages(): readonly Page[] {
-    return this.#pages;
+    return this.#children.pages;
   }
 
   /** Pages a respondent can currently see. What the renderer draws. */
   get visiblePages(): readonly Page[] {
-    return this.#pages.filter((page) => page.isVisible);
+    return this.#children.pages.filter((page) => page.isVisible);
   }
 
   get questions(): readonly Question[] {
-    return this.#pages.flatMap((page) => [...page.elements]);
+    return this.#children.pages.flatMap((page) => [...page.elements]);
   }
 
   getQuestionByName(name: string): Question | undefined {
@@ -91,7 +90,11 @@ export class Survey extends SurveyElement implements ValueHost {
   }
 
   get calculatedValues(): readonly CalculatedValue[] {
-    return this.#calculatedValues;
+    return this.#children.calculatedValues;
+  }
+
+  get triggers(): readonly Trigger[] {
+    return this.#children.triggers;
   }
 
   /** The current result of a calculated value, whether or not it reaches `data`. */
@@ -100,28 +103,14 @@ export class Survey extends SurveyElement implements ValueHost {
   }
 
   override getChildren(property: string): readonly SurveyElement[] {
-    if (property === 'pages') {
-      return this.#pages;
-    }
-    return property === 'calculatedValues' ? this.#calculatedValues : [];
+    return this.#children.get(property);
   }
 
   override addChild(property: string, child: SurveyElement): void {
-    if (property === 'calculatedValues') {
-      if (!(child instanceof CalculatedValue)) {
-        throw new Error(`calculatedValues accepts calculated values; received "${child.type}".`);
-      }
-      this.#calculatedValues.push(child);
-      return;
+    this.#children.add(property, child);
+    if (child instanceof Page) {
+      child.attachValueHost(this);
     }
-    if (property !== 'pages') {
-      throw new Error(`A survey does not accept children under "${property}".`);
-    }
-    if (!(child instanceof Page)) {
-      throw new Error(`A survey accepts pages; received "${child.type}".`);
-    }
-    this.#pages.push(child);
-    child.attachValueHost(this);
   }
 
   /** Advances whenever logic changes an element's visible, enabled or required state. */
@@ -136,7 +125,7 @@ export class Survey extends SurveyElement implements ValueHost {
    * actually read them. The graph knows; without this it had nowhere to say so.
    */
   get logicDiagnostics(): LogicDiagnostics {
-    return { dependencyErrors: this.#dependencyErrors, expressionErrors: this.#expressionErrors };
+    return this.#diagnostics.current;
   }
 
   /**
@@ -149,7 +138,7 @@ export class Survey extends SurveyElement implements ValueHost {
    */
   refreshLogic(): void {
     this.#logic.clear();
-    registerSurveyRules(this.#pages, this.#calculatedValues, {
+    registerSurveyRules(this.#children, {
       logic: this.#logic,
       states: this.#states,
       getValue: (name) => this.getValue(name),
@@ -158,6 +147,12 @@ export class Survey extends SurveyElement implements ValueHost {
       },
       setCalculated: (calculated, value) => {
         this.#setCalculated(calculated, value);
+      },
+      complete: () => {
+        this.complete();
+      },
+      goTo: (name) => {
+        this.goTo(name);
       },
     });
     this.#settle(() => this.#logic.evaluateAll(this.#resolvePath));
@@ -182,23 +177,17 @@ export class Survey extends SurveyElement implements ValueHost {
    */
   #settle(run: () => LogicRunResult): void {
     if (this.#isSettling) {
-      this.#recordDiagnostics(run());
+      this.#diagnostics.record(run());
       return;
     }
     this.#isSettling = true;
-    this.#dependencyErrors = [];
-    this.#expressionErrors = [];
+    this.#diagnostics.reset();
     try {
-      this.#recordDiagnostics(run());
+      this.#diagnostics.record(run());
     } finally {
       this.#isSettling = false;
     }
     this.#flushEvents();
-  }
-
-  #recordDiagnostics(result: LogicRunResult): void {
-    this.#dependencyErrors.push(...result.dependencyErrors);
-    this.#expressionErrors.push(...result.expressionErrors);
   }
 
   /** Emits buffered events once the model has finished settling. */
@@ -218,16 +207,33 @@ export class Survey extends SurveyElement implements ValueHost {
   }
 
   get currentPage(): Page | undefined {
-    return this.#pages[this.#currentPageNo];
+    return this.#children.pages[this.#currentPageNo];
   }
 
   setCurrentPageNo(pageNo: number): void {
-    if (pageNo < 0 || pageNo >= this.#pages.length || pageNo === this.#currentPageNo) {
+    if (pageNo < 0 || pageNo >= this.#children.pages.length || pageNo === this.#currentPageNo) {
       return;
     }
     const previousPageNo = this.#currentPageNo;
     this.#currentPageNo = pageNo;
     this.onCurrentPageChanged.emit({ previousPageNo, currentPageNo: pageNo });
+  }
+
+  /**
+   * Navigates to a page by name, or to the page owning the named question.
+   *
+   * Accepting either is what makes a `skip` trigger usable: authors think in terms of
+   * "jump to this question", and which page it sits on is not their concern.
+   */
+  goTo(name: string): void {
+    const byPage = this.#children.pages.findIndex((page) => page.name === name);
+    const pageNo =
+      byPage === -1
+        ? this.#children.pages.findIndex((page) => page.elements.some((element) => element.name === name))
+        : byPage;
+    if (pageNo !== -1) {
+      this.setCurrentPageNo(pageNo);
+    }
   }
 
   /**
@@ -238,7 +244,7 @@ export class Survey extends SurveyElement implements ValueHost {
   get data(): Readonly<Record<string, unknown>> {
     return {
       ...Object.fromEntries(this.#data),
-      ...this.#calculated.toResult(this.#calculatedValues),
+      ...this.#calculated.toResult(this.#children.calculatedValues),
     };
   }
 

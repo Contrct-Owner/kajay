@@ -32,6 +32,52 @@
       ],
       "additionalProperties": true
     },
+    "complete": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "complete"
+        },
+        "expression": {
+          "type": "string",
+          "default": "",
+          "description": "The trigger acts when this becomes true, not while it stays true."
+        }
+      },
+      "required": [
+        "type",
+        "expression"
+      ],
+      "additionalProperties": true
+    },
+    "copyvalue": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "copyvalue"
+        },
+        "expression": {
+          "type": "string",
+          "default": "",
+          "description": "The trigger acts when this becomes true, not while it stays true."
+        },
+        "setToName": {
+          "type": "string",
+          "default": ""
+        },
+        "fromName": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "required": [
+        "type",
+        "expression",
+        "setToName",
+        "fromName"
+      ],
+      "additionalProperties": true
+    },
     "page": {
       "type": "object",
       "properties": {
@@ -72,6 +118,89 @@
         }
       ]
     },
+    "runexpression": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "runexpression"
+        },
+        "expression": {
+          "type": "string",
+          "default": "",
+          "description": "The trigger acts when this becomes true, not while it stays true."
+        },
+        "setToName": {
+          "type": "string",
+          "default": ""
+        },
+        "runExpression": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "required": [
+        "type",
+        "expression",
+        "runExpression"
+      ],
+      "additionalProperties": true
+    },
+    "setvalue": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "setvalue"
+        },
+        "expression": {
+          "type": "string",
+          "default": "",
+          "description": "The trigger acts when this becomes true, not while it stays true."
+        },
+        "setToName": {
+          "type": "string",
+          "default": ""
+        },
+        "setValue": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "default": "",
+          "description": "Literal written to setToName."
+        }
+      },
+      "required": [
+        "type",
+        "expression",
+        "setToName"
+      ],
+      "additionalProperties": true
+    },
+    "skip": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "skip"
+        },
+        "expression": {
+          "type": "string",
+          "default": "",
+          "description": "The trigger acts when this becomes true, not while it stays true."
+        },
+        "gotoName": {
+          "type": "string",
+          "default": "",
+          "description": "Page name, or a question name whose page is navigated to."
+        }
+      },
+      "required": [
+        "type",
+        "expression",
+        "gotoName"
+      ],
+      "additionalProperties": true
+    },
     "survey": {
       "type": "object",
       "properties": {
@@ -101,6 +230,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/calculatedvalue"
+          }
+        },
+        "triggers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/trigger"
           }
         }
       },
@@ -174,6 +309,26 @@
         "name"
       ],
       "additionalProperties": true
+    },
+    "trigger": {
+      "description": "Any concrete \"trigger\".",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/complete"
+        },
+        {
+          "$ref": "#/$defs/copyvalue"
+        },
+        {
+          "$ref": "#/$defs/runexpression"
+        },
+        {
+          "$ref": "#/$defs/setvalue"
+        },
+        {
+          "$ref": "#/$defs/skip"
+        }
+      ]
     }
   }
 }

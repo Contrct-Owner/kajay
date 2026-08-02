@@ -38,6 +38,29 @@ function registerSelectBase(registry: MetadataRegistry): void {
         defaultValue: true,
         description: 'Whether a long list may be narrowed by typing.',
       },
+      {
+        name: 'choicesFromQuestion',
+        type: 'string',
+        description: 'Name of a select question whose choices are carried forward.',
+      },
+      {
+        name: 'choicesFromQuestionMode',
+        type: 'string',
+        defaultValue: 'all',
+        description: 'all, selected or unselected.',
+      },
+      {
+        name: 'choicesByUrl',
+        type: 'string',
+        description: 'URL to load choices from; may interpolate {question} placeholders.',
+      },
+      {
+        name: 'choicesPath',
+        type: 'string',
+        description: 'Dotted path to the array inside the response.',
+      },
+      { name: 'choicesValueName', type: 'string' },
+      { name: 'choicesTitleName', type: 'string' },
     ],
     childCollections: [
       // `choices: ["a", "b"]` is how choice lists are actually written.

@@ -1,3 +1,4 @@
+import type { ChoiceFetcher } from '../logic/createChoicesByUrlRule.js';
 import type { ChildCollectionDescriptor } from '../metadata/ClassDescriptor.js';
 import { globalRegistry } from '../metadata/globalRegistry.js';
 import type { MetadataRegistry } from '../metadata/MetadataRegistry.js';
@@ -54,9 +55,15 @@ function assertSupportedSchemaVersion(definition: Record<string, unknown>): void
  * value types — is reported as a diagnostic so the caller sees the whole picture at
  * once instead of one error per attempt.
  */
+export interface ParseOptions {
+  /** Supplies `choicesByUrl` loading. Core is I/O-free, so the host provides it. */
+  readonly fetchJson?: ChoiceFetcher;
+}
+
 export function parseSurvey(
   definition: unknown,
   registry: MetadataRegistry = globalRegistry,
+  options: ParseOptions = {},
 ): ParseResult {
   if (!isJsonObject(definition)) {
     throw new TypeError(
@@ -72,6 +79,7 @@ export function parseSurvey(
   }
   // Conditions can only be registered once the whole tree exists, so this runs here
   // rather than as elements are added.
+  root.setChoiceFetcher(options.fetchJson);
   root.refreshLogic();
   return { survey: root, diagnostics: context.diagnostics };
 }

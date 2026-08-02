@@ -1,10 +1,16 @@
 import { collectReferences } from '../expressions/collectReferences.js';
 import { parseExpression } from '../expressions/parseExpression.js';
 import { CONDITIONAL_PROPERTIES } from '../logic/conditionalProperties.js';
+import { createCarryForwardRule } from '../logic/createCarryForwardRule.js';
+import type { CarryForwardMode } from '../logic/createCarryForwardRule.js';
+import { createChoicesByUrlRule } from '../logic/createChoicesByUrlRule.js';
+import type { ChoiceFetcher } from '../logic/createChoicesByUrlRule.js';
 import { createTriggerRule } from '../logic/createTriggerRule.js';
 import { createValueRule } from '../logic/createValueRule.js';
 import type { LogicEngine } from '../logic/LogicEngine.js';
+import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
 import type { CalculatedValue } from './CalculatedValue.js';
+import { ItemValue } from './ItemValue.js';
 import type { ElementStateController } from './ElementStateController.js';
 import type { Question } from './Question.js';
 import { SelectQuestion } from './SelectQuestion.js';
@@ -21,6 +27,118 @@ export interface RuleHost {
   readonly setCalculated: (calculated: CalculatedValue, value: unknown) => void;
   readonly complete: () => void;
   readonly goTo: (name: string) => void;
+  readonly findQuestion: (name: string) => Question | undefined;
+  readonly announceChoices: (question: SelectQuestion) => void;
+  readonly fetchJson: ChoiceFetcher | undefined;
+  readonly resolveValue: (name: string) => unknown;
+  readonly reportChoiceError: (message: string) => void;
+  readonly choiceCache: Map<string, readonly ItemValue[]>;
+}
+
+/**
+ * A question's choices may come from elsewhere: carried forward from another
+ * question, or loaded from a URL. At most one source is active — declaring both is an
+ * authoring mistake, and carry-forward wins because it is the one that resolves
+ * synchronously and therefore predictably.
+ */
+function registerCarryForward(
+  question: SelectQuestion,
+  sourceName: string,
+  owner: string,
+  host: RuleHost,
+): void {
+  host.logic.addRule(
+    createCarryForwardRule(
+      `${owner}:choicesFromQuestion`,
+      sourceName,
+      toMode(question.choicesFromQuestionMode),
+      {
+        getSourceChoices: () => {
+          const source = host.findQuestion(sourceName);
+          return source instanceof SelectQuestion ? source.visibleChoices : undefined;
+        },
+        getSourceValue: () => host.resolveValue(sourceName),
+        installProvider: (provider) => {
+          question.setChoiceProvider(provider);
+        },
+        announce: () => {
+          host.announceChoices(question);
+        },
+      },
+    ),
+  );
+}
+
+function registerChoicesByUrl(
+  question: SelectQuestion,
+  url: string,
+  owner: string,
+  host: RuleHost,
+): void {
+  host.logic.addRule(
+    createChoicesByUrlRule(
+      `${owner}:choicesByUrl`,
+      {
+        url,
+        path: question.choicesPath,
+        valueName: question.choicesValueName,
+        titleName: question.choicesTitleName,
+      },
+      {
+        fetchJson: host.fetchJson,
+        resolvePlaceholder: host.resolveValue,
+        createChoice: (value, text) => {
+          const item = new ItemValue();
+          item.value = toPropertyValue(value);
+          item.text = text === null || text === undefined ? '' : String(text);
+          return item;
+        },
+        installProvider: (provider) => {
+          question.setChoiceProvider(provider);
+        },
+        clearProvider: () => {
+          question.clearChoiceProvider();
+        },
+        announce: () => {
+          host.announceChoices(question);
+        },
+        reportError: host.reportChoiceError,
+        cache: host.choiceCache,
+      },
+    ),
+  );
+}
+
+/**
+ * A question's choices may come from elsewhere: carried forward from another question,
+ * or loaded from a URL. At most one source is active — declaring both is an authoring
+ * mistake, and carry-forward wins because it resolves synchronously and therefore
+ * predictably.
+ */
+function registerChoiceSource(question: Question, owner: string, host: RuleHost): void {
+  if (!(question instanceof SelectQuestion)) {
+    return;
+  }
+  const carryForward = optionalString(question.choicesFromQuestion);
+  if (carryForward !== undefined) {
+    registerCarryForward(question, carryForward, owner, host);
+    return;
+  }
+  const url = optionalString(question.choicesByUrl);
+  if (url !== undefined) {
+    registerChoicesByUrl(question, url, owner, host);
+  }
+}
+
+function toMode(mode: string): CarryForwardMode {
+  return mode === 'selected' || mode === 'unselected' ? mode : 'all';
+}
+
+function toPropertyValue(value: unknown): PropertyValue {
+  if (typeof value === 'string' || typeof value === 'boolean') {
+    return value;
+  }
+  return typeof value === 'number' && Number.isFinite(value) ? value : String(value ?? '');
 }
 
 function optionalString(value: string): string | undefined {
@@ -156,6 +274,7 @@ export function registerSurveyRules(children: SurveyChildren, host: RuleHost): v
       registerConditions(question, owner, host);
       registerValueRule(question, owner, host);
       registerChoiceConditions(question, owner, host);
+      registerChoiceSource(question, owner, host);
     }
   }
 }

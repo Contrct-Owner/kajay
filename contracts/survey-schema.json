@@ -120,6 +120,34 @@
           "default": true,
           "description": "Whether a long list may be narrowed by typing."
         },
+        "choicesFromQuestion": {
+          "type": "string",
+          "default": "",
+          "description": "Name of a select question whose choices are carried forward."
+        },
+        "choicesFromQuestionMode": {
+          "type": "string",
+          "default": "all",
+          "description": "all, selected or unselected."
+        },
+        "choicesByUrl": {
+          "type": "string",
+          "default": "",
+          "description": "URL to load choices from; may interpolate {question} placeholders."
+        },
+        "choicesPath": {
+          "type": "string",
+          "default": "",
+          "description": "Dotted path to the array inside the response."
+        },
+        "choicesValueName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesTitleName": {
+          "type": "string",
+          "default": ""
+        },
         "showSelectAllItem": {
           "type": "boolean",
           "default": false
@@ -279,6 +307,34 @@
           "type": "boolean",
           "default": true,
           "description": "Whether a long list may be narrowed by typing."
+        },
+        "choicesFromQuestion": {
+          "type": "string",
+          "default": "",
+          "description": "Name of a select question whose choices are carried forward."
+        },
+        "choicesFromQuestionMode": {
+          "type": "string",
+          "default": "all",
+          "description": "all, selected or unselected."
+        },
+        "choicesByUrl": {
+          "type": "string",
+          "default": "",
+          "description": "URL to load choices from; may interpolate {question} placeholders."
+        },
+        "choicesPath": {
+          "type": "string",
+          "default": "",
+          "description": "Dotted path to the array inside the response."
+        },
+        "choicesValueName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesTitleName": {
+          "type": "string",
+          "default": ""
         },
         "choices": {
           "type": "array",
@@ -473,6 +529,34 @@
           "type": "boolean",
           "default": true,
           "description": "Whether a long list may be narrowed by typing."
+        },
+        "choicesFromQuestion": {
+          "type": "string",
+          "default": "",
+          "description": "Name of a select question whose choices are carried forward."
+        },
+        "choicesFromQuestionMode": {
+          "type": "string",
+          "default": "all",
+          "description": "all, selected or unselected."
+        },
+        "choicesByUrl": {
+          "type": "string",
+          "default": "",
+          "description": "URL to load choices from; may interpolate {question} placeholders."
+        },
+        "choicesPath": {
+          "type": "string",
+          "default": "",
+          "description": "Dotted path to the array inside the response."
+        },
+        "choicesValueName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesTitleName": {
+          "type": "string",
+          "default": ""
         },
         "showClearButton": {
           "type": "boolean",
@@ -718,6 +802,34 @@
           "type": "boolean",
           "default": true,
           "description": "Whether a long list may be narrowed by typing."
+        },
+        "choicesFromQuestion": {
+          "type": "string",
+          "default": "",
+          "description": "Name of a select question whose choices are carried forward."
+        },
+        "choicesFromQuestionMode": {
+          "type": "string",
+          "default": "all",
+          "description": "all, selected or unselected."
+        },
+        "choicesByUrl": {
+          "type": "string",
+          "default": "",
+          "description": "URL to load choices from; may interpolate {question} placeholders."
+        },
+        "choicesPath": {
+          "type": "string",
+          "default": "",
+          "description": "Dotted path to the array inside the response."
+        },
+        "choicesValueName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesTitleName": {
+          "type": "string",
+          "default": ""
         },
         "showSelectAllItem": {
           "type": "boolean",

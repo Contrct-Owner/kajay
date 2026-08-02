@@ -57,6 +57,18 @@ export class ElementStateController {
     this.#pending.push({ element, state, value });
   }
 
+  /**
+   * Records that an element's choice list changed.
+   *
+   * Routed through the same buffer as the boolean states so the renderer has one
+   * subscription, and so a list that changes mid-settle is still announced only once
+   * the model has finished settling.
+   */
+  notifyChoicesChanged(element: SurveyElement): void {
+    this.#version += 1;
+    this.#pending.push({ element, state: 'choices' });
+  }
+
   /** Hands over the buffered changes and empties the buffer. */
   drain(): readonly ElementStateChangedEvent[] {
     const pending = this.#pending;

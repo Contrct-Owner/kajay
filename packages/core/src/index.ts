@@ -89,6 +89,13 @@ export type {
 
 // --- Conditional logic (checklist §B) -------------------------------------
 export type { ConditionBinding } from './logic/ConditionBinding.js';
+export { createCarryForwardRule } from './logic/createCarryForwardRule.js';
+export type { CarryForwardMode } from './logic/createCarryForwardRule.js';
+export { createChoicesByUrlRule } from './logic/createChoicesByUrlRule.js';
+export type {
+  ChoiceFetcher,
+  ChoicesByUrlSettings,
+} from './logic/createChoicesByUrlRule.js';
 export { createTriggerRule } from './logic/createTriggerRule.js';
 export type { TriggerActions, TriggerDescriptor } from './logic/createTriggerRule.js';
 export { createValueRule } from './logic/createValueRule.js';
@@ -127,6 +134,7 @@ export { NONE_VALUE, OTHER_VALUE, SelectQuestion } from './model/SelectQuestion.
 export { Page } from './model/Page.js';
 export { Question } from './model/Question.js';
 export { Survey } from './model/Survey.js';
+export type { SurveyOptions } from './model/Survey.js';
 export { SurveyElement } from './model/SurveyElement.js';
 export { TextQuestion } from './model/TextQuestion.js';
 export { Trigger } from './model/Trigger.js';
@@ -134,7 +142,7 @@ export type { TriggerKind } from './model/Trigger.js';
 export type { ValueHost } from './model/ValueHost.js';
 export type { Diagnostic, DiagnosticSeverity } from './serialization/Diagnostic.js';
 export { parseSurvey } from './serialization/parseSurvey.js';
-export type { ParseResult } from './serialization/parseSurvey.js';
+export type { ParseOptions, ParseResult } from './serialization/parseSurvey.js';
 export {
   CURRENT_SCHEMA_VERSION,
   SCHEMA_ID,

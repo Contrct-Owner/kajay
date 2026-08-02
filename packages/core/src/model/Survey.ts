@@ -6,17 +6,27 @@ import type {
   ValueChangedEvent,
 } from '../events/SurveyEvents.js';
 import type { PathSegment } from '../expressions/ExpressionNode.js';
-import { LogicDiagnosticsCollector } from '../logic/LogicDiagnosticsCollector.js';
 import { LogicEngine } from '../logic/LogicEngine.js';
-import type {
-  LogicDiagnostics,
-  LogicEngineOptions,
-  LogicRunResult,
-} from '../logic/LogicEngine.js';
+import type { LogicDiagnostics, LogicEngineOptions } from '../logic/LogicEngine.js';
+import type { ChoiceFetcher } from '../logic/createChoicesByUrlRule.js';
+
+/**
+ * Everything a survey may be given at construction.
+ *
+ * `fetchJson` is supplied by the host rather than defaulted here because core is
+ * DOM-free and dependency-free — it cannot reach for `fetch`, which keeps the engine
+ * backend-agnostic by construction.
+ */
+export interface SurveyOptions extends LogicEngineOptions {
+  readonly fetchJson?: ChoiceFetcher;
+}
 import type { CalculatedValue } from './CalculatedValue.js';
 import { CalculatedValueStore } from './CalculatedValueStore.js';
+import { ChoiceSourceState } from './ChoiceSourceState.js';
 import { createPathResolver } from './createPathResolver.js';
 import { ElementStateController } from './ElementStateController.js';
+import { NavigationController } from './NavigationController.js';
+import { SettleCoordinator } from './SettleCoordinator.js';
 import { Page } from './Page.js';
 import type { Question } from './Question.js';
 import { SurveyChildren } from './SurveyChildren.js';
@@ -32,24 +42,53 @@ export class Survey extends SurveyElement implements ValueHost {
   readonly #calculated: CalculatedValueStore = new CalculatedValueStore();
   readonly #logic: LogicEngine;
   readonly #states: ElementStateController = new ElementStateController();
-  readonly #diagnostics: LogicDiagnosticsCollector = new LogicDiagnosticsCollector();
+  readonly #settle: SettleCoordinator = new SettleCoordinator((values) => {
+    for (const event of values) {
+      this.onValueChanged.emit(event);
+    }
+    for (const event of this.#states.drain()) {
+      this.onElementStateChanged.emit(event);
+    }
+  });
+  readonly #choiceSources: ChoiceSourceState = new ChoiceSourceState();
+  readonly #navigation: NavigationController = new NavigationController(
+    () => this.#children.pages,
+    (event) => {
+      this.onCurrentPageChanged.emit(event);
+    },
+  );
   readonly #resolvePath: (path: readonly PathSegment[]) => unknown = createPathResolver((name) =>
     this.#data.has(name) ? this.#data.get(name) : this.#calculated.get(name),
   );
 
-  #currentPageNo = 0;
   #isCompleted = false;
-  #isSettling = false;
-  #pendingValueChanges: ValueChangedEvent[] = [];
+
 
   readonly onValueChanged: EventEmitter<ValueChangedEvent> = new EventEmitter();
   readonly onComplete: EventEmitter<CompleteEvent> = new EventEmitter();
   readonly onCurrentPageChanged: EventEmitter<CurrentPageChangedEvent> = new EventEmitter();
   readonly onElementStateChanged: EventEmitter<ElementStateChangedEvent> = new EventEmitter();
 
-  constructor(options: LogicEngineOptions = {}) {
+  constructor(options: SurveyOptions = {}) {
     super();
     this.#logic = new LogicEngine(options);
+    this.#choiceSources.setFetcher(options.fetchJson);
+  }
+
+  /**
+   * Supplies the fetcher for `choicesByUrl`.
+   *
+   * Set after construction because the registry builds the survey through a no-argument
+   * factory. `parseSurvey` applies it before logic first runs, so a host never has to
+   * remember to refresh.
+   */
+  setChoiceFetcher(fetchJson: ChoiceFetcher | undefined): void {
+    this.#choiceSources.setFetcher(fetchJson);
+  }
+
+  /** Messages from choice sources: a failed load, or a missing fetcher. */
+  get choiceErrors(): readonly string[] {
+    return this.#choiceSources.errors;
   }
 
   override get type(): string {
@@ -125,7 +164,7 @@ export class Survey extends SurveyElement implements ValueHost {
    * actually read them. The graph knows; without this it had nowhere to say so.
    */
   get logicDiagnostics(): LogicDiagnostics {
-    return this.#diagnostics.current;
+    return this.#settle.diagnostics;
   }
 
   /**
@@ -154,8 +193,23 @@ export class Survey extends SurveyElement implements ValueHost {
       goTo: (name) => {
         this.goTo(name);
       },
+      findQuestion: (name) => this.getQuestionByName(name),
+      announceChoices: (question) => {
+        this.#states.notifyChoicesChanged(question);
+        // A REST response lands after the settle that asked for it, so nothing else
+        // would flush the event it produced.
+        if (!this.#settle.isSettling) {
+          this.#settle.release();
+        }
+      },
+      fetchJson: this.#choiceSources.fetchJson,
+      resolveValue: (name) => this.#resolvePath([{ kind: 'name', name }]),
+      reportChoiceError: (message) => {
+        this.#choiceSources.report(message);
+      },
+      choiceCache: this.#choiceSources.cache,
     });
-    this.#settle(() => this.#logic.evaluateAll(this.#resolvePath));
+    this.#settle.run(() => this.#logic.evaluateAll(this.#resolvePath));
   }
 
   #setCalculated(calculated: CalculatedValue, value: unknown): void {
@@ -163,77 +217,25 @@ export class Survey extends SurveyElement implements ValueHost {
     // Announced only when it reaches `data`: onValueChanged means "an answer changed",
     // and reporting something the host cannot find in `data` would mislead.
     if (changed && calculated.includeIntoResult) {
-      this.#pendingValueChanges.push({ name: calculated.name, value, previousValue });
-    }
-  }
-
-  /**
-   * Runs logic to completion, then emits everything it produced.
-   *
-   * The guard is what makes a rule's own `setValue` safe: writes are declared to the
-   * graph, so the running plan already contains everything downstream of them.
-   * Starting a nested transaction per write would re-plan mid-flight and, for two
-   * rules feeding each other, recurse.
-   */
-  #settle(run: () => LogicRunResult): void {
-    if (this.#isSettling) {
-      this.#diagnostics.record(run());
-      return;
-    }
-    this.#isSettling = true;
-    this.#diagnostics.reset();
-    try {
-      this.#diagnostics.record(run());
-    } finally {
-      this.#isSettling = false;
-    }
-    this.#flushEvents();
-  }
-
-  /** Emits buffered events once the model has finished settling. */
-  #flushEvents(): void {
-    const values = this.#pendingValueChanges;
-    this.#pendingValueChanges = [];
-    for (const event of values) {
-      this.onValueChanged.emit(event);
-    }
-    for (const event of this.#states.drain()) {
-      this.onElementStateChanged.emit(event);
+      this.#settle.queueValue({ name: calculated.name, value, previousValue });
     }
   }
 
   get currentPageNo(): number {
-    return this.#currentPageNo;
+    return this.#navigation.currentPageNo;
   }
 
   get currentPage(): Page | undefined {
-    return this.#children.pages[this.#currentPageNo];
+    return this.#navigation.currentPage;
   }
 
   setCurrentPageNo(pageNo: number): void {
-    if (pageNo < 0 || pageNo >= this.#children.pages.length || pageNo === this.#currentPageNo) {
-      return;
-    }
-    const previousPageNo = this.#currentPageNo;
-    this.#currentPageNo = pageNo;
-    this.onCurrentPageChanged.emit({ previousPageNo, currentPageNo: pageNo });
+    this.#navigation.setCurrentPageNo(pageNo);
   }
 
-  /**
-   * Navigates to a page by name, or to the page owning the named question.
-   *
-   * Accepting either is what makes a `skip` trigger usable: authors think in terms of
-   * "jump to this question", and which page it sits on is not their concern.
-   */
+  /** Navigates to a page by name, or to the page owning the named question. */
   goTo(name: string): void {
-    const byPage = this.#children.pages.findIndex((page) => page.name === name);
-    const pageNo =
-      byPage === -1
-        ? this.#children.pages.findIndex((page) => page.elements.some((element) => element.name === name))
-        : byPage;
-    if (pageNo !== -1) {
-      this.setCurrentPageNo(pageNo);
-    }
+    this.#navigation.goTo(name);
   }
 
   /**
@@ -274,9 +276,11 @@ export class Survey extends SurveyElement implements ValueHost {
     } else {
       this.#data.set(name, value);
     }
-    this.#pendingValueChanges.push({ name, value, previousValue });
+    this.#settle.queueValue({ name, value, previousValue });
 
-    this.#settle(() => this.#logic.applyValueChange([{ kind: 'name', name }], this.#resolvePath));
+    this.#settle.run(() =>
+      this.#logic.applyValueChange([{ kind: 'name', name }], this.#resolvePath),
+    );
   }
 
   get isCompleted(): boolean {

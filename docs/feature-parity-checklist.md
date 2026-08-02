@@ -56,8 +56,8 @@ Proof naming convention: `parity/<row-id>-<slug>` (e.g. `parity/B3-visible-if`).
 | B6 | Calculated values (survey-level `calculatedValues`, usable in expressions and completed HTML) | ☐ | Partial: `parity/B6-calculated-values` (unit + host E2E) covers computation, chaining, use from question expressions, and `includeIntoResult`. "Completed HTML" cannot be proven — `completedHtml` is §E5 and does not exist yet |
 | B7 | Triggers: complete, setvalue, copyvalue, runexpression, skip | ☑ | `parity/B7-trigger-complete`, `-setvalue`, `-copyvalue`, `-runexpression`, `-skip` (unit) + `parity/B7-triggers` (host E2E). Triggers fire on the transition into true, not while it holds. `skip` moves `currentPageNo`; it has no *visible* effect until the renderer paginates (§E2) |
 | B8 | Dependency graph: value change re-evaluates only dependents; cycles detected and reported | ☑ | `parity/B8-dependency-graph` (selective re-evaluation, ordering), `parity/B8-cycle-reporting` (participating nodes named), `parity/B8-pattern-edges` (dynamic collections), unit, through public API |
-| B9 | Carry-forward choices (`choicesFromQuestion`, selected/unselected modes) | ☐ | |
-| B10 | REST choices (`choicesByUrl`: url/path/valueName/titleName, caching, url with `{question}` placeholders) | ☐ | |
+| B9 | Carry-forward choices (`choicesFromQuestion`, selected/unselected modes) | ☑ | `parity/B9-carry-forward-choices` (unit). The carried list is a live view, not a snapshot, so a source choice hidden by its own `visibleIf` disappears here too |
+| B10 | REST choices (`choicesByUrl`: url/path/valueName/titleName, caching, url with `{question}` placeholders) | ☑ | `parity/B10-rest-choices` (unit). Placeholders become real graph dependencies, so an answer change re-fetches. The fetcher is injected — core is I/O-free and cannot reference `fetch` |
 
 ## §C — Question types: core
 
@@ -67,8 +67,8 @@ Proof naming convention: `parity/<row-id>-<slug>` (e.g. `parity/B3-visible-if`).
 | C2 | comment (multi-line, autoGrow, character counter) | ☐ | |
 | C3 | radiogroup (choices, otherItem, noneItem, showClearButton, colCount, choicesOrder) | ☑ | `parity/C3-radiogroup` (unit), `parity/C3-C4-select-questions` (host E2E), browser proof for selection. `choicesOrder` supports none/asc/desc; random is deferred as it would make the suite non-deterministic |
 | C4 | checkbox (selectAll, none, other, maxSelectedChoices, colCount) | ☑ | `parity/C4-checkbox` (unit), `parity/C3-C4-select-questions` (host E2E), browser proof for multi-select |
-| C5 | dropdown (search/filter, lazy loading, placeholder, showOtherItem) | ☐ | Partial: `parity/C5-dropdown` (unit + browser) covers single-select, placeholder, showOtherItem, and model-level search (`filterChoices`). **Lazy loading** needs an async choice source, which §B10 (`choicesByUrl`) will introduce. The searchable combobox *UI* is deferred to Phase 2's a11y pass — the renderer uses a native `<select>` |
-| C6 | tagbox (multi-select dropdown with search + lazy load) | ☐ | Partial: `parity/C6-tagbox` (unit + browser) covers multi-select with the shared none/max-selected rules and model-level search. Lazy load and the combobox UI are deferred with C5 |
+| C5 | dropdown (search/filter, lazy loading, placeholder, showOtherItem) | ☐ | Partial: `parity/C5-dropdown` (unit + browser) covers single-select, placeholder, showOtherItem, and model-level search (`filterChoices`). **Lazy loading** (paging a long list as the respondent scrolls) is still open. B10 added asynchronous *loading*, but not paging. The searchable combobox *UI* is deferred to Phase 2's a11y pass — the renderer uses a native `<select>` |
+| C6 | tagbox (multi-select dropdown with search + lazy load) | ☐ | Partial: `parity/C6-tagbox` (unit + browser) covers multi-select with the shared none/max-selected rules and model-level search. Lazy load (paging) and the combobox UI are deferred with C5 |
 | C7 | boolean (switch + radio render modes, labelTrue/False, valueTrue/False) | ☐ | |
 | C8 | rating (numeric, stars, smileys, rateValues, min/max descriptions, display mode auto-switch) | ☐ | |
 | C9 | ranking (drag reorder, selectToRankEnabled, keyboard support) | ☐ | |

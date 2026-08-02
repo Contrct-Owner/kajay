@@ -32,3 +32,17 @@ export class ItemValue extends SurveyElement {
     this.setPropertyValue('text', next);
   }
 }
+
+/** Two lists are the same when their values and texts line up in order. */
+export function choiceListsMatch(
+  left: readonly ItemValue[],
+  right: readonly ItemValue[],
+): boolean {
+  return (
+    left.length === right.length &&
+    left.every((item, index) => {
+      const other = right[index];
+      return other !== undefined && item.value === other.value && item.text === other.text;
+    })
+  );
+}

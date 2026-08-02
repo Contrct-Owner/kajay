@@ -158,7 +158,7 @@ describe('conditions combined', () => {
     survey.setValue('a', 'x');
 
     expect(seen.map((event) => event.state).toSorted()).toEqual(['enabled', 'required']);
-    expect(seen.every((event) => event.value)).toBe(true);
+    expect(seen.every((event) => event.state !== 'choices' && event.value)).toBe(true);
   });
 
   test('a change touching nothing conditional emits no state events', () => {

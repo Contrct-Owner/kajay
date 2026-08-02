@@ -15,11 +15,45 @@ export const NONE_VALUE = 'none';
  */
 export abstract class SelectQuestion extends Question {
   readonly #choices: ItemValue[] = [];
+  #choiceProvider: (() => readonly ItemValue[]) | undefined;
 
+  /**
+   * The choices in play: supplied at runtime if a source is active, else authored.
+   *
+   * Carry-forward and REST both replace the list rather than merging into it. Merging
+   * would leave a question whose options came half from the definition and half from
+   * elsewhere, which nobody could reason about.
+   */
   get choices(): readonly ItemValue[] {
+    return this.#choiceProvider?.() ?? this.#choices;
+  }
+
+  /** The list as written in the definition, whatever a runtime source has supplied. */
+  get authoredChoices(): readonly ItemValue[] {
     return this.#choices;
   }
 
+  get hasDynamicChoices(): boolean {
+    return this.#choiceProvider !== undefined;
+  }
+
+  /**
+   * Supplies choices from a runtime source.
+   *
+   * A provider rather than a stored array, because a carried-forward list has to stay
+   * *live*: a source choice hidden by its own `visibleIf` must disappear here too, and
+   * a snapshot taken when the source's answer changed would be stale by then.
+   */
+  setChoiceProvider(provider: () => readonly ItemValue[]): void {
+    this.#choiceProvider = provider;
+  }
+
+  /** Falls back to the authored list. */
+  clearChoiceProvider(): void {
+    this.#choiceProvider = undefined;
+  }
+
+  /** Serialization must write the definition, never what a runtime source supplied. */
   override getChildren(property: string): readonly SurveyElement[] {
     return property === 'choices' ? this.#choices : [];
   }
@@ -69,7 +103,9 @@ export abstract class SelectQuestion extends Question {
    * never rewrites what the definition says.
    */
   get visibleChoices(): readonly ItemValue[] {
-    const visible = this.#choices.filter((choice) => choice.isVisible);
+    // `this.choices`, not the authored list: a runtime source has to reach the
+    // respondent, which is the entire point of having one.
+    const visible = this.choices.filter((choice) => choice.isVisible);
     const ordered = this.#applyOrder(visible);
     const specials: ItemValue[] = [];
     if (this.showNoneItem) {
@@ -88,6 +124,31 @@ export abstract class SelectQuestion extends Question {
     }
     const sorted = choices.toSorted((left, right) => left.text.localeCompare(right.text));
     return order === 'asc' ? sorted : sorted.toReversed();
+  }
+
+  get choicesFromQuestion(): string {
+    return this.getStringProperty('choicesFromQuestion');
+  }
+
+  get choicesFromQuestionMode(): string {
+    const mode = this.getStringProperty('choicesFromQuestionMode');
+    return mode.length > 0 ? mode : 'all';
+  }
+
+  get choicesByUrl(): string {
+    return this.getStringProperty('choicesByUrl');
+  }
+
+  get choicesPath(): string {
+    return this.getStringProperty('choicesPath');
+  }
+
+  get choicesValueName(): string {
+    return this.getStringProperty('choicesValueName');
+  }
+
+  get choicesTitleName(): string {
+    return this.getStringProperty('choicesTitleName');
   }
 
   /** Prompt shown while nothing is chosen. Meaningful for collapsed lists. */

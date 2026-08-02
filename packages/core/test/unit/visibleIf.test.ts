@@ -96,8 +96,9 @@ describe('visibility events', () => {
     survey.setValue('trigger', 'x');
 
     expect(seen).toHaveLength(1);
-    expect(seen[0]?.state).toBe('visible');
-    expect(seen[0]?.value).toBe(true);
+    const [event] = seen;
+    expect(event?.state).toBe('visible');
+    expect(event !== undefined && event.state !== 'choices' ? event.value : undefined).toBe(true);
     // The listener observes a settled model, not a half-applied one.
     expect(seen[0]?.element.isVisible).toBe(true);
   });

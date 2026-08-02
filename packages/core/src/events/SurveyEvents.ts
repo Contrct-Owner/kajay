@@ -17,18 +17,23 @@ export interface CurrentPageChangedEvent {
   readonly currentPageNo: number;
 }
 
-/** Which computed state changed. Each is driven by its own `*If` expression. */
-export type ElementStateKind = 'visible' | 'enabled' | 'required';
+/** Which computed aspect of an element changed. */
+export type ElementStateKind = 'visible' | 'enabled' | 'required' | 'choices';
 
 /**
  * Emitted after logic has settled, never part-way through a cascade.
  *
- * One event with a discriminator rather than one event per state: all three are
- * produced by the same engine and consumed for the same reason (something has to
- * re-render), so splitting them would multiply the subscription surface for nothing.
+ * A discriminated union rather than one shape with an optional field: `visible`,
+ * `enabled` and `required` are booleans, while a choice list changing is not — it has
+ * no value to report, only the fact that it happened.
  */
-export interface ElementStateChangedEvent {
-  readonly element: SurveyElement;
-  readonly state: ElementStateKind;
-  readonly value: boolean;
-}
+export type ElementStateChangedEvent =
+  | {
+      readonly element: SurveyElement;
+      readonly state: 'visible' | 'enabled' | 'required';
+      readonly value: boolean;
+    }
+  | {
+      readonly element: SurveyElement;
+      readonly state: 'choices';
+    };

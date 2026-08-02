@@ -1,4 +1,5 @@
 import { collectVisibleQuestions } from './pageElements.js';
+import type { SurveyLogicHost } from './SurveyLogicHost.js';
 import type { Question } from './Question.js';
 import type { Survey } from './Survey.js';
 import type { SurveyError } from './SurveyError.js';
@@ -23,6 +24,39 @@ export type ValidationWiring = Pick<
  * class: a five-line object literal buried in a field initializer is where the rule
  * "only reachable questions are checked" would go unnoticed, and it is not a small rule.
  */
+/**
+ * The half only the survey internals can supply.
+ *
+ * The logic host arrives as a getter rather than a value because this is assembled in a
+ * field initializer, and the survey's own logic host does not exist until its
+ * constructor runs. Everything else is reachable through the public surface.
+ */
+export function createValidationWiring(
+  survey: Survey,
+  logic: () => SurveyLogicHost,
+): ValidationWiring {
+  return {
+    readProperty: (name) => survey.getResolvedProperty(name),
+    writeProperty: (name, value) => {
+      survey.setPropertyValue(name, value);
+    },
+    evaluate: (expression) => logic().evaluate(expression),
+    data: () => survey.data,
+    announce: (question) => {
+      logic().notifyErrorsChanged(question);
+    },
+    // Every check runs outside a settle — a respondent pressed Next, or the settle that
+    // carried their answer has already finished — so nothing else would deliver what it
+    // produced.
+    flush: () => {
+      logic().release();
+    },
+    announceValidating: (isValidating) => {
+      survey.onValidatingChanged.emit({ isValidating });
+    },
+  };
+}
+
 export function createValidationHost(
   survey: Survey,
   wiring: ValidationWiring,

@@ -19,6 +19,8 @@ export interface SurveyLogicDependencies {
   readonly lazyChoices: LazyChoiceController;
   readonly answers: SurveyAnswers;
   readonly resolvePath: (path: readonly PathSegment[]) => unknown;
+  /** Runs at the end of the first evaluation, inside its settle. */
+  readonly afterSettle: () => void;
   readonly getValue: (name: string) => unknown;
   readonly writeValue: (name: string, value: unknown) => boolean;
   readonly complete: () => void;
@@ -39,7 +41,13 @@ export function refreshSurveyLogic(
 ): void {
   dependencies.logic.clear();
   registerSurveyRules(children, createSurveyRuleHost(dependencies));
-  dependencies.settle.run(() => dependencies.logic.evaluateAll(dependencies.resolvePath));
+  dependencies.settle.run(() => {
+    const result = dependencies.logic.evaluateAll(dependencies.resolvePath);
+    // A restored response can name a question the definition hides, so the very first
+    // evaluation has to enforce the policy too — not only later changes.
+    dependencies.afterSettle();
+    return result;
+  });
 }
 
 /**

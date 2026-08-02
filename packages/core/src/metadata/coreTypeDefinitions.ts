@@ -42,6 +42,12 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         description: 'Whether a question draws its errors above its input or below it.',
       },
       {
+        name: 'clearInvisibleValues',
+        type: 'string',
+        defaultValue: 'onComplete',
+        description: 'none, onHidden or onComplete. What happens to an unreachable answer.',
+      },
+      {
         name: 'completedHtml',
         type: 'string',
         description: 'Markup shown once the survey is finished. {name} resolves to an answer.',

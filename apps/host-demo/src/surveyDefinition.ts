@@ -57,6 +57,9 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
     },
   ],
   description: 'Conditional logic, rendered through the published package APIs.',
+  // The strict policy, because it is the one you can watch happen: emptying the name
+  // takes the nickname, the email and the greeting with it, in the same keystroke.
+  clearInvisibleValues: 'onHidden',
   // The ending is authored, and reads back what the respondent told us. `{fullName}` is
   // an answer and `{answeredCount}` is a calculated value — the completed page makes no
   // distinction, which is the half of B6 that had nowhere to be proven.

@@ -23,6 +23,21 @@ import type { ExpressionOutcome } from './Validator.js';
  * A `Pick` of the full dependency set rather than a hand-written twin, so adding a hook
  * cannot leave the two lists disagreeing about what a rule may reach for.
  */
+/**
+ * How a settle reaches the outside world.
+ *
+ * The host drains its own state buffer rather than handing it back, because forgetting
+ * to drain leaves a renderer stale in a way nothing else would catch — and the order
+ * matters: whatever `beforeAnnounce` fixes up has to be fixed before a listener can see
+ * it. Logic can hide the page the respondent is standing on, and nobody should be told
+ * about a change while still pointed at a page that no longer exists.
+ */
+export interface LogicAnnouncer {
+  readonly beforeAnnounce: () => void;
+  readonly value: (event: ValueChangedEvent) => void;
+  readonly elementState: (event: ElementStateChangedEvent) => void;
+}
+
 export type SurveyRuleHooks = Pick<
   SurveyLogicDependencies,
   'getValue' | 'writeValue' | 'complete' | 'goTo' | 'findQuestion'
@@ -46,17 +61,23 @@ export class SurveyLogicHost {
   readonly #lazyChoices: LazyChoiceController = new LazyChoiceController();
   readonly #answers: SurveyAnswers;
   readonly #resolvePath: (path: readonly PathSegment[]) => unknown;
+  #afterSettle: (() => void) | undefined;
+  #inAfterSettle = false;
 
-  constructor(
-    answers: SurveyAnswers,
-    options: SurveyOptions,
-    flush: (values: readonly ValueChangedEvent[]) => void,
-  ) {
+  constructor(answers: SurveyAnswers, options: SurveyOptions, announcer: LogicAnnouncer) {
     this.#answers = answers;
     this.#engine = new LogicEngine(options);
     this.#choiceSources.setFetcher(options.fetchJson);
     this.#lazyChoices.setLoader(options.loadChoicePage);
-    this.#settle = new SettleCoordinator(flush);
+    this.#settle = new SettleCoordinator((values) => {
+      announcer.beforeAnnounce();
+      for (const event of values) {
+        announcer.value(event);
+      }
+      for (const event of this.#states.drain()) {
+        announcer.elementState(event);
+      }
+    });
     this.#resolvePath = createPathResolver((name) => answers.resolve(name));
   }
 
@@ -83,6 +104,38 @@ export class SurveyLogicHost {
     this.#lazyChoices.setLoader(load);
   }
 
+  /**
+   * Installs work that runs at the end of every settle, inside it.
+   *
+   * Inside on purpose: whatever it writes belongs to the transaction that caused it, so
+   * an observer never sees the moment where a question has gone and its answer has not
+   * (ADR-0004). Running it after `run` returned would announce that state to everyone.
+   */
+  setAfterSettle(afterSettle: () => void): void {
+    this.#afterSettle = afterSettle;
+  }
+
+  /**
+   * Runs the after-settle work once, however deeply the settle nests.
+   *
+   * The work writes values, and writing a value settles again — so without this it
+   * would call itself for every write it made. The guard belongs here rather than in
+   * the work, because "this does not re-enter itself" is a property of the settle
+   * mechanism and every future user of the hook would otherwise reinvent it.
+   */
+  #runAfterSettle(): void {
+    const afterSettle = this.#afterSettle;
+    if (afterSettle === undefined || this.#inAfterSettle) {
+      return;
+    }
+    this.#inAfterSettle = true;
+    try {
+      afterSettle();
+    } finally {
+      this.#inAfterSettle = false;
+    }
+  }
+
   /** Rebuilds every rule from the current tree and evaluates them once. */
   refresh(children: SurveyChildren, hooks: SurveyRuleHooks): void {
     refreshSurveyLogic(children, {
@@ -93,15 +146,20 @@ export class SurveyLogicHost {
       lazyChoices: this.#lazyChoices,
       answers: this.#answers,
       resolvePath: this.#resolvePath,
+      afterSettle: () => {
+        this.#runAfterSettle();
+      },
       ...hooks,
     });
   }
 
   /** Recomputes everything one answer reaches, then releases what that produced. */
   applyValueChange(name: string): void {
-    this.#settle.run(() =>
-      this.#engine.applyValueChange([{ kind: 'name', name }], this.#resolvePath),
-    );
+    this.#settle.run(() => {
+      const result = this.#engine.applyValueChange([{ kind: 'name', name }], this.#resolvePath);
+      this.#runAfterSettle();
+      return result;
+    });
   }
 
   /**
@@ -123,11 +181,6 @@ export class SurveyLogicHost {
 
   notifyErrorsChanged(element: SurveyElement): void {
     this.#states.notifyErrorsChanged(element);
-  }
-
-  /** Hands over the buffered state changes and empties the buffer. */
-  drainStates(): readonly ElementStateChangedEvent[] {
-    return this.#states.drain();
   }
 
   /** Delivers whatever is buffered. For work that lands outside a settle. */

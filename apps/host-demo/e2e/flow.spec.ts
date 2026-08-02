@@ -117,3 +117,31 @@ test('parity/B7-trigger-skip', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'About you' })).toBeVisible();
   await expect(page.getByTestId('page-position')).toHaveText('Page 1 of 3');
 });
+
+test('parity/E9-clear-invisible-values', async ({ page }) => {
+  await page.getByLabel(/What is your name\?/u).fill('Ada');
+  await page.getByLabel(/What should we call you\?/u).fill('Ada');
+  await page.getByLabel('Email address').fill('ada@example.com');
+
+  const data = page.getByTestId('survey-data');
+  await expect(data).toContainText('"nickname": "Ada"');
+  await expect(data).toContainText('"greeting": "Hello, Ada"');
+
+  // Emptying the name takes the branch under it out of reach. `onHidden` means the
+  // answers go with it — and the greeting, which was only reachable through the
+  // nickname, goes in the same keystroke rather than a sweep later.
+  await page.getByLabel(/What is your name\?/u).fill('');
+  await expect(page.getByLabel(/What should we call you\?/u)).toHaveCount(0);
+  await expect(data).not.toContainText('nickname');
+  await expect(data).not.toContainText('greeting');
+
+  // The email is *disabled* by the same chain, not hidden, and a disabled question is
+  // still one the respondent can see they answered. The policy is about invisible
+  // values, and this is the line it draws.
+  await expect(page.getByLabel('Email address')).toBeDisabled();
+  await expect(data).toContainText('"email": "ada@example.com"');
+
+  // And it is destruction, not concealment: the branch comes back empty.
+  await page.getByLabel(/What is your name\?/u).fill('Ada');
+  await expect(page.getByLabel(/What should we call you\?/u)).toHaveValue('');
+});

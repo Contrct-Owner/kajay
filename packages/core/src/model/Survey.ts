@@ -12,7 +12,11 @@ import type { LogicDiagnostics } from '../logic/LogicEngine.js';
 import type { ChoicePageLoader } from './ChoicePageLoader.js';
 import type { ChoiceFetcher } from './ChoiceSourceController.js';
 import type { SurveyOptions } from './SurveyOptions.js';
+import { clearHiddenAnswers, toClearPolicy } from './clearInvisibleAnswers.js';
+import type { ClearInvisibleValues } from './clearInvisibleAnswers.js';
 import { SurveyStatus } from './SurveyStatus.js';
+import { createStatusHost } from './surveyStatusWiring.js';
+import type { HtmlCondition } from './HtmlCondition.js';
 import type { CalculatedValue } from './CalculatedValue.js';
 import { SurveyAnswers } from './SurveyAnswers.js';
 import { SurveyLogicHost } from './SurveyLogicHost.js';
@@ -24,7 +28,7 @@ import { SurveyChildren } from './SurveyChildren.js';
 import { SurveyElement } from './SurveyElement.js';
 import { SurveyValidation } from './SurveyValidation.js';
 import type { AdvanceOutcome } from './SurveyValidation.js';
-import { createValidationHost } from './surveyValidationWiring.js';
+import { createValidationHost, createValidationWiring } from './surveyValidationWiring.js';
 import type { Trigger } from './Trigger.js';
 import type { ValueHost } from './ValueHost.js';
 
@@ -41,43 +45,20 @@ export class Survey extends SurveyElement implements ValueHost {
     },
   );
   readonly #validation: SurveyValidation = new SurveyValidation(
-    createValidationHost(this, {
-      readProperty: (name) => this.getResolvedProperty(name),
-      writeProperty: (name, value) => {
-        this.setPropertyValue(name, value);
-      },
+    createValidationHost(this, createValidationWiring(this, () => this.#logic)),
+  );
+
+  readonly #status: SurveyStatus = new SurveyStatus(
+    createStatusHost(this, {
       evaluate: (expression) => this.#logic.evaluate(expression),
-      data: () => this.data,
-      announce: (question) => {
-        this.#logic.notifyErrorsChanged(question);
-      },
-      // Every check runs outside a settle — a respondent pressed Next, or the settle
-      // that carried their answer has already finished — so nothing else would
-      // deliver what it produced.
-      flush: () => {
-        this.#logic.release();
-      },
-      announceValidating: (isValidating) => {
-        this.onValidatingChanged.emit({ isValidating });
+      // Answers *and* calculated values: a completed page saying "you answered 3 of 5"
+      // is reading something computed, and B6 exists to make that possible.
+      resolve: (name) => this.#answers.resolve(name),
+      announce: (state) => {
+        this.onStateChanged.emit({ state });
       },
     }),
   );
-
-  readonly #status: SurveyStatus = new SurveyStatus({
-    readProperty: (name) => this.getStringProperty(name),
-    isCompleted: () => this.#isCompleted,
-    hasVisiblePages: () => this.visiblePages.length > 0,
-    conditions: () => this.#children.completedHtmlOnCondition,
-    evaluate: (expression) => this.#logic.evaluate(expression),
-    // Answers *and* calculated values: a completed page saying "you answered 3 of 5"
-    // is reading something computed, and B6 exists to make that possible.
-    resolve: (name) => this.#answers.resolve(name),
-    announce: (state) => {
-      this.onStateChanged.emit({ state });
-    },
-  });
-
-  #isCompleted = false;
 
   readonly onValueChanged: EventEmitter<ValueChangedEvent> = new EventEmitter();
   readonly onComplete: EventEmitter<CompleteEvent> = new EventEmitter();
@@ -98,16 +79,28 @@ export class Survey extends SurveyElement implements ValueHost {
 
   constructor(options: SurveyOptions = {}) {
     super();
-    this.#logic = new SurveyLogicHost(this.#answers, options, (values) => {
-      // Before anything is announced: logic may have hidden the page the respondent is
-      // standing on, and a listener must never see a page that no longer exists.
-      this.#pages.clampToVisible();
-      for (const event of values) {
+    this.#logic = new SurveyLogicHost(this.#answers, options, {
+      // Logic may have hidden the page the respondent is standing on, and a listener
+      // must never see a page that no longer exists.
+      beforeAnnounce: () => {
+        this.#pages.clampToVisible();
+      },
+      value: (event) => {
         this.onValueChanged.emit(event);
-      }
-      for (const event of this.#logic.drainStates()) {
+      },
+      elementState: (event) => {
         this.onElementStateChanged.emit(event);
-      }
+      },
+    });
+    // Inside the settle, so nobody ever sees the moment where the question has gone
+    // and its answer has not — and recomputed against, because something may have been
+    // reading the answer that just disappeared.
+    this.#logic.setAfterSettle(() => {
+      clearHiddenAnswers(this, (name) => {
+        // The ordinary write path: nested inside the settle that hid the question, so
+        // it buffers rather than announcing, and whatever read the answer recomputes.
+        this.setValue(name, undefined);
+      });
     });
   }
 
@@ -155,6 +148,11 @@ export class Survey extends SurveyElement implements ValueHost {
 
   set description(value: string) {
     this.setPropertyValue('description', value);
+  }
+
+  /** What happens to an answer the respondent can no longer reach. */
+  get clearInvisibleValues(): ClearInvisibleValues {
+    return toClearPolicy(this.getStringProperty('clearInvisibleValues'));
   }
 
   /** How the authored pages are presented: standard, singlePage or questionPerPage. */
@@ -205,6 +203,11 @@ export class Survey extends SurveyElement implements ValueHost {
 
   get calculatedValues(): readonly CalculatedValue[] {
     return this.#children.calculatedValues;
+  }
+
+  /** Conditional endings, in the order the conditions are tried. */
+  get completedHtmlOnCondition(): readonly HtmlCondition[] {
+    return this.#children.completedHtmlOnCondition;
   }
 
   get triggers(): readonly Trigger[] {
@@ -369,16 +372,12 @@ export class Survey extends SurveyElement implements ValueHost {
   }
 
   get isCompleted(): boolean {
-    return this.#isCompleted;
+    return this.#status.isCompleted;
   }
 
+  /** Ends the survey: applies the clearing policy, then announces it. */
   complete(): void {
-    if (this.#isCompleted) {
-      return;
-    }
-    this.#isCompleted = true;
-    this.onComplete.emit({ data: this.data });
-    this.onStateChanged.emit({ state: this.status.state });
+    this.#status.complete();
   }
 
   /** Loading, empty, running or completed — and the markup that goes with each. */

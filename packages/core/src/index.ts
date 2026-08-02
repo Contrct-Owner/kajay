@@ -128,6 +128,13 @@ export type { PanelState } from './model/Panel.js';
 export { Question } from './model/Question.js';
 export { Survey } from './model/Survey.js';
 export { HtmlCondition } from './model/HtmlCondition.js';
+export {
+  clearAnswersOnComplete,
+  clearHiddenAnswers,
+  toClearPolicy,
+  unreachableAnswers,
+} from './model/clearInvisibleAnswers.js';
+export type { ClearInvisibleValues } from './model/clearInvisibleAnswers.js';
 export { interpolate, interpolateHtml } from './model/interpolate.js';
 export { resolveSurveyState } from './model/SurveyState.js';
 export type { SurveyState, SurveyStateInputs } from './model/SurveyState.js';

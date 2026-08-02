@@ -7,8 +7,11 @@ import type { ExpressionOutcome } from './Validator.js';
 /** What the status needs from the survey, without reaching into it. */
 export interface SurveyStatusHost {
   readonly readProperty: (name: string) => string;
-  readonly isCompleted: () => boolean;
   readonly hasVisiblePages: () => boolean;
+  /** Applies the `onComplete` clearing policy. Runs before anyone is told. */
+  readonly clearAnswers: () => void;
+  /** Hands the finished answers to the host. */
+  readonly announceComplete: () => void;
   /** The authored `completedHtmlOnCondition` entries, in order. */
   readonly conditions: () => readonly HtmlCondition[];
   readonly evaluate: (expression: string) => ExpressionOutcome;
@@ -28,6 +31,7 @@ export interface SurveyStatusHost {
 export class SurveyStatus {
   readonly #host: SurveyStatusHost;
   #isLoading = false;
+  #isCompleted = false;
 
   constructor(host: SurveyStatusHost) {
     this.#host = host;
@@ -51,11 +55,33 @@ export class SurveyStatus {
     this.#host.announce(this.state);
   }
 
+  get isCompleted(): boolean {
+    return this.#isCompleted;
+  }
+
+  /**
+   * Ends the survey. Repeating it is not an event.
+   *
+   * The clearing policy runs *before* anyone is told, so the answers a host receives
+   * are the ones the respondent could actually reach — and `onComplete` fires before
+   * the state change, because a host submitting results wants the one event, and a
+   * renderer wants every transition.
+   */
+  complete(): void {
+    if (this.#isCompleted) {
+      return;
+    }
+    this.#host.clearAnswers();
+    this.#isCompleted = true;
+    this.#host.announceComplete();
+    this.#host.announce(this.state);
+  }
+
   /** What to draw: one value, because these are mutually exclusive. */
   get state(): SurveyState {
     return resolveSurveyState({
       isLoading: this.#isLoading,
-      isCompleted: this.#host.isCompleted(),
+      isCompleted: this.#isCompleted,
       hasVisiblePages: this.#host.hasVisiblePages(),
     });
   }

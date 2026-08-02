@@ -2051,6 +2051,11 @@
           "default": "top",
           "description": "Whether a question draws its errors above its input or below it."
         },
+        "clearInvisibleValues": {
+          "type": "string",
+          "default": "onComplete",
+          "description": "none, onHidden or onComplete. What happens to an unreachable answer."
+        },
         "completedHtml": {
           "type": "string",
           "default": "",

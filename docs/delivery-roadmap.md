@@ -120,6 +120,14 @@ requiring a demo scenario for it would make the row unprovable rather than rigor
 The bar that matters is unchanged: a named test through the public API, never an
 assertion in a document.
 
+**Progress (2026-08-02).** §A closed but for A4/A5/A7, which name Phase 2–3 surface.
+§B closed but for B2 (async function registration) and B6 (needs `completedHtml`), with
+B11 newly scheduled. §C partial: C5/C6 lack lazy paging, and C7–C12 are not started.
+§D not started. §E1 and §E2 closed — panels nest, collapse and carry their own
+`visibleIf`/`enableIf`; navigation counts visible pages and `questionsOnPageMode`
+reshapes what the respondent walks through without touching the definition. That closed
+B3 and made B7's `skip` observable for the first time. E3–E10 remain.
+
 **Out:** matrix family, dynamic panels, file/signature, quiz mode, theme JSON.
 
 ## Phase 2 — Form Library parity

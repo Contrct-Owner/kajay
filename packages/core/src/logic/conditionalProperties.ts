@@ -1,8 +1,8 @@
-import type { ElementStateKind } from '../events/SurveyEvents.js';
+import type { ConditionalStateKind } from '../events/SurveyEvents.js';
 
 export interface ConditionalProperty {
   readonly property: string;
-  readonly state: ElementStateKind;
+  readonly state: ConditionalStateKind;
   /**
    * Result used when the expression is malformed or unevaluable.
    *

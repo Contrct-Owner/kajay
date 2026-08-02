@@ -1,7 +1,10 @@
 import { CalculatedValue } from './CalculatedValue.js';
+import { collectQuestions } from './pageElements.js';
 import { Page } from './Page.js';
+import type { Question } from './Question.js';
 import type { SurveyElement } from './SurveyElement.js';
 import { Trigger } from './Trigger.js';
+import type { ValueHost } from './ValueHost.js';
 
 /**
  * The survey's three child collections, and the type rule for each.
@@ -27,6 +30,15 @@ export class SurveyChildren {
     return this.#triggers;
   }
 
+  /** Every question on every page, panels flattened, in document order. */
+  get questions(): readonly Question[] {
+    return this.#pages.flatMap((page) => collectQuestions(page.elements));
+  }
+
+  findQuestion(name: string): Question | undefined {
+    return this.questions.find((question) => question.name === name);
+  }
+
   get(property: string): readonly SurveyElement[] {
     if (property === 'pages') {
       return this.#pages;
@@ -37,9 +49,19 @@ export class SurveyChildren {
     return property === 'triggers' ? this.#triggers : [];
   }
 
-  add(property: string, child: SurveyElement): void {
+  /**
+   * Files a child under the named collection.
+   *
+   * A page is handed the value host on the way in rather than by a second call from
+   * the survey: forgetting that step leaves every question on the page unable to read
+   * or write its own answer, and there is no reason for the caller to have to remember.
+   */
+  add(property: string, child: SurveyElement, host: ValueHost): void {
     if (property === 'pages') {
       this.#push(this.#pages, child, Page, 'pages', 'pages');
+      if (child instanceof Page) {
+        child.attachValueHost(host);
+      }
       return;
     }
     if (property === 'calculatedValues') {

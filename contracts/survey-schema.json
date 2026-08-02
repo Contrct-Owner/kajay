@@ -41,26 +41,26 @@
         "name": {
           "type": "string",
           "default": "",
-          "description": "Unique question identifier, and the key its answer is stored under."
+          "description": "Unique element identifier. For a question, also its answer key."
         },
         "title": {
           "type": "string",
           "default": "",
           "description": "Display title; falls back to name."
         },
-        "isRequired": {
-          "type": "boolean",
-          "default": false
-        },
         "visibleIf": {
           "type": "string",
           "default": "",
-          "description": "Expression; the question is shown only while it evaluates truthy."
+          "description": "Expression; the element is shown only while it evaluates truthy."
         },
         "enableIf": {
           "type": "string",
           "default": "",
-          "description": "Expression; the question is editable only while it evaluates truthy."
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
         },
         "requiredIf": {
           "type": "string",
@@ -229,26 +229,26 @@
         "name": {
           "type": "string",
           "default": "",
-          "description": "Unique question identifier, and the key its answer is stored under."
+          "description": "Unique element identifier. For a question, also its answer key."
         },
         "title": {
           "type": "string",
           "default": "",
           "description": "Display title; falls back to name."
         },
-        "isRequired": {
-          "type": "boolean",
-          "default": false
-        },
         "visibleIf": {
           "type": "string",
           "default": "",
-          "description": "Expression; the question is shown only while it evaluates truthy."
+          "description": "Expression; the element is shown only while it evaluates truthy."
         },
         "enableIf": {
           "type": "string",
           "default": "",
-          "description": "Expression; the question is editable only while it evaluates truthy."
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
         },
         "requiredIf": {
           "type": "string",
@@ -413,11 +413,82 @@
         "elements": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/question"
+            "$ref": "#/$defs/pageelement"
           }
         }
       },
       "required": [
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "pageelement": {
+      "description": "Any concrete \"pageelement\".",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/checkbox"
+        },
+        {
+          "$ref": "#/$defs/dropdown"
+        },
+        {
+          "$ref": "#/$defs/panel"
+        },
+        {
+          "$ref": "#/$defs/radiogroup"
+        },
+        {
+          "$ref": "#/$defs/tagbox"
+        },
+        {
+          "$ref": "#/$defs/text"
+        }
+      ]
+    },
+    "panel": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "panel"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "description": {
+          "type": "string",
+          "default": ""
+        },
+        "state": {
+          "type": "string",
+          "default": "default",
+          "description": "default, expanded or collapsed. Collapsed panels start closed."
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/pageelement"
+          }
+        }
+      },
+      "required": [
+        "type",
         "name"
       ],
       "additionalProperties": true
@@ -451,26 +522,26 @@
         "name": {
           "type": "string",
           "default": "",
-          "description": "Unique question identifier, and the key its answer is stored under."
+          "description": "Unique element identifier. For a question, also its answer key."
         },
         "title": {
           "type": "string",
           "default": "",
           "description": "Display title; falls back to name."
         },
-        "isRequired": {
-          "type": "boolean",
-          "default": false
-        },
         "visibleIf": {
           "type": "string",
           "default": "",
-          "description": "Expression; the question is shown only while it evaluates truthy."
+          "description": "Expression; the element is shown only while it evaluates truthy."
         },
         "enableIf": {
           "type": "string",
           "default": "",
-          "description": "Expression; the question is editable only while it evaluates truthy."
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
         },
         "requiredIf": {
           "type": "string",
@@ -694,6 +765,11 @@
           "type": "string",
           "default": ""
         },
+        "questionsOnPageMode": {
+          "type": "string",
+          "default": "standard",
+          "description": "standard, singlePage or questionPerPage."
+        },
         "pages": {
           "type": "array",
           "items": {
@@ -724,26 +800,26 @@
         "name": {
           "type": "string",
           "default": "",
-          "description": "Unique question identifier, and the key its answer is stored under."
+          "description": "Unique element identifier. For a question, also its answer key."
         },
         "title": {
           "type": "string",
           "default": "",
           "description": "Display title; falls back to name."
         },
-        "isRequired": {
-          "type": "boolean",
-          "default": false
-        },
         "visibleIf": {
           "type": "string",
           "default": "",
-          "description": "Expression; the question is shown only while it evaluates truthy."
+          "description": "Expression; the element is shown only while it evaluates truthy."
         },
         "enableIf": {
           "type": "string",
           "default": "",
-          "description": "Expression; the question is editable only while it evaluates truthy."
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
         },
         "requiredIf": {
           "type": "string",
@@ -866,26 +942,26 @@
         "name": {
           "type": "string",
           "default": "",
-          "description": "Unique question identifier, and the key its answer is stored under."
+          "description": "Unique element identifier. For a question, also its answer key."
         },
         "title": {
           "type": "string",
           "default": "",
           "description": "Display title; falls back to name."
         },
-        "isRequired": {
-          "type": "boolean",
-          "default": false
-        },
         "visibleIf": {
           "type": "string",
           "default": "",
-          "description": "Expression; the question is shown only while it evaluates truthy."
+          "description": "Expression; the element is shown only while it evaluates truthy."
         },
         "enableIf": {
           "type": "string",
           "default": "",
-          "description": "Expression; the question is editable only while it evaluates truthy."
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
         },
         "requiredIf": {
           "type": "string",

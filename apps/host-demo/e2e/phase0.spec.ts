@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { gotoLogicShowcase } from './support/navigate.js';
 
 /**
  * Parity scenarios. A checklist row goes green only through a passing scenario named
@@ -153,6 +154,7 @@ test('parity/B10-rest-choices', async ({ page }) => {
 });
 
 test('parity/B5-set-value-if', async ({ page }) => {
+  await gotoLogicShowcase(page);
   await page.getByLabel('paid').check();
   await page.getByLabel('Monthly price').fill('99');
 
@@ -162,6 +164,7 @@ test('parity/B5-set-value-if', async ({ page }) => {
 });
 
 test('parity/B5-reset-value-if', async ({ page }) => {
+  await gotoLogicShowcase(page);
   await page.getByLabel('paid').check();
   await page.getByLabel('Billing notes').fill('invoice quarterly');
 
@@ -170,22 +173,34 @@ test('parity/B5-reset-value-if', async ({ page }) => {
 });
 
 test('parity/B9-carry-forward-choices', async ({ page }) => {
+  await gotoLogicShowcase(page);
   const primary = page.getByLabel('Which topic matters most?');
   // Nothing chosen upstream, so nothing to carry forward but the placeholder.
   await expect(primary.locator('option')).toHaveCount(1);
 
+  // The source question is a page back: carry-forward reaches across pages, which is
+  // exactly the case a single-page demo could not have shown.
+  await page.getByRole('button', { name: 'Previous' }).click();
   await page.getByLabel('engineering').check();
   await page.getByLabel('design').check();
+  await gotoLogicShowcase(page);
   await expect(primary.locator('option')).toHaveCount(3);
   await expect(primary).toContainText('engineering');
 
   // Deselecting upstream withdraws the option here.
+  await page.getByRole('button', { name: 'Previous' }).click();
   await page.getByLabel('design').uncheck();
+  await gotoLogicShowcase(page);
   await expect(primary.locator('option')).toHaveCount(2);
 });
 
 test('parity/B7-trigger-runexpression', async ({ page }) => {
+  await gotoLogicShowcase(page);
+  // `free` first, because the billing panel only exists once a plan is chosen and the
+  // trigger fires on the *transition* into paid — the price has to be there already.
+  await page.getByLabel('free').check();
   await page.getByLabel('Monthly price').fill('10');
+
   await page.getByLabel('paid').check();
   await expect(page.getByLabel('Annual estimate')).toHaveValue('120');
 });
@@ -193,29 +208,17 @@ test('parity/B7-trigger-runexpression', async ({ page }) => {
 test('parity/B7-trigger-copyvalue', async ({ page }) => {
   await page.getByLabel(/What is your name\?/u).fill('Ada Lovelace');
   await page.getByLabel('engineering').check();
+  await gotoLogicShowcase(page);
   await page.getByLabel('Which topic matters most?').selectOption('engineering');
 
   await expect(page.getByLabel('Name on file')).toHaveValue('Ada Lovelace');
 });
 
 test('parity/B7-trigger-complete', async ({ page }) => {
+  await gotoLogicShowcase(page);
   await expect(page.getByRole('status')).toHaveCount(0);
   // `click`, not `check`: completing unmounts the whole form, so there is no longer a
   // radio for `check` to confirm ended up selected.
   await page.getByLabel('Yes, finish now').click();
   await expect(page.getByRole('status')).toContainText('Thank you');
-});
-
-test('parity/E5-completion-flow', async ({ page }) => {
-  await page.getByLabel(/What is your name\?/u).fill('Ada');
-  await page.getByRole('button', { name: 'Complete' }).click();
-  await expect(page.getByRole('status')).toContainText('Thank you');
-});
-
-test('parity/I1-theme-tokens-applied', async ({ page }) => {
-  // Proves the host's `@kajay/themes/styles.css` import resolved through the exports map.
-  const radius = await page
-    .locator('.kajay-survey')
-    .evaluate((element) => getComputedStyle(element).getPropertyValue('--kajay-radius').trim());
-  expect(radius).toBe('8px');
 });

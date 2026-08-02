@@ -7,7 +7,9 @@ import type { LogicEngine } from '../logic/LogicEngine.js';
 import type { CalculatedValue } from './CalculatedValue.js';
 import type { CarryForwardMode, ChoiceSourceController } from './ChoiceSourceController.js';
 import type { ElementStateController } from './ElementStateController.js';
-import type { Question } from './Question.js';
+import type { PageElement } from './PageElement.js';
+import { Panel } from './Panel.js';
+import { Question } from './Question.js';
 import { SelectQuestion } from './SelectQuestion.js';
 import type { SurveyChildren } from './SurveyChildren.js';
 import type { SurveyElement } from './SurveyElement.js';
@@ -24,6 +26,8 @@ export interface RuleHost {
   readonly goTo: (name: string) => void;
   readonly findQuestion: (name: string) => Question | undefined;
   readonly announceChoices: (question: SelectQuestion) => void;
+  /** Wires a panel's collapse toggle to the renderer's subscription. */
+  readonly announcePanelCollapsed: (panel: Panel) => void;
   readonly choiceSources: ChoiceSourceController;
   readonly resolveValue: (name: string) => unknown;
 }
@@ -234,12 +238,32 @@ export function registerSurveyRules(children: SurveyChildren, host: RuleHost): v
   }
   for (const page of children.pages) {
     registerConditions(page, `page:${page.name}`, host);
-    for (const question of page.elements) {
-      const owner = `question:${question.name}`;
-      registerConditions(question, owner, host);
-      registerValueRule(question, owner, host);
-      registerChoiceConditions(question, owner, host);
-      registerChoiceSource(question, owner, host);
+    registerElements(page.elements, host);
+  }
+}
+
+/**
+ * Registers a page's element tree, descending through panels.
+ *
+ * A panel contributes its own conditions and nothing else — it holds no answer and no
+ * choices — but its children are ordinary elements and must not be skipped because of
+ * the container they happen to sit in.
+ */
+function registerElements(elements: readonly PageElement[], host: RuleHost): void {
+  for (const element of elements) {
+    if (element instanceof Panel) {
+      registerConditions(element, `panel:${element.name}`, host);
+      host.announcePanelCollapsed(element);
+      registerElements(element.elements, host);
+      continue;
     }
+    if (!(element instanceof Question)) {
+      continue;
+    }
+    const owner = `question:${element.name}`;
+    registerConditions(element, owner, host);
+    registerValueRule(element, owner, host);
+    registerChoiceConditions(element, owner, host);
+    registerChoiceSource(element, owner, host);
   }
 }

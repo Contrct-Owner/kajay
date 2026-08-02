@@ -1,4 +1,4 @@
-import type { ElementStateChangedEvent, ElementStateKind } from '../events/SurveyEvents.js';
+import type { ConditionalStateKind, ElementStateChangedEvent } from '../events/SurveyEvents.js';
 import { Question } from './Question.js';
 import type { SurveyElement } from './SurveyElement.js';
 
@@ -24,7 +24,7 @@ export class ElementStateController {
   }
 
   /** Reverts an element to its authored, unconditional state. */
-  clear(element: SurveyElement, state: ElementStateKind): void {
+  clear(element: SurveyElement, state: ConditionalStateKind): void {
     if (state === 'required') {
       if (element instanceof Question) {
         element.setRequiredOverride(undefined);
@@ -34,7 +34,7 @@ export class ElementStateController {
     this.apply(element, state, true);
   }
 
-  apply(element: SurveyElement, state: ElementStateKind, value: boolean): void {
+  apply(element: SurveyElement, state: ConditionalStateKind, value: boolean): void {
     if (state === 'visible') {
       if (element.isVisible === value) {
         return;
@@ -55,6 +55,18 @@ export class ElementStateController {
 
     this.#version += 1;
     this.#pending.push({ element, state, value });
+  }
+
+  /**
+   * Records that a panel was collapsed or expanded.
+   *
+   * Not routed through `apply`: collapsing is a respondent action, not a computed
+   * state, so there is no expression behind it and no fallback to decide. It shares
+   * the buffer only so the renderer keeps one subscription.
+   */
+  notifyCollapsedChanged(element: SurveyElement, isCollapsed: boolean): void {
+    this.#version += 1;
+    this.#pending.push({ element, state: 'collapsed', value: isCollapsed });
   }
 
   /**

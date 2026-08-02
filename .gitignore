@@ -7,6 +7,9 @@ dist/
 coverage/
 playwright-report/
 test-results/
+# Vitest browser mode writes these only when an assertion fails; they are debugging
+# output for the run that produced them, not something to carry in the repo.
+__screenshots__/
 apps/host-demo/dist/
 
 # Pack test scratch area (created outside the workspace, but ignore any stray local copy)

@@ -33,6 +33,22 @@ export function useSurveyLogicState(survey: Survey): number {
   return useSyncExternalStore(subscribe, getSnapshot);
 }
 
+/**
+ * Re-renders when the respondent moves between pages.
+ *
+ * Separate from the logic-state subscription because navigation moves for reasons
+ * logic knows nothing about — a next button, a `skip` trigger — and the two would
+ * otherwise have to share a version counter that means neither thing clearly.
+ */
+export function useSurveyCurrentPageNo(survey: Survey): number {
+  const subscribe = useCallback(
+    (onStoreChange: () => void): (() => void) => survey.onCurrentPageChanged.add(onStoreChange),
+    [survey],
+  );
+  const getSnapshot = useCallback((): number => survey.currentPageNo, [survey]);
+  return useSyncExternalStore(subscribe, getSnapshot);
+}
+
 export function useSurveyCompleted(survey: Survey): boolean {
   const subscribe = useCallback(
     (onStoreChange: () => void): (() => void) => survey.onComplete.add(onStoreChange),

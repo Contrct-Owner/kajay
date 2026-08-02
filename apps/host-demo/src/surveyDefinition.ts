@@ -28,6 +28,14 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
       expression: "{finishNow} == 'yes'",
     },
     {
+      // The mirror image: not finishing sends you back to review. `skip` had no
+      // observable effect until the renderer paginated — it moves `currentPageNo`, and
+      // with every page on screen at once there was nothing to see.
+      type: 'skip',
+      expression: "{finishNow} == 'no'",
+      gotoName: 'page1',
+    },
+    {
       // Fires on the transition into true, so it stamps once rather than on every
       // keystroke afterwards.
       type: 'setvalue',
@@ -148,26 +156,47 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
           choices: ['free', 'paid'],
         },
         {
-          type: 'text',
-          name: 'price',
-          title: 'Monthly price',
-          inputType: 'number',
-          // Forced to zero while the plan is free, overwriting whatever was typed.
-          setValueIf: "{plan} == 'free'",
-          setValueExpression: '0',
-        },
-        {
-          type: 'text',
-          name: 'notes',
-          title: 'Billing notes',
-          // Cleared outright when they stop applying.
-          resetValueIf: "{plan} == 'free'",
-        },
-        {
-          type: 'text',
-          name: 'annualEstimate',
-          title: 'Annual estimate',
-          // Written by the runexpression trigger above.
+          // One `visibleIf` governs the group: nothing about billing is worth showing
+          // until a plan is chosen. `state` makes it collapsible — a panel left at the
+          // default is a grouping device, not a disclosure widget.
+          type: 'panel',
+          name: 'billing',
+          title: 'Billing',
+          state: 'expanded',
+          visibleIf: '{plan} notempty',
+          elements: [
+            {
+              type: 'text',
+              name: 'price',
+              title: 'Monthly price',
+              inputType: 'number',
+              // Forced to zero while the plan is free, overwriting whatever was typed.
+              setValueIf: "{plan} == 'free'",
+              setValueExpression: '0',
+            },
+            {
+              type: 'text',
+              name: 'notes',
+              title: 'Billing notes',
+              // Cleared outright when they stop applying.
+              resetValueIf: "{plan} == 'free'",
+            },
+            {
+              // Panels nest, and the inner one inherits nothing: it is shown because
+              // its parent is, and would hide independently if it had its own rule.
+              type: 'panel',
+              name: 'estimate',
+              title: 'Estimate',
+              elements: [
+                {
+                  type: 'text',
+                  name: 'annualEstimate',
+                  title: 'Annual estimate',
+                  // Written by the runexpression trigger above.
+                },
+              ],
+            },
+          ],
         },
         {
           type: 'dropdown',

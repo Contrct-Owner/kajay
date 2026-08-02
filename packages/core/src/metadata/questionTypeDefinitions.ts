@@ -1,5 +1,4 @@
 import type { ClassMetadataDefinition } from './ClassDescriptor.js';
-import { VISIBLE_IF } from './commonProperties.js';
 
 interface QuestionTypeDefinitions {
   readonly question: ClassMetadataDefinition;
@@ -10,25 +9,10 @@ interface QuestionTypeDefinitions {
 export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
   question: {
     name: 'question',
+    parent: 'pageelement',
     isAbstract: true,
     properties: [
-      {
-        name: 'name',
-        type: 'string',
-        isRequired: true,
-        description: 'Unique question identifier, and the key its answer is stored under.',
-      },
-      { name: 'title', type: 'string', description: 'Display title; falls back to name.' },
       { name: 'isRequired', type: 'boolean' },
-      {
-        ...VISIBLE_IF,
-        description: 'Expression; the question is shown only while it evaluates truthy.',
-      },
-      {
-        name: 'enableIf',
-        type: 'string',
-        description: 'Expression; the question is editable only while it evaluates truthy.',
-      },
       {
         name: 'requiredIf',
         type: 'string',

@@ -2,8 +2,13 @@ import type { Survey as SurveyModel } from '@kajay/core';
 import type { FormEvent, ReactElement } from 'react';
 import { defaultQuestionRenderers } from './defaultQuestionRenderers.js';
 import type { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
+import { SurveyNavigation } from './SurveyNavigation.js';
 import { SurveyPage } from './SurveyPage.js';
-import { useSurveyCompleted, useSurveyLogicState } from './useSurveyState.js';
+import {
+  useSurveyCompleted,
+  useSurveyCurrentPageNo,
+  useSurveyLogicState,
+} from './useSurveyState.js';
 
 export interface SurveyProps {
   readonly model: SurveyModel;
@@ -23,6 +28,8 @@ export function Survey({ model, renderers = defaultQuestionRenderers }: SurveyPr
   // Subscribed for the re-render: conditional logic can add, remove or disable
   // elements between renders, and nothing else would tell React about it.
   useSurveyLogicState(model);
+  // And again for navigation, which moves for reasons logic knows nothing about.
+  useSurveyCurrentPageNo(model);
 
   if (isCompleted) {
     return (
@@ -32,10 +39,14 @@ export function Survey({ model, renderers = defaultQuestionRenderers }: SurveyPr
     );
   }
 
+  // Submitting means "advance", which on the last page means complete. Keeping that
+  // decision in the model stops each adapter reinventing "am I at the end".
   const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
-    model.complete();
+    model.nextPageOrComplete();
   };
+
+  const currentPage = model.currentPage;
 
   return (
     <form className="kajay-survey" onSubmit={handleSubmit} noValidate>
@@ -44,13 +55,16 @@ export function Survey({ model, renderers = defaultQuestionRenderers }: SurveyPr
         <p className="kajay-survey__description">{model.description}</p>
       ) : null}
 
-      {model.visiblePages.map((page) => (
-        <SurveyPage key={page.name} survey={model} page={page} renderers={renderers} />
-      ))}
+      {currentPage === undefined ? null : (
+        <SurveyPage
+          key={currentPage.name}
+          survey={model}
+          page={currentPage}
+          renderers={renderers}
+        />
+      )}
 
-      <button className="kajay-survey__complete" type="submit">
-        Complete
-      </button>
+      <SurveyNavigation survey={model} />
     </form>
   );
 }

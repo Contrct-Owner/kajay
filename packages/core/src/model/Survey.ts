@@ -7,30 +7,21 @@ import type {
 } from '../events/SurveyEvents.js';
 import type { PathSegment } from '../expressions/ExpressionNode.js';
 import { LogicEngine } from '../logic/LogicEngine.js';
-import type { LogicDiagnostics, LogicEngineOptions } from '../logic/LogicEngine.js';
+import type { LogicDiagnostics } from '../logic/LogicEngine.js';
 import type { ChoiceFetcher } from './ChoiceSourceController.js';
-
-/**
- * Everything a survey may be given at construction.
- *
- * `fetchJson` is supplied by the host rather than defaulted here because core is
- * DOM-free and dependency-free — it cannot reach for `fetch`, which keeps the engine
- * backend-agnostic by construction.
- */
-export interface SurveyOptions extends LogicEngineOptions {
-  readonly fetchJson?: ChoiceFetcher;
-}
+import { refreshSurveyLogic } from './surveyLogicWiring.js';
+import type { SurveyOptions } from './SurveyOptions.js';
 import type { CalculatedValue } from './CalculatedValue.js';
-import { CalculatedValueStore } from './CalculatedValueStore.js';
 import { ChoiceSourceController } from './ChoiceSourceController.js';
 import { createPathResolver } from './createPathResolver.js';
 import { ElementStateController } from './ElementStateController.js';
-import { NavigationController } from './NavigationController.js';
 import { SettleCoordinator } from './SettleCoordinator.js';
-import { Page } from './Page.js';
+import { SurveyAnswers } from './SurveyAnswers.js';
+import type { Page } from './Page.js';
+import { toQuestionsOnPageMode } from './PageLayout.js';
+import { SurveyPages } from './SurveyPages.js';
 import type { Question } from './Question.js';
 import { SurveyChildren } from './SurveyChildren.js';
-import { registerSurveyRules } from './registerSurveyRules.js';
 import { SurveyElement } from './SurveyElement.js';
 import type { Trigger } from './Trigger.js';
 import type { ValueHost } from './ValueHost.js';
@@ -38,11 +29,13 @@ import type { ValueHost } from './ValueHost.js';
 /** Root of the model, and the value host every question writes through. */
 export class Survey extends SurveyElement implements ValueHost {
   readonly #children: SurveyChildren = new SurveyChildren();
-  readonly #data: Map<string, unknown> = new Map();
-  readonly #calculated: CalculatedValueStore = new CalculatedValueStore();
+  readonly #answers: SurveyAnswers = new SurveyAnswers();
   readonly #logic: LogicEngine;
   readonly #states: ElementStateController = new ElementStateController();
   readonly #settle: SettleCoordinator = new SettleCoordinator((values) => {
+    // Before anything is announced: logic may have hidden the page the respondent is
+    // standing on, and a listener must never see a current page that no longer exists.
+    this.#pages.clampToVisible();
     for (const event of values) {
       this.onValueChanged.emit(event);
     }
@@ -51,18 +44,18 @@ export class Survey extends SurveyElement implements ValueHost {
     }
   });
   readonly #choiceSources: ChoiceSourceController = new ChoiceSourceController();
-  readonly #navigation: NavigationController = new NavigationController(
+  readonly #pages: SurveyPages = new SurveyPages(
     () => this.#children.pages,
+    () => toQuestionsOnPageMode(this.questionsOnPageMode),
     (event) => {
       this.onCurrentPageChanged.emit(event);
     },
   );
-  readonly #resolvePath: (path: readonly PathSegment[]) => unknown = createPathResolver((name) =>
-    this.#data.has(name) ? this.#data.get(name) : this.#calculated.get(name),
+  readonly #resolvePath: (path: readonly PathSegment[]) => unknown = createPathResolver(
+    (name) => this.#answers.resolve(name),
   );
 
   #isCompleted = false;
-
 
   readonly onValueChanged: EventEmitter<ValueChangedEvent> = new EventEmitter();
   readonly onComplete: EventEmitter<CompleteEvent> = new EventEmitter();
@@ -111,21 +104,37 @@ export class Survey extends SurveyElement implements ValueHost {
     this.setPropertyValue('description', value);
   }
 
+  /** How the authored pages are presented: standard, singlePage or questionPerPage. */
+  get questionsOnPageMode(): string {
+    return this.getStringProperty('questionsOnPageMode');
+  }
+
+  set questionsOnPageMode(value: string) {
+    this.setPropertyValue('questionsOnPageMode', value);
+  }
+
+  /** The pages exactly as authored. Serialization reads these. */
   get pages(): readonly Page[] {
     return this.#children.pages;
   }
 
-  /** Pages a respondent can currently see. What the renderer draws. */
+  /**
+   * The pages a respondent actually walks through.
+   *
+   * Under `standard` this is the visible authored pages. The other modes reshape it —
+   * one merged page, or one page per question — without touching the definition.
+   */
   get visiblePages(): readonly Page[] {
-    return this.#children.pages.filter((page) => page.isVisible);
+    return this.#pages.visiblePages;
   }
 
+  /** Every question on every page, panels flattened, in document order. */
   get questions(): readonly Question[] {
-    return this.#children.pages.flatMap((page) => [...page.elements]);
+    return this.#children.questions;
   }
 
   getQuestionByName(name: string): Question | undefined {
-    return this.questions.find((question) => question.name === name);
+    return this.#children.findQuestion(name);
   }
 
   get calculatedValues(): readonly CalculatedValue[] {
@@ -138,7 +147,7 @@ export class Survey extends SurveyElement implements ValueHost {
 
   /** The current result of a calculated value, whether or not it reaches `data`. */
   getCalculatedValue(name: string): unknown {
-    return this.#calculated.get(name);
+    return this.#answers.getCalculated(name);
   }
 
   override getChildren(property: string): readonly SurveyElement[] {
@@ -146,10 +155,7 @@ export class Survey extends SurveyElement implements ValueHost {
   }
 
   override addChild(property: string, child: SurveyElement): void {
-    this.#children.add(property, child);
-    if (child instanceof Page) {
-      child.attachValueHost(this);
-    }
+    this.#children.add(property, child, this);
   }
 
   /** Advances whenever logic changes an element's visible, enabled or required state. */
@@ -167,70 +173,72 @@ export class Survey extends SurveyElement implements ValueHost {
     return this.#settle.diagnostics;
   }
 
-  /**
-   * Rebuilds conditional logic from the current tree and evaluates it once.
-   *
-   * `parseSurvey` calls this after building the model. A host that adds or removes
-   * elements afterwards calls it again — registration is deliberately a whole-tree
-   * rebuild for now rather than incremental, because correctness matters more here
-   * than the cost of re-registering a handful of expressions.
-   */
+  /** Rebuilds conditional logic from the current tree and evaluates it once. */
   refreshLogic(): void {
-    this.#logic.clear();
-    registerSurveyRules(this.#children, {
+    refreshSurveyLogic(this.#children, {
       logic: this.#logic,
       states: this.#states,
-      getValue: (name) => this.getValue(name),
-      setValue: (name, value) => this.#writeValue(name, value),
-      setCalculated: (calculated, value) => {
-        return this.#setCalculated(calculated, value);
-      },
-      complete: () => {
-        this.complete();
-      },
-      goTo: (name) => {
-        this.goTo(name);
-      },
-      findQuestion: (name) => this.getQuestionByName(name),
-      announceChoices: (question) => {
-        this.#states.notifyChoicesChanged(question);
-        // A REST response lands after the settle that asked for it, so nothing else
-        // would flush the event it produced.
-        if (!this.#settle.isSettling) {
-          this.#settle.release();
-        }
-      },
+      settle: this.#settle,
       choiceSources: this.#choiceSources,
-      resolveValue: (name) => this.#resolvePath([{ kind: 'name', name }]),
+      answers: this.#answers,
+      resolvePath: this.#resolvePath,
+      getValue: (name) => this.getValue(name),
+      writeValue: (name, value) => this.#writeValue(name, value),
+      complete: () => this.complete(),
+      goTo: (name) => this.goTo(name),
+      findQuestion: (name) => this.getQuestionByName(name),
     });
-    this.#settle.run(() => this.#logic.evaluateAll(this.#resolvePath));
-  }
-
-  #setCalculated(calculated: CalculatedValue, value: unknown): boolean {
-    const { changed, previousValue } = this.#calculated.set(calculated.name, value);
-    // Announced only when it reaches `data`: onValueChanged means "an answer changed",
-    // and reporting something the host cannot find in `data` would mislead.
-    if (changed && calculated.includeIntoResult) {
-      this.#settle.queueValue({ name: calculated.name, value, previousValue });
-    }
-    return changed;
   }
 
   get currentPageNo(): number {
-    return this.#navigation.currentPageNo;
+    return this.#pages.currentPageNo;
   }
 
   get currentPage(): Page | undefined {
-    return this.#navigation.currentPage;
+    return this.#pages.currentPage;
   }
 
   setCurrentPageNo(pageNo: number): void {
-    this.#navigation.setCurrentPageNo(pageNo);
+    this.#pages.setCurrentPageNo(pageNo);
+  }
+
+  /** How many pages the respondent walks through, after visibility and layout mode. */
+  get pageCount(): number {
+    return this.#pages.pageCount;
+  }
+
+  get isFirstPage(): boolean {
+    return this.#pages.isFirstPage;
+  }
+
+  get isLastPage(): boolean {
+    return this.#pages.isLastPage;
+  }
+
+  /** Moves forward one page. False when there is nowhere further to go. */
+  nextPage(): boolean {
+    return this.#pages.nextPage();
+  }
+
+  prevPage(): boolean {
+    return this.#pages.prevPage();
+  }
+
+  /**
+   * Advances, or completes when this is the last page.
+   *
+   * One call rather than making the renderer decide, so every adapter agrees on what
+   * the primary button does and none of them has to reimplement "am I at the end".
+   */
+  nextPageOrComplete(): void {
+    if (!this.#pages.nextPage()) {
+      this.complete();
+    }
   }
 
   /** Navigates to a page by name, or to the page owning the named question. */
   goTo(name: string): void {
-    this.#navigation.goTo(name);
+    this.#pages.goTo(name);
   }
 
   /**
@@ -239,10 +247,7 @@ export class Survey extends SurveyElement implements ValueHost {
    * A shallow copy: mutating the result must not reach into the survey.
    */
   get data(): Readonly<Record<string, unknown>> {
-    return {
-      ...Object.fromEntries(this.#data),
-      ...this.#calculated.toResult(this.#children.calculatedValues),
-    };
+    return this.#answers.toResult(this.#children.calculatedValues);
   }
 
   setData(next: Readonly<Record<string, unknown>>): void {
@@ -252,7 +257,7 @@ export class Survey extends SurveyElement implements ValueHost {
   }
 
   getValue(name: string): unknown {
-    return this.#data.get(name);
+    return this.#answers.get(name);
   }
 
   /**
@@ -272,17 +277,11 @@ export class Survey extends SurveyElement implements ValueHost {
 
   /** Writes model state without starting a nested settle. Rule execution reports the path. */
   #writeValue(name: string, value: unknown): boolean {
-    const previousValue = this.#data.get(name);
-    if (Object.is(previousValue, value)) {
-      return false;
+    const { changed, previousValue } = this.#answers.write(name, value);
+    if (changed) {
+      this.#settle.queueValue({ name, value, previousValue });
     }
-    if (value === undefined) {
-      this.#data.delete(name);
-    } else {
-      this.#data.set(name, value);
-    }
-    this.#settle.queueValue({ name, value, previousValue });
-    return true;
+    return changed;
   }
 
   get isCompleted(): boolean {

@@ -18,7 +18,16 @@ export interface CurrentPageChangedEvent {
 }
 
 /** Which computed aspect of an element changed. */
-export type ElementStateKind = 'visible' | 'enabled' | 'required' | 'choices';
+export type ElementStateKind = 'visible' | 'enabled' | 'required' | 'choices' | 'collapsed';
+
+/**
+ * The subset an expression can drive.
+ *
+ * Narrower than `ElementStateKind` on purpose: `choices` and `collapsed` also travel
+ * on the state channel, but neither has a condition behind it, so neither may reach
+ * the code that applies a rule's result.
+ */
+export type ConditionalStateKind = 'visible' | 'enabled' | 'required';
 
 /**
  * Emitted after logic has settled, never part-way through a cascade.
@@ -30,7 +39,7 @@ export type ElementStateKind = 'visible' | 'enabled' | 'required' | 'choices';
 export type ElementStateChangedEvent =
   | {
       readonly element: SurveyElement;
-      readonly state: 'visible' | 'enabled' | 'required';
+      readonly state: 'visible' | 'enabled' | 'required' | 'collapsed';
       readonly value: boolean;
     }
   | {

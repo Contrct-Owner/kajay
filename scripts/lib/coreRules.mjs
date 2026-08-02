@@ -36,9 +36,68 @@ const CORE_LAYERS = [
   { dir: 'logic', mayNotImport: ['model', 'serialization'] },
 ];
 
+/**
+ * Removes comments, leaving string literals intact.
+ *
+ * The DOM-free rule reads code, not prose. Scanning raw text failed the build over the
+ * phrase "in document order" in a doc comment — a false positive that teaches people to
+ * work around the checker, which is worse than not having it.
+ *
+ * Deliberately not a regex: `//` inside a string is not a comment, and a checker that
+ * mangles strings would start missing the real thing it exists to catch.
+ */
+function stripComments(source) {
+  let out = '';
+  let mode = 'code';
+  let index = 0;
+  while (index < source.length) {
+    const char = source[index];
+    const next = source[index + 1];
+    if (mode === 'code') {
+      if (char === '/' && next === '/') {
+        mode = 'line';
+        index += 2;
+      } else if (char === '/' && next === '*') {
+        mode = 'block';
+        index += 2;
+      } else {
+        if (char === "'" || char === '"' || char === '`') {
+          mode = char;
+        }
+        out += char;
+        index += 1;
+      }
+    } else if (mode === 'line') {
+      if (char === '\n') {
+        mode = 'code';
+        out += char;
+      }
+      index += 1;
+    } else if (mode === 'block') {
+      if (char === '*' && next === '/') {
+        mode = 'code';
+        index += 2;
+      } else {
+        index += 1;
+      }
+    } else if (char === '\\') {
+      out += char + (next ?? '');
+      index += 2;
+    } else {
+      if (char === mode) {
+        mode = 'code';
+      }
+      out += char;
+      index += 1;
+    }
+  }
+  return out;
+}
+
 function checkDomFree(source, location, packageName, fail) {
+  const code = stripComments(source);
   for (const domGlobal of DOM_GLOBALS) {
-    if (new RegExp(String.raw`\b${domGlobal}\b`, 'u').test(source)) {
+    if (new RegExp(String.raw`\b${domGlobal}\b`, 'u').test(code)) {
       fail(
         'core-dom-free',
         location,

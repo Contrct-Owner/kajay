@@ -97,6 +97,8 @@ export { ExpressionQuestion } from './model/ExpressionQuestion.js';
 export type { DisplayStyle } from './model/ExpressionQuestion.js';
 export { HtmlElement } from './model/HtmlElement.js';
 export { ImageElement } from './model/ImageElement.js';
+export { MultipleTextItem } from './model/MultipleTextItem.js';
+export { MultipleTextQuestion } from './model/MultipleTextQuestion.js';
 export type { ContentMode, ImageFit } from './model/ImageElement.js';
 export { RatingQuestion } from './model/RatingQuestion.js';
 export type { RateType, RatingDisplayMode } from './model/RatingQuestion.js';

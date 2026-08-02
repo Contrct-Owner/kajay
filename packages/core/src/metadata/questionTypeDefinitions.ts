@@ -7,6 +7,8 @@ interface QuestionTypeDefinitions {
   readonly boolean: ClassMetadataDefinition;
   readonly rating: ClassMetadataDefinition;
   readonly expression: ClassMetadataDefinition;
+  readonly multipleTextItem: ClassMetadataDefinition;
+  readonly multipleText: ClassMetadataDefinition;
 }
 
 /** Authoritative metadata for the question base and plain question types. */
@@ -162,5 +164,36 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
         description: 'Template around the result, with {0} standing for it.',
       },
     ],
+  },
+  multipleTextItem: {
+    name: 'multipletextitem',
+    properties: [
+      {
+        name: 'name',
+        type: 'string',
+        isRequired: true,
+        description: 'Key this field is stored under inside the question answer.',
+      },
+      { name: 'title', type: 'string', description: 'Display label; falls back to name.' },
+      { name: 'inputType', type: 'string', defaultValue: 'text' },
+      { name: 'placeholder', type: 'string' },
+      { name: 'isRequired', type: 'boolean' },
+      { name: 'requiredErrorText', type: 'string' },
+      { name: 'size', type: 'number', description: 'Width in characters. 0 uses itemSize.' },
+    ],
+    childCollections: [{ property: 'validators', elementBaseType: 'validator' }],
+  },
+  multipleText: {
+    name: 'multipletext',
+    parent: 'question',
+    properties: [
+      {
+        name: 'itemSize',
+        type: 'number',
+        description: 'Default field width in characters. An item size wins.',
+      },
+      { name: 'colCount', type: 'number', defaultValue: 1 },
+    ],
+    childCollections: [{ property: 'items', elementBaseType: 'multipletextitem' }],
   },
 };

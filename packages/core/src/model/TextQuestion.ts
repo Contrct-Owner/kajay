@@ -2,6 +2,7 @@ import { compareValues, toNumber } from '../expressions/expressionValues.js';
 import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
 import { Question } from './Question.js';
 import type { SurveyError } from './SurveyError.js';
+import type { ValidationContext } from './Validator.js';
 
 /**
  * Input types a text question understands.
@@ -108,7 +109,7 @@ export class TextQuestion extends Question {
    * `noValidate` — the engine owns the message so every adapter says the same thing,
    * and so a host that never mounts a browser input still gets the check.
    */
-  override checkValue(value: unknown): readonly SurveyError[] {
+  override checkValue({ value }: ValidationContext): readonly SurveyError[] {
     const errors: SurveyError[] = [];
     const { min, max } = this;
     if (min !== undefined && belowBound(value, min)) {

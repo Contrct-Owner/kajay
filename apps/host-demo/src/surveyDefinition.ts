@@ -274,6 +274,27 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
           maxLength: 120,
         },
         {
+          // Several fields, one answer. `{workplace.city}` reaches a single field from
+          // anywhere, because the answer is a real object rather than a flat prefix.
+          type: 'multipletext',
+          name: 'workplace',
+          title: 'Where do you work?',
+          colCount: 2,
+          itemSize: 18,
+          items: [
+            { name: 'street', title: 'Street', isRequired: true },
+            { name: 'city', title: 'City' },
+            {
+              name: 'postcode',
+              title: 'Postcode',
+              size: 8,
+              validators: [
+                { type: 'regexvalidator', regex: '^[0-9]{5}$', text: 'Five digits, please.' },
+              ],
+            },
+          ],
+        },
+        {
           type: 'boolean',
           name: 'wantsUpdates',
           title: 'Product updates',

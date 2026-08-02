@@ -6,6 +6,7 @@ export { CommentQuestionRenderer } from './CommentQuestionRenderer.js';
 export { DisplayElementRenderer } from './DisplayElementRenderer.js';
 export { ExpressionQuestionRenderer } from './ExpressionQuestionRenderer.js';
 export type { HtmlSanitizer } from './HtmlSanitizerContext.js';
+export { MultipleTextQuestionRenderer } from './MultipleTextQuestionRenderer.js';
 export { RatingQuestionRenderer } from './RatingQuestionRenderer.js';
 export { defaultQuestionRenderers } from './defaultQuestionRenderers.js';
 export { QuestionErrors } from './QuestionErrors.js';

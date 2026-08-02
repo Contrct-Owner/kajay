@@ -112,6 +112,34 @@ test('parity/C8-rating-auto-collapses-a-long-scale', async ({ page }) => {
   await expect(page.getByTestId('survey-data')).toContainText('"recommend": 9');
 });
 
+test('parity/C11-multipletext', async ({ page }) => {
+  const workplace = page.getByRole('group', { name: /Where do you work\?/u });
+  await workplace.getByLabel('Street').fill('12 Long Road');
+  await workplace.getByLabel('City').fill('Cambridge');
+
+  // One answer, one object — not three top-level keys with a shared prefix.
+  await expect(page.getByTestId('survey-data')).toContainText('"street": "12 Long Road"');
+  await expect(page.getByTestId('survey-data')).toContainText('"workplace"');
+});
+
+test('parity/C11-multipletext-per-item-validation', async ({ page }) => {
+  const workplace = page.getByRole('group', { name: /Where do you work\?/u });
+  await workplace.getByLabel('Postcode').fill('nope');
+  await page.getByRole('button', { name: 'Complete' }).click();
+
+  // Each message sits beside the field that earned it, and only that field is marked.
+  await expect(workplace.getByLabel('Street')).toHaveAttribute('aria-invalid', 'true');
+  await expect(workplace.getByLabel('City')).not.toHaveAttribute('aria-invalid', 'true');
+  // Scoped to the question: the demo also prints the canonical JSON, which contains the
+  // authored message.
+  await expect(workplace.getByText('Five digits, please.')).toBeVisible();
+
+  await workplace.getByLabel('Street').fill('12 Long Road');
+  await workplace.getByLabel('Postcode').fill('12345');
+  await page.getByRole('button', { name: 'Complete' }).click();
+  await expect(page.getByRole('status')).toContainText('Thank you');
+});
+
 test('parity/C12-html-and-image', async ({ page }) => {
   // Rendered as markup, not escaped: the `<strong>` is an element, not four characters.
   await expect(page.locator('[data-element-name="intro"] strong')).toHaveText(

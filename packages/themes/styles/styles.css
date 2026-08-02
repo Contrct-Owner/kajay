@@ -442,3 +442,27 @@
   margin: 0;
   padding-left: var(--kajay-spacing);
 }
+
+/* --- multipletext -------------------------------------------------------- */
+
+.kajay-question--multipletext {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.kajay-multipletext {
+  display: grid;
+  gap: calc(var(--kajay-spacing) / 2);
+}
+
+.kajay-multipletext__item {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 4);
+}
+
+.kajay-multipletext__label {
+  color: var(--kajay-color-muted);
+  font-size: 0.875em;
+}

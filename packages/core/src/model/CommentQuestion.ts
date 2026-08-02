@@ -1,5 +1,6 @@
 import { Question } from './Question.js';
 import type { SurveyError } from './SurveyError.js';
+import type { ValidationContext } from './Validator.js';
 
 /**
  * A long, free-text answer.
@@ -59,7 +60,7 @@ export class CommentQuestion extends Question {
    * longer value there — and an over-long answer that no check objects to is one the
    * host discovers at submit time.
    */
-  override checkValue(value: unknown): readonly SurveyError[] {
+  override checkValue({ value }: ValidationContext): readonly SurveyError[] {
     const budget = this.maxLength;
     const length = String(value ?? '').length;
     if (budget <= 0 || length <= budget) {

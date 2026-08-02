@@ -871,6 +871,142 @@
       ],
       "additionalProperties": true
     },
+    "multipletext": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "multipletext"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "itemSize": {
+          "type": "number",
+          "default": 0,
+          "description": "Default field width in characters. An item size wins."
+        },
+        "colCount": {
+          "type": "number",
+          "default": 1
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/multipletextitem"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "multipletextitem": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "multipletextitem"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Key this field is stored under inside the question answer."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display label; falls back to name."
+        },
+        "inputType": {
+          "type": "string",
+          "default": "text"
+        },
+        "placeholder": {
+          "type": "string",
+          "default": ""
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": ""
+        },
+        "size": {
+          "type": "number",
+          "default": 0,
+          "description": "Width in characters. 0 uses itemSize."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": true
+    },
     "multiselectbase": {
       "description": "Any concrete \"multiselectbase\".",
       "oneOf": [
@@ -966,6 +1102,9 @@
           "$ref": "#/$defs/image"
         },
         {
+          "$ref": "#/$defs/multipletext"
+        },
+        {
           "$ref": "#/$defs/panel"
         },
         {
@@ -1047,6 +1186,9 @@
         },
         {
           "$ref": "#/$defs/expression"
+        },
+        {
+          "$ref": "#/$defs/multipletext"
         },
         {
           "$ref": "#/$defs/radiogroup"

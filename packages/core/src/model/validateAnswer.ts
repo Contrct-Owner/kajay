@@ -39,7 +39,7 @@ export function collectAnswerErrors(
   // the same statement as a validator, made earlier, and it reads first for that reason.
   const context = { value, evaluate };
   return [
-    ...question.checkValue(value),
+    ...question.checkValue(context),
     ...question.validators.flatMap((validator) => {
       const error = validator.validate(context);
       return error === undefined ? [] : [error];

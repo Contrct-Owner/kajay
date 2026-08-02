@@ -12,4 +12,13 @@ export interface SurveyError {
   /** `required`, or the registered type of the validator that failed. */
   readonly kind: string;
   readonly text: string;
+  /**
+   * Which part of a composite answer the error is about.
+   *
+   * A multipletext holds several answers under one name, and so will a matrix cell.
+   * Naming the part lets a renderer put the message beside the input that earned it,
+   * rather than prefixing the text with a label the field is already showing — and the
+   * prefix version cannot be undone by a host that wants to place them itself.
+   */
+  readonly path?: string;
 }

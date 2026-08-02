@@ -2,6 +2,7 @@ import { PageElement } from './PageElement.js';
 import type { SurveyElement } from './SurveyElement.js';
 import type { SurveyError } from './SurveyError.js';
 import { Validator } from './Validator.js';
+import type { ValidationContext } from './Validator.js';
 import type { ValueHost } from './ValueHost.js';
 
 /** Base for every question type. Answers live in the host, never on the question. */
@@ -55,8 +56,12 @@ export abstract class Question extends PageElement {
    * a multipletext's per-item rules — states that here rather than requiring the author
    * to add a validator that repeats what the property already said. Never called with
    * an empty answer, on the same reasoning that keeps validators away from one.
+   *
+   * Handed the whole validation context rather than just the value, because a composite
+   * question runs its parts' own validators — including expression ones, which need an
+   * evaluator.
    */
-  checkValue(_value: unknown): readonly SurveyError[] {
+  checkValue(_context: ValidationContext): readonly SurveyError[] {
     return [];
   }
 

@@ -19,6 +19,11 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
         description: 'Expression; when present it overrides isRequired.',
       },
       {
+        name: 'requiredErrorText',
+        type: 'string',
+        description: 'Replaces the built-in message shown when a required answer is missing.',
+      },
+      {
         name: 'defaultValueExpression',
         type: 'string',
         description: 'Expression supplying a value while the question is unanswered.',
@@ -35,6 +40,7 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
         description: 'Expression; while truthy the answer is cleared. Wins over the others.',
       },
     ],
+    childCollections: [{ property: 'validators', elementBaseType: 'validator' }],
   },
   text: {
     name: 'text',

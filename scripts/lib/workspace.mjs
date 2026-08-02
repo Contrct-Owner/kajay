@@ -54,17 +54,79 @@ export function listSourceFiles(dir) {
 const MODULE_SPECIFIER = /^(?:\.{1,2}\/[^\s]*|node:[\w/.-]+|(?:@[\w.-]+\/)?[\w.-]+(?:\/[\w.@*-]+)*)$/u;
 
 /**
+ * Removes comments, leaving string literals intact.
+ *
+ * Both scanners below read *code*. Prose that happens to look like code is the one
+ * thing they must not act on: the DOM-free rule once failed the build over the phrase
+ * "in document order", and the dependency scanner over a sentence containing
+ * `from "false"`. A checker that fires on comments teaches people to reword their
+ * comments, which is worse than not having the checker.
+ *
+ * Deliberately not a regex: `//` inside a string is not a comment, and a stripper that
+ * mangled strings would start missing the real thing it exists to catch.
+ */
+export function stripComments(source) {
+  let out = '';
+  let mode = 'code';
+  let index = 0;
+  while (index < source.length) {
+    const char = source[index];
+    const next = source[index + 1];
+    if (mode === 'code') {
+      if (char === '/' && next === '/') {
+        mode = 'line';
+        index += 2;
+      } else if (char === '/' && next === '*') {
+        mode = 'block';
+        index += 2;
+      } else {
+        if (char === "'" || char === '"' || char === '`') {
+          mode = char;
+        }
+        out += char;
+        index += 1;
+      }
+    } else if (mode === 'line') {
+      if (char === '\n') {
+        mode = 'code';
+        out += char;
+      }
+      index += 1;
+    } else if (mode === 'block') {
+      if (char === '*' && next === '/') {
+        mode = 'code';
+        index += 2;
+      } else {
+        index += 1;
+      }
+    } else if (char === '\\') {
+      out += char + (next ?? '');
+      index += 2;
+    } else {
+      if (char === mode) {
+        mode = 'code';
+      }
+      out += char;
+      index += 1;
+    }
+  }
+  return out;
+}
+
+/**
  * Finds import specifiers by pattern rather than by parsing.
  *
- * The capture excludes whitespace and the result is shape-checked, because the word
- * "from" also appears inside ordinary strings — a test title ending in "came from"
- * was enough to produce a bogus specifier before both guards were in place.
+ * Comments are stripped first, and what remains is still guarded twice — the capture
+ * excludes whitespace and the result is shape-checked — because the word "from" also
+ * appears inside ordinary strings, and a test title ending in "came from" was enough
+ * to produce a bogus specifier before those guards were in place.
  */
 export function importSpecifiers(source) {
   const specifiers = [];
+  const code = stripComments(source);
   const pattern = /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)(['"])([^'"\s]*)\1/gu;
   let match;
-  while ((match = pattern.exec(source)) !== null) {
+  while ((match = pattern.exec(code)) !== null) {
     const specifier = match[2];
     if (specifier.length > 0 && MODULE_SPECIFIER.test(specifier)) {
       specifiers.push(specifier);

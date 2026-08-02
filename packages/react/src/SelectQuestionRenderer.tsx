@@ -2,6 +2,7 @@ import { CheckboxQuestion, RadiogroupQuestion, SelectQuestion } from '@kajay/cor
 import type { ReactElement } from 'react';
 import { ChoiceInput } from './ChoiceInput.js';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
+import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
 
@@ -34,6 +35,37 @@ function SelectAllChoice({ question }: { readonly question: CheckboxQuestion }):
   );
 }
 
+interface ChoiceGridProps {
+  readonly question: SelectQuestion;
+  readonly groupName: string;
+  readonly columns: number;
+}
+
+/** The options themselves, laid out in `colCount` columns. */
+function ChoiceGrid({ question, groupName, columns }: ChoiceGridProps): ReactElement {
+  const isMultiple = question instanceof CheckboxQuestion;
+  return (
+    <div
+      className="kajay-choices"
+      style={{ gridTemplateColumns: `repeat(${String(columns)}, minmax(0, 1fr))` }}
+    >
+      {question instanceof CheckboxQuestion && question.showSelectAllItem ? (
+        <SelectAllChoice question={question} />
+      ) : null}
+
+      {question.visibleChoices.map((choice) => (
+        <ChoiceInput
+          key={String(choice.value)}
+          question={question}
+          choice={choice}
+          groupName={groupName}
+          isMultiple={isMultiple}
+        />
+      ))}
+    </div>
+  );
+}
+
 /**
  * Draws radiogroup and checkbox.
  *
@@ -51,8 +83,8 @@ export function SelectQuestionRenderer({ survey, question }: QuestionRendererPro
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const isMultiple = question instanceof CheckboxQuestion;
   const groupName = `kajay-question-${question.name}`;
+  const errorId = `${groupName}-errors`;
   const columns = question.colCount > 0 ? question.colCount : 1;
 
   return (
@@ -61,33 +93,22 @@ export function SelectQuestionRenderer({ survey, question }: QuestionRendererPro
       data-question-name={question.name}
       disabled={!question.isEnabled}
       aria-required={question.isRequired}
+      aria-invalid={question.hasErrors || undefined}
+      aria-describedby={question.hasErrors ? errorId : undefined}
     >
       <legend className="kajay-question__title">
         <QuestionTitleContent question={question} />
       </legend>
 
-      <div
-        className="kajay-choices"
-        style={{ gridTemplateColumns: `repeat(${String(columns)}, minmax(0, 1fr))` }}
-      >
-        {question instanceof CheckboxQuestion && question.showSelectAllItem ? (
-          <SelectAllChoice question={question} />
-        ) : null}
+      <QuestionErrors survey={survey} question={question} at="top" id={errorId} />
 
-        {question.visibleChoices.map((choice) => (
-          <ChoiceInput
-            key={String(choice.value)}
-            question={question}
-            choice={choice}
-            groupName={groupName}
-            isMultiple={isMultiple}
-          />
-        ))}
-      </div>
+      <ChoiceGrid question={question} groupName={groupName} columns={columns} />
 
       {question instanceof RadiogroupQuestion && question.showClearButton ? (
         <ClearButton question={question} />
       ) : null}
+
+      <QuestionErrors survey={survey} question={question} at="bottom" id={errorId} />
     </fieldset>
   );
 }

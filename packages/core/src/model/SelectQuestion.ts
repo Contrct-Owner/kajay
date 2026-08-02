@@ -53,14 +53,21 @@ export abstract class SelectQuestion extends Question {
     this.#choiceProvider = undefined;
   }
 
-  /** Serialization must write the definition, never what a runtime source supplied. */
+  /**
+   * Serialization must write the definition, never what a runtime source supplied.
+   *
+   * Anything that is not `choices` goes to the base, which is what keeps a select
+   * question's inherited `validators` collection working — an override that answered
+   * for every property would quietly swallow it.
+   */
   override getChildren(property: string): readonly SurveyElement[] {
-    return property === 'choices' ? this.#choices : [];
+    return property === 'choices' ? this.#choices : super.getChildren(property);
   }
 
   override addChild(property: string, child: SurveyElement): void {
     if (property !== 'choices') {
-      throw new Error(`"${this.type}" does not accept children under "${property}".`);
+      super.addChild(property, child);
+      return;
     }
     if (!(child instanceof ItemValue)) {
       throw new Error(`choices accepts choice items; received "${child.type}".`);

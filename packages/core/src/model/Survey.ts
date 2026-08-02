@@ -5,24 +5,20 @@ import type {
   ElementStateChangedEvent,
   ValueChangedEvent,
 } from '../events/SurveyEvents.js';
-import type { PathSegment } from '../expressions/ExpressionNode.js';
-import { LogicEngine } from '../logic/LogicEngine.js';
 import type { LogicDiagnostics } from '../logic/LogicEngine.js';
 import type { ChoiceFetcher } from './ChoiceSourceController.js';
-import { refreshSurveyLogic } from './surveyLogicWiring.js';
 import type { SurveyOptions } from './SurveyOptions.js';
 import type { CalculatedValue } from './CalculatedValue.js';
-import { ChoiceSourceController } from './ChoiceSourceController.js';
-import { createPathResolver } from './createPathResolver.js';
-import { ElementStateController } from './ElementStateController.js';
-import { SettleCoordinator } from './SettleCoordinator.js';
 import { SurveyAnswers } from './SurveyAnswers.js';
+import { SurveyLogicHost } from './SurveyLogicHost.js';
 import type { Page } from './Page.js';
 import { toQuestionsOnPageMode } from './PageLayout.js';
 import { SurveyPages } from './SurveyPages.js';
 import type { Question } from './Question.js';
 import { SurveyChildren } from './SurveyChildren.js';
 import { SurveyElement } from './SurveyElement.js';
+import { SurveyValidation } from './SurveyValidation.js';
+import { createValidationHost } from './surveyValidationWiring.js';
 import type { Trigger } from './Trigger.js';
 import type { ValueHost } from './ValueHost.js';
 
@@ -30,20 +26,7 @@ import type { ValueHost } from './ValueHost.js';
 export class Survey extends SurveyElement implements ValueHost {
   readonly #children: SurveyChildren = new SurveyChildren();
   readonly #answers: SurveyAnswers = new SurveyAnswers();
-  readonly #logic: LogicEngine;
-  readonly #states: ElementStateController = new ElementStateController();
-  readonly #settle: SettleCoordinator = new SettleCoordinator((values) => {
-    // Before anything is announced: logic may have hidden the page the respondent is
-    // standing on, and a listener must never see a current page that no longer exists.
-    this.#pages.clampToVisible();
-    for (const event of values) {
-      this.onValueChanged.emit(event);
-    }
-    for (const event of this.#states.drain()) {
-      this.onElementStateChanged.emit(event);
-    }
-  });
-  readonly #choiceSources: ChoiceSourceController = new ChoiceSourceController();
+  readonly #logic: SurveyLogicHost;
   readonly #pages: SurveyPages = new SurveyPages(
     () => this.#children.pages,
     () => toQuestionsOnPageMode(this.questionsOnPageMode),
@@ -51,8 +34,23 @@ export class Survey extends SurveyElement implements ValueHost {
       this.onCurrentPageChanged.emit(event);
     },
   );
-  readonly #resolvePath: (path: readonly PathSegment[]) => unknown = createPathResolver(
-    (name) => this.#answers.resolve(name),
+  readonly #validation: SurveyValidation = new SurveyValidation(
+    createValidationHost(this, {
+      readProperty: (name) => this.getResolvedProperty(name),
+      writeProperty: (name, value) => {
+        this.setPropertyValue(name, value);
+      },
+      evaluate: (expression) => this.#logic.evaluate(expression),
+      announce: (question) => {
+        this.#logic.notifyErrorsChanged(question);
+      },
+      // Every check runs outside a settle — a respondent pressed Next, or the settle
+      // that carried their answer has already finished — so nothing else would
+      // deliver what it produced.
+      flush: () => {
+        this.#logic.release();
+      },
+    }),
   );
 
   #isCompleted = false;
@@ -64,8 +62,17 @@ export class Survey extends SurveyElement implements ValueHost {
 
   constructor(options: SurveyOptions = {}) {
     super();
-    this.#logic = new LogicEngine(options);
-    this.#choiceSources.setFetcher(options.fetchJson);
+    this.#logic = new SurveyLogicHost(this.#answers, options, (values) => {
+      // Before anything is announced: logic may have hidden the page the respondent is
+      // standing on, and a listener must never see a page that no longer exists.
+      this.#pages.clampToVisible();
+      for (const event of values) {
+        this.onValueChanged.emit(event);
+      }
+      for (const event of this.#logic.drainStates()) {
+        this.onElementStateChanged.emit(event);
+      }
+    });
   }
 
   /**
@@ -76,12 +83,12 @@ export class Survey extends SurveyElement implements ValueHost {
    * remember to refresh.
    */
   setChoiceFetcher(fetchJson: ChoiceFetcher | undefined): void {
-    this.#choiceSources.setFetcher(fetchJson);
+    this.#logic.setChoiceFetcher(fetchJson);
   }
 
   /** Messages from choice sources: a failed load, or a missing fetcher. */
   get choiceErrors(): readonly string[] {
-    return this.#choiceSources.errors;
+    return this.#logic.choiceErrors;
   }
 
   override get type(): string {
@@ -111,6 +118,19 @@ export class Survey extends SurveyElement implements ValueHost {
 
   set questionsOnPageMode(value: string) {
     this.setPropertyValue('questionsOnPageMode', value);
+  }
+
+  /**
+   * Validation: when answers are checked, where errors are drawn, and what the last
+   * check found.
+   *
+   * A namespace rather than a dozen more members here, because those members are one
+   * subject and the survey root is already the facade over five subsystems. The
+   * policy it carries is authored on the survey and serializes there — `validation`
+   * reads and writes the same property bag, so nothing is duplicated.
+   */
+  get validation(): SurveyValidation {
+    return this.#validation;
   }
 
   /** The pages exactly as authored. Serialization reads these. */
@@ -160,7 +180,7 @@ export class Survey extends SurveyElement implements ValueHost {
 
   /** Advances whenever logic changes an element's visible, enabled or required state. */
   get logicVersion(): number {
-    return this.#states.version;
+    return this.#logic.version;
   }
 
   /**
@@ -170,18 +190,12 @@ export class Survey extends SurveyElement implements ValueHost {
    * actually read them. The graph knows; without this it had nowhere to say so.
    */
   get logicDiagnostics(): LogicDiagnostics {
-    return this.#settle.diagnostics;
+    return this.#logic.diagnostics;
   }
 
   /** Rebuilds conditional logic from the current tree and evaluates it once. */
   refreshLogic(): void {
-    refreshSurveyLogic(this.#children, {
-      logic: this.#logic,
-      states: this.#states,
-      settle: this.#settle,
-      choiceSources: this.#choiceSources,
-      answers: this.#answers,
-      resolvePath: this.#resolvePath,
+    this.#logic.refresh(this.#children, {
       getValue: (name) => this.getValue(name),
       writeValue: (name, value) => this.#writeValue(name, value),
       complete: () => this.complete(),
@@ -225,15 +239,25 @@ export class Survey extends SurveyElement implements ValueHost {
   }
 
   /**
-   * Advances, or completes when this is the last page.
+   * The respondent's forward action: advance, or complete on the last page.
    *
    * One call rather than making the renderer decide, so every adapter agrees on what
    * the primary button does and none of them has to reimplement "am I at the end".
+   *
+   * The only path validation gates. `nextPage`, `prevPage`, `goTo` and
+   * `setCurrentPageNo` are movement, and a `skip` trigger moving a respondent has
+   * nothing to do with whether the page they are leaving is complete.
+   *
+   * Returns false when nothing happened, which for a renderer means "show them why".
    */
-  nextPageOrComplete(): void {
+  nextPageOrComplete(): boolean {
+    if (!this.#validation.allowsAdvance()) {
+      return false;
+    }
     if (!this.#pages.nextPage()) {
       this.complete();
     }
+    return true;
   }
 
   /** Navigates to a page by name, or to the page owning the named question. */
@@ -270,16 +294,18 @@ export class Survey extends SurveyElement implements ValueHost {
     if (!this.#writeValue(name, value)) {
       return;
     }
-    this.#settle.run(() =>
-      this.#logic.applyValueChange([{ kind: 'name', name }], this.#resolvePath),
-    );
+    this.#logic.applyValueChange(name);
+    // After the settle, not inside it: logic may still change this answer — a
+    // `setValueIf` forcing it to zero — and checking the value on the way past would
+    // report an error against a number the respondent never sees.
+    this.#validation.revalidateChanged(name);
   }
 
   /** Writes model state without starting a nested settle. Rule execution reports the path. */
   #writeValue(name: string, value: unknown): boolean {
     const { changed, previousValue } = this.#answers.write(name, value);
     if (changed) {
-      this.#settle.queueValue({ name, value, previousValue });
+      this.#logic.queueValue({ name, value, previousValue });
     }
     return changed;
   }

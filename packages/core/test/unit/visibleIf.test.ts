@@ -98,7 +98,7 @@ describe('visibility events', () => {
     expect(seen).toHaveLength(1);
     const [event] = seen;
     expect(event?.state).toBe('visible');
-    expect(event !== undefined && event.state !== 'choices' ? event.value : undefined).toBe(true);
+    expect(event !== undefined && 'value' in event ? event.value : undefined).toBe(true);
     // The listener observes a settled model, not a half-applied one.
     expect(seen[0]?.element.isVisible).toBe(true);
   });

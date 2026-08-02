@@ -69,6 +69,9 @@ test('submitting completes the survey and swaps in the completed view', async ()
   const model = buildModel();
   const screen = await render(<Survey model={model} />);
 
+  // The fixture's first question is required, so completion now goes through the
+  // validation gate. Answering it is not incidental setup — it is the flow.
+  await screen.getByLabelText(/What is your name\?/u).fill('Ada Lovelace');
   await screen.getByRole('button', { name: 'Complete' }).click();
 
   expect(model.isCompleted).toBe(true);

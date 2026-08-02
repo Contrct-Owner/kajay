@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { fetchJson } from './fetchJson.js';
 import { surveyDefinition } from './surveyDefinition.js';
 import { useSurveyData } from './useSurveyData.js';
+import { ValidationControls } from './ValidationControls.js';
 
 function stableStringify(value: unknown): string {
   return JSON.stringify(value, null, 2);
@@ -29,6 +30,8 @@ export function App(): ReactElement {
   return (
     <main className="host-demo">
       <Survey model={model} />
+
+      <ValidationControls model={model} />
 
       <section className="host-demo__panel" aria-label="Live answers">
         <h2>Answers</h2>

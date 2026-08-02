@@ -18,13 +18,19 @@ export interface CurrentPageChangedEvent {
 }
 
 /** Which computed aspect of an element changed. */
-export type ElementStateKind = 'visible' | 'enabled' | 'required' | 'choices' | 'collapsed';
+export type ElementStateKind =
+  | 'visible'
+  | 'enabled'
+  | 'required'
+  | 'choices'
+  | 'collapsed'
+  | 'errors';
 
 /**
  * The subset an expression can drive.
  *
- * Narrower than `ElementStateKind` on purpose: `choices` and `collapsed` also travel
- * on the state channel, but neither has a condition behind it, so neither may reach
+ * Narrower than `ElementStateKind` on purpose: `choices`, `collapsed` and `errors` also
+ * travel on the state channel, but none has a condition behind it, so none may reach
  * the code that applies a rule's result.
  */
 export type ConditionalStateKind = 'visible' | 'enabled' | 'required';
@@ -33,8 +39,8 @@ export type ConditionalStateKind = 'visible' | 'enabled' | 'required';
  * Emitted after logic has settled, never part-way through a cascade.
  *
  * A discriminated union rather than one shape with an optional field: `visible`,
- * `enabled` and `required` are booleans, while a choice list changing is not — it has
- * no value to report, only the fact that it happened.
+ * `enabled` and `required` are booleans, while a choice list or an error list changing
+ * is not — there is no value to report, only the fact that it happened.
  */
 export type ElementStateChangedEvent =
   | {
@@ -44,5 +50,5 @@ export type ElementStateChangedEvent =
     }
   | {
       readonly element: SurveyElement;
-      readonly state: 'choices';
+      readonly state: 'choices' | 'errors';
     };

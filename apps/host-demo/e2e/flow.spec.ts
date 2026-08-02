@@ -68,7 +68,7 @@ test('parity/E2-navigation', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Previous' })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'About you' })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Next' }).click();
+  await gotoLogicShowcase(page);
   await expect(position).toHaveText('Page 2 of 2');
   await expect(page.getByRole('heading', { name: 'About you' })).toHaveCount(0);
 

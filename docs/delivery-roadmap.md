@@ -123,7 +123,10 @@ assertion in a document.
 **Progress (2026-08-02).** §A closed but for A4/A5/A7, which name Phase 2–3 surface.
 §B closed but for B2 (async function registration) and B6 (needs `completedHtml`), with
 B11 newly scheduled. §C partial: C5/C6 lack lazy paging, and C7–C12 are not started.
-§D not started. §E1 and §E2 closed — panels nest, collapse and carry their own
+§D partial: D2, D5 and D6 closed — six built-in validators, three `checkErrorsMode`
+policies, error placement, the `validationEnabled` toggle and focus-to-first-error. D1
+is closed for every question type that exists (matrix rows are §F). D3 and D4 are not
+started and both need the async seam that B2 also waits on. §E1 and §E2 closed — panels nest, collapse and carry their own
 `visibleIf`/`enableIf`; navigation counts visible pages and `questionsOnPageMode`
 reshapes what the respondent walks through without touching the definition. That closed
 B3 and made B7's `skip` observable for the first time. E3–E10 remain.

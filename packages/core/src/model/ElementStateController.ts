@@ -81,6 +81,18 @@ export class ElementStateController {
     this.#pending.push({ element, state: 'choices' });
   }
 
+  /**
+   * Records that an element's validation errors changed.
+   *
+   * On the same buffer for the same reason as the two above — one subscription — and
+   * because an error appearing mid-settle must not reach a renderer before the values
+   * that produced it have finished moving.
+   */
+  notifyErrorsChanged(element: SurveyElement): void {
+    this.#version += 1;
+    this.#pending.push({ element, state: 'errors' });
+  }
+
   /** Hands over the buffered changes and empties the buffer. */
   drain(): readonly ElementStateChangedEvent[] {
     const pending = this.#pending;

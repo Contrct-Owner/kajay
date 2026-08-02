@@ -88,12 +88,12 @@ placeholder that never cleared.
 
 | ID | Feature | Status | Proof |
 | --- | --- | --- | --- |
-| D1 | Required with custom requiredErrorText; isRequired on any type incl. matrix rows | ☐ | |
-| D2 | Built-in validators: numeric (min/max), text (min/max length, allowDigits), regex, email, expression, answercount | ☐ | |
+| D1 | Required with custom `requiredErrorText`; `isRequired` on any type incl. matrix rows | ☐ | Partial: `parity/D1-required` (demo + browser + unit) covers every question type that exists today, and `requiredIf` reaches the same gate as `isRequired`. Matrix rows do not exist yet — that half closes with §F |
+| D2 | Built-in validators: numeric (min/max), text (min/max length, allowDigits), regex, email, expression, answercount | ☑ | `parity/D2-built-in-validators`, `parity/D2-expression-validator` (unit); `parity/D2-email-validator` (demo); `parity/D2-validators` (browser) |
 | D3 | Custom validators + async validators | ☐ | |
 | D4 | Server-side seam: onValidateQuestion / onServerValidateQuestions with async completion | ☐ | |
-| D5 | Error placement (top/bottom), page-level vs question-level validation, validate on value change vs on next page | ☐ | |
-| D6 | validationEnabled toggle; focus first invalid question | ☐ | |
+| D5 | Error placement (top/bottom), page-level vs question-level validation, validate on value change vs on next page | ☑ | `parity/D5-validation-scope`, `parity/D5-check-errors-mode`, `parity/D5-error-location` (demo + unit + browser); `parity/D5-errors-announced` (unit) |
+| D6 | `validationEnabled` toggle; focus first invalid question | ☑ | `parity/D6-validation-enabled`, `parity/D6-focus-first-error` (demo + browser); `parity/D6-first-error-question` (unit) |
 
 ## §E — Navigation, flow & state
 

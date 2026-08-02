@@ -102,6 +102,20 @@ export { Question } from './model/Question.js';
 export { Survey } from './model/Survey.js';
 export type { SurveyOptions } from './model/SurveyOptions.js';
 export { SurveyElement } from './model/SurveyElement.js';
+export type { SurveyError } from './model/SurveyError.js';
+export type {
+  CheckErrorsMode,
+  QuestionErrorLocation,
+} from './model/SurveyValidation.js';
+// --- Validation (§D) -------------------------------------------------------
+export { Validator } from './model/Validator.js';
+export type { ExpressionOutcome, ValidationContext } from './model/Validator.js';
+export { AnswerCountValidator } from './model/AnswerCountValidator.js';
+export { EmailValidator } from './model/EmailValidator.js';
+export { ExpressionValidator } from './model/ExpressionValidator.js';
+export { NumericValidator } from './model/NumericValidator.js';
+export { RegexValidator } from './model/RegexValidator.js';
+export { TextValidator } from './model/TextValidator.js';
 export { TextQuestion } from './model/TextQuestion.js';
 export { Trigger } from './model/Trigger.js';
 export type { TriggerKind } from './model/Trigger.js';

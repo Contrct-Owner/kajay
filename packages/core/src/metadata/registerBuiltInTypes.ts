@@ -3,6 +3,7 @@ import { registerCoreTypes } from './registerCoreTypes.js';
 import { registerQuestionTypes } from './registerQuestionTypes.js';
 import { registerSelectTypes } from './registerSelectTypes.js';
 import { registerTriggerTypes } from './registerTriggerTypes.js';
+import { registerValidatorTypes } from './registerValidatorTypes.js';
 
 /**
  * Registers the built-in type set.
@@ -14,6 +15,7 @@ import { registerTriggerTypes } from './registerTriggerTypes.js';
 export function registerBuiltInTypes(registry: MetadataRegistry): void {
   registerCoreTypes(registry);
   registerTriggerTypes(registry);
+  registerValidatorTypes(registry);
   registerQuestionTypes(registry);
   registerSelectTypes(registry);
 }

@@ -12,6 +12,7 @@
   --kajay-color-muted: #667085;
   --kajay-color-accent: #2f6feb;
   --kajay-color-border: #d0d5dd;
+  --kajay-color-danger: #b42318;
   --kajay-radius: 8px;
   --kajay-spacing: 16px;
   --kajay-font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -129,6 +130,25 @@
 .kajay-question__select:focus-visible {
   outline: 2px solid var(--kajay-color-accent);
   outline-offset: 1px;
+}
+
+.kajay-question__errors {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 4);
+}
+
+/* Colour is not the only cue: the message itself says what is wrong, and the field is
+ * marked `aria-invalid`. The border below is the visual echo, not the signal. */
+.kajay-question__error {
+  margin: 0;
+  color: var(--kajay-color-danger);
+  font-size: 0.875em;
+}
+
+.kajay-question__input[aria-invalid],
+.kajay-question__select[aria-invalid] {
+  border-color: var(--kajay-color-danger);
 }
 
 .kajay-question--unsupported {

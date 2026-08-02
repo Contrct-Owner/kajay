@@ -81,21 +81,30 @@ export abstract class SurveyElement {
     throw new Error(`"${this.type}" does not accept children under "${property}".`);
   }
 
+  /**
+   * A declared property's current value, falling back to its registered default.
+   *
+   * Public because reading a property *by name* is what a generic consumer needs — the
+   * property grid the Creator generates from the registry has no typed accessor to
+   * call. The typed getters below are the same lookup, narrowed.
+   */
+  getResolvedProperty(name: string): PropertyValue | undefined {
+    return this.#values.has(name)
+      ? this.#values.get(name)
+      : getPropertyDefault(this, this.type, name);
+  }
+
   protected getStringProperty(name: string): string {
-    const value = this.#resolvedPropertyValue(name);
+    const value = this.getResolvedProperty(name);
     return typeof value === 'string' ? value : '';
   }
 
   protected getBooleanProperty(name: string): boolean {
-    return this.#resolvedPropertyValue(name) === true;
+    return this.getResolvedProperty(name) === true;
   }
 
   protected getNumberProperty(name: string): number {
-    const value = this.#resolvedPropertyValue(name);
+    const value = this.getResolvedProperty(name);
     return typeof value === 'number' ? value : 0;
-  }
-
-  #resolvedPropertyValue(name: string): PropertyValue | undefined {
-    return this.#values.has(name) ? this.#values.get(name) : getPropertyDefault(this, this.type, name);
   }
 }

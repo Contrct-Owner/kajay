@@ -22,6 +22,24 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         defaultValue: 'standard',
         description: 'standard, singlePage or questionPerPage.',
       },
+      {
+        name: 'validationEnabled',
+        type: 'boolean',
+        defaultValue: true,
+        description: 'Set false to stop validation blocking navigation or completion.',
+      },
+      {
+        name: 'checkErrorsMode',
+        type: 'string',
+        defaultValue: 'onNextPage',
+        description: 'onNextPage, onValueChanged or onComplete.',
+      },
+      {
+        name: 'questionErrorLocation',
+        type: 'string',
+        defaultValue: 'top',
+        description: 'Whether a question draws its errors above its input or below it.',
+      },
     ],
     childCollections: [
       { property: 'pages', elementBaseType: 'page' },

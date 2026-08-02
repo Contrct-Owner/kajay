@@ -22,23 +22,37 @@
     "typescript/no-namespace": "error",
     "typescript/prefer-literal-enum-member": "off",
     "import/no-default-export": "off",
-    "unicorn/prefer-event-target": "off"
+    "unicorn/prefer-event-target": "off",
+    "eslint/max-lines": [
+      "error",
+      {
+        "max": 300,
+        "skipComments": true
+      }
+    ]
   },
   "overrides": [
     {
-      "files": ["scripts/**/*.mjs"],
+      "files": [
+        "scripts/**/*.mjs"
+      ],
       "rules": {
         "eslint/no-console": "off"
       }
     },
     {
-      "files": ["apps/host-demo/**"],
+      "files": [
+        "apps/host-demo/**"
+      ],
       "rules": {
         "eslint/no-console": "off"
       }
     },
     {
-      "files": ["**/test/**", "**/e2e/**"],
+      "files": [
+        "**/test/**",
+        "**/e2e/**"
+      ],
       "rules": {
         "eslint/max-lines-per-function": "off"
       }

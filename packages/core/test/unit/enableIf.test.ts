@@ -158,7 +158,10 @@ describe('conditions combined', () => {
     survey.setValue('a', 'x');
 
     expect(seen.map((event) => event.state).toSorted()).toEqual(['enabled', 'required']);
-    expect(seen.every((event) => event.state !== 'choices' && event.value)).toBe(true);
+    // `'value' in event` rather than listing the valueless states: the union grows
+    // every time a non-boolean change joins the channel, and a test that enumerates
+    // them goes stale the moment one does.
+    expect(seen.every((event) => 'value' in event && event.value)).toBe(true);
   });
 
   test('a change touching nothing conditional emits no state events', () => {

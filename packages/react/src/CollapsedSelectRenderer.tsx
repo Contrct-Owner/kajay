@@ -1,6 +1,7 @@
 import { MultiSelectQuestion, SelectQuestion } from '@kajay/core';
 import type { ChangeEvent, ReactElement } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
+import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
 
@@ -42,6 +43,7 @@ export function CollapsedSelectRenderer({
 
   const isMultiple = question instanceof MultiSelectQuestion;
   const inputId = `kajay-question-${question.name}`;
+  const errorId = `${inputId}-errors`;
   const handleChange = (event: ChangeEvent<HTMLSelectElement>): void => {
     applySelection(question, event.target);
   };
@@ -51,6 +53,7 @@ export function CollapsedSelectRenderer({
       <label className="kajay-question__title" htmlFor={inputId}>
         <QuestionTitleContent question={question} />
       </label>
+      <QuestionErrors survey={survey} question={question} at="top" id={errorId} />
       <select
         id={inputId}
         className="kajay-question__select"
@@ -58,6 +61,8 @@ export function CollapsedSelectRenderer({
         disabled={!question.isEnabled}
         required={question.isRequired}
         aria-required={question.isRequired}
+        aria-invalid={question.hasErrors || undefined}
+        aria-describedby={question.hasErrors ? errorId : undefined}
         value={currentSelection(question)}
         onChange={handleChange}
       >
@@ -68,6 +73,7 @@ export function CollapsedSelectRenderer({
           </option>
         ))}
       </select>
+      <QuestionErrors survey={survey} question={question} at="bottom" id={errorId} />
     </div>
   );
 }

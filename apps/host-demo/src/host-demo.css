@@ -27,6 +27,23 @@ body {
   font-size: 1rem;
 }
 
+/* The validation controls: label/field pairs that should not run together in a line. */
+.host-demo__controls {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.host-demo__controls select {
+  padding: 4px;
+  font: inherit;
+}
+
+.host-demo__controls label:has(input[type='checkbox']) {
+  grid-column: 1 / -1;
+}
+
 .host-demo__panel pre {
   margin: 0;
   overflow-x: auto;

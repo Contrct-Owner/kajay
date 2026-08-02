@@ -5,6 +5,31 @@
   "description": "Generated from the metadata registry. Do not edit by hand: `npm run check:contract` fails on drift.",
   "$ref": "#/$defs/survey",
   "$defs": {
+    "answercountvalidator": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "answercountvalidator"
+        },
+        "text": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message when this check fails."
+        },
+        "minCount": {
+          "type": "number",
+          "default": 0
+        },
+        "maxCount": {
+          "type": "number",
+          "default": 0
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": true
+    },
     "calculatedvalue": {
       "type": "object",
       "properties": {
@@ -66,6 +91,11 @@
           "type": "string",
           "default": "",
           "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
         },
         "defaultValueExpression": {
           "type": "string",
@@ -161,6 +191,12 @@
           "default": 0,
           "description": "0 means no limit."
         },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
         "choices": {
           "type": "array",
           "items": {
@@ -255,6 +291,11 @@
           "default": "",
           "description": "Expression; when present it overrides isRequired."
         },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
         "defaultValueExpression": {
           "type": "string",
           "default": "",
@@ -336,6 +377,12 @@
           "type": "string",
           "default": ""
         },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
         "choices": {
           "type": "array",
           "items": {
@@ -346,6 +393,46 @@
       "required": [
         "type",
         "name"
+      ],
+      "additionalProperties": true
+    },
+    "emailvalidator": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "emailvalidator"
+        },
+        "text": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message when this check fails."
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": true
+    },
+    "expressionvalidator": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "expressionvalidator"
+        },
+        "text": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message when this check fails."
+        },
+        "expression": {
+          "type": "string",
+          "default": "",
+          "description": "The answer is acceptable while this evaluates truthy."
+        }
+      },
+      "required": [
+        "type",
+        "expression"
       ],
       "additionalProperties": true
     },
@@ -389,6 +476,33 @@
           "$ref": "#/$defs/tagbox"
         }
       ]
+    },
+    "numericvalidator": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "numericvalidator"
+        },
+        "text": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message when this check fails."
+        },
+        "minValue": {
+          "type": "number",
+          "default": 0,
+          "description": "Omit for no lower bound."
+        },
+        "maxValue": {
+          "type": "number",
+          "default": 0,
+          "description": "Omit for no upper bound."
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": true
     },
     "page": {
       "type": "object",
@@ -548,6 +662,11 @@
           "default": "",
           "description": "Expression; when present it overrides isRequired."
         },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
         "defaultValueExpression": {
           "type": "string",
           "default": "",
@@ -633,6 +752,12 @@
           "type": "boolean",
           "default": false
         },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
         "choices": {
           "type": "array",
           "items": {
@@ -643,6 +768,29 @@
       "required": [
         "type",
         "name"
+      ],
+      "additionalProperties": true
+    },
+    "regexvalidator": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "regexvalidator"
+        },
+        "text": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message when this check fails."
+        },
+        "regex": {
+          "type": "string",
+          "default": "",
+          "description": "Pattern the answer must match. Applied with the unicode flag."
+        }
+      },
+      "required": [
+        "type",
+        "regex"
       ],
       "additionalProperties": true
     },
@@ -770,6 +918,21 @@
           "default": "standard",
           "description": "standard, singlePage or questionPerPage."
         },
+        "validationEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set false to stop validation blocking navigation or completion."
+        },
+        "checkErrorsMode": {
+          "type": "string",
+          "default": "onNextPage",
+          "description": "onNextPage, onValueChanged or onComplete."
+        },
+        "questionErrorLocation": {
+          "type": "string",
+          "default": "top",
+          "description": "Whether a question draws its errors above its input or below it."
+        },
         "pages": {
           "type": "array",
           "items": {
@@ -825,6 +988,11 @@
           "type": "string",
           "default": "",
           "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
         },
         "defaultValueExpression": {
           "type": "string",
@@ -920,6 +1088,12 @@
           "default": 0,
           "description": "0 means no limit."
         },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
         "choices": {
           "type": "array",
           "items": {
@@ -968,6 +1142,11 @@
           "default": "",
           "description": "Expression; when present it overrides isRequired."
         },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
         "defaultValueExpression": {
           "type": "string",
           "default": "",
@@ -994,11 +1173,47 @@
         "placeholder": {
           "type": "string",
           "default": ""
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
         }
       },
       "required": [
         "type",
         "name"
+      ],
+      "additionalProperties": true
+    },
+    "textvalidator": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "textvalidator"
+        },
+        "text": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message when this check fails."
+        },
+        "minLength": {
+          "type": "number",
+          "default": 0
+        },
+        "maxLength": {
+          "type": "number",
+          "default": 0
+        },
+        "allowDigits": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set false to reject an answer containing any digit."
+        }
+      },
+      "required": [
+        "type"
       ],
       "additionalProperties": true
     },
@@ -1019,6 +1234,29 @@
         },
         {
           "$ref": "#/$defs/skip"
+        }
+      ]
+    },
+    "validator": {
+      "description": "Any concrete \"validator\".",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/answercountvalidator"
+        },
+        {
+          "$ref": "#/$defs/emailvalidator"
+        },
+        {
+          "$ref": "#/$defs/expressionvalidator"
+        },
+        {
+          "$ref": "#/$defs/numericvalidator"
+        },
+        {
+          "$ref": "#/$defs/regexvalidator"
+        },
+        {
+          "$ref": "#/$defs/textvalidator"
         }
       ]
     }

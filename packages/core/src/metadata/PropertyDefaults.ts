@@ -5,6 +5,7 @@ import { normalizePropertyDefinition } from './PropertyDescriptor.js';
 import { QUESTION_TYPE_DEFINITIONS } from './questionTypeDefinitions.js';
 import { SELECT_TYPE_DEFINITIONS } from './selectTypeDefinitions.js';
 import { TRIGGER_TYPE_DEFINITIONS } from './triggerTypeDefinitions.js';
+import { VALIDATOR_TYPE_DEFINITIONS } from './validatorTypeDefinitions.js';
 
 const defaultsByElement: WeakMap<object, ReadonlyMap<string, PropertyValue>> = new WeakMap();
 const BUILT_IN_CLASS_DEFINITIONS: readonly ClassMetadataDefinition[] = [
@@ -12,6 +13,7 @@ const BUILT_IN_CLASS_DEFINITIONS: readonly ClassMetadataDefinition[] = [
   ...Object.values(QUESTION_TYPE_DEFINITIONS),
   ...Object.values(SELECT_TYPE_DEFINITIONS),
   ...Object.values(TRIGGER_TYPE_DEFINITIONS),
+  ...Object.values(VALIDATOR_TYPE_DEFINITIONS),
 ];
 
 /** Attaches the resolved descriptor defaults that apply to one model element. */

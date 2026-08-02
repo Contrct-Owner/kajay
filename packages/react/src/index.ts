@@ -2,6 +2,8 @@
 
 export { CollapsedSelectRenderer } from './CollapsedSelectRenderer.js';
 export { defaultQuestionRenderers } from './defaultQuestionRenderers.js';
+export { QuestionErrors } from './QuestionErrors.js';
+export type { QuestionErrorsProps } from './QuestionErrors.js';
 export type { QuestionRendererProps } from './QuestionRendererProps.js';
 export { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
 export type { QuestionRenderer } from './QuestionRendererRegistry.js';

@@ -63,6 +63,7 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
           name: 'fullName',
           title: 'What is your name?',
           isRequired: true,
+          requiredErrorText: 'We need a name to address you by.',
           placeholder: 'Ada Lovelace',
           department: 'engineering',
         },
@@ -86,6 +87,9 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
           // Editable only once we know what to call them: a second link in the chain,
           // which the dependency graph orders without being told.
           enableIf: '{nickname} notempty',
+          // The browser's own `type=email` check is off (the form is `noValidate`), so
+          // this is the engine's, and it produces a message the model owns.
+          validators: [{ type: 'emailvalidator' }],
         },
         {
           type: 'text',
@@ -173,6 +177,8 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
               // Forced to zero while the plan is free, overwriting whatever was typed.
               setValueIf: "{plan} == 'free'",
               setValueExpression: '0',
+              // A bound, so the demo has something to fail that is not requiredness.
+              validators: [{ type: 'numericvalidator', minValue: 0, maxValue: 1000 }],
             },
             {
               type: 'text',

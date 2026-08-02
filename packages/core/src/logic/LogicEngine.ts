@@ -133,6 +133,24 @@ export class LogicEngine {
     };
   }
 
+  /**
+   * Evaluates one expression outside the rule graph.
+   *
+   * Validation is the caller: asking "is this answer acceptable *now*" has no cascade
+   * to order and writes nothing, so registering it as a rule would add a graph node
+   * that exists only to be ignored. It still goes through this engine's cache and
+   * function registry, so a validator sees exactly the language a condition does.
+   */
+  evaluate(expression: string, resolve: ValueResolver): RuleEvaluation {
+    const parsed = this.#cache.parse(expression);
+    const evaluation = evaluateExpression(parsed.node, {
+      getValue: resolve,
+      functions: this.#functions,
+      now: this.#now(),
+    });
+    return { value: evaluation.value, errors: [...parsed.errors, ...evaluation.errors] };
+  }
+
   #runRule(key: string, resolve: ValueResolver): RuleRunResult {
     const rule = this.#rules.get(key);
     if (rule === undefined) {
@@ -142,15 +160,9 @@ export class LogicEngine {
     const errors: ExpressionError[] = [];
     const context: RuleContext = {
       evaluate: (expression): RuleEvaluation => {
-        const parsed = this.#cache.parse(expression);
-        const evaluation = evaluateExpression(parsed.node, {
-          getValue: resolve,
-          functions: this.#functions,
-          now: this.#now(),
-        });
-        const combined = [...parsed.errors, ...evaluation.errors];
-        errors.push(...combined);
-        return { value: evaluation.value, errors: combined };
+        const evaluation = this.evaluate(expression, resolve);
+        errors.push(...evaluation.errors);
+        return evaluation;
       },
     };
 

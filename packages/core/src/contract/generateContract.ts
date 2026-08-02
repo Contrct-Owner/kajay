@@ -101,11 +101,10 @@ function buildProperties(registry: MetadataRegistry, className: string): BuiltPr
     }
   }
 
-  const childCollection = registry.getChildCollection(className);
-  if (childCollection !== undefined) {
-    properties[childCollection.property] = {
+  for (const collection of registry.getChildCollections(className)) {
+    properties[collection.property] = {
       type: 'array',
-      items: { $ref: `#/$defs/${childCollection.elementBaseType}` },
+      items: { $ref: `#/$defs/${collection.elementBaseType}` },
     };
   }
 

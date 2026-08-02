@@ -29,7 +29,7 @@ export class MetadataRegistry {
       properties: (definition.properties ?? []).map((property) =>
         normalizePropertyDefinition(property),
       ),
-      childCollection: definition.childCollection,
+      childCollections: definition.childCollections ?? [],
       isAbstract: definition.isAbstract ?? false,
       create: definition.create,
     });
@@ -97,16 +97,22 @@ export class MetadataRegistry {
     return inherited;
   }
 
-  /** The nearest child collection declared on the class or an ancestor. */
-  getChildCollection(className: string): ChildCollectionDescriptor | undefined {
+  /** Own and inherited child collections, ancestors first. */
+  getChildCollections(className: string): readonly ChildCollectionDescriptor[] {
     const descriptor = this.#classes.get(className);
     if (descriptor === undefined) {
-      return undefined;
+      return [];
     }
-    if (descriptor.childCollection !== undefined) {
-      return descriptor.childCollection;
-    }
-    return descriptor.parent === undefined ? undefined : this.getChildCollection(descriptor.parent);
+    const inherited =
+      descriptor.parent === undefined ? [] : this.getChildCollections(descriptor.parent);
+    return [...inherited, ...descriptor.childCollections];
+  }
+
+  /** The collection stored under a given JSON property, if the class declares one. */
+  getChildCollection(className: string, property: string): ChildCollectionDescriptor | undefined {
+    return this.getChildCollections(className).find(
+      (collection) => collection.property === property,
+    );
   }
 
   isSubclassOf(className: string, ancestorName: string): boolean {

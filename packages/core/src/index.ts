@@ -113,6 +113,7 @@ export type {
   PropertyValue,
 } from './metadata/PropertyDescriptor.js';
 export { registerBuiltInTypes } from './metadata/registerBuiltInTypes.js';
+export { CalculatedValue } from './model/CalculatedValue.js';
 export { Page } from './model/Page.js';
 export { Question } from './model/Question.js';
 export { Survey } from './model/Survey.js';

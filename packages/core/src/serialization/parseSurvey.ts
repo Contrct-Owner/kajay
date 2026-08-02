@@ -1,3 +1,4 @@
+import type { ChildCollectionDescriptor } from '../metadata/ClassDescriptor.js';
 import { globalRegistry } from '../metadata/globalRegistry.js';
 import type { MetadataRegistry } from '../metadata/MetadataRegistry.js';
 import { matchesPropertyType } from '../metadata/PropertyDescriptor.js';
@@ -84,11 +85,11 @@ function readElement(
 ): SurveyElement {
   const element = context.registry.createInstance(className);
   const properties = context.registry.getProperties(className);
-  const childCollection = context.registry.getChildCollection(className);
+  const childCollections = context.registry.getChildCollections(className);
 
   const handledKeys = new Set<string>([TYPE_PROPERTY, ...reservedKeys]);
-  if (childCollection !== undefined) {
-    handledKeys.add(childCollection.property);
+  for (const collection of childCollections) {
+    handledKeys.add(collection.property);
   }
 
   for (const [key, value] of Object.entries(json)) {
@@ -98,8 +99,8 @@ function readElement(
     readProperty(element, { key, value, className, path, properties }, context);
   }
 
-  if (childCollection !== undefined) {
-    readChildren(json, element, className, path, context);
+  for (const collection of childCollections) {
+    readChildren(json, element, collection, className, path, context);
   }
   return element;
 }
@@ -151,14 +152,11 @@ function readProperty(
 function readChildren(
   json: Record<string, unknown>,
   element: SurveyElement,
+  childCollection: ChildCollectionDescriptor,
   className: string,
   path: string,
   context: ReadContext,
 ): void {
-  const childCollection = context.registry.getChildCollection(className);
-  if (childCollection === undefined) {
-    return;
-  }
   const raw = json[childCollection.property];
   if (raw === undefined) {
     return;
@@ -179,7 +177,7 @@ function readChildren(
   for (const [index, child] of raw.entries()) {
     const resolved = resolveChild(child, `${collectionPath}/${index}`, allowedTypes, childCollection.elementBaseType, context);
     if (resolved !== undefined) {
-      element.addChild(resolved);
+      element.addChild(childCollection.property, resolved);
     }
   }
 }

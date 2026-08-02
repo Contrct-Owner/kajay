@@ -66,12 +66,18 @@ export abstract class SurveyElement {
     this.#isEnabled = isEnabled;
   }
 
-  getChildren(): readonly SurveyElement[] {
+  /**
+   * Children stored under a declared child collection.
+   *
+   * Keyed by the collection's JSON property because one element can hold several —
+   * a survey has both `pages` and `calculatedValues`.
+   */
+  getChildren(_property: string): readonly SurveyElement[] {
     return [];
   }
 
-  addChild(_child: SurveyElement): void {
-    throw new Error(`"${this.type}" does not accept child elements.`);
+  addChild(property: string, _child: SurveyElement): void {
+    throw new Error(`"${this.type}" does not accept children under "${property}".`);
   }
 
   protected getStringProperty(name: string): string {

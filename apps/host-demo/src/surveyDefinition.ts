@@ -8,6 +8,14 @@
 export const surveyDefinition: Readonly<Record<string, unknown>> = {
   // Deliberately not named for a phase: it goes stale every time the demo grows.
   title: 'Kajay demo',
+  calculatedValues: [
+    {
+      name: 'answeredCount',
+      expression: 'count({fullName}, {nickname}, {email})',
+      // Included, so it joins the answers and shows up in the panel below.
+      includeIntoResult: true,
+    },
+  ],
   description: 'Conditional logic, rendered through the published package APIs.',
   pages: [
     {

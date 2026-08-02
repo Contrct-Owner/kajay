@@ -23,7 +23,15 @@ export interface ClassDefinition {
   readonly name: string;
   readonly parent?: string;
   readonly properties?: readonly PropertyDefinition[];
-  readonly childCollection?: ChildCollectionDescriptor;
+  /**
+   * Child collections, in the order they serialize.
+   *
+   * A list rather than a single collection because one class genuinely holds several:
+   * a survey has both `pages` and `calculatedValues`, and the matrix family will hold
+   * `columns` and `rows`. Special-casing any of them in the serializer would put
+   * per-type knowledge back where the registry is supposed to be the only source.
+   */
+  readonly childCollections?: readonly ChildCollectionDescriptor[];
   /** Abstract classes contribute inherited properties but cannot be instantiated. */
   readonly isAbstract?: boolean;
   readonly create?: () => SurveyElement;
@@ -34,7 +42,7 @@ export interface ClassDescriptor {
   readonly name: string;
   readonly parent: string | undefined;
   readonly properties: readonly PropertyDescriptor[];
-  readonly childCollection: ChildCollectionDescriptor | undefined;
+  readonly childCollections: readonly ChildCollectionDescriptor[];
   readonly isAbstract: boolean;
   readonly create: (() => SurveyElement) | undefined;
 }

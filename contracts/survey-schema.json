@@ -5,6 +5,33 @@
   "description": "Generated from the metadata registry. Do not edit by hand: `npm run check:contract` fails on drift.",
   "$ref": "#/$defs/survey",
   "$defs": {
+    "calculatedvalue": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "calculatedvalue"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "The name this value is referenced by in expressions."
+        },
+        "expression": {
+          "type": "string",
+          "default": ""
+        },
+        "includeIntoResult": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether the computed value joins the survey answers."
+        }
+      },
+      "required": [
+        "name",
+        "expression"
+      ],
+      "additionalProperties": true
+    },
     "page": {
       "type": "object",
       "properties": {
@@ -68,6 +95,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/page"
+          }
+        },
+        "calculatedValues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/calculatedvalue"
           }
         }
       },

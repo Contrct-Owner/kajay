@@ -1,3 +1,4 @@
+import { CalculatedValue } from '../model/CalculatedValue.js';
 import { Page } from '../model/Page.js';
 import { Survey } from '../model/Survey.js';
 import { TextQuestion } from '../model/TextQuestion.js';
@@ -21,8 +22,32 @@ function registerSurveyType(registry: MetadataRegistry): void {
       { name: 'title', type: 'string', description: 'Survey title shown above the first page.' },
       { name: 'description', type: 'string' },
     ],
-    childCollection: { property: 'pages', elementBaseType: 'page' },
+    childCollections: [
+      { property: 'pages', elementBaseType: 'page' },
+      { property: 'calculatedValues', elementBaseType: 'calculatedvalue' },
+    ],
     create: () => new Survey(),
+  });
+}
+
+function registerCalculatedValueType(registry: MetadataRegistry): void {
+  registry.addClass({
+    name: 'calculatedvalue',
+    properties: [
+      {
+        name: 'name',
+        type: 'string',
+        isRequired: true,
+        description: 'The name this value is referenced by in expressions.',
+      },
+      { name: 'expression', type: 'string', isRequired: true },
+      {
+        name: 'includeIntoResult',
+        type: 'boolean',
+        description: 'Whether the computed value joins the survey answers.',
+      },
+    ],
+    create: () => new CalculatedValue(),
   });
 }
 
@@ -37,7 +62,7 @@ function registerPageType(registry: MetadataRegistry): void {
         description: 'Expression; the page is shown only while it evaluates truthy.',
       },
     ],
-    childCollection: { property: 'elements', elementBaseType: 'question' },
+    childCollections: [{ property: 'elements', elementBaseType: 'question' }],
     create: () => new Page(),
   });
 }
@@ -105,6 +130,7 @@ function registerQuestionTypes(registry: MetadataRegistry): void {
 /** Registers the built-in type set. Parents must be registered before their children. */
 export function registerBuiltInTypes(registry: MetadataRegistry): void {
   registerSurveyType(registry);
+  registerCalculatedValueType(registry);
   registerPageType(registry);
   registerQuestionBase(registry);
   registerQuestionTypes(registry);

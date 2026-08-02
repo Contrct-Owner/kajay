@@ -8,34 +8,33 @@ import type {
 } from '../events/SurveyEvents.js';
 import type { ExpressionError } from '../expressions/ExpressionError.js';
 import type { PathSegment } from '../expressions/ExpressionNode.js';
-import { CONDITIONAL_PROPERTIES } from '../logic/conditionalProperties.js';
-import { createValueRule } from '../logic/createValueRule.js';
 import { LogicEngine } from '../logic/LogicEngine.js';
 import type {
   LogicDiagnostics,
   LogicEngineOptions,
   LogicRunResult,
 } from '../logic/LogicEngine.js';
+import { CalculatedValue } from './CalculatedValue.js';
+import { CalculatedValueStore } from './CalculatedValueStore.js';
 import { createPathResolver } from './createPathResolver.js';
 import { ElementStateController } from './ElementStateController.js';
 import { Page } from './Page.js';
 import type { Question } from './Question.js';
+import { registerSurveyRules } from './registerSurveyRules.js';
 import { SurveyElement } from './SurveyElement.js';
 import type { ValueHost } from './ValueHost.js';
-
-/** A non-blank string property, or undefined. */
-function stringProperty(element: SurveyElement, name: string): string | undefined {
-  const value = element.getPropertyValue(name);
-  return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
-}
 
 /** Root of the model, and the value host every question writes through. */
 export class Survey extends SurveyElement implements ValueHost {
   readonly #pages: Page[] = [];
+  readonly #calculatedValues: CalculatedValue[] = [];
   readonly #data: Map<string, unknown> = new Map();
+  readonly #calculated: CalculatedValueStore = new CalculatedValueStore();
   readonly #logic: LogicEngine;
   readonly #states: ElementStateController = new ElementStateController();
-  readonly #resolvePath: (path: readonly PathSegment[]) => unknown = createPathResolver(this.#data);
+  readonly #resolvePath: (path: readonly PathSegment[]) => unknown = createPathResolver((name) =>
+    this.#data.has(name) ? this.#data.get(name) : this.#calculated.get(name),
+  );
 
   #currentPageNo = 0;
   #isCompleted = false;
@@ -91,11 +90,33 @@ export class Survey extends SurveyElement implements ValueHost {
     return this.questions.find((question) => question.name === name);
   }
 
-  override getChildren(): readonly SurveyElement[] {
-    return this.#pages;
+  get calculatedValues(): readonly CalculatedValue[] {
+    return this.#calculatedValues;
   }
 
-  override addChild(child: SurveyElement): void {
+  /** The current result of a calculated value, whether or not it reaches `data`. */
+  getCalculatedValue(name: string): unknown {
+    return this.#calculated.get(name);
+  }
+
+  override getChildren(property: string): readonly SurveyElement[] {
+    if (property === 'pages') {
+      return this.#pages;
+    }
+    return property === 'calculatedValues' ? this.#calculatedValues : [];
+  }
+
+  override addChild(property: string, child: SurveyElement): void {
+    if (property === 'calculatedValues') {
+      if (!(child instanceof CalculatedValue)) {
+        throw new Error(`calculatedValues accepts calculated values; received "${child.type}".`);
+      }
+      this.#calculatedValues.push(child);
+      return;
+    }
+    if (property !== 'pages') {
+      throw new Error(`A survey does not accept children under "${property}".`);
+    }
     if (!(child instanceof Page)) {
       throw new Error(`A survey accepts pages; received "${child.type}".`);
     }
@@ -128,57 +149,26 @@ export class Survey extends SurveyElement implements ValueHost {
    */
   refreshLogic(): void {
     this.#logic.clear();
-    for (const page of this.#pages) {
-      this.#registerConditions(page, `page:${page.name}`);
-      for (const question of page.elements) {
-        const owner = `question:${question.name}`;
-        this.#registerConditions(question, owner);
-        this.#registerValueRule(question, owner);
-      }
-    }
+    registerSurveyRules(this.#pages, this.#calculatedValues, {
+      logic: this.#logic,
+      states: this.#states,
+      getValue: (name) => this.getValue(name),
+      setValue: (name, value) => {
+        this.setValue(name, value);
+      },
+      setCalculated: (calculated, value) => {
+        this.#setCalculated(calculated, value);
+      },
+    });
     this.#settle(() => this.#logic.evaluateAll(this.#resolvePath));
   }
 
-  #registerConditions(element: SurveyElement, owner: string): void {
-    for (const conditional of CONDITIONAL_PROPERTIES) {
-      const expression = stringProperty(element, conditional.property);
-      if (expression === undefined) {
-        this.#states.clear(element, conditional.state);
-        continue;
-      }
-      this.#logic.addCondition({
-        key: `${owner}:${conditional.property}`,
-        expression,
-        fallback: conditional.fallback,
-        apply: (result) => {
-          this.#states.apply(element, conditional.state, result);
-        },
-      });
-    }
-  }
-
-  #registerValueRule(question: Question, owner: string): void {
-    const rule = createValueRule(
-      `${owner}:value`,
-      {
-        resetValueIf: stringProperty(question, 'resetValueIf'),
-        setValueIf: stringProperty(question, 'setValueIf'),
-        setValueExpression: stringProperty(question, 'setValueExpression'),
-        defaultValueExpression: stringProperty(question, 'defaultValueExpression'),
-      },
-      {
-        path: [{ kind: 'name', name: question.name }],
-        getValue: () => this.getValue(question.name),
-        setValue: (value) => {
-          this.setValue(question.name, value);
-        },
-        clearValue: () => {
-          this.setValue(question.name, undefined);
-        },
-      },
-    );
-    if (rule !== undefined) {
-      this.#logic.addRule(rule);
+  #setCalculated(calculated: CalculatedValue, value: unknown): void {
+    const { changed, previousValue } = this.#calculated.set(calculated.name, value);
+    // Announced only when it reaches `data`: onValueChanged means "an answer changed",
+    // and reporting something the host cannot find in `data` would mislead.
+    if (changed && calculated.includeIntoResult) {
+      this.#pendingValueChanges.push({ name: calculated.name, value, previousValue });
     }
   }
 
@@ -240,9 +230,16 @@ export class Survey extends SurveyElement implements ValueHost {
     this.onCurrentPageChanged.emit({ previousPageNo, currentPageNo: pageNo });
   }
 
-  /** A shallow copy: mutating the result must not reach into the survey. */
+  /**
+   * The answers, plus any calculated value marked `includeIntoResult`.
+   *
+   * A shallow copy: mutating the result must not reach into the survey.
+   */
   get data(): Readonly<Record<string, unknown>> {
-    return Object.fromEntries(this.#data);
+    return {
+      ...Object.fromEntries(this.#data),
+      ...this.#calculated.toResult(this.#calculatedValues),
+    };
   }
 
   setData(next: Readonly<Record<string, unknown>>): void {

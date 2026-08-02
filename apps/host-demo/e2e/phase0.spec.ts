@@ -90,6 +90,16 @@ test('parity/B5-default-value-expression', async ({ page }) => {
   await expect(greeting).toHaveValue('Hi there');
 });
 
+test('parity/B6-calculated-values', async ({ page }) => {
+  const answers = page.getByTestId('survey-data');
+
+  await page.getByLabel(/What is your name\?/u).fill('Ada Lovelace');
+  await expect(answers).toContainText('"answeredCount": 1');
+
+  await page.getByLabel('What should we call you?').fill('Ada');
+  await expect(answers).toContainText('"answeredCount": 2');
+});
+
 test('parity/E5-completion-flow', async ({ page }) => {
   await page.getByLabel(/What is your name\?/u).fill('Ada');
   await page.getByRole('button', { name: 'Complete' }).click();

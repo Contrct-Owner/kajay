@@ -35,11 +35,14 @@ export class Page extends SurveyElement {
     return this.#elements.filter((element) => element.isVisible);
   }
 
-  override getChildren(): readonly SurveyElement[] {
-    return this.#elements;
+  override getChildren(property: string): readonly SurveyElement[] {
+    return property === 'elements' ? this.#elements : [];
   }
 
-  override addChild(child: SurveyElement): void {
+  override addChild(property: string, child: SurveyElement): void {
+    if (property !== 'elements') {
+      throw new Error(`A page does not accept children under "${property}".`);
+    }
     if (!(child instanceof Question)) {
       throw new Error(`A page accepts questions; received "${child.type}".`);
     }

@@ -39,6 +39,7 @@ recorded here (status `superseded`) **and** in the
 | [0014](./0014-supported-typescript-range.md) | Supported consumer TypeScript range: floor 5.5, tested matrix | accepted | 2026-08-02 |
 | [0015](./0015-pnpm-workspace.md) | pnpm for the workspace; npm stays the consumer's business | accepted | 2026-08-02 |
 | [0016](./0016-metadata-owns-property-defaults.md) | Metadata descriptors own property defaults; unset ≠ empty | accepted | 2026-08-02 |
+| [0017](./0017-choices-url-environment-portability.md) | `choicesByUrl` origin belongs to the host, not the definition | accepted | 2026-08-02 |
 
 ## Parent and related links
 

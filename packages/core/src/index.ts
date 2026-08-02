@@ -128,6 +128,8 @@ export type { PanelState } from './model/Panel.js';
 export { Question } from './model/Question.js';
 export { Survey } from './model/Survey.js';
 export { HtmlCondition } from './model/HtmlCondition.js';
+export { readProgress, restoreProgress } from './model/SurveyProgress.js';
+export type { SurveyProgress } from './model/SurveyProgress.js';
 export {
   clearAnswersOnComplete,
   clearHiddenAnswers,

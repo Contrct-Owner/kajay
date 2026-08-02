@@ -14,6 +14,8 @@ import type { ChoiceFetcher } from './ChoiceSourceController.js';
 import type { SurveyOptions } from './SurveyOptions.js';
 import { clearHiddenAnswers, toClearPolicy } from './clearInvisibleAnswers.js';
 import type { ClearInvisibleValues } from './clearInvisibleAnswers.js';
+import { readProgress, restoreProgress } from './SurveyProgress.js';
+import type { SurveyProgress } from './SurveyProgress.js';
 import { SurveyStatus } from './SurveyStatus.js';
 import { createStatusHost } from './surveyStatusWiring.js';
 import type { HtmlCondition } from './HtmlCondition.js';
@@ -339,6 +341,16 @@ export class Survey extends SurveyElement implements ValueHost {
     for (const [name, value] of Object.entries(next)) {
       this.setValue(name, value);
     }
+  }
+
+  /** A snapshot to store, so a respondent can pick the survey up where they left it. */
+  get progress(): SurveyProgress {
+    return readProgress(this);
+  }
+
+  /** Applies a stored snapshot: the answers, then the page they were on. */
+  restore(progress: SurveyProgress): void {
+    restoreProgress(this, progress);
   }
 
   getValue(name: string): unknown {

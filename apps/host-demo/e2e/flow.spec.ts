@@ -145,3 +145,33 @@ test('parity/E9-clear-invisible-values', async ({ page }) => {
   await page.getByLabel(/What is your name\?/u).fill('Ada');
   await expect(page.getByLabel(/What should we call you\?/u)).toHaveValue('');
 });
+
+test('parity/E6-save-and-resume', async ({ page }) => {
+  await page.getByLabel(/What is your name\?/u).fill('Ada');
+  await page.getByLabel(/What should we call you\?/u).fill('Ada');
+  await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page.getByRole('heading', { name: 'Logic showcase' })).toBeVisible();
+  await page.getByLabel('paid').check();
+
+  // A real reload, not a re-render: the model is rebuilt from the definition and the
+  // host hands back what it stored on the way through.
+  await page.reload();
+
+  await expect(page.getByRole('heading', { name: 'Logic showcase' })).toBeVisible();
+  await expect(page.getByLabel('paid')).toBeChecked();
+  await expect(page.getByTestId('survey-data')).toContainText('"fullName": "Ada"');
+});
+
+test('parity/E6-save-and-resume: a finished survey does not resume', async ({ page }) => {
+  await page.getByLabel(/What is your name\?/u).fill('Ada');
+  await gotoQuestionTypes(page);
+  await page.getByRole('button', { name: 'Complete' }).click();
+  await expect(page.getByRole('status')).toContainText('You answered');
+
+  await page.reload();
+
+  // Back at the beginning with nothing filled in. Resuming into a survey they already
+  // submitted would invite a second submission of the same answers.
+  await expect(page.getByRole('heading', { name: 'About you' })).toBeVisible();
+  await expect(page.getByLabel(/What is your name\?/u)).toHaveValue('');
+});

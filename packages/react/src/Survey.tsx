@@ -1,6 +1,8 @@
 import type { Survey as SurveyModel } from '@kajay/core';
 import type { FormEvent, ReactElement } from 'react';
 import { defaultQuestionRenderers } from './defaultQuestionRenderers.js';
+import { HtmlSanitizerProvider } from './HtmlSanitizerContext.js';
+import type { HtmlSanitizer } from './HtmlSanitizerContext.js';
 import type { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
 import { SurveyNavigation } from './SurveyNavigation.js';
 import { SurveyPage } from './SurveyPage.js';
@@ -15,6 +17,26 @@ export interface SurveyProps {
   readonly model: SurveyModel;
   /** Defaults to the built-in renderers; pass a clone to add custom question types. */
   readonly renderers?: QuestionRendererRegistry;
+  /**
+   * Cleans author-supplied markup before an `html` element renders it.
+   *
+   * Required in spirit, optional in the type, for any host whose definitions come from
+   * people it does not trust. Nothing ships here: a sanitizer that is nearly right is
+   * more dangerous than none, so plug in one that is somebody's full-time job.
+   */
+  readonly sanitizeHtml?: HtmlSanitizer;
+}
+
+/** The survey's own title and description, above the first page. */
+function SurveyHeader({ survey }: { readonly survey: SurveyModel }): ReactElement {
+  return (
+    <>
+      {survey.title.length > 0 ? <h1 className="kajay-survey__title">{survey.title}</h1> : null}
+      {survey.description.length > 0 ? (
+        <p className="kajay-survey__description">{survey.description}</p>
+      ) : null}
+    </>
+  );
 }
 
 /** What replaces the form once the survey is done. §E5 will make this authorable. */
@@ -33,7 +55,11 @@ function CompletedSurvey(): ReactElement {
  * every change back through the model's public API. That constraint is what keeps the
  * renderer portable to another framework by construction.
  */
-export function Survey({ model, renderers = defaultQuestionRenderers }: SurveyProps): ReactElement {
+export function Survey({
+  model,
+  renderers = defaultQuestionRenderers,
+  sanitizeHtml,
+}: SurveyProps): ReactElement {
   const isCompleted = useSurveyCompleted(model);
   // Subscribed for the re-render: conditional logic can add, remove or disable
   // elements between renders, and validation errors ride the same channel.
@@ -63,22 +89,21 @@ export function Survey({ model, renderers = defaultQuestionRenderers }: SurveyPr
   const currentPage = model.currentPage;
 
   return (
-    <form className="kajay-survey" ref={formRef} onSubmit={handleSubmit} noValidate>
-      {model.title.length > 0 ? <h1 className="kajay-survey__title">{model.title}</h1> : null}
-      {model.description.length > 0 ? (
-        <p className="kajay-survey__description">{model.description}</p>
-      ) : null}
+    <HtmlSanitizerProvider sanitize={sanitizeHtml}>
+      <form className="kajay-survey" ref={formRef} onSubmit={handleSubmit} noValidate>
+        <SurveyHeader survey={model} />
 
-      {currentPage === undefined ? null : (
-        <SurveyPage
-          key={currentPage.name}
-          survey={model}
-          page={currentPage}
-          renderers={renderers}
-        />
-      )}
+        {currentPage === undefined ? null : (
+          <SurveyPage
+            key={currentPage.name}
+            survey={model}
+            page={currentPage}
+            renderers={renderers}
+          />
+        )}
 
-      <SurveyNavigation survey={model} />
-    </form>
+        <SurveyNavigation survey={model} />
+      </form>
+    </HtmlSanitizerProvider>
   );
 }

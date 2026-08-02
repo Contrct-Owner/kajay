@@ -1,6 +1,7 @@
-import { Panel, Question } from '@kajay/core';
+import { DisplayElement, Panel, Question } from '@kajay/core';
 import type { PageElement, Survey as SurveyModel } from '@kajay/core';
 import type { ReactElement } from 'react';
+import { DisplayElementRenderer } from './DisplayElementRenderer.js';
 import type { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
 
 export interface SurveyElementsProps {
@@ -23,13 +24,29 @@ export function SurveyElements({
 }: SurveyElementsProps): ReactElement {
   return (
     <>
-      {elements.map((element) =>
-        element instanceof Panel ? (
-          <PanelRenderer key={element.name} survey={survey} panel={element} renderers={renderers} />
-        ) : (
-          <QuestionSlot key={element.name} survey={survey} element={element} renderers={renderers} />
-        ),
-      )}
+      {elements.map((element) => {
+        if (element instanceof Panel) {
+          return (
+            <PanelRenderer
+              key={element.name}
+              survey={survey}
+              panel={element}
+              renderers={renderers}
+            />
+          );
+        }
+        if (element instanceof DisplayElement) {
+          return <DisplayElementRenderer key={element.name} element={element} />;
+        }
+        return (
+          <QuestionSlot
+            key={element.name}
+            survey={survey}
+            element={element}
+            renderers={renderers}
+          />
+        );
+      })}
     </>
   );
 }

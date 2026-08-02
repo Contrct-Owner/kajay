@@ -34,7 +34,8 @@ packaged artifacts*.
 - **React is a peer dependency** of UI packages, never a dependency.
 - **Warnings are errors** — tsc, oxlint, and CI all treat them so.
 - **File and function size limits are 300 and 50 lines, and are not counted against
-  comments** (`eslint/max-lines` runs with `skipComments`). The limits exist to bound
+  comments** (`max-lines` and `max-lines-per-function` both run with `skipComments`).
+  The limits exist to bound
   how much *code* one unit holds. This repo deliberately carries dense explanatory
   comments, and a limit that taxed prose would push people to delete the explanation
   rather than split the module — the opposite of what it is for. Going over is a

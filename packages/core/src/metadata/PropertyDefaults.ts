@@ -1,5 +1,6 @@
 import type { ClassMetadataDefinition } from './ClassDescriptor.js';
 import { CORE_TYPE_DEFINITIONS } from './coreTypeDefinitions.js';
+import { DISPLAY_TYPE_DEFINITIONS } from './displayTypeDefinitions.js';
 import type { PropertyDescriptor, PropertyValue } from './PropertyDescriptor.js';
 import { normalizePropertyDefinition } from './PropertyDescriptor.js';
 import { QUESTION_TYPE_DEFINITIONS } from './questionTypeDefinitions.js';
@@ -10,6 +11,7 @@ import { VALIDATOR_TYPE_DEFINITIONS } from './validatorTypeDefinitions.js';
 const defaultsByElement: WeakMap<object, ReadonlyMap<string, PropertyValue>> = new WeakMap();
 const BUILT_IN_CLASS_DEFINITIONS: readonly ClassMetadataDefinition[] = [
   ...Object.values(CORE_TYPE_DEFINITIONS),
+  ...Object.values(DISPLAY_TYPE_DEFINITIONS),
   ...Object.values(QUESTION_TYPE_DEFINITIONS),
   ...Object.values(SELECT_TYPE_DEFINITIONS),
   ...Object.values(TRIGGER_TYPE_DEFINITIONS),

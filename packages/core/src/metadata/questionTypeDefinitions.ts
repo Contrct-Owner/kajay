@@ -6,6 +6,7 @@ interface QuestionTypeDefinitions {
   readonly comment: ClassMetadataDefinition;
   readonly boolean: ClassMetadataDefinition;
   readonly rating: ClassMetadataDefinition;
+  readonly expression: ClassMetadataDefinition;
 }
 
 /** Authoritative metadata for the question base and plain question types. */
@@ -135,6 +136,31 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
     ],
     childCollections: [
       { property: 'rateValues', elementBaseType: 'itemvalue', shorthandProperty: 'value' },
+    ],
+  },
+  expression: {
+    name: 'expression',
+    parent: 'question',
+    properties: [
+      {
+        name: 'expression',
+        type: 'string',
+        isRequired: true,
+        description: 'Computed from the answers. The respondent does not supply it.',
+      },
+      {
+        name: 'displayStyle',
+        type: 'string',
+        defaultValue: 'none',
+        description: 'none, decimal, currency, percent or date.',
+      },
+      { name: 'currency', type: 'string', defaultValue: 'USD' },
+      { name: 'maximumFractionDigits', type: 'number', description: '0 leaves it to the style.' },
+      {
+        name: 'format',
+        type: 'string',
+        description: 'Template around the result, with {0} standing for it.',
+      },
     ],
   },
 };

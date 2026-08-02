@@ -29,6 +29,13 @@
         "max": 300,
         "skipComments": true
       }
+    ],
+    "eslint/max-lines-per-function": [
+      "error",
+      {
+        "max": 50,
+        "skipComments": true
+      }
     ]
   },
   "overrides": [

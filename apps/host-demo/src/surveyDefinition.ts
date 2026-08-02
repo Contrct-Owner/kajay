@@ -240,6 +240,13 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
       title: 'Question types',
       elements: [
         {
+          // Markup, rendered as markup. The demo supplies no sanitizer because it
+          // authors its own definition — a host that does not must pass one.
+          type: 'html',
+          name: 'intro',
+          html: '<p>These are the built-in types. <strong>Nothing here is required.</strong></p>',
+        },
+        {
           type: 'text',
           name: 'startDate',
           title: 'When would you like to start?',
@@ -301,6 +308,27 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
           rateMax: 10,
           minRateDescription: 'Not at all likely',
           maxRateDescription: 'Extremely likely',
+        },
+        {
+          // Read-only and computed. Shown only once there is something to compute, so
+          // the page does not open with "$0.00" against a question nobody has answered.
+          type: 'expression',
+          name: 'annualCost',
+          title: 'Estimated annual cost',
+          expression: '{price} * 12 * {teamSize}',
+          displayStyle: 'currency',
+          visibleIf: '{teamSize} notempty',
+        },
+        {
+          type: 'image',
+          name: 'logo',
+          title: 'Kajay',
+          // A data URI, so the demo depends on no host for a picture.
+          imageLink:
+            'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%2240%22%3E%3Crect width=%22120%22 height=%2240%22 rx=%228%22 fill=%22%232f6feb%22/%3E%3Ctext x=%2260%22 y=%2226%22 font-family=%22sans-serif%22 font-size=%2216%22 fill=%22white%22 text-anchor=%22middle%22%3EKajay%3C/text%3E%3C/svg%3E',
+          altText: 'The Kajay wordmark',
+          imageWidth: 120,
+          imageHeight: 40,
         },
       ],
     },

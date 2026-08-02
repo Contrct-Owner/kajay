@@ -315,6 +315,28 @@
   font-size: 0.8125em;
 }
 
+/* --- display elements ---------------------------------------------------- */
+
+/* Author-supplied markup gets the surrounding type and nothing else: styling it would
+ * mean guessing at content the theme has never seen. */
+.kajay-html > :first-child {
+  margin-top: 0;
+}
+
+.kajay-html > :last-child {
+  margin-bottom: 0;
+}
+
+.kajay-image {
+  max-width: 100%;
+  border-radius: var(--kajay-radius);
+}
+
+.kajay-question__output {
+  padding: calc(var(--kajay-spacing) / 2) 0;
+  font-weight: 600;
+}
+
 .kajay-question--unsupported {
   color: var(--kajay-color-muted);
   font-style: italic;

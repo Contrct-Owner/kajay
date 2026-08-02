@@ -7,6 +7,7 @@ import type { LogicEngine } from '../logic/LogicEngine.js';
 import type { CalculatedValue } from './CalculatedValue.js';
 import type { CarryForwardMode, ChoiceSourceController } from './ChoiceSourceController.js';
 import type { ElementStateController } from './ElementStateController.js';
+import { ExpressionQuestion } from './ExpressionQuestion.js';
 import type { PageElement } from './PageElement.js';
 import { Panel } from './Panel.js';
 import { Question } from './Question.js';
@@ -187,6 +188,39 @@ function registerCalculatedValue(calculated: CalculatedValue, host: RuleHost): v
   });
 }
 
+/**
+ * An expression question's answer is its expression, always.
+ *
+ * Its own rule rather than reusing `defaultValueExpression`, because a default yields
+ * to the respondent the moment they type over it — and there is nothing to type over
+ * here. The write is declared, so anything reading this value is ordered after it in a
+ * single pass, exactly as for a calculated value.
+ */
+function registerExpressionValue(question: Question, owner: string, host: RuleHost): void {
+  if (!(question instanceof ExpressionQuestion)) {
+    return;
+  }
+  const expression = stringProperty(question, 'expression');
+  if (expression === undefined) {
+    return;
+  }
+  const path = [{ kind: 'name' as const, name: question.name }];
+  host.logic.addRule({
+    key: `${owner}:expression`,
+    reads: collectReferences(parseExpression(expression).node),
+    writes: path,
+    run: (context) => {
+      const evaluation = context.evaluate(expression);
+      // A malformed expression writes nothing. Putting a wrong value into someone's
+      // response is worse than leaving it blank — the same rule the value rules follow.
+      if (evaluation.errors.length > 0) {
+        return [];
+      }
+      return host.setValue(question.name, evaluation.value) ? [path] : [];
+    },
+  });
+}
+
 function registerValueRule(question: Question, owner: string, host: RuleHost): void {
   const rule = createValueRule(
     `${owner}:value`,
@@ -258,11 +292,16 @@ function registerElements(elements: readonly PageElement[], host: RuleHost): voi
       continue;
     }
     if (!(element instanceof Question)) {
+      // A display element holds no answer and no choices, so none of the rules below
+      // apply — but it is on the page, and `visibleIf` has to mean the same thing for
+      // a paragraph of text as for the question beside it.
+      registerConditions(element, `element:${element.name}`, host);
       continue;
     }
     const owner = `question:${element.name}`;
     registerConditions(element, owner, host);
     registerValueRule(element, owner, host);
+    registerExpressionValue(element, owner, host);
     registerChoiceConditions(element, owner, host);
     registerChoiceSource(element, owner, host);
   }

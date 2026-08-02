@@ -82,7 +82,7 @@ placeholder that never cleared.
 | C9 | ranking (drag reorder, selectToRankEnabled, keyboard support) | ☐ | |
 | C10 | imagepicker (single/multi, imageFit, contentMode image/video) | ☐ | |
 | C11 | multipletext (items, itemSize, per-item validation) | ☐ | |
-| C12 | html (display), image (display), expression (read-only computed with displayStyle/format) | ☐ | |
+| C12 | html (display), image (display), expression (read-only computed with displayStyle/format) | ☑ | `parity/C12-display-elements`, `parity/C12-expression-question` (unit); `parity/C12-html-and-image`, `parity/C12-expression-question` (demo). `html` and `image` descend from a new `displayelement` base rather than from `question`, so the Creator's generated property grid never offers `isRequired` on a paragraph of text. **Markup is rendered as markup** — that is the feature — so a definition is code at the host's level of trust; a host taking definitions from untrusted authors passes `sanitizeHtml` to `<Survey>`, and none ships here because a sanitizer that is nearly right is worse than none. `expression` formats through a fixed `en-US` locale so the same definition reads the same everywhere; making that follow the survey locale is §J |
 
 ## §D — Validation
 

@@ -454,6 +454,17 @@
       ],
       "additionalProperties": true
     },
+    "displayelement": {
+      "description": "Any concrete \"displayelement\".",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/html"
+        },
+        {
+          "$ref": "#/$defs/image"
+        }
+      ]
+    },
     "dropdown": {
       "type": "object",
       "properties": {
@@ -611,6 +622,103 @@
       ],
       "additionalProperties": true
     },
+    "expression": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "expression"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "expression": {
+          "type": "string",
+          "default": "",
+          "description": "Computed from the answers. The respondent does not supply it."
+        },
+        "displayStyle": {
+          "type": "string",
+          "default": "none",
+          "description": "none, decimal, currency, percent or date."
+        },
+        "currency": {
+          "type": "string",
+          "default": "USD"
+        },
+        "maximumFractionDigits": {
+          "type": "number",
+          "default": 0,
+          "description": "0 leaves it to the style."
+        },
+        "format": {
+          "type": "string",
+          "default": "",
+          "description": "Template around the result, with {0} standing for it."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name",
+        "expression"
+      ],
+      "additionalProperties": true
+    },
     "expressionvalidator": {
       "type": "object",
       "properties": {
@@ -631,6 +739,105 @@
       "required": [
         "type",
         "expression"
+      ],
+      "additionalProperties": true
+    },
+    "html": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "html"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "html": {
+          "type": "string",
+          "default": "",
+          "description": "Markup, rendered as markup. See HtmlElement on the trust boundary."
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "image"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "imageLink": {
+          "type": "string",
+          "default": ""
+        },
+        "altText": {
+          "type": "string",
+          "default": "",
+          "description": "Falls back to the title, then to empty — a decorative image."
+        },
+        "imageFit": {
+          "type": "string",
+          "default": "contain",
+          "description": "none, contain, cover or fill. Mirrors CSS object-fit."
+        },
+        "contentMode": {
+          "type": "string",
+          "default": "image",
+          "description": "image or video."
+        },
+        "imageWidth": {
+          "type": "number",
+          "default": 0,
+          "description": "CSS pixels. 0 lets layout decide."
+        },
+        "imageHeight": {
+          "type": "number",
+          "default": 0
+        }
+      },
+      "required": [
+        "type",
+        "name"
       ],
       "additionalProperties": true
     },
@@ -750,6 +957,15 @@
           "$ref": "#/$defs/dropdown"
         },
         {
+          "$ref": "#/$defs/expression"
+        },
+        {
+          "$ref": "#/$defs/html"
+        },
+        {
+          "$ref": "#/$defs/image"
+        },
+        {
           "$ref": "#/$defs/panel"
         },
         {
@@ -828,6 +1044,9 @@
         },
         {
           "$ref": "#/$defs/dropdown"
+        },
+        {
+          "$ref": "#/$defs/expression"
         },
         {
           "$ref": "#/$defs/radiogroup"

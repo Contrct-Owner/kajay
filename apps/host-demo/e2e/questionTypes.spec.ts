@@ -112,6 +112,40 @@ test('parity/C8-rating-auto-collapses-a-long-scale', async ({ page }) => {
   await expect(page.getByTestId('survey-data')).toContainText('"recommend": 9');
 });
 
+test('parity/C12-html-and-image', async ({ page }) => {
+  // Rendered as markup, not escaped: the `<strong>` is an element, not four characters.
+  await expect(page.locator('[data-element-name="intro"] strong')).toHaveText(
+    'Nothing here is required.',
+  );
+
+  const logo = page.getByAltText('The Kajay wordmark');
+  await expect(logo).toBeVisible();
+  // Sized through CSS rather than the `width` attribute, so `imageFit` has a box to
+  // fit into and the theme's `max-width: 100%` can still shrink it on a narrow screen.
+  expect((await logo.boundingBox())?.width).toBe(120);
+
+  // Neither holds an answer, so neither is in the result.
+  const data = page.getByTestId('survey-data');
+  await expect(data).not.toContainText('intro');
+  await expect(data).not.toContainText('logo');
+});
+
+test('parity/C12-expression-question', async ({ page }) => {
+  const annual = page.getByLabel('Estimated annual cost');
+  // Hidden until there is something to compute, by its own `visibleIf`.
+  await expect(annual).toHaveCount(0);
+
+  await page.getByLabel(/How many people on your team\?/u).fill('3');
+  await page.getByRole('button', { name: 'Previous' }).click();
+  await page.getByLabel('paid').check();
+  await page.getByLabel('Monthly price').fill('10');
+  await page.getByRole('button', { name: 'Next' }).click();
+
+  // Computed across two pages, formatted for display, and stored as a plain number.
+  await expect(page.getByLabel('Estimated annual cost')).toHaveText('$360.00');
+  await expect(page.getByTestId('survey-data')).toContainText('"annualCost": 360');
+});
+
 test('parity/C2-comment-auto-grow', async ({ page }) => {
   const feedback = page.getByLabel(/Anything else we should know\?/u);
   const heightOf = async (): Promise<number> =>

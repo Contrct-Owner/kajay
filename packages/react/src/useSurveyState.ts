@@ -1,4 +1,4 @@
-import type { Survey } from '@kajay/core';
+import type { Survey, SurveyState } from '@kajay/core';
 import { useCallback, useSyncExternalStore } from 'react';
 
 /**
@@ -62,6 +62,31 @@ export function useSurveyValidating(survey: Survey): boolean {
     [survey],
   );
   const getSnapshot = useCallback((): boolean => survey.validation.isValidating, [survey]);
+  return useSyncExternalStore(subscribe, getSnapshot);
+}
+
+/**
+ * Re-renders when the survey moves between loading, empty, running and completed.
+ *
+ * Supersedes watching completion alone: a renderer has to draw exactly one of four
+ * things, and asking four booleans in sequence is how it ends up drawing a completed
+ * page for a survey that is still loading.
+ */
+export function useSurveyStatus(survey: Survey): SurveyState {
+  const subscribe = useCallback(
+    (onStoreChange: () => void): (() => void) => {
+      const stopState = survey.onStateChanged.add(onStoreChange);
+      // Element state as well: a page becoming invisible can empty the survey, and
+      // that transition is announced on the logic channel rather than this one.
+      const stopLogic = survey.onElementStateChanged.add(onStoreChange);
+      return () => {
+        stopState();
+        stopLogic();
+      };
+    },
+    [survey],
+  );
+  const getSnapshot = useCallback((): SurveyState => survey.status.state, [survey]);
   return useSyncExternalStore(subscribe, getSnapshot);
 }
 

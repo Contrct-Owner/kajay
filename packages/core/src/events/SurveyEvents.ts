@@ -1,5 +1,6 @@
 import type { Question } from '../model/Question.js';
 import type { SurveyElement } from '../model/SurveyElement.js';
+import type { SurveyState } from '../model/SurveyState.js';
 
 /** Payloads of the typed event surface hosts and renderers program against. */
 
@@ -11,6 +12,11 @@ export interface ValueChangedEvent {
 
 export interface CompleteEvent {
   readonly data: Readonly<Record<string, unknown>>;
+}
+
+/** Raised when the survey moves between loading, empty, running and completed. */
+export interface SurveyStateChangedEvent {
+  readonly state: SurveyState;
 }
 
 export interface CurrentPageChangedEvent {

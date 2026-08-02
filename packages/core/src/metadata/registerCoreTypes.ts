@@ -1,4 +1,5 @@
 import { CalculatedValue } from '../model/CalculatedValue.js';
+import { HtmlCondition } from '../model/HtmlCondition.js';
 import { Page } from '../model/Page.js';
 import { Panel } from '../model/Panel.js';
 import { Survey } from '../model/Survey.js';
@@ -16,6 +17,10 @@ export function registerCoreTypes(registry: MetadataRegistry): void {
   registry.addClass({
     ...CORE_TYPE_DEFINITIONS.calculatedValue,
     create: () => new CalculatedValue(),
+  });
+  registry.addClass({
+    ...CORE_TYPE_DEFINITIONS.htmlCondition,
+    create: () => new HtmlCondition(),
   });
   registry.addClass(CORE_TYPE_DEFINITIONS.pageElement);
   registry.addClass({ ...CORE_TYPE_DEFINITIONS.page, create: () => new Page() });

@@ -6,11 +6,12 @@ import type { HtmlSanitizer } from './HtmlSanitizerContext.js';
 import type { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
 import { SurveyNavigation } from './SurveyNavigation.js';
 import { SurveyPage } from './SurveyPage.js';
+import { SurveyStatusPage } from './SurveyStatusPage.js';
 import { useErrorFocus } from './useErrorFocus.js';
 import {
-  useSurveyCompleted,
   useSurveyCurrentPageNo,
   useSurveyLogicState,
+  useSurveyStatus,
 } from './useSurveyState.js';
 
 export interface SurveyProps {
@@ -39,15 +40,6 @@ function SurveyHeader({ survey }: { readonly survey: SurveyModel }): ReactElemen
   );
 }
 
-/** What replaces the form once the survey is done. §E5 will make this authorable. */
-function CompletedSurvey(): ReactElement {
-  return (
-    <div className="kajay-survey kajay-survey--completed" role="status">
-      <p className="kajay-survey__completed-text">Thank you for completing this survey.</p>
-    </div>
-  );
-}
-
 /**
  * Mounts a survey model.
  *
@@ -60,7 +52,7 @@ export function Survey({
   renderers = defaultQuestionRenderers,
   sanitizeHtml,
 }: SurveyProps): ReactElement {
-  const isCompleted = useSurveyCompleted(model);
+  const state = useSurveyStatus(model);
   // Subscribed for the re-render: conditional logic can add, remove or disable
   // elements between renders, and validation errors ride the same channel.
   useSurveyLogicState(model);
@@ -68,8 +60,14 @@ export function Survey({
   useSurveyCurrentPageNo(model);
   const { formRef, requestFocus } = useErrorFocus(model);
 
-  if (isCompleted) {
-    return <CompletedSurvey />;
+  if (state !== 'running') {
+    // The status page needs the sanitizer as much as an `html` element does — the
+    // completed markup is author-supplied and rendered as markup.
+    return (
+      <HtmlSanitizerProvider sanitize={sanitizeHtml}>
+        <SurveyStatusPage survey={model} state={state} />
+      </HtmlSanitizerProvider>
+    );
   }
 
   // Submitting means "advance", which on the last page means complete. Keeping that

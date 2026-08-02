@@ -1,4 +1,5 @@
 import { CalculatedValue } from './CalculatedValue.js';
+import { HtmlCondition } from './HtmlCondition.js';
 import { collectQuestions } from './pageElements.js';
 import { Page } from './Page.js';
 import type { Question } from './Question.js';
@@ -7,7 +8,7 @@ import { Trigger } from './Trigger.js';
 import type { ValueHost } from './ValueHost.js';
 
 /**
- * The survey's three child collections, and the type rule for each.
+ * The survey's child collections, and the type rule for each.
  *
  * Held together because they are one concept — what a survey contains — and because
  * keeping the property-name dispatch in one place stops it being duplicated between
@@ -17,6 +18,7 @@ export class SurveyChildren {
   readonly #pages: Page[] = [];
   readonly #calculatedValues: CalculatedValue[] = [];
   readonly #triggers: Trigger[] = [];
+  readonly #completedHtmlOnCondition: HtmlCondition[] = [];
 
   get pages(): readonly Page[] {
     return this.#pages;
@@ -28,6 +30,11 @@ export class SurveyChildren {
 
   get triggers(): readonly Trigger[] {
     return this.#triggers;
+  }
+
+  /** Completed-page markup, in the order the conditions are tried. */
+  get completedHtmlOnCondition(): readonly HtmlCondition[] {
+    return this.#completedHtmlOnCondition;
   }
 
   /** Every question on every page, panels flattened, in document order. */
@@ -45,6 +52,9 @@ export class SurveyChildren {
     }
     if (property === 'calculatedValues') {
       return this.#calculatedValues;
+    }
+    if (property === 'completedHtmlOnCondition') {
+      return this.#completedHtmlOnCondition;
     }
     return property === 'triggers' ? this.#triggers : [];
   }
@@ -70,6 +80,16 @@ export class SurveyChildren {
     }
     if (property === 'triggers') {
       this.#push(this.#triggers, child, Trigger, 'triggers', property);
+      return;
+    }
+    if (property === 'completedHtmlOnCondition') {
+      this.#push(
+        this.#completedHtmlOnCondition,
+        child,
+        HtmlCondition,
+        'conditional markup',
+        property,
+      );
       return;
     }
     throw new Error(`A survey does not accept children under "${property}".`);

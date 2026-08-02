@@ -800,6 +800,27 @@
       ],
       "additionalProperties": true
     },
+    "htmlcondition": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "htmlcondition"
+        },
+        "expression": {
+          "type": "string",
+          "default": ""
+        },
+        "html": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "required": [
+        "expression",
+        "html"
+      ],
+      "additionalProperties": true
+    },
     "image": {
       "type": "object",
       "properties": {
@@ -2030,6 +2051,21 @@
           "default": "top",
           "description": "Whether a question draws its errors above its input or below it."
         },
+        "completedHtml": {
+          "type": "string",
+          "default": "",
+          "description": "Markup shown once the survey is finished. {name} resolves to an answer."
+        },
+        "loadingHtml": {
+          "type": "string",
+          "default": "",
+          "description": "Markup shown while the host reports the survey as loading."
+        },
+        "emptyHtml": {
+          "type": "string",
+          "default": "",
+          "description": "Markup shown when no page is visible, so there is nothing to answer."
+        },
         "pages": {
           "type": "array",
           "items": {
@@ -2046,6 +2082,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/trigger"
+          }
+        },
+        "completedHtmlOnCondition": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/htmlcondition"
           }
         }
       },

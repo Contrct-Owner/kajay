@@ -3,6 +3,7 @@ import type {
   CompleteEvent,
   CurrentPageChangedEvent,
   ElementStateChangedEvent,
+  SurveyStateChangedEvent,
   ValidateQuestionEvent,
   ValidatingChangedEvent,
   ValueChangedEvent,
@@ -11,6 +12,7 @@ import type { LogicDiagnostics } from '../logic/LogicEngine.js';
 import type { ChoicePageLoader } from './ChoicePageLoader.js';
 import type { ChoiceFetcher } from './ChoiceSourceController.js';
 import type { SurveyOptions } from './SurveyOptions.js';
+import { SurveyStatus } from './SurveyStatus.js';
 import type { CalculatedValue } from './CalculatedValue.js';
 import { SurveyAnswers } from './SurveyAnswers.js';
 import { SurveyLogicHost } from './SurveyLogicHost.js';
@@ -20,7 +22,6 @@ import { SurveyPages } from './SurveyPages.js';
 import type { Question } from './Question.js';
 import { SurveyChildren } from './SurveyChildren.js';
 import { SurveyElement } from './SurveyElement.js';
-import type { SurveyError } from './SurveyError.js';
 import { SurveyValidation } from './SurveyValidation.js';
 import type { AdvanceOutcome } from './SurveyValidation.js';
 import { createValidationHost } from './surveyValidationWiring.js';
@@ -47,7 +48,6 @@ export class Survey extends SurveyElement implements ValueHost {
       },
       evaluate: (expression) => this.#logic.evaluate(expression),
       data: () => this.data,
-      hostErrors: (question) => this.#collectHostErrors(question),
       announce: (question) => {
         this.#logic.notifyErrorsChanged(question);
       },
@@ -63,10 +63,32 @@ export class Survey extends SurveyElement implements ValueHost {
     }),
   );
 
+  readonly #status: SurveyStatus = new SurveyStatus({
+    readProperty: (name) => this.getStringProperty(name),
+    isCompleted: () => this.#isCompleted,
+    hasVisiblePages: () => this.visiblePages.length > 0,
+    conditions: () => this.#children.completedHtmlOnCondition,
+    evaluate: (expression) => this.#logic.evaluate(expression),
+    // Answers *and* calculated values: a completed page saying "you answered 3 of 5"
+    // is reading something computed, and B6 exists to make that possible.
+    resolve: (name) => this.#answers.resolve(name),
+    announce: (state) => {
+      this.onStateChanged.emit({ state });
+    },
+  });
+
   #isCompleted = false;
 
   readonly onValueChanged: EventEmitter<ValueChangedEvent> = new EventEmitter();
   readonly onComplete: EventEmitter<CompleteEvent> = new EventEmitter();
+  /**
+   * Raised when the survey moves between loading, empty, running and completed.
+   *
+   * Separate from `onComplete`, which is the host's cue to *submit* — a renderer needs
+   * to know about every one of these transitions, and a host saving results needs
+   * exactly one of them.
+   */
+  readonly onStateChanged: EventEmitter<SurveyStateChangedEvent> = new EventEmitter();
   readonly onCurrentPageChanged: EventEmitter<CurrentPageChangedEvent> = new EventEmitter();
   readonly onElementStateChanged: EventEmitter<ElementStateChangedEvent> = new EventEmitter();
   /** Raised per question as it is checked. Listeners report by calling `addError`. */
@@ -296,27 +318,6 @@ export class Survey extends SurveyElement implements ValueHost {
     }
   }
 
-  /**
-   * Gathers what `onValidateQuestion` listeners had to say about one answer.
-   *
-   * Here rather than in the validation object because the event is the survey's: the
-   * emitter is public surface, and validation only needs the result.
-   */
-  #collectHostErrors(question: Question): readonly SurveyError[] {
-    if (this.onValidateQuestion.listenerCount === 0) {
-      return [];
-    }
-    const errors: SurveyError[] = [];
-    this.onValidateQuestion.emit({
-      question,
-      value: question.value,
-      addError: (text) => {
-        errors.push({ kind: 'host', text });
-      },
-    });
-    return errors;
-  }
-
   /** Navigates to a page by name, or to the page owning the named question. */
   goTo(name: string): void {
     this.#pages.goTo(name);
@@ -377,5 +378,11 @@ export class Survey extends SurveyElement implements ValueHost {
     }
     this.#isCompleted = true;
     this.onComplete.emit({ data: this.data });
+    this.onStateChanged.emit({ state: this.status.state });
+  }
+
+  /** Loading, empty, running or completed — and the markup that goes with each. */
+  get status(): SurveyStatus {
+    return this.#status;
   }
 }

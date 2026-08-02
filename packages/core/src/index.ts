@@ -65,6 +65,7 @@ export type {
   CurrentPageChangedEvent,
   ElementStateChangedEvent,
   ElementStateKind,
+  SurveyStateChangedEvent,
   ValidateQuestionEvent,
   ValidatingChangedEvent,
   ValueChangedEvent,
@@ -126,6 +127,10 @@ export { Panel } from './model/Panel.js';
 export type { PanelState } from './model/Panel.js';
 export { Question } from './model/Question.js';
 export { Survey } from './model/Survey.js';
+export { HtmlCondition } from './model/HtmlCondition.js';
+export { interpolate, interpolateHtml } from './model/interpolate.js';
+export { resolveSurveyState } from './model/SurveyState.js';
+export type { SurveyState, SurveyStateInputs } from './model/SurveyState.js';
 export type { SurveyOptions } from './model/SurveyOptions.js';
 export { SurveyElement } from './model/SurveyElement.js';
 export type { SurveyError } from './model/SurveyError.js';

@@ -220,5 +220,7 @@ test('parity/B7-trigger-complete', async ({ page }) => {
   // `click`, not `check`: completing unmounts the whole form, so there is no longer a
   // radio for `check` to confirm ended up selected.
   await page.getByLabel('Yes, finish now').click();
-  await expect(page.getByRole('status')).toContainText('Thank you');
+  // The trigger ended the survey two pages early, and the ending says so — the demo
+  // authors a different one for exactly this route (E5).
+  await expect(page.getByRole('status')).toContainText('Finished early');
 });

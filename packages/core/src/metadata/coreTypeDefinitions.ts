@@ -4,6 +4,7 @@ import { VISIBLE_IF } from './commonProperties.js';
 interface CoreTypeDefinitions {
   readonly survey: ClassMetadataDefinition;
   readonly calculatedValue: ClassMetadataDefinition;
+  readonly htmlCondition: ClassMetadataDefinition;
   readonly pageElement: ClassMetadataDefinition;
   readonly page: ClassMetadataDefinition;
   readonly panel: ClassMetadataDefinition;
@@ -40,11 +41,34 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         defaultValue: 'top',
         description: 'Whether a question draws its errors above its input or below it.',
       },
+      {
+        name: 'completedHtml',
+        type: 'string',
+        description: 'Markup shown once the survey is finished. {name} resolves to an answer.',
+      },
+      {
+        name: 'loadingHtml',
+        type: 'string',
+        description: 'Markup shown while the host reports the survey as loading.',
+      },
+      {
+        name: 'emptyHtml',
+        type: 'string',
+        description: 'Markup shown when no page is visible, so there is nothing to answer.',
+      },
     ],
     childCollections: [
       { property: 'pages', elementBaseType: 'page' },
       { property: 'calculatedValues', elementBaseType: 'calculatedvalue' },
       { property: 'triggers', elementBaseType: 'trigger' },
+      { property: 'completedHtmlOnCondition', elementBaseType: 'htmlcondition' },
+    ],
+  },
+  htmlCondition: {
+    name: 'htmlcondition',
+    properties: [
+      { name: 'expression', type: 'string', isRequired: true },
+      { name: 'html', type: 'string', isRequired: true },
     ],
   },
   calculatedValue: {

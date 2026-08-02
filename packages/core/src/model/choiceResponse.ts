@@ -3,6 +3,7 @@ import { collectReferences } from '../expressions/collectReferences.js';
 import { formatPath } from '../expressions/ExpressionNode.js';
 import { parseExpression } from '../expressions/parseExpression.js';
 import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
+import { interpolate, placeholderNames } from './interpolate.js';
 import { ItemValue } from './ItemValue.js';
 
 /** How a URL response is turned into choices. Part of the cache identity. */
@@ -12,8 +13,6 @@ export interface ChoiceSettings {
   readonly valueName: string;
   readonly titleName: string;
 }
-
-const PLACEHOLDER: RegExp = /\{([^{}]+)\}/gu;
 
 /**
  * Identity of a converted response.
@@ -26,10 +25,17 @@ export function createCacheKey(url: string, settings: ChoiceSettings): string {
   return JSON.stringify([url, settings.path, settings.valueName, settings.titleName]);
 }
 
-/** Substitutes `{question}` placeholders with current answers. */
+/**
+ * Substitutes `{question}` placeholders with current answers, encoded for a URL.
+ *
+ * Shares the substitution with the completed page and differs only in the encoding,
+ * which is the part that depends on where the value lands: percent-encoding here,
+ * HTML escaping there. Neither is optional — an unencoded answer in a URL is a broken
+ * request, and an unescaped one in markup is an injection.
+ */
 export function resolveUrl(template: string, resolve: (name: string) => unknown): string {
-  return template.replaceAll(PLACEHOLDER, (_match, reference: string) => {
-    const value = resolve(reference.trim());
+  return interpolate(template, (name) => {
+    const value = resolve(name);
     return value === null || value === undefined ? '' : encodeURIComponent(String(value));
   });
 }
@@ -91,11 +97,7 @@ export function choicesFromResponse(
 export function placeholderDependencies(url: string): readonly DependencyPattern[] {
   const seen = new Set<string>();
   const reads: DependencyPattern[] = [];
-  for (const match of url.matchAll(PLACEHOLDER)) {
-    const reference = match[1];
-    if (reference === undefined) {
-      continue;
-    }
+  for (const reference of placeholderNames(url)) {
     for (const path of collectReferences(parseExpression(`{${reference}}`).node)) {
       const formatted = formatPath(path);
       if (!seen.has(formatted)) {

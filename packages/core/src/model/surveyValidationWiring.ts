@@ -1,5 +1,7 @@
 import { collectVisibleQuestions } from './pageElements.js';
+import type { Question } from './Question.js';
 import type { Survey } from './Survey.js';
+import type { SurveyError } from './SurveyError.js';
 import type { SurveyValidationHost } from './SurveyValidation.js';
 
 /** The half of the validation host that only the survey internals can supply. */
@@ -9,7 +11,6 @@ export type ValidationWiring = Pick<
   | 'writeProperty'
   | 'evaluate'
   | 'data'
-  | 'hostErrors'
   | 'announce'
   | 'flush'
   | 'announceValidating'
@@ -35,6 +36,30 @@ export function createValidationHost(
       survey.visiblePages.flatMap((page) => collectVisibleQuestions(page.elements)),
     isLastPage: () => survey.isLastPage,
     currentPageName: () => survey.currentPage?.name ?? '',
+    hostErrors: (question) => collectHostErrors(survey, question),
     ...wiring,
   };
+}
+
+/**
+ * Gathers what `onValidateQuestion` listeners had to say about one answer.
+ *
+ * Out here rather than on the survey because it needs nothing but the survey's own
+ * public surface — the emitter — and validation needs only the result. Listeners report
+ * by calling `addError` rather than returning, because several of them can each have
+ * something to say about the same answer and a return value would not compose.
+ */
+function collectHostErrors(survey: Survey, question: Question): readonly SurveyError[] {
+  if (survey.onValidateQuestion.listenerCount === 0) {
+    return [];
+  }
+  const errors: SurveyError[] = [];
+  survey.onValidateQuestion.emit({
+    question,
+    value: question.value,
+    addError: (text) => {
+      errors.push({ kind: 'host', text });
+    },
+  });
+  return errors;
 }

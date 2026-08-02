@@ -22,6 +22,8 @@ export { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
 export type { QuestionRenderer } from './QuestionRendererRegistry.js';
 export { Survey } from './Survey.js';
 export { SurveyNavigation } from './SurveyNavigation.js';
+export { SurveyStatusPage } from './SurveyStatusPage.js';
+export type { SurveyStatusPageProps, SurveyStatusState } from './SurveyStatusPage.js';
 export type { SurveyNavigationProps } from './SurveyNavigation.js';
 export type { SurveyProps } from './Survey.js';
 export { SelectQuestionRenderer } from './SelectQuestionRenderer.js';
@@ -41,6 +43,7 @@ export {
   useSurveyCompleted,
   useSurveyCurrentPageNo,
   useSurveyLogicState,
+  useSurveyStatus,
   useSurveyValidating,
   useSurveyValue,
 } from './useSurveyState.js';

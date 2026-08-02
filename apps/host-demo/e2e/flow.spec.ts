@@ -19,7 +19,26 @@ test('parity/E5-completion-flow', async ({ page }) => {
   // Complete only exists on the last page: the primary button is one control that
   // changes label, so it never moves out from under the cursor.
   await page.getByRole('button', { name: 'Complete' }).click();
-  await expect(page.getByRole('status')).toContainText('Thank you');
+
+  const ending = page.getByRole('status');
+  // The author's markup, rendered as markup — the heading is an element rather than
+  // four characters of text.
+  await expect(ending.getByRole('heading', { name: 'Thanks, Ada.' })).toBeVisible();
+  // `{answeredCount}` is a calculated value, not an answer, and the ending cannot tell
+  // the difference. That is checklist B6's second half.
+  await expect(ending).toContainText('You answered 2 of the first three questions.');
+});
+
+test('parity/E5-completed-html-on-condition', async ({ page }) => {
+  await gotoLogicShowcase(page);
+  // `click`, not `check`: the trigger completes the survey on the spot, so the radio
+  // is gone before `check` can confirm it is checked.
+  await page.getByLabel('Yes, finish now').click();
+
+  const ending = page.getByRole('status');
+  // A different ending, chosen by its own condition rather than by the default.
+  await expect(ending.getByRole('heading', { name: 'Finished early' })).toBeVisible();
+  await expect(ending).not.toContainText('You answered');
 });
 
 test('parity/I1-theme-tokens-applied', async ({ page }) => {

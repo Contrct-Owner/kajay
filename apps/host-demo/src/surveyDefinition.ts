@@ -57,5 +57,17 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
     },
   ],
   description: 'Conditional logic, rendered through the published package APIs.',
+  // The ending is authored, and reads back what the respondent told us. `{fullName}` is
+  // an answer and `{answeredCount}` is a calculated value — the completed page makes no
+  // distinction, which is the half of B6 that had nowhere to be proven.
+  completedHtml:
+    '<h2>Thanks, {fullName}.</h2><p>You answered {answeredCount} of the first three questions.</p>',
+  completedHtmlOnCondition: [
+    {
+      // Reaching the end early is a different ending, not the same one with a caveat.
+      expression: "{finishNow} == 'yes'",
+      html: '<h2>Finished early</h2><p>You chose to stop on the logic page, so we skipped the rest.</p>',
+    },
+  ],
   pages: [aboutYou, logicShowcase, questionTypes],
 };

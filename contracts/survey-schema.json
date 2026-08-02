@@ -280,6 +280,16 @@
           "type": "string",
           "default": ""
         },
+        "choicesLazyLoadEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "The list arrives a page at a time from the host loader."
+        },
+        "choicesLazyLoadPageSize": {
+          "type": "number",
+          "default": 25,
+          "description": "How many choices one page asks for."
+        },
         "showSelectAllItem": {
           "type": "boolean",
           "default": false
@@ -585,6 +595,16 @@
         "choicesTitleName": {
           "type": "string",
           "default": ""
+        },
+        "choicesLazyLoadEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "The list arrives a page at a time from the host loader."
+        },
+        "choicesLazyLoadPageSize": {
+          "type": "number",
+          "default": 25,
+          "description": "How many choices one page asks for."
         },
         "validators": {
           "type": "array",
@@ -961,6 +981,16 @@
         "choicesTitleName": {
           "type": "string",
           "default": ""
+        },
+        "choicesLazyLoadEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "The list arrives a page at a time from the host loader."
+        },
+        "choicesLazyLoadPageSize": {
+          "type": "number",
+          "default": 25,
+          "description": "How many choices one page asks for."
         },
         "showSelectAllItem": {
           "type": "boolean",
@@ -1526,6 +1556,16 @@
           "type": "string",
           "default": ""
         },
+        "choicesLazyLoadEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "The list arrives a page at a time from the host loader."
+        },
+        "choicesLazyLoadPageSize": {
+          "type": "number",
+          "default": 25,
+          "description": "How many choices one page asks for."
+        },
         "showClearButton": {
           "type": "boolean",
           "default": false
@@ -1669,6 +1709,16 @@
         "choicesTitleName": {
           "type": "string",
           "default": ""
+        },
+        "choicesLazyLoadEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "The list arrives a page at a time from the host loader."
+        },
+        "choicesLazyLoadPageSize": {
+          "type": "number",
+          "default": 25,
+          "description": "How many choices one page asks for."
         },
         "selectToRankEnabled": {
           "type": "boolean",
@@ -2121,6 +2171,16 @@
         "choicesTitleName": {
           "type": "string",
           "default": ""
+        },
+        "choicesLazyLoadEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "The list arrives a page at a time from the host loader."
+        },
+        "choicesLazyLoadPageSize": {
+          "type": "number",
+          "default": 25,
+          "description": "How many choices one page asks for."
         },
         "showSelectAllItem": {
           "type": "boolean",

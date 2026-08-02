@@ -2,8 +2,10 @@ import type { ElementStateChangedEvent, ValueChangedEvent } from '../events/Surv
 import type { PathSegment } from '../expressions/ExpressionNode.js';
 import { LogicEngine } from '../logic/LogicEngine.js';
 import type { LogicDiagnostics } from '../logic/LogicEngine.js';
+import type { ChoicePageLoader } from './ChoicePageLoader.js';
 import { ChoiceSourceController } from './ChoiceSourceController.js';
 import type { ChoiceFetcher } from './ChoiceSourceController.js';
+import { LazyChoiceController } from './LazyChoiceController.js';
 import { createPathResolver } from './createPathResolver.js';
 import { ElementStateController } from './ElementStateController.js';
 import { SettleCoordinator } from './SettleCoordinator.js';
@@ -41,6 +43,7 @@ export class SurveyLogicHost {
   readonly #states: ElementStateController = new ElementStateController();
   readonly #settle: SettleCoordinator;
   readonly #choiceSources: ChoiceSourceController = new ChoiceSourceController();
+  readonly #lazyChoices: LazyChoiceController = new LazyChoiceController();
   readonly #answers: SurveyAnswers;
   readonly #resolvePath: (path: readonly PathSegment[]) => unknown;
 
@@ -52,6 +55,7 @@ export class SurveyLogicHost {
     this.#answers = answers;
     this.#engine = new LogicEngine(options);
     this.#choiceSources.setFetcher(options.fetchJson);
+    this.#lazyChoices.setLoader(options.loadChoicePage);
     this.#settle = new SettleCoordinator(flush);
     this.#resolvePath = createPathResolver((name) => answers.resolve(name));
   }
@@ -66,13 +70,17 @@ export class SurveyLogicHost {
     return this.#settle.diagnostics;
   }
 
-  /** Messages from choice sources: a failed load, or a missing fetcher. */
+  /** Messages from choice sources: a failed load, a failed page, a missing fetcher. */
   get choiceErrors(): readonly string[] {
-    return this.#choiceSources.errors;
+    return [...this.#choiceSources.errors, ...this.#lazyChoices.errors];
   }
 
   setChoiceFetcher(fetchJson: ChoiceFetcher | undefined): void {
     this.#choiceSources.setFetcher(fetchJson);
+  }
+
+  setChoicePageLoader(load: ChoicePageLoader | undefined): void {
+    this.#lazyChoices.setLoader(load);
   }
 
   /** Rebuilds every rule from the current tree and evaluates them once. */
@@ -82,6 +90,7 @@ export class SurveyLogicHost {
       states: this.#states,
       settle: this.#settle,
       choiceSources: this.#choiceSources,
+      lazyChoices: this.#lazyChoices,
       answers: this.#answers,
       resolvePath: this.#resolvePath,
       ...hooks,

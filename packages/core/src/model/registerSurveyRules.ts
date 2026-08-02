@@ -7,6 +7,7 @@ import type { LogicEngine } from '../logic/LogicEngine.js';
 import type { CalculatedValue } from './CalculatedValue.js';
 import type { CarryForwardMode, ChoiceSourceController } from './ChoiceSourceController.js';
 import type { ElementStateController } from './ElementStateController.js';
+import type { LazyChoiceController } from './LazyChoiceController.js';
 import { ExpressionQuestion } from './ExpressionQuestion.js';
 import type { PageElement } from './PageElement.js';
 import { Panel } from './Panel.js';
@@ -30,6 +31,7 @@ export interface RuleHost {
   /** Wires a panel's collapse toggle to the renderer's subscription. */
   readonly announcePanelCollapsed: (panel: Panel) => void;
   readonly choiceSources: ChoiceSourceController;
+  readonly lazyChoices: LazyChoiceController;
   readonly resolveValue: (name: string) => unknown;
 }
 
@@ -78,9 +80,9 @@ function registerChoicesByUrl(
 
 /**
  * A question's choices may come from elsewhere: carried forward from another question,
- * or loaded from a URL. At most one source is active — declaring both is an authoring
- * mistake, and carry-forward wins because it resolves synchronously and therefore
- * predictably.
+ * loaded whole from a URL, or paged in from the host. At most one source is active —
+ * declaring more than one is an authoring mistake, and the first named here wins.
+ * Carry-forward leads because it resolves synchronously and therefore predictably.
  */
 function registerChoiceSource(question: Question, owner: string, host: RuleHost): void {
   if (!(question instanceof SelectQuestion)) {
@@ -93,16 +95,26 @@ function registerChoiceSource(question: Question, owner: string, host: RuleHost)
   const carryForward = optionalString(question.choicesFromQuestion);
   if (carryForward !== undefined) {
     host.choiceSources.invalidate(key);
+    host.lazyChoices.detach(question);
     registerCarryForward(question, carryForward, owner, host);
     return;
   }
   const url = optionalString(question.choicesByUrl);
   if (url !== undefined) {
+    host.lazyChoices.detach(question);
     registerChoicesByUrl(question, url, owner, host);
     return;
   }
 
   host.choiceSources.invalidate(key);
+  if (question.choicesLazyLoadEnabled) {
+    host.lazyChoices.attach(question, () => {
+      host.announceChoices(question);
+    });
+    return;
+  }
+
+  host.lazyChoices.detach(question);
   if (hadDynamicChoices) {
     host.announceChoices(question);
   }

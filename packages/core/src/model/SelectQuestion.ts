@@ -1,4 +1,5 @@
 import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
+import type { ChoicePaging } from './ChoicePaging.js';
 import { ItemValue } from './ItemValue.js';
 import { Question } from './Question.js';
 import type { SurveyElement } from './SurveyElement.js';
@@ -16,6 +17,7 @@ export const NONE_VALUE = 'none';
 export abstract class SelectQuestion extends Question {
   readonly #choices: ItemValue[] = [];
   #choiceProvider: (() => readonly ItemValue[]) | undefined;
+  #paging: ChoicePaging | undefined;
 
   /**
    * The choices in play: supplied at runtime if a source is active, else authored.
@@ -164,6 +166,68 @@ export abstract class SelectQuestion extends Question {
     return this.getBooleanProperty('searchEnabled');
   }
 
+  /** Whether the list arrives a page at a time from the host's loader. */
+  get choicesLazyLoadEnabled(): boolean {
+    return this.getBooleanProperty('choicesLazyLoadEnabled');
+  }
+
+  /** How many choices one page asks for. */
+  get choicesLazyLoadPageSize(): number {
+    return this.getNumberProperty('choicesLazyLoadPageSize');
+  }
+
+  /** Installs whatever is paging this question's choices. */
+  attachChoicePaging(paging: ChoicePaging): void {
+    this.#paging = paging;
+  }
+
+  /** Forgets it. The question holds whatever choices were loaded, and asks for no more. */
+  detachChoicePaging(): void {
+    this.#paging = undefined;
+  }
+
+  /** True when the list arrives in pages, so what is here is not all there is. */
+  get isPaged(): boolean {
+    return this.#paging !== undefined;
+  }
+
+  /** True while a page is on its way. */
+  get isLoadingChoices(): boolean {
+    return this.#paging?.isLoading ?? false;
+  }
+
+  /**
+   * True while there are more choices to ask for.
+   *
+   * False for an ordinary list, which is all there in one piece — so a renderer can ask
+   * this of any select question and draw nothing when there is nothing more to fetch.
+   */
+  get hasMoreChoices(): boolean {
+    return this.#paging?.hasMore ?? false;
+  }
+
+  /** Asks for the next page. Does nothing unless the list is paged. */
+  loadMoreChoices(): void {
+    this.#paging?.loadMore();
+  }
+
+  /** What the loaded choices were narrowed by, or empty. */
+  get choiceFilter(): string {
+    return this.#paging?.filter ?? '';
+  }
+
+  /**
+   * Narrows the list.
+   *
+   * On a paged list this goes to the host, because the choices that would match may
+   * never have been loaded — narrowing what is here would search one page of a
+   * thousand. On an ordinary list it does nothing: everything is already present, and
+   * `filterChoices` answers without a round trip.
+   */
+  setChoiceFilter(query: string): void {
+    this.#paging?.setFilter(query);
+  }
+
   /**
    * Choices matching a search term.
    *
@@ -173,7 +237,10 @@ export abstract class SelectQuestion extends Question {
    */
   filterChoices(query: string): readonly ItemValue[] {
     const trimmed = query.trim().toLowerCase();
-    if (trimmed.length === 0 || !this.searchEnabled) {
+    // A paged list was already narrowed where the data is. Filtering again here would
+    // hide choices the host deliberately returned — a fuzzy server-side match, say —
+    // and would still never find the ones that have not arrived.
+    if (trimmed.length === 0 || !this.searchEnabled || this.isPaged) {
       return this.visibleChoices;
     }
     return this.visibleChoices.filter((choice) => choice.text.toLowerCase().includes(trimmed));

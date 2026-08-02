@@ -104,6 +104,16 @@ export const questionTypes: PageDefinition = {
       ],
     },
     {
+      // Too long to send at once, so it arrives a page at a time and the search goes
+      // to the host — the matching entry may never have been loaded.
+      type: 'dropdown',
+      name: 'city',
+      title: 'Which office are you nearest?',
+      placeholder: 'Choose a city',
+      choicesLazyLoadEnabled: true,
+      choicesLazyLoadPageSize: 8,
+    },
+    {
       // Ordered, not picked: the answer is an array whose positions carry the meaning,
       // so `{priorities[0]}` is "what matters most".
       type: 'ranking',

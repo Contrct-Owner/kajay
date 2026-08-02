@@ -69,6 +69,17 @@ export const SELECT_TYPE_DEFINITIONS: SelectTypeDefinitions = {
       },
       { name: 'choicesValueName', type: 'string' },
       { name: 'choicesTitleName', type: 'string' },
+      {
+        name: 'choicesLazyLoadEnabled',
+        type: 'boolean',
+        description: 'The list arrives a page at a time from the host loader.',
+      },
+      {
+        name: 'choicesLazyLoadPageSize',
+        type: 'number',
+        defaultValue: 25,
+        description: 'How many choices one page asks for.',
+      },
     ],
     childCollections: [
       { property: 'choices', elementBaseType: 'itemvalue', shorthandProperty: 'value' },

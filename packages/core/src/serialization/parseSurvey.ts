@@ -1,3 +1,4 @@
+import type { ChoicePageLoader } from '../model/ChoicePageLoader.js';
 import type { ChoiceFetcher } from '../model/ChoiceSourceController.js';
 import type { ChildCollectionDescriptor } from '../metadata/ClassDescriptor.js';
 import { globalRegistry } from '../metadata/globalRegistry.js';
@@ -50,6 +51,8 @@ function assertSupportedSchemaVersion(definition: Record<string, unknown>): void
 export interface ParseOptions {
   /** Supplies `choicesByUrl` loading. Core is I/O-free, so the host provides it. */
   readonly fetchJson?: ChoiceFetcher;
+  /** Supplies `choicesLazyLoadEnabled` paging, on the same terms. */
+  readonly loadChoicePage?: ChoicePageLoader;
 }
 
 /**
@@ -88,6 +91,9 @@ export function parseSurvey(
   // Conditions can only be registered once the whole tree exists, so this runs here
   // rather than as elements are added.
   root.setChoiceFetcher(options.fetchJson);
+  // Before `refreshLogic`, not after: registering a lazily-paged question asks for its
+  // first page, and a loader arriving afterwards would be too late for it.
+  root.setChoicePageLoader(options.loadChoicePage);
   root.refreshLogic();
   return { survey: root, diagnostics: context.diagnostics };
 }

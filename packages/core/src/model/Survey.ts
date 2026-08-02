@@ -8,6 +8,7 @@ import type {
   ValueChangedEvent,
 } from '../events/SurveyEvents.js';
 import type { LogicDiagnostics } from '../logic/LogicEngine.js';
+import type { ChoicePageLoader } from './ChoicePageLoader.js';
 import type { ChoiceFetcher } from './ChoiceSourceController.js';
 import type { SurveyOptions } from './SurveyOptions.js';
 import type { CalculatedValue } from './CalculatedValue.js';
@@ -97,6 +98,16 @@ export class Survey extends SurveyElement implements ValueHost {
    */
   setChoiceFetcher(fetchJson: ChoiceFetcher | undefined): void {
     this.#logic.setChoiceFetcher(fetchJson);
+  }
+
+  /**
+   * Supplies the loader for `choicesLazyLoadEnabled`, on the same terms.
+   *
+   * Set before logic first runs, because a lazily-paged question asks for its first
+   * page as soon as it is registered.
+   */
+  setChoicePageLoader(load: ChoicePageLoader | undefined): void {
+    this.#logic.setChoicePageLoader(load);
   }
 
   /** Messages from choice sources: a failed load, or a missing fetcher. */

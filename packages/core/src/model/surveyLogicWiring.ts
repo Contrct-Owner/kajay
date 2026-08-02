@@ -2,6 +2,7 @@ import type { PathSegment } from '../expressions/ExpressionNode.js';
 import type { LogicEngine } from '../logic/LogicEngine.js';
 import type { CalculatedValue } from './CalculatedValue.js';
 import type { ChoiceSourceController } from './ChoiceSourceController.js';
+import type { LazyChoiceController } from './LazyChoiceController.js';
 import type { ElementStateController } from './ElementStateController.js';
 import { registerSurveyRules } from './registerSurveyRules.js';
 import type { RuleHost } from './registerSurveyRules.js';
@@ -15,6 +16,7 @@ export interface SurveyLogicDependencies {
   readonly states: ElementStateController;
   readonly settle: SettleCoordinator;
   readonly choiceSources: ChoiceSourceController;
+  readonly lazyChoices: LazyChoiceController;
   readonly answers: SurveyAnswers;
   readonly resolvePath: (path: readonly PathSegment[]) => unknown;
   readonly getValue: (name: string) => unknown;
@@ -77,6 +79,7 @@ function createSurveyRuleHost(dependencies: SurveyLogicDependencies): RuleHost {
     logic: dependencies.logic,
     states,
     choiceSources: dependencies.choiceSources,
+    lazyChoices: dependencies.lazyChoices,
     getValue: dependencies.getValue,
     setValue: dependencies.writeValue,
     setCalculated: (calculated, value) => setCalculated(dependencies, calculated, value),

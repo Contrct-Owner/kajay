@@ -664,3 +664,51 @@
   overflow: hidden;
   clip-path: inset(50%);
 }
+
+/* --- Paged choices (C5, C6) ------------------------------------------------ */
+
+.kajay-choice-filter {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 5);
+}
+
+.kajay-choice-filter__label {
+  color: var(--kajay-color-muted);
+  font-size: 0.875em;
+}
+
+.kajay-choice-filter__input {
+  padding: calc(var(--kajay-spacing) / 3);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+}
+
+.kajay-choice-filter__input:focus-visible {
+  outline: 2px solid var(--kajay-color-accent);
+  outline-offset: 1px;
+}
+
+.kajay-choice-paging__more {
+  padding: calc(var(--kajay-spacing) / 4) calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kajay-choice-paging__more[disabled] {
+  cursor: progress;
+  opacity: 0.65;
+}
+
+.kajay-choice-paging__done {
+  margin: 0;
+  color: var(--kajay-color-muted);
+  font-size: 0.8125em;
+}

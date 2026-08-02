@@ -1,5 +1,7 @@
 import { MultiSelectQuestion, SelectQuestion } from '@kajay/core';
 import type { ChangeEvent, ReactElement } from 'react';
+import { ChoiceFilterField } from './ChoiceFilterField.js';
+import { MoreChoices } from './MoreChoices.js';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
@@ -30,6 +32,10 @@ function applySelection(question: SelectQuestion, target: HTMLSelectElement): vo
  * screen-reader-correct for free. Filtering already lives on the model
  * (`filterChoices`), so a richer combobox in Phase 2's accessibility pass replaces the
  * markup without touching the semantics.
+ *
+ * A **paged** question gets two more controls around that list: a search field, because
+ * the browser's type-ahead can only reach options that have arrived, and a control to
+ * fetch the rest. Both read and drive the model and hold no list of their own.
  */
 export function CollapsedSelectRenderer({
   survey,
@@ -54,6 +60,7 @@ export function CollapsedSelectRenderer({
         <QuestionTitleContent question={question} />
       </label>
       <QuestionErrors survey={survey} question={question} at="top" id={errorId} />
+      {question.isPaged ? <ChoiceFilterField question={question} id={`${inputId}-filter`} /> : null}
       <select
         id={inputId}
         className="kajay-question__select"
@@ -73,6 +80,7 @@ export function CollapsedSelectRenderer({
           </option>
         ))}
       </select>
+      <MoreChoices question={question} />
       <QuestionErrors survey={survey} question={question} at="bottom" id={errorId} />
     </div>
   );

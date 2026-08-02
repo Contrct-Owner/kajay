@@ -285,3 +285,42 @@ test('parity/C9-select-to-rank', async ({ page }) => {
     /"shortlist": \[\s+"api",\s+"offline"\s+\]/u,
   );
 });
+
+test('parity/C5-lazy-loading', async ({ page }) => {
+  const city = page.locator('[data-question-name="city"]');
+  const options = city.locator('option');
+  // The placeholder plus one page of eight. The other twenty never left the host.
+  await expect(options).toHaveCount(9);
+
+  await city.getByRole('button', { name: 'Load more options' }).click();
+  await expect(options).toHaveCount(17);
+  // Added to what was there rather than replacing it: the respondent is looking at
+  // the first page, and a list that emptied itself would lose their place.
+  await expect(options.nth(1)).toHaveText('Aberdeen');
+
+  await city.getByRole('button', { name: 'Load more options' }).click();
+  await expect(options).toHaveCount(25);
+  await city.getByRole('button', { name: 'Load more options' }).click();
+  // Twenty-eight and no more, because the host said so rather than because a page
+  // came back short.
+  await expect(options).toHaveCount(29);
+  await expect(city.getByText('That is every option.')).toBeVisible();
+});
+
+test('parity/C5-lazy-search', async ({ page }) => {
+  const city = page.locator('[data-question-name="city"]');
+  const options = city.locator('option');
+
+  await city.getByLabel('Filter options').fill('port');
+  // Portsmouth is far down the alphabet and was never loaded, so no amount of
+  // narrowing what had arrived would have found it.
+  await expect(options).toHaveText(['Choose a city', 'Newport', 'Portsmouth']);
+
+  await city.locator('select').selectOption('Portsmouth');
+  await expect(page.getByTestId('survey-data')).toContainText('"city": "Portsmouth"');
+
+  // And the answer is not a function of what the list happens to be showing.
+  await city.getByLabel('Filter options').fill('leeds');
+  await expect(options).toHaveText(['Choose a city', 'Leeds']);
+  await expect(page.getByTestId('survey-data')).toContainText('"city": "Portsmouth"');
+});

@@ -88,6 +88,13 @@ export type {
 export { registerBuiltInTypes } from './metadata/registerBuiltInTypes.js';
 export { CalculatedValue } from './model/CalculatedValue.js';
 export type { ChoiceFetcher } from './model/ChoiceSourceController.js';
+export type {
+  ChoicePage,
+  ChoicePageItem,
+  ChoicePageLoader,
+  ChoicePageRequest,
+} from './model/ChoicePageLoader.js';
+export type { ChoicePaging } from './model/ChoicePaging.js';
 export { BooleanQuestion } from './model/BooleanQuestion.js';
 export type { BooleanRenderMode } from './model/BooleanQuestion.js';
 export { CheckboxQuestion } from './model/CheckboxQuestion.js';

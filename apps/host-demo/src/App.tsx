@@ -2,6 +2,7 @@ import { parseSurvey, serializeSurvey } from '@kajay/core';
 import { Survey } from '@kajay/react';
 import type { ReactElement } from 'react';
 import { useMemo } from 'react';
+import { loadChoicePage } from './choiceDirectory.js';
 import { fetchJson } from './fetchJson.js';
 // Imported for its side effect as well as its export: registering the host's own
 // validator type has to happen before any definition naming it is parsed.
@@ -16,7 +17,7 @@ function stableStringify(value: unknown): string {
 
 export function App(): ReactElement {
   const { model, diagnostics, canonical, isFixedPoint } = useMemo(() => {
-    const first = parseSurvey(surveyDefinition, { fetchJson });
+    const first = parseSurvey(surveyDefinition, { fetchJson, loadChoicePage });
     first.survey.validation.setServerValidator(validateOnServer);
     const firstCanonical = serializeSurvey(first.survey);
     // ADR-0002: the first pass may canonicalise; the second must not change a byte.

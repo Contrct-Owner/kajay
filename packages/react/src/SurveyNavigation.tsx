@@ -36,11 +36,11 @@ export function SurveyNavigation({ survey }: SurveyNavigationProps): ReactElemen
 
   return (
     <div className="kajay-navigation">
-      {survey.validation.serverError === undefined ? null : (
+      {survey.validation.checkError === undefined ? null : (
         // Not a question error: no answer is at fault, and saying so is the difference
         // between "fix your input" and "try that again".
-        <p className="kajay-navigation__server-error" role="alert">
-          {`We could not check your answers: ${survey.validation.serverError}`}
+        <p className="kajay-navigation__check-error" role="alert">
+          {`We could not check your answers: ${survey.validation.checkError}`}
         </p>
       )}
 

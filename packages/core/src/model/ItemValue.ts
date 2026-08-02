@@ -31,6 +31,22 @@ export class ItemValue extends SurveyElement {
   set text(next: string) {
     this.setPropertyValue('text', next);
   }
+
+  /**
+   * Picture or video for this choice.
+   *
+   * On every choice rather than on an image-only subclass, because `choices` declares
+   * one element type and redeclaring it per question would give the registry two
+   * collections under the same name. The cost is one property most choices never set;
+   * the alternative was a special case in the serializer.
+   */
+  get imageLink(): string {
+    return this.getStringProperty('imageLink');
+  }
+
+  set imageLink(next: string) {
+    this.setPropertyValue('imageLink', next);
+  }
 }
 
 /** Two lists are the same when their values and texts line up in order. */

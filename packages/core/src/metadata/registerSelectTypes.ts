@@ -1,5 +1,6 @@
 import { CheckboxQuestion } from '../model/CheckboxQuestion.js';
 import { DropdownQuestion } from '../model/DropdownQuestion.js';
+import { ImagePickerQuestion } from '../model/ImagePickerQuestion.js';
 import { ItemValue } from '../model/ItemValue.js';
 import { RadiogroupQuestion } from '../model/RadiogroupQuestion.js';
 import { TagboxQuestion } from '../model/TagboxQuestion.js';
@@ -29,5 +30,9 @@ export function registerSelectTypes(registry: MetadataRegistry): void {
   registry.addClass({
     ...SELECT_TYPE_DEFINITIONS.tagbox,
     create: () => new TagboxQuestion(),
+  });
+  registry.addClass({
+    ...SELECT_TYPE_DEFINITIONS.imagePicker,
+    create: () => new ImagePickerQuestion(),
   });
 }

@@ -191,7 +191,7 @@
 
 /* A failed *check*, not a rejected answer. Kept out of the question list on purpose:
  * "we could not reach the server" is not something a respondent fixes in a field. */
-.kajay-navigation__server-error {
+.kajay-navigation__check-error {
   margin: 0;
   color: var(--kajay-color-danger);
   font-size: 0.875em;
@@ -465,4 +465,76 @@
 .kajay-multipletext__label {
   color: var(--kajay-color-muted);
   font-size: 0.875em;
+}
+
+/* --- imagepicker --------------------------------------------------------- */
+
+.kajay-question--imagepicker {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.kajay-imagepicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--kajay-spacing) / 2);
+}
+
+/* Positioned so the hidden input stays inside its own tile rather than against
+ * whatever ancestor happens to be positioned. */
+.kajay-imagepicker__tile {
+  position: relative;
+  cursor: pointer;
+}
+
+/* The control, out of sight but not out of the accessibility tree — it keeps its focus
+ * ring, its keyboard behaviour and its role. */
+.kajay-imagepicker__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.kajay-imagepicker__body {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 4);
+  align-items: center;
+  padding: calc(var(--kajay-spacing) / 4);
+  border: 2px solid transparent;
+  border-radius: var(--kajay-radius);
+}
+
+.kajay-imagepicker__input:focus-visible + .kajay-imagepicker__body {
+  outline: 2px solid var(--kajay-color-accent);
+  outline-offset: 1px;
+}
+
+.kajay-imagepicker__input:checked + .kajay-imagepicker__body {
+  border-color: var(--kajay-color-accent);
+}
+
+.kajay-imagepicker__media {
+  max-width: 100%;
+  border-radius: var(--kajay-radius);
+}
+
+/* Hidden by default, and *only* visually: the text is every tile's accessible name. */
+.kajay-imagepicker__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.kajay-imagepicker[data-show-label] .kajay-imagepicker__label {
+  position: static;
+  width: auto;
+  height: auto;
+  clip-path: none;
 }

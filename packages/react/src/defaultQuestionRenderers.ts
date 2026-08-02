@@ -2,6 +2,7 @@ import { BooleanQuestionRenderer } from './BooleanQuestionRenderer.js';
 import { CollapsedSelectRenderer } from './CollapsedSelectRenderer.js';
 import { CommentQuestionRenderer } from './CommentQuestionRenderer.js';
 import { ExpressionQuestionRenderer } from './ExpressionQuestionRenderer.js';
+import { ImagePickerRenderer } from './ImagePickerRenderer.js';
 import { MultipleTextQuestionRenderer } from './MultipleTextQuestionRenderer.js';
 import { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
 import { RatingQuestionRenderer } from './RatingQuestionRenderer.js';
@@ -20,6 +21,7 @@ function createDefaultRenderers(): QuestionRendererRegistry {
   registry.register('checkbox', SelectQuestionRenderer);
   registry.register('dropdown', CollapsedSelectRenderer);
   registry.register('tagbox', CollapsedSelectRenderer);
+  registry.register('imagepicker', ImagePickerRenderer);
   return registry;
 }
 

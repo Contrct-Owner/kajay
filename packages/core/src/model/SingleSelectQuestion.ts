@@ -1,6 +1,6 @@
-import { valuesAreEqual } from '../expressions/expressionValues.js';
 import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
 import { SelectQuestion } from './SelectQuestion.js';
+import { isOneSelected, selectOne } from './singleSelectSemantics.js';
 
 /**
  * Select questions answered by one choice.
@@ -10,12 +10,11 @@ import { SelectQuestion } from './SelectQuestion.js';
  */
 export abstract class SingleSelectQuestion extends SelectQuestion {
   override isSelected(choiceValue: PropertyValue): boolean {
-    return valuesAreEqual(this.value, choiceValue);
+    return isOneSelected(this.value, choiceValue);
   }
 
-  /** Picking the current answer again clears it. */
   override select(choiceValue: PropertyValue): void {
-    this.value = this.isSelected(choiceValue) ? undefined : choiceValue;
+    this.value = selectOne(this.value, choiceValue);
   }
 
   override applySelection(choiceValues: readonly PropertyValue[]): void {

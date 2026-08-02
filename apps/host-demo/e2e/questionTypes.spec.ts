@@ -140,6 +140,23 @@ test('parity/C11-multipletext-per-item-validation', async ({ page }) => {
   await expect(page.getByRole('status')).toContainText('Thank you');
 });
 
+test('parity/C10-imagepicker', async ({ page }) => {
+  const palette = page.getByRole('group', { name: /Pick the colours you like/u });
+  // Real checkboxes under the tiles — `multiSelect` decides the control's type, so
+  // "pick several" sounds different to a screen reader as well as behaving differently.
+  await expect(palette.getByRole('checkbox', { name: 'Blue' })).toBeAttached();
+
+  const tile = (name: string) => palette.locator(`label:has(input[value="${name}"])`);
+  await tile('blue').click();
+  await tile('amber').click();
+  await expect(page.getByTestId('survey-data')).toContainText('"blue"');
+  await expect(page.getByTestId('survey-data')).toContainText('"amber"');
+
+  // The picture is decorative: the choice text is the tile's name, so the image adds
+  // nothing a screen reader has not already been told.
+  await expect(palette.locator('img').first()).toHaveAttribute('alt', '');
+});
+
 test('parity/C12-html-and-image', async ({ page }) => {
   // Rendered as markup, not escaped: the `<strong>` is an element, not four characters.
   await expect(page.locator('[data-element-name="intro"] strong')).toHaveText(

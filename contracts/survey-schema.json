@@ -841,6 +841,187 @@
       ],
       "additionalProperties": true
     },
+    "imagepicker": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "imagepicker"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "choicesOrder": {
+          "type": "string",
+          "default": "",
+          "description": "none, asc or desc."
+        },
+        "colCount": {
+          "type": "number",
+          "default": 0
+        },
+        "showOtherItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "otherText": {
+          "type": "string",
+          "default": "Other"
+        },
+        "showNoneItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "noneText": {
+          "type": "string",
+          "default": "None"
+        },
+        "placeholder": {
+          "type": "string",
+          "default": ""
+        },
+        "searchEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether a long list may be narrowed by typing."
+        },
+        "choicesFromQuestion": {
+          "type": "string",
+          "default": "",
+          "description": "Name of a select question whose choices are carried forward."
+        },
+        "choicesFromQuestionMode": {
+          "type": "string",
+          "default": "all",
+          "description": "all, selected or unselected."
+        },
+        "choicesByUrl": {
+          "type": "string",
+          "default": "",
+          "description": "URL to load choices from; may interpolate {question} placeholders."
+        },
+        "choicesPath": {
+          "type": "string",
+          "default": "",
+          "description": "Dotted path to the array inside the response."
+        },
+        "choicesValueName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesTitleName": {
+          "type": "string",
+          "default": ""
+        },
+        "showSelectAllItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "selectAllText": {
+          "type": "string",
+          "default": "Select all"
+        },
+        "maxSelectedChoices": {
+          "type": "number",
+          "default": 0,
+          "description": "0 means no limit."
+        },
+        "multiSelect": {
+          "type": "boolean",
+          "default": false,
+          "description": "The one select type whose arity is a property rather than its type."
+        },
+        "imageFit": {
+          "type": "string",
+          "default": "contain",
+          "description": "none, contain, cover or fill. Mirrors CSS object-fit."
+        },
+        "contentMode": {
+          "type": "string",
+          "default": "image",
+          "description": "image or video."
+        },
+        "imageWidth": {
+          "type": "number",
+          "default": 200
+        },
+        "imageHeight": {
+          "type": "number",
+          "default": 150
+        },
+        "showLabel": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether the choice text is shown. It is the tile name either way."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/itemvalue"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
     "itemvalue": {
       "type": "object",
       "properties": {
@@ -859,6 +1040,11 @@
           "type": "string",
           "default": "",
           "description": "Display text; falls back to the value."
+        },
+        "imageLink": {
+          "type": "string",
+          "default": "",
+          "description": "Picture or video for this choice. Only an imagepicker draws it."
         },
         "visibleIf": {
           "type": "string",
@@ -1014,6 +1200,9 @@
           "$ref": "#/$defs/checkbox"
         },
         {
+          "$ref": "#/$defs/imagepicker"
+        },
+        {
           "$ref": "#/$defs/tagbox"
         }
       ]
@@ -1102,6 +1291,9 @@
           "$ref": "#/$defs/image"
         },
         {
+          "$ref": "#/$defs/imagepicker"
+        },
+        {
           "$ref": "#/$defs/multipletext"
         },
         {
@@ -1186,6 +1378,9 @@
         },
         {
           "$ref": "#/$defs/expression"
+        },
+        {
+          "$ref": "#/$defs/imagepicker"
         },
         {
           "$ref": "#/$defs/multipletext"
@@ -1514,6 +1709,9 @@
         },
         {
           "$ref": "#/$defs/dropdown"
+        },
+        {
+          "$ref": "#/$defs/imagepicker"
         },
         {
           "$ref": "#/$defs/radiogroup"

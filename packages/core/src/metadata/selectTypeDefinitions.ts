@@ -9,6 +9,7 @@ interface SelectTypeDefinitions {
   readonly dropdown: ClassMetadataDefinition;
   readonly checkbox: ClassMetadataDefinition;
   readonly tagbox: ClassMetadataDefinition;
+  readonly imagePicker: ClassMetadataDefinition;
 }
 
 /** Authoritative metadata for choice items and every select-question type. */
@@ -18,6 +19,11 @@ export const SELECT_TYPE_DEFINITIONS: SelectTypeDefinitions = {
     properties: [
       { name: 'value', type: 'value', isRequired: true },
       { name: 'text', type: 'string', description: 'Display text; falls back to the value.' },
+      {
+        name: 'imageLink',
+        type: 'string',
+        description: 'Picture or video for this choice. Only an imagepicker draws it.',
+      },
       { ...VISIBLE_IF, description: 'Expression; the choice is offered only while truthy.' },
     ],
   },
@@ -85,4 +91,29 @@ export const SELECT_TYPE_DEFINITIONS: SelectTypeDefinitions = {
   dropdown: { name: 'dropdown', parent: 'selectbase' },
   checkbox: { name: 'checkbox', parent: 'multiselectbase' },
   tagbox: { name: 'tagbox', parent: 'multiselectbase' },
+  imagePicker: {
+    name: 'imagepicker',
+    parent: 'multiselectbase',
+    properties: [
+      {
+        name: 'multiSelect',
+        type: 'boolean',
+        description: 'The one select type whose arity is a property rather than its type.',
+      },
+      {
+        name: 'imageFit',
+        type: 'string',
+        defaultValue: 'contain',
+        description: 'none, contain, cover or fill. Mirrors CSS object-fit.',
+      },
+      { name: 'contentMode', type: 'string', defaultValue: 'image', description: 'image or video.' },
+      { name: 'imageWidth', type: 'number', defaultValue: 200 },
+      { name: 'imageHeight', type: 'number', defaultValue: 150 },
+      {
+        name: 'showLabel',
+        type: 'boolean',
+        description: 'Whether the choice text is shown. It is the tile name either way.',
+      },
+    ],
+  },
 };

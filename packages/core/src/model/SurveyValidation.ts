@@ -77,7 +77,7 @@ export class SurveyValidation {
   readonly #host: SurveyValidationHost;
   #serverValidator: ServerValidator | undefined;
   #isValidating = false;
-  #serverError: string | undefined;
+  #checkError: string | undefined;
 
   constructor(host: SurveyValidationHost) {
     this.#host = host;
@@ -121,14 +121,16 @@ export class SurveyValidation {
   }
 
   /**
-   * Why the last server check could not be performed, if it could not.
+   * Why the last out-of-process check could not be performed, if it could not.
    *
-   * Never an objection to an answer — the respondent's answers may be perfectly good
-   * and the network merely down. Kept apart from question errors so a renderer can say
-   * which of those two things happened.
+   * Covers both a server hook that failed and a validator that threw. Never an
+   * objection to an answer — the respondent's may be perfectly good and the network
+   * merely down. Kept apart from question errors so a renderer can say which of those
+   * two things happened, rather than sending someone looking for a mistake they did
+   * not make.
    */
-  get serverError(): string | undefined {
-    return this.#serverError;
+  get checkError(): string | undefined {
+    return this.#checkError;
   }
 
   /** Checks the visible questions on the page the respondent is standing on. */
@@ -210,7 +212,7 @@ export class SurveyValidation {
 
   /** Forgets every recorded error. Nothing is re-checked. */
   clear(): void {
-    this.#serverError = undefined;
+    this.#checkError = undefined;
     clearQuestionErrors(this.#host.allQuestions(), this.#host.announce);
     this.#host.flush();
   }
@@ -269,11 +271,11 @@ export class SurveyValidation {
       }
       // Everything the renderer reads is settled *before* the event that makes it
       // read: `isValidating` going false is what un-disables the button and re-renders
-      // the navigation, and that render must not catch `serverError` half-assigned.
+      // the navigation, and that render must not catch `checkError` half-assigned.
       // It happened to work — React flushes after the current task — but relying on a
       // scheduler for state consistency is a bug waiting for a slow frame.
-      this.#serverError = result.serverError;
-      const isValid = this.#run(questions, result.errors) && result.serverError === undefined;
+      this.#checkError = result.failure;
+      const isValid = this.#run(questions, result.errors) && result.failure === undefined;
       this.#setValidating(false);
       onSettled(isValid);
     });

@@ -73,6 +73,24 @@ describe('parity/C3-radiogroup', () => {
     expect(question.value).toBe('c');
   });
 
+  test('an answer restored as a string still matches a numeric choice', () => {
+    const survey = build({
+      type: 'radiogroup',
+      name: 'q',
+      choices: [
+        { value: 0, text: 'Individual contributor' },
+        { value: 1, text: 'Manager' },
+      ],
+    });
+    // A saved response that went through somebody's JSON column comes back with `"1"`
+    // where the definition said `1`. Comparing by identity would leave every option
+    // unselected and quietly lose the respondent's answer on resume — which is why
+    // selection compares with the expression language's equality, not `===`.
+    survey.setData({ q: '1' });
+    const question = survey.getQuestionByName('q');
+    expect(question instanceof RadiogroupQuestion && question.isSelected(1)).toBe(true);
+  });
+
   test('re-selecting the current answer clears it', () => {
     const question = radiogroup();
     question.select('a');

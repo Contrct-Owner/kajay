@@ -237,7 +237,7 @@ describe('parity/D4-server-validation', () => {
     // refused — but the respondent's answer is not at fault and is not marked as such.
     expect(survey.isCompleted).toBe(false);
     expect(errorsOf(survey, 'code')).toEqual([]);
-    expect(survey.validation.serverError).toBe('Network down');
+    expect(survey.validation.checkError).toBe('Network down');
   });
 
   test('removing the validator makes the gate synchronous again', () => {

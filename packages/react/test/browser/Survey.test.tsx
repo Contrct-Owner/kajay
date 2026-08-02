@@ -246,6 +246,32 @@ test('parity/C6-tagbox: several options accumulate', async () => {
   expect(model.data).toEqual({ langs: ['ts', 'rust'] });
 });
 
+test('a non-string answer written by logic is displayed, not blanked', async () => {
+  const model = parseSurvey({
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          { type: 'text', name: 'gate', title: 'Gate' },
+          {
+            type: 'text',
+            name: 'count',
+            title: 'Count',
+            setValueIf: '{gate} notempty',
+            setValueExpression: '0',
+          },
+        ],
+      },
+    ],
+  }).survey;
+
+  const screen = await render(<Survey model={model} />);
+  await screen.getByLabelText('Gate').fill('go');
+
+  // Zero is an answer. Rendering only strings blanked it.
+  await expect.element(screen.getByLabelText('Count')).toHaveValue('0');
+});
+
 test('an answer typed in the browser survives serialization', async () => {
   const model = buildModel();
   const screen = await render(<Survey model={model} />);

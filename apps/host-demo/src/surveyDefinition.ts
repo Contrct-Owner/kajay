@@ -10,6 +10,24 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
   title: 'Kajay demo',
   triggers: [
     {
+      // Writes annualEstimate from price when the plan becomes paid.
+      type: 'runexpression',
+      expression: "{plan} == 'paid'",
+      runExpression: '{price} * 12',
+      setToName: 'annualEstimate',
+    },
+    {
+      // Snapshots the name once a primary topic is picked.
+      type: 'copyvalue',
+      expression: '{primaryTopic} notempty',
+      setToName: 'contactName',
+      fromName: 'fullName',
+    },
+    {
+      type: 'complete',
+      expression: "{finishNow} == 'yes'",
+    },
+    {
       // Fires on the transition into true, so it stamps once rather than on every
       // keystroke afterwards.
       type: 'setvalue',
@@ -116,6 +134,64 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
           // this the survey would carry a half-built "Hello, " from the start.
           defaultValueExpression: "iif({nickname} notempty, 'Hello, ' + {nickname}, '')",
           visibleIf: '{nickname} notempty',
+        },
+      ],
+    },
+    {
+      name: 'page2',
+      title: 'Logic showcase',
+      elements: [
+        {
+          type: 'radiogroup',
+          name: 'plan',
+          title: 'Which plan?',
+          choices: ['free', 'paid'],
+        },
+        {
+          type: 'text',
+          name: 'price',
+          title: 'Monthly price',
+          inputType: 'number',
+          // Forced to zero while the plan is free, overwriting whatever was typed.
+          setValueIf: "{plan} == 'free'",
+          setValueExpression: '0',
+        },
+        {
+          type: 'text',
+          name: 'notes',
+          title: 'Billing notes',
+          // Cleared outright when they stop applying.
+          resetValueIf: "{plan} == 'free'",
+        },
+        {
+          type: 'text',
+          name: 'annualEstimate',
+          title: 'Annual estimate',
+          // Written by the runexpression trigger above.
+        },
+        {
+          type: 'dropdown',
+          name: 'primaryTopic',
+          title: 'Which topic matters most?',
+          placeholder: 'Pick from what you chose above',
+          // Carried forward from the topics actually selected on the first page.
+          choicesFromQuestion: 'topics',
+          choicesFromQuestionMode: 'selected',
+        },
+        {
+          type: 'text',
+          name: 'contactName',
+          title: 'Name on file',
+          // Written by the copyvalue trigger above.
+        },
+        {
+          type: 'radiogroup',
+          name: 'finishNow',
+          title: 'Finish the survey now?',
+          choices: [
+            { value: 'yes', text: 'Yes, finish now' },
+            { value: 'no', text: 'Not yet' },
+          ],
         },
       ],
     },

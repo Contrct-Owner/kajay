@@ -31,7 +31,10 @@ export function TextQuestionRenderer({ survey, question }: QuestionRendererProps
         required={question.isRequired}
         aria-required={question.isRequired}
         aria-describedby={placeholder.length > 0 ? errorId : undefined}
-        value={typeof value === 'string' ? value : ''}
+        // Not `typeof value === 'string'`: logic writes numbers and booleans too — a
+        // setValueExpression of `0` or a runexpression trigger's result — and those
+        // rendered as an empty field.
+        value={value === null || value === undefined ? '' : String(value)}
         onChange={handleChange}
       />
     </div>

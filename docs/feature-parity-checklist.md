@@ -17,6 +17,13 @@ core parity surface are tracked in §O as *watch* items, not acceptance items.
 
 Proof naming convention: `parity/<row-id>-<slug>` (e.g. `parity/B3-visible-if`).
 
+**Demo coverage rule.** A closed row carries a host-demo scenario whenever the
+capability is observable in the running application. Where it is not, the row says so
+and why. Unit coverage alone is the exception, not the norm — the demo is what proves
+the capability through the same boundary a consumer uses, and it has repeatedly caught
+what unit tests could not: a numeric answer that rendered blank, an API wart, a
+placeholder that never cleared.
+
 > **Vocabulary caveat (added 2026-08-02).** This checklist was derived from SurveyJS's
 > documented surface and therefore uses their property and type names throughout —
 > `visibleIf`, `choicesByUrl`, `paneldynamic`, `matrixdropdown`, `questionsOnPageMode`,
@@ -38,25 +45,25 @@ Proof naming convention: `parity/<row-id>-<slug>` (e.g. `parity/B3-visible-if`).
 | --- | --- | --- | --- |
 | A1 | JSON survey definition parses into a typed model; unknown properties surfaced, not dropped | ☑ | `parity/A1-unknown-properties-surfaced` (unit + host E2E) |
 | A2 | Lossless round-trip: parse → serialize → parse is stable for every fixture | ☑ | `parity/A2-round-trip` (unit, every fixture) + `parity/A2-round-trip-fixed-point` (host E2E) |
-| A3 | Metadata registry: register question class with typed property descriptors, defaults, inheritance | ☑ | `parity/A3-metadata-registry` (unit) |
+| A3 | Metadata registry: register question class with typed property descriptors, defaults, inheritance | ☑ | `parity/A3-metadata-registry` (unit). Not demo-testable: the registry is machinery with no user-visible surface of its own |
 | A4 | Custom question type registers end-to-end (serializer, schema, toolbox, property grid, renderer) | ☐ | Partial: serializer, schema and toolbox proven; property grid and renderer registration are Phase 3 |
 | A5 | Custom property on an existing type (`addProperty` pattern), serialized and editable | ☐ | Partial: `addProperty` serializes and reaches the contract; "editable" needs the Phase 3 property grid |
-| A6 | Committed JSON Schema contract generated from the registry; CI drift check | ☑ | `parity/A6-contract-generated-from-registry` (unit) + `check:contract` CI job |
+| A6 | Committed JSON Schema contract generated from the registry; CI drift check | ☑ | `parity/A6-contract-generated-from-registry` (unit) + `check:contract` CI job. Not demo-testable: the contract is a build artefact, not application behaviour |
 | A7 | Typed event surface: onValueChanged, onComplete, onCurrentPageChanged, onValidate*, onUploadFiles, onDynamicPanelAdded, matrix row events | ☐ | Partial: onValueChanged/onComplete/onCurrentPageChanged proven by `parity/A7-value-changed-event`; the rest await their features |
 
 ## §B — Expressions & conditional logic
 
 | ID | Feature | Status | Proof |
 | --- | --- | --- | --- |
-| B1 | Expression language: literals, `{question}` refs incl. composite paths (`{matrix.row.col}`, `{panel[0].q}`), arithmetic, comparison, and/or/not, contains/anyof/allof, empty/notempty | ☑ | `parity/B1-expression-grammar` (precedence/associativity via print round-trip) + `parity/B1-operators` (evaluation), unit, through public API |
+| B1 | Expression language: literals, `{question}` refs incl. composite paths (`{matrix.row.col}`, `{panel[0].q}`), arithmetic, comparison, and/or/not, contains/anyof/allof, empty/notempty | ☑ | `parity/B1-expression-grammar` (precedence/associativity via print round-trip) + `parity/B1-operators` (evaluation), unit, through public API. Not demo-testable: precedence, associativity and error recovery have no user-visible surface — the demo exercises the language's *use* in every other scenario |
 | B2 | Built-in function library (iif, sum, avg, min, max, count, age, today, currentDate, getDate, diffDays, ...) + custom sync and async function registration | ☐ | Partial: library and **sync** custom registration proven by `built-in function library`; async registration not built |
 | B3 | `visibleIf` on questions, panels, pages, and individual choices | ☐ | Partial: **questions, pages and individual choices** closed by `parity/B3-visible-if` and `parity/B3-visible-if-choice` (unit, browser, host E2E). Only panels remain, awaiting the panel element (§E1) |
 | B4 | `enableIf` / `requiredIf` | ☑ | `parity/B4-enable-if`, `parity/B4-required-if` (unit, browser, host E2E). Scope: questions, the only element that holds an answer — `requiredIf` is meaningless elsewhere. Container-level `enableIf` arrives with panels (§E1) |
-| B5 | `setValueIf` + `setValueExpression`, `resetValueIf`, `defaultValueExpression` | ☑ | `parity/B5-default-value-expression` (unit + host E2E), `parity/B5-set-value-if`, `parity/B5-reset-value-if` (unit). Precedence reset > set > default is defined in `createValueRule`, not left to graph ordering |
+| B5 | `setValueIf` + `setValueExpression`, `resetValueIf`, `defaultValueExpression` | ☑ | `parity/B5-default-value-expression` (unit + host E2E), `parity/B5-set-value-if` and `parity/B5-reset-value-if` (unit + host E2E). Precedence reset > set > default is defined in `createValueRule`, not left to graph ordering |
 | B6 | Calculated values (survey-level `calculatedValues`, usable in expressions and completed HTML) | ☐ | Partial: `parity/B6-calculated-values` (unit + host E2E) covers computation, chaining, use from question expressions, and `includeIntoResult`. "Completed HTML" cannot be proven — `completedHtml` is §E5 and does not exist yet |
-| B7 | Triggers: complete, setvalue, copyvalue, runexpression, skip | ☑ | `parity/B7-trigger-complete`, `-setvalue`, `-copyvalue`, `-runexpression`, `-skip` (unit) + `parity/B7-triggers` (host E2E). Triggers fire on the transition into true, not while it holds. `skip` moves `currentPageNo`; it has no *visible* effect until the renderer paginates (§E2) |
-| B8 | Dependency graph: value change re-evaluates only dependents; cycles detected and reported | ☑ | `parity/B8-dependency-graph` (selective re-evaluation, ordering), `parity/B8-cycle-reporting` (participating nodes named), `parity/B8-pattern-edges` (dynamic collections), unit, through public API |
-| B9 | Carry-forward choices (`choicesFromQuestion`, selected/unselected modes) | ☑ | `parity/B9-carry-forward-choices` (unit). The carried list is a live view, not a snapshot, so a source choice hidden by its own `visibleIf` disappears here too |
+| B7 | Triggers: complete, setvalue, copyvalue, runexpression, skip | ☑ | `parity/B7-trigger-complete`, `-setvalue`, `-copyvalue`, `-runexpression`, `-skip` (unit); host E2E for setvalue, complete, copyvalue and runexpression. Triggers fire on the transition into true, not while it holds. `skip` alone is not demo-testable: it moves `currentPageNo`, which has no visible effect until the renderer paginates (§E2) |
+| B8 | Dependency graph: value change re-evaluates only dependents; cycles detected and reported | ☑ | `parity/B8-dependency-graph` (selective re-evaluation, ordering), `parity/B8-cycle-reporting` (participating nodes named), `parity/B8-pattern-edges` (dynamic collections), unit, through public API. Not demo-testable: "only dependents re-evaluated" is by definition invisible, and proving cycle reporting would mean authoring a broken survey into the demo |
+| B9 | Carry-forward choices (`choicesFromQuestion`, selected/unselected modes) | ☑ | `parity/B9-carry-forward-choices` (unit + host E2E). The carried list is a live view, not a snapshot, so a source choice hidden by its own `visibleIf` disappears here too |
 | B10 | REST choices (`choicesByUrl`: url/path/valueName/titleName, caching, url with `{question}` placeholders) | ☑ | `parity/B10-rest-choices` (unit + host E2E). Placeholders become real graph dependencies, so an answer change re-fetches. The fetcher is injected — core is I/O-free and cannot reference `fetch`. The demo calls a live public API; the E2E intercepts it so CI never depends on a third party. **Gap noted:** the model carries no loading flag, so a renderer cannot show a loading state |
 
 ## §C — Question types: core

@@ -152,6 +152,60 @@ test('parity/B10-rest-choices', async ({ page }) => {
   await expect(page.getByTestId('survey-data')).toContainText('"contact": "7"');
 });
 
+test('parity/B5-set-value-if', async ({ page }) => {
+  await page.getByLabel('paid').check();
+  await page.getByLabel('Monthly price').fill('99');
+
+  // The condition becomes true, and the trigger overwrites what was typed.
+  await page.getByLabel('free').check();
+  await expect(page.getByLabel('Monthly price')).toHaveValue('0');
+});
+
+test('parity/B5-reset-value-if', async ({ page }) => {
+  await page.getByLabel('paid').check();
+  await page.getByLabel('Billing notes').fill('invoice quarterly');
+
+  await page.getByLabel('free').check();
+  await expect(page.getByLabel('Billing notes')).toHaveValue('');
+});
+
+test('parity/B9-carry-forward-choices', async ({ page }) => {
+  const primary = page.getByLabel('Which topic matters most?');
+  // Nothing chosen upstream, so nothing to carry forward but the placeholder.
+  await expect(primary.locator('option')).toHaveCount(1);
+
+  await page.getByLabel('engineering').check();
+  await page.getByLabel('design').check();
+  await expect(primary.locator('option')).toHaveCount(3);
+  await expect(primary).toContainText('engineering');
+
+  // Deselecting upstream withdraws the option here.
+  await page.getByLabel('design').uncheck();
+  await expect(primary.locator('option')).toHaveCount(2);
+});
+
+test('parity/B7-trigger-runexpression', async ({ page }) => {
+  await page.getByLabel('Monthly price').fill('10');
+  await page.getByLabel('paid').check();
+  await expect(page.getByLabel('Annual estimate')).toHaveValue('120');
+});
+
+test('parity/B7-trigger-copyvalue', async ({ page }) => {
+  await page.getByLabel(/What is your name\?/u).fill('Ada Lovelace');
+  await page.getByLabel('engineering').check();
+  await page.getByLabel('Which topic matters most?').selectOption('engineering');
+
+  await expect(page.getByLabel('Name on file')).toHaveValue('Ada Lovelace');
+});
+
+test('parity/B7-trigger-complete', async ({ page }) => {
+  await expect(page.getByRole('status')).toHaveCount(0);
+  // `click`, not `check`: completing unmounts the whole form, so there is no longer a
+  // radio for `check` to confirm ended up selected.
+  await page.getByLabel('Yes, finish now').click();
+  await expect(page.getByRole('status')).toContainText('Thank you');
+});
+
 test('parity/E5-completion-flow', async ({ page }) => {
   await page.getByLabel(/What is your name\?/u).fill('Ada');
   await page.getByRole('button', { name: 'Complete' }).click();

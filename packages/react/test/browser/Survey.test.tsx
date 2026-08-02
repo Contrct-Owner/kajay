@@ -100,6 +100,47 @@ test('parity/B3-visible-if: a hidden question appears once its condition holds',
   await expect.element(screen.getByLabelText('Preferred name')).not.toBeInTheDocument();
 });
 
+test('parity/B4-enable-if: a disabled question is present but not editable', async () => {
+  const model = parseSurvey({
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          { type: 'text', name: 'gate', title: 'Gate' },
+          { type: 'text', name: 'locked', title: 'Locked', enableIf: '{gate} notempty' },
+        ],
+      },
+    ],
+  }).survey;
+
+  const screen = await render(<Survey model={model} />);
+
+  // Unlike visibleIf, the element stays in the DOM — it is frozen, not removed.
+  await expect.element(screen.getByLabelText('Locked')).toBeDisabled();
+  await screen.getByLabelText('Gate').fill('open');
+  await expect.element(screen.getByLabelText('Locked')).toBeEnabled();
+});
+
+test('parity/B4-required-if: requiredness follows the condition', async () => {
+  const model = parseSurvey({
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          { type: 'text', name: 'gate', title: 'Gate' },
+          { type: 'text', name: 'maybe', title: 'Maybe', requiredIf: "{gate} == 'yes'" },
+        ],
+      },
+    ],
+  }).survey;
+
+  const screen = await render(<Survey model={model} />);
+
+  await expect.element(screen.getByLabelText('Maybe')).toHaveAttribute('aria-required', 'false');
+  await screen.getByLabelText('Gate').fill('yes');
+  await expect.element(screen.getByLabelText('Maybe')).toHaveAttribute('aria-required', 'true');
+});
+
 test('an answer typed in the browser survives serialization', async () => {
   const model = buildModel();
   const screen = await render(<Survey model={model} />);

@@ -82,8 +82,9 @@ export type { EventListener } from './events/EventEmitter.js';
 export type {
   CompleteEvent,
   CurrentPageChangedEvent,
+  ElementStateChangedEvent,
+  ElementStateKind,
   ValueChangedEvent,
-  VisibilityChangedEvent,
 } from './events/SurveyEvents.js';
 
 // --- Conditional logic (checklist §B) -------------------------------------

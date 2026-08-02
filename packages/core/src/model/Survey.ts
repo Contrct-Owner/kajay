@@ -2,18 +2,37 @@ import { EventEmitter } from '../events/EventEmitter.js';
 import type {
   CompleteEvent,
   CurrentPageChangedEvent,
+  ElementStateChangedEvent,
+  ElementStateKind,
   ValueChangedEvent,
-  VisibilityChangedEvent,
 } from '../events/SurveyEvents.js';
 import type { PathSegment } from '../expressions/ExpressionNode.js';
 import { LogicEngine } from '../logic/LogicEngine.js';
 import type { LogicEngineOptions } from '../logic/LogicEngine.js';
 import { Page } from './Page.js';
-import type { Question } from './Question.js';
+import { Question } from './Question.js';
 import { SurveyElement } from './SurveyElement.js';
 import type { ValueHost } from './ValueHost.js';
 
-const VISIBLE_IF = 'visibleIf';
+interface ConditionalProperty {
+  readonly property: string;
+  readonly state: ElementStateKind;
+  /**
+   * Result used when the expression is malformed or unevaluable.
+   *
+   * Visibility and enablement fall back to *permissive*: hiding or freezing a question
+   * because its expression is broken loses answers silently. Requiredness falls back
+   * to *lenient* for the mirror-image reason — blocking submission over a broken
+   * expression is worse than letting the answer through.
+   */
+  readonly fallback: boolean;
+}
+
+const CONDITIONAL_PROPERTIES: readonly ConditionalProperty[] = [
+  { property: 'visibleIf', state: 'visible', fallback: true },
+  { property: 'enableIf', state: 'enabled', fallback: true },
+  { property: 'requiredIf', state: 'required', fallback: false },
+];
 
 /** Root of the model, and the value host every question writes through. */
 export class Survey extends SurveyElement implements ValueHost {
@@ -22,13 +41,13 @@ export class Survey extends SurveyElement implements ValueHost {
   readonly #logic: LogicEngine;
   #currentPageNo = 0;
   #isCompleted = false;
-  #structureVersion = 0;
-  #pendingVisibility: VisibilityChangedEvent[] = [];
+  #logicVersion = 0;
+  #pendingStateChanges: ElementStateChangedEvent[] = [];
 
   readonly onValueChanged: EventEmitter<ValueChangedEvent> = new EventEmitter();
   readonly onComplete: EventEmitter<CompleteEvent> = new EventEmitter();
   readonly onCurrentPageChanged: EventEmitter<CurrentPageChangedEvent> = new EventEmitter();
-  readonly onVisibilityChanged: EventEmitter<VisibilityChangedEvent> = new EventEmitter();
+  readonly onElementStateChanged: EventEmitter<ElementStateChangedEvent> = new EventEmitter();
 
   constructor(options: LogicEngineOptions = {}) {
     super();
@@ -85,13 +104,13 @@ export class Survey extends SurveyElement implements ValueHost {
   }
 
   /**
-   * Increments whenever logic changes what is visible.
+   * Increments whenever logic changes an element's visible, enabled or required state.
    *
    * A monotonic counter is exactly the snapshot `useSyncExternalStore` wants, which is
    * how the React adapter re-renders without core knowing React exists.
    */
-  get structureVersion(): number {
-    return this.#structureVersion;
+  get logicVersion(): number {
+    return this.#logicVersion;
   }
 
   /**
@@ -105,48 +124,73 @@ export class Survey extends SurveyElement implements ValueHost {
   refreshLogic(): void {
     this.#logic.clear();
     for (const page of this.#pages) {
-      this.#registerVisibility(page, `page:${page.name}`);
+      this.#registerConditions(page, `page:${page.name}`);
       for (const question of page.elements) {
-        this.#registerVisibility(question, `question:${question.name}`);
+        this.#registerConditions(question, `question:${question.name}`);
       }
     }
     this.#logic.evaluateAll(this.#resolvePath);
-    this.#flushVisibility();
+    this.#flushStateChanges();
   }
 
-  #registerVisibility(element: SurveyElement, owner: string): void {
-    const expression = element.getPropertyValue(VISIBLE_IF);
-    if (typeof expression !== 'string' || expression.trim().length === 0) {
-      this.#applyVisibility(element, true);
+  #registerConditions(element: SurveyElement, owner: string): void {
+    for (const conditional of CONDITIONAL_PROPERTIES) {
+      const expression = element.getPropertyValue(conditional.property);
+      if (typeof expression !== 'string' || expression.trim().length === 0) {
+        this.#clearCondition(element, conditional.state);
+        continue;
+      }
+      this.#logic.addCondition({
+        key: `${owner}:${conditional.property}`,
+        expression,
+        fallback: conditional.fallback,
+        apply: (result) => {
+          this.#applyState(element, conditional.state, result);
+        },
+      });
+    }
+  }
+
+  /** No expression: revert to the element's authored, unconditional state. */
+  #clearCondition(element: SurveyElement, state: ElementStateKind): void {
+    if (state === 'required') {
+      if (element instanceof Question) {
+        element.setRequiredOverride(undefined);
+      }
       return;
     }
-    this.#logic.addCondition({
-      key: `${owner}:${VISIBLE_IF}`,
-      expression,
-      // A malformed or unevaluable condition leaves the element visible: hiding a
-      // question because its expression is broken loses answers silently.
-      fallback: true,
-      apply: (isVisible) => {
-        this.#applyVisibility(element, isVisible);
-      },
-    });
+    this.#applyState(element, state, true);
   }
 
-  #applyVisibility(element: SurveyElement, isVisible: boolean): void {
-    if (element.isVisible === isVisible) {
-      return;
+  #applyState(element: SurveyElement, state: ElementStateKind, value: boolean): void {
+    if (state === 'visible') {
+      if (element.isVisible === value) {
+        return;
+      }
+      element.setVisibility(value);
+    } else if (state === 'enabled') {
+      if (element.isEnabled === value) {
+        return;
+      }
+      element.setEnabled(value);
+    } else {
+      // `requiredIf` is meaningless on anything that cannot hold an answer.
+      if (!(element instanceof Question) || element.isRequired === value) {
+        return;
+      }
+      element.setRequiredOverride(value);
     }
-    element.setVisibility(isVisible);
-    this.#structureVersion += 1;
-    this.#pendingVisibility.push({ element, isVisible });
+
+    this.#logicVersion += 1;
+    this.#pendingStateChanges.push({ element, state, value });
   }
 
-  /** Emits buffered visibility events once the model has finished settling. */
-  #flushVisibility(): void {
-    const pending = this.#pendingVisibility;
-    this.#pendingVisibility = [];
+  /** Emits buffered state events once the model has finished settling. */
+  #flushStateChanges(): void {
+    const pending = this.#pendingStateChanges;
+    this.#pendingStateChanges = [];
     for (const event of pending) {
-      this.onVisibilityChanged.emit(event);
+      this.onElementStateChanged.emit(event);
     }
   }
 
@@ -221,7 +265,7 @@ export class Survey extends SurveyElement implements ValueHost {
     this.#logic.applyValueChange([{ kind: 'name', name }], this.#resolvePath);
 
     this.onValueChanged.emit({ name, value, previousValue });
-    this.#flushVisibility();
+    this.#flushStateChanges();
   }
 
   get isCompleted(): boolean {

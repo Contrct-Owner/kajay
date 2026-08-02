@@ -5,16 +5,13 @@ import { createTestRegistry } from '../support/createTestRegistry.js';
 describe('parity/A3-metadata-registry', () => {
   test('resolves inherited properties ancestors-first in declaration order', () => {
     const registry = createTestRegistry();
+    const inherited = registry.getProperties('question').map((property) => property.name);
     const names = registry.getProperties('text').map((property) => property.name);
-    // Inherited from `question` first, in its declaration order, then text's own.
-    expect(names).toEqual([
-      'name',
-      'title',
-      'isRequired',
-      'visibleIf',
-      'inputType',
-      'placeholder',
-    ]);
+
+    // Stated as the invariant rather than a literal list: every property added to the
+    // base would otherwise break this test without telling us anything new.
+    expect(names.slice(0, inherited.length)).toEqual(inherited);
+    expect(names.slice(inherited.length)).toEqual(['inputType', 'placeholder']);
   });
 
   test('a subclass redeclaring an inherited property replaces it in place', () => {
@@ -26,15 +23,13 @@ describe('parity/A3-metadata-registry', () => {
       create: () => registry.createInstance('text'),
     });
 
+    const inherited = registry.getProperties('question').map((property) => property.name);
     const properties = registry.getProperties('test-override');
-    expect(properties.map((property) => property.name)).toEqual([
-      'name',
-      'title',
-      'isRequired',
-      'visibleIf',
-    ]);
-    // Replaced in place: `title` keeps position 1 rather than moving to the end.
-    expect(properties[1]?.defaultValue).toBe('overridden');
+
+    // Same names in the same order: redeclaring adds nothing and moves nothing.
+    expect(properties.map((property) => property.name)).toEqual(inherited);
+    // And `title` keeps its inherited position rather than moving to the end.
+    expect(properties[inherited.indexOf('title')]?.defaultValue).toBe('overridden');
   });
 
   test('normalizes omitted defaults per declared type', () => {

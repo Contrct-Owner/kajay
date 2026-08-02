@@ -1,5 +1,5 @@
 import { parseSurvey, serializeSurvey } from '@kajay/core';
-import type { Survey, VisibilityChangedEvent } from '@kajay/core';
+import type { ElementStateChangedEvent, Survey } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
 import { createTestRegistry } from '../support/createTestRegistry.js';
 
@@ -90,13 +90,14 @@ describe('parity/B3-visible-if', () => {
 describe('visibility events', () => {
   test('a change emits once, after the model has settled', () => {
     const survey = build(twoQuestions('{trigger} notempty'));
-    const seen: VisibilityChangedEvent[] = [];
-    survey.onVisibilityChanged.add((event) => seen.push(event));
+    const seen: ElementStateChangedEvent[] = [];
+    survey.onElementStateChanged.add((event) => seen.push(event));
 
     survey.setValue('trigger', 'x');
 
     expect(seen).toHaveLength(1);
-    expect(seen[0]?.isVisible).toBe(true);
+    expect(seen[0]?.state).toBe('visible');
+    expect(seen[0]?.value).toBe(true);
     // The listener observes a settled model, not a half-applied one.
     expect(seen[0]?.element.isVisible).toBe(true);
   });
@@ -116,20 +117,20 @@ describe('visibility events', () => {
     const survey = build(twoQuestions('{trigger} notempty'));
     survey.setValue('trigger', 'a');
     let count = 0;
-    survey.onVisibilityChanged.add(() => {
+    survey.onElementStateChanged.add(() => {
       count += 1;
     });
     survey.setValue('trigger', 'b');
     expect(count).toBe(0);
   });
 
-  test('structureVersion advances only when visibility changes', () => {
+  test('logicVersion advances only when a computed state changes', () => {
     const survey = build(twoQuestions('{trigger} notempty'));
-    const initial = survey.structureVersion;
+    const initial = survey.logicVersion;
     survey.setValue('unrelated', 'x');
-    expect(survey.structureVersion).toBe(initial);
+    expect(survey.logicVersion).toBe(initial);
     survey.setValue('trigger', 'x');
-    expect(survey.structureVersion).toBeGreaterThan(initial);
+    expect(survey.logicVersion).toBeGreaterThan(initial);
   });
 });
 

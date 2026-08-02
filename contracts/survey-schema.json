@@ -98,6 +98,16 @@
           "default": "",
           "description": "Expression; the question is shown only while it evaluates truthy."
         },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the question is editable only while it evaluates truthy."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
         "inputType": {
           "type": "string",
           "default": "text"

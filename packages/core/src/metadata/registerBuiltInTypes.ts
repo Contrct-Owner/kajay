@@ -60,6 +60,16 @@ function registerQuestionBase(registry: MetadataRegistry): void {
         ...VISIBLE_IF,
         description: 'Expression; the question is shown only while it evaluates truthy.',
       },
+      {
+        name: 'enableIf',
+        type: 'string',
+        description: 'Expression; the question is editable only while it evaluates truthy.',
+      },
+      {
+        name: 'requiredIf',
+        type: 'string',
+        description: 'Expression; when present it overrides isRequired.',
+      },
     ],
   });
 }

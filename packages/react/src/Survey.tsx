@@ -3,7 +3,7 @@ import type { FormEvent, ReactElement } from 'react';
 import { defaultQuestionRenderers } from './defaultQuestionRenderers.js';
 import type { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
 import { SurveyPage } from './SurveyPage.js';
-import { useSurveyCompleted, useSurveyStructure } from './useSurveyState.js';
+import { useSurveyCompleted, useSurveyLogicState } from './useSurveyState.js';
 
 export interface SurveyProps {
   readonly model: SurveyModel;
@@ -20,9 +20,9 @@ export interface SurveyProps {
  */
 export function Survey({ model, renderers = defaultQuestionRenderers }: SurveyProps): ReactElement {
   const isCompleted = useSurveyCompleted(model);
-  // Subscribed for the re-render: `visibleIf` can add or remove elements between
-  // renders, and nothing else would tell React about it.
-  useSurveyStructure(model);
+  // Subscribed for the re-render: conditional logic can add, remove or disable
+  // elements between renders, and nothing else would tell React about it.
+  useSurveyLogicState(model);
 
   if (isCompleted) {
     return (

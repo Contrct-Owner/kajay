@@ -11,6 +11,7 @@ export abstract class SurveyElement {
   readonly #values: Map<string, PropertyValue> = new Map();
   readonly #unknownProperties: Map<string, unknown> = new Map();
   #isVisible = true;
+  #isEnabled = true;
 
   /** Registered class name. Drives every registry lookup for this element. */
   abstract get type(): string;
@@ -50,6 +51,19 @@ export abstract class SurveyElement {
   /** Set by the logic engine. Authors change visibility through `visibleIf`. */
   setVisibility(isVisible: boolean): void {
     this.#isVisible = isVisible;
+  }
+
+  /**
+   * Computed enabled state, derived from `enableIf`. Like visibility, never
+   * serialized: the definition holds the rule, not the rule's current answer.
+   */
+  get isEnabled(): boolean {
+    return this.#isEnabled;
+  }
+
+  /** Set by the logic engine. Authors change this through `enableIf`. */
+  setEnabled(isEnabled: boolean): void {
+    this.#isEnabled = isEnabled;
   }
 
   getChildren(): readonly SurveyElement[] {

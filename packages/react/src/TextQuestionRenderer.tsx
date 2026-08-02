@@ -31,6 +31,7 @@ export function TextQuestionRenderer({ survey, question }: QuestionRendererProps
         className="kajay-question__input"
         type={inputType}
         placeholder={placeholder}
+        disabled={!question.isEnabled}
         required={question.isRequired}
         aria-required={question.isRequired}
         aria-describedby={placeholder.length > 0 ? errorId : undefined}

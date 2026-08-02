@@ -53,6 +53,26 @@ test('parity/B3-visible-if', async ({ page }) => {
   await expect(nickname).toHaveCount(0);
 });
 
+test('parity/B4-enable-if', async ({ page }) => {
+  const email = page.getByLabel('Email address');
+  await expect(email).toBeDisabled();
+
+  await page.getByLabel(/What is your name\?/u).fill('Ada Lovelace');
+  await page.getByLabel('What should we call you?').fill('Ada');
+  await expect(email).toBeEnabled();
+
+  await page.getByLabel('What should we call you?').fill('');
+  await expect(email).toBeDisabled();
+});
+
+test('parity/B4-required-if', async ({ page }) => {
+  await page.getByLabel(/What is your name\?/u).fill('Ada Lovelace');
+  await expect(page.getByLabel('What should we call you?')).toHaveAttribute(
+    'aria-required',
+    'true',
+  );
+});
+
 test('parity/E5-completion-flow', async ({ page }) => {
   await page.getByLabel(/What is your name\?/u).fill('Ada');
   await page.getByRole('button', { name: 'Complete' }).click();

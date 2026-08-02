@@ -17,5 +17,6 @@ export {
   useSurveyCompleted,
   useSurveyCurrentPageNo,
   useSurveyLogicState,
+  useSurveyValidating,
   useSurveyValue,
 } from './useSurveyState.js';

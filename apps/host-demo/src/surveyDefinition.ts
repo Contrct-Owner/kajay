@@ -77,6 +77,9 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
           visibleIf: '{fullName} notempty',
           // Once shown, an answer is expected.
           requiredIf: '{fullName} notempty',
+          // A check the host registered, which has to leave the process to answer.
+          // Try "admin".
+          validators: [{ type: 'reservednamevalidator' }],
         },
         {
           type: 'text',

@@ -89,6 +89,37 @@ test('parity/D6-validation-enabled', async ({ page }) => {
   await expect(page.getByRole('alert')).toHaveCount(0);
 });
 
+test('parity/D3-async-validators', async ({ page }) => {
+  await page.getByLabel(/What is your name\?/u).fill('Ada');
+  await page.getByLabel(/What should we call you\?/u).fill('admin');
+  await page.getByRole('button', { name: 'Next' }).click();
+
+  // A check the host registered, answering out of process. The button says so.
+  await expect(page.getByRole('button', { name: 'Checking…' })).toBeDisabled();
+  await expect(page.getByRole('alert')).toHaveText('"admin" is already taken.');
+  await expect(page.getByTestId('page-position')).toHaveText('Page 1 of 2');
+
+  await page.getByLabel(/What should we call you\?/u).fill('Ada');
+  await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page.getByRole('heading', { name: 'Logic showcase' })).toBeVisible();
+});
+
+test('parity/D4-server-validation', async ({ page }) => {
+  await gotoLogicShowcase(page);
+  await page.getByLabel('paid').check();
+  await page.getByLabel('Monthly price').fill('13');
+
+  await page.getByRole('button', { name: 'Complete' }).click();
+
+  // The objection came from the host's server hook, and landed on the question it named.
+  await expect(page.getByRole('alert')).toHaveText('Our billing system refuses 13. Sorry.');
+  await expect(page.getByTestId('page-position')).toHaveText('Page 2 of 2');
+
+  await page.getByLabel('Monthly price').fill('42');
+  await page.getByRole('button', { name: 'Complete' }).click();
+  await expect(page.getByRole('status')).toContainText('Thank you');
+});
+
 test('parity/D5-validation-scope', async ({ page }) => {
   await gotoLogicShowcase(page);
   await page.getByLabel('paid').check();

@@ -5,7 +5,14 @@ import type { SurveyValidationHost } from './SurveyValidation.js';
 /** The half of the validation host that only the survey internals can supply. */
 export type ValidationWiring = Pick<
   SurveyValidationHost,
-  'readProperty' | 'writeProperty' | 'evaluate' | 'announce' | 'flush'
+  | 'readProperty'
+  | 'writeProperty'
+  | 'evaluate'
+  | 'data'
+  | 'hostErrors'
+  | 'announce'
+  | 'flush'
+  | 'announceValidating'
 >;
 
 /**

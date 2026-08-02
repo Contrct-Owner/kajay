@@ -111,6 +111,47 @@ test('parity/D5-check-errors-mode: onValueChanged reports as the respondent type
   expect(document.querySelector('[role="alert"]')).toBeNull();
 });
 
+test('parity/D3-async-validators: the primary button says it is waiting, and stays put', async () => {
+  const model = build({ pages: [{ name: 'p1', elements: [{ type: 'text', name: 'code' }] }] });
+  let release: (() => void) | undefined;
+  model.validation.setServerValidator(
+    () =>
+      new Promise((resolve) => {
+        release = () => resolve([]);
+      }),
+  );
+  model.setValue('code', 'KJ-1');
+
+  const screen = await render(<Survey model={model} />);
+  await screen.getByRole('button', { name: 'Complete' }).click();
+
+  // One control that changes text, never one that swaps places — the wait must not
+  // move the button out from under a cursor already aimed at it.
+  const button = screen.getByRole('button', { name: 'Checking…' });
+  await expect.element(button).toBeDisabled();
+  await expect.element(button).toHaveAttribute('aria-busy', 'true');
+
+  release?.();
+  await expect.element(screen.getByRole('status')).toBeVisible();
+});
+
+test('parity/D4-server-validation: a failed check is reported as a failed check', async () => {
+  const model = build({ pages: [{ name: 'p1', elements: [{ type: 'text', name: 'code' }] }] });
+  model.validation.setServerValidator(() => Promise.reject(new Error('Network down')));
+  model.setValue('code', 'KJ-1');
+
+  const screen = await render(<Survey model={model} />);
+  await screen.getByRole('button', { name: 'Complete' }).click();
+
+  // Not attached to the field: no answer is at fault, and saying otherwise would send
+  // the respondent looking for a mistake they did not make.
+  await expect
+    .element(screen.getByRole('alert'))
+    .toHaveTextContent('We could not check your answers: Network down');
+  expect(document.querySelector('.kajay-question__errors')).toBeNull();
+  expect(model.isCompleted).toBe(false);
+});
+
 test('parity/D2-validators: a select question reports through its group', async () => {
   const model = build({
     pages: [

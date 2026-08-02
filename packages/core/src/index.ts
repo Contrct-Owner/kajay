@@ -65,6 +65,8 @@ export type {
   CurrentPageChangedEvent,
   ElementStateChangedEvent,
   ElementStateKind,
+  ValidateQuestionEvent,
+  ValidatingChangedEvent,
   ValueChangedEvent,
 } from './events/SurveyEvents.js';
 
@@ -104,10 +106,18 @@ export type { SurveyOptions } from './model/SurveyOptions.js';
 export { SurveyElement } from './model/SurveyElement.js';
 export type { SurveyError } from './model/SurveyError.js';
 export type {
+  AdvanceOutcome,
   CheckErrorsMode,
   QuestionErrorLocation,
+  ValidationGate,
 } from './model/SurveyValidation.js';
 // --- Validation (§D) -------------------------------------------------------
+export { AsyncValidator } from './model/AsyncValidator.js';
+export type {
+  ServerValidationError,
+  ServerValidationRequest,
+  ServerValidator,
+} from './model/ServerValidator.js';
 export { Validator } from './model/Validator.js';
 export type { ExpressionOutcome, ValidationContext } from './model/Validator.js';
 export { AnswerCountValidator } from './model/AnswerCountValidator.js';

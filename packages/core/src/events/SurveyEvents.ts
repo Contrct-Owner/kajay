@@ -1,3 +1,4 @@
+import type { Question } from '../model/Question.js';
 import type { SurveyElement } from '../model/SurveyElement.js';
 
 /** Payloads of the typed event surface hosts and renderers program against. */
@@ -15,6 +16,27 @@ export interface CompleteEvent {
 export interface CurrentPageChangedEvent {
   readonly previousPageNo: number;
   readonly currentPageNo: number;
+}
+
+/**
+ * Raised for each question as it is checked, after its own validators have run.
+ *
+ * The synchronous half of the host's validation seam: a rule that needs application
+ * knowledge but no round trip belongs here, rather than in a registered validator type
+ * that nothing else will ever instantiate.
+ *
+ * Listeners report by calling `addError`. Returning a value would not compose — several
+ * listeners can each have something to say about the same answer.
+ */
+export interface ValidateQuestionEvent {
+  readonly question: Question;
+  readonly value: unknown;
+  readonly addError: (text: string) => void;
+}
+
+/** Whether a check that left the process is still outstanding. */
+export interface ValidatingChangedEvent {
+  readonly isValidating: boolean;
 }
 
 /** Which computed aspect of an element changed. */

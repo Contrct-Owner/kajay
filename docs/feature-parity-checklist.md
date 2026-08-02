@@ -49,7 +49,7 @@ placeholder that never cleared.
 | A4 | Custom question type registers end-to-end (serializer, schema, toolbox, property grid, renderer) | ☐ | Partial: serializer, schema and toolbox proven; property grid and renderer registration are Phase 3 |
 | A5 | Custom property on an existing type (`addProperty` pattern), serialized and editable | ☐ | Partial: `addProperty` serializes and reaches the contract; "editable" needs the Phase 3 property grid |
 | A6 | Committed JSON Schema contract generated from the registry; CI drift check | ☑ | `parity/A6-contract-generated-from-registry` (unit) + `check:contract` CI job. Not demo-testable: the contract is a build artefact, not application behaviour |
-| A7 | Typed event surface: onValueChanged, onComplete, onCurrentPageChanged, onValidate*, onUploadFiles, onDynamicPanelAdded, matrix row events | ☐ | Partial: onValueChanged/onComplete/onCurrentPageChanged proven by `parity/A7-value-changed-event`; the rest await their features |
+| A7 | Typed event surface: onValueChanged, onComplete, onCurrentPageChanged, onValidate*, onUploadFiles, onDynamicPanelAdded, matrix row events | ☐ | Partial: onValueChanged/onComplete/onCurrentPageChanged proven by `parity/A7-value-changed-event`; onValidateQuestion and onValidatingChanged by `parity/D4-validate-question-event` and `parity/D3-async-validators`; upload, dynamic-panel and matrix events await their features |
 
 ## §B — Expressions & conditional logic
 
@@ -90,8 +90,8 @@ placeholder that never cleared.
 | --- | --- | --- | --- |
 | D1 | Required with custom `requiredErrorText`; `isRequired` on any type incl. matrix rows | ☐ | Partial: `parity/D1-required` (demo + browser + unit) covers every question type that exists today, and `requiredIf` reaches the same gate as `isRequired`. Matrix rows do not exist yet — that half closes with §F |
 | D2 | Built-in validators: numeric (min/max), text (min/max length, allowDigits), regex, email, expression, answercount | ☑ | `parity/D2-built-in-validators`, `parity/D2-expression-validator` (unit); `parity/D2-email-validator` (demo); `parity/D2-validators` (browser) |
-| D3 | Custom validators + async validators | ☐ | |
-| D4 | Server-side seam: onValidateQuestion / onServerValidateQuestions with async completion | ☐ | |
+| D3 | Custom validators + async validators | ☑ | `parity/D3-async-validators` (unit + browser + demo). The demo registers its own `AsyncValidator` subclass exactly as a host would — nothing about it ships in the library |
+| D4 | Server-side seam: `onValidateQuestion` / a host server validator, with async completion | ☑ | `parity/D4-server-validation`, `parity/D4-validate-question-event` (unit); `parity/D4-server-validation` (browser + demo). The server hook is a promise, not SurveyJS's `complete()` callback — a callback the host must remember to invoke is a hung survey waiting to happen |
 | D5 | Error placement (top/bottom), page-level vs question-level validation, validate on value change vs on next page | ☑ | `parity/D5-validation-scope`, `parity/D5-check-errors-mode`, `parity/D5-error-location` (demo + unit + browser); `parity/D5-errors-announced` (unit) |
 | D6 | `validationEnabled` toggle; focus first invalid question | ☑ | `parity/D6-validation-enabled`, `parity/D6-focus-first-error` (demo + browser); `parity/D6-first-error-question` (unit) |
 

@@ -24,7 +24,7 @@ function errorsOf(survey: Survey, name: string): readonly string[] {
 describe('parity/D1-required', () => {
   test('a required question with no answer blocks the move and says why', () => {
     const survey = twoRequiredPages();
-    expect(survey.nextPageOrComplete()).toBe(false);
+    expect(survey.nextPageOrComplete()).toBe('blocked');
     expect(survey.currentPageNo).toBe(0);
     expect(errorsOf(survey, 'a')).toEqual(['This question requires an answer.']);
   });
@@ -34,7 +34,7 @@ describe('parity/D1-required', () => {
     survey.nextPageOrComplete();
     survey.setValue('a', 'Ada');
 
-    expect(survey.nextPageOrComplete()).toBe(true);
+    expect(survey.nextPageOrComplete()).toBe('advanced');
     expect(survey.currentPageNo).toBe(1);
     expect(errorsOf(survey, 'a')).toEqual([]);
   });

@@ -49,6 +49,22 @@ export function useSurveyCurrentPageNo(survey: Survey): number {
   return useSyncExternalStore(subscribe, getSnapshot);
 }
 
+/**
+ * Re-renders while a check that left the process is outstanding.
+ *
+ * Its own subscription rather than a flag on the logic channel: an out-of-process check
+ * is not a change to the model, and folding it in would make `logicVersion` advance for
+ * something no element's state depends on.
+ */
+export function useSurveyValidating(survey: Survey): boolean {
+  const subscribe = useCallback(
+    (onStoreChange: () => void): (() => void) => survey.onValidatingChanged.add(onStoreChange),
+    [survey],
+  );
+  const getSnapshot = useCallback((): boolean => survey.validation.isValidating, [survey]);
+  return useSyncExternalStore(subscribe, getSnapshot);
+}
+
 export function useSurveyCompleted(survey: Survey): boolean {
   const subscribe = useCallback(
     (onStoreChange: () => void): (() => void) => survey.onComplete.add(onStoreChange),

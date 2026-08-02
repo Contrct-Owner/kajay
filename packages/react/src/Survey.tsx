@@ -53,7 +53,9 @@ export function Survey({ model, renderers = defaultQuestionRenderers }: SurveyPr
   // the errors, so all that is left is to put the respondent in front of the first one.
   const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
-    if (!model.nextPageOrComplete()) {
+    // Only `blocked`. A `pending` move has no error to point at yet — moving focus
+    // would land it on a field with nothing wrong with it.
+    if (model.nextPageOrComplete() === 'blocked') {
       requestFocus();
     }
   };

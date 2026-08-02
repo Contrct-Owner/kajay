@@ -103,10 +103,10 @@ describe('parity/D5-check-errors-mode', () => {
         { name: 'p2', elements: [{ type: 'text', name: 'b', isRequired: true }] },
       ],
     });
-    expect(survey.nextPageOrComplete()).toBe(true);
+    expect(survey.nextPageOrComplete()).toBe('advanced');
     expect(survey.currentPageNo).toBe(1);
 
-    expect(survey.nextPageOrComplete()).toBe(false);
+    expect(survey.nextPageOrComplete()).toBe('blocked');
     expect(survey.isCompleted).toBe(false);
     expect(errorsOf(survey, 'a')).toHaveLength(1);
     expect(errorsOf(survey, 'b')).toHaveLength(1);
@@ -118,7 +118,7 @@ describe('parity/D6-validation-enabled', () => {
     const survey = twoRequiredPages();
     survey.validation.setEnabled(false);
 
-    expect(survey.nextPageOrComplete()).toBe(true);
+    expect(survey.nextPageOrComplete()).toBe('advanced');
     expect(survey.currentPageNo).toBe(1);
     expect(errorsOf(survey, 'a')).toEqual([]);
   });
@@ -129,7 +129,7 @@ describe('parity/D6-validation-enabled', () => {
       pages: [{ name: 'p1', elements: [{ type: 'text', name: 'a', isRequired: true }] }],
     });
     expect(survey.validation.isEnabled).toBe(false);
-    expect(survey.nextPageOrComplete()).toBe(true);
+    expect(survey.nextPageOrComplete()).toBe('advanced');
     expect(survey.isCompleted).toBe(true);
   });
 });

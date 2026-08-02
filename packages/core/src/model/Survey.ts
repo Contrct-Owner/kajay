@@ -3,6 +3,8 @@ import type {
   CompleteEvent,
   CurrentPageChangedEvent,
   ElementStateChangedEvent,
+  ValidateQuestionEvent,
+  ValidatingChangedEvent,
   ValueChangedEvent,
 } from '../events/SurveyEvents.js';
 import type { LogicDiagnostics } from '../logic/LogicEngine.js';
@@ -17,7 +19,9 @@ import { SurveyPages } from './SurveyPages.js';
 import type { Question } from './Question.js';
 import { SurveyChildren } from './SurveyChildren.js';
 import { SurveyElement } from './SurveyElement.js';
+import type { SurveyError } from './SurveyError.js';
 import { SurveyValidation } from './SurveyValidation.js';
+import type { AdvanceOutcome } from './SurveyValidation.js';
 import { createValidationHost } from './surveyValidationWiring.js';
 import type { Trigger } from './Trigger.js';
 import type { ValueHost } from './ValueHost.js';
@@ -41,6 +45,8 @@ export class Survey extends SurveyElement implements ValueHost {
         this.setPropertyValue(name, value);
       },
       evaluate: (expression) => this.#logic.evaluate(expression),
+      data: () => this.data,
+      hostErrors: (question) => this.#collectHostErrors(question),
       announce: (question) => {
         this.#logic.notifyErrorsChanged(question);
       },
@@ -49,6 +55,9 @@ export class Survey extends SurveyElement implements ValueHost {
       // deliver what it produced.
       flush: () => {
         this.#logic.release();
+      },
+      announceValidating: (isValidating) => {
+        this.onValidatingChanged.emit({ isValidating });
       },
     }),
   );
@@ -59,6 +68,10 @@ export class Survey extends SurveyElement implements ValueHost {
   readonly onComplete: EventEmitter<CompleteEvent> = new EventEmitter();
   readonly onCurrentPageChanged: EventEmitter<CurrentPageChangedEvent> = new EventEmitter();
   readonly onElementStateChanged: EventEmitter<ElementStateChangedEvent> = new EventEmitter();
+  /** Raised per question as it is checked. Listeners report by calling `addError`. */
+  readonly onValidateQuestion: EventEmitter<ValidateQuestionEvent> = new EventEmitter();
+  /** Raised when a check leaves the process, and again when it lands. */
+  readonly onValidatingChanged: EventEmitter<ValidatingChangedEvent> = new EventEmitter();
 
   constructor(options: SurveyOptions = {}) {
     super();
@@ -248,16 +261,49 @@ export class Survey extends SurveyElement implements ValueHost {
    * `setCurrentPageNo` are movement, and a `skip` trigger moving a respondent has
    * nothing to do with whether the page they are leaving is complete.
    *
-   * Returns false when nothing happened, which for a renderer means "show them why".
+   * Three outcomes rather than a boolean, because `blocked` and `pending` call for
+   * opposite responses from a renderer: one means put the respondent in front of the
+   * error, the other means there is no error yet, only a wait. A `pending` move
+   * completes itself if the check comes back clean.
    */
-  nextPageOrComplete(): boolean {
-    if (!this.#validation.allowsAdvance()) {
-      return false;
+  nextPageOrComplete(): AdvanceOutcome {
+    const gate = this.#validation.checkAdvance((isValid) => {
+      if (isValid) {
+        this.#advance();
+      }
+    });
+    if (gate !== 'allowed') {
+      return gate;
     }
+    this.#advance();
+    return 'advanced';
+  }
+
+  #advance(): void {
     if (!this.#pages.nextPage()) {
       this.complete();
     }
-    return true;
+  }
+
+  /**
+   * Gathers what `onValidateQuestion` listeners had to say about one answer.
+   *
+   * Here rather than in the validation object because the event is the survey's: the
+   * emitter is public surface, and validation only needs the result.
+   */
+  #collectHostErrors(question: Question): readonly SurveyError[] {
+    if (this.onValidateQuestion.listenerCount === 0) {
+      return [];
+    }
+    const errors: SurveyError[] = [];
+    this.onValidateQuestion.emit({
+      question,
+      value: question.value,
+      addError: (text) => {
+        errors.push({ kind: 'host', text });
+      },
+    });
+    return errors;
   }
 
   /** Navigates to a page by name, or to the page owning the named question. */

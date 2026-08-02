@@ -42,6 +42,15 @@ export function collectAnswerErrors(
   });
 }
 
+export interface QuestionCheck {
+  readonly evaluate: ExpressionEvaluator;
+  readonly announce: (question: Question) => void;
+  /** Host rules that need no round trip. Returns extra reasons to reject the answer. */
+  readonly hostErrors: (question: Question) => readonly SurveyError[];
+  /** Errors gathered out of process on a previous pass, merged in by question name. */
+  readonly carried?: ReadonlyMap<string, readonly SurveyError[]>;
+}
+
 /**
  * Checks a set of questions and records what it found.
  *
@@ -51,14 +60,21 @@ export function collectAnswerErrors(
  */
 export function validateQuestions(
   questions: readonly Question[],
-  evaluate: ExpressionEvaluator,
-  announce: (question: Question) => void,
+  check: QuestionCheck,
 ): boolean {
   let isValid = true;
   for (const question of questions) {
-    const errors = collectAnswerErrors(question, evaluate);
+    const own = collectAnswerErrors(question, check.evaluate);
+    // Host rules only run once the answer has cleared its own validators, on the same
+    // reasoning that keeps validators away from an empty answer: one omission, one
+    // message.
+    const errors = [
+      ...own,
+      ...(own.length > 0 ? [] : check.hostErrors(question)),
+      ...(check.carried?.get(question.name) ?? []),
+    ];
     if (question.setErrors(errors)) {
-      announce(question);
+      check.announce(question);
     }
     isValid &&= errors.length === 0;
   }

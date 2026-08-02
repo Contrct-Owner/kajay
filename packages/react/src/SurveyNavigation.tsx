@@ -1,5 +1,6 @@
 import type { Survey as SurveyModel } from '@kajay/core';
 import type { ReactElement } from 'react';
+import { useSurveyValidating } from './useSurveyState.js';
 
 export interface SurveyNavigationProps {
   readonly survey: SurveyModel;
@@ -16,11 +17,33 @@ export interface SurveyNavigationProps {
  * is one page long still completes on Enter, and a multi-page one does not submit
  * itself when the respondent presses Enter in a text field.
  */
+/**
+ * The primary button's label.
+ *
+ * Still one control that changes text, for the same reason it does not swap places:
+ * whatever it says, it stays where the cursor already is.
+ */
+function validatingLabel(isValidating: boolean, isLastPage: boolean): string {
+  if (isValidating) {
+    return 'Checking…';
+  }
+  return isLastPage ? 'Complete' : 'Next';
+}
+
 export function SurveyNavigation({ survey }: SurveyNavigationProps): ReactElement {
   const { isFirstPage, isLastPage, pageCount, currentPageNo } = survey;
+  const isValidating = useSurveyValidating(survey);
 
   return (
     <div className="kajay-navigation">
+      {survey.validation.serverError === undefined ? null : (
+        // Not a question error: no answer is at fault, and saying so is the difference
+        // between "fix your input" and "try that again".
+        <p className="kajay-navigation__server-error" role="alert">
+          {`We could not check your answers: ${survey.validation.serverError}`}
+        </p>
+      )}
+
       {pageCount > 1 ? (
         <p className="kajay-navigation__position" data-testid="page-position">
           {`Page ${currentPageNo + 1} of ${pageCount}`}
@@ -39,8 +62,16 @@ export function SurveyNavigation({ survey }: SurveyNavigationProps): ReactElemen
         </button>
       )}
 
-      <button className="kajay-navigation__next" type="submit">
-        {isLastPage ? 'Complete' : 'Next'}
+      {/* Disabled while a check is outstanding, so a respondent cannot queue a second
+          round trip behind the first — and so the wait is visible rather than the page
+          simply not responding. */}
+      <button
+        className="kajay-navigation__next"
+        type="submit"
+        disabled={isValidating}
+        aria-busy={isValidating || undefined}
+      >
+        {validatingLabel(isValidating, isLastPage)}
       </button>
     </div>
   );

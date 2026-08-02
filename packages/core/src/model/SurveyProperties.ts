@@ -57,6 +57,21 @@ export abstract class SurveyProperties extends SurveyElement {
     return this.getBooleanProperty('readOnly');
   }
 
+  /**
+   * Whether answering the last question on a page turns it.
+   *
+   * Only ever *forward*, and never off the last page — see `shouldAdvanceAutomatically`
+   * for why submitting stays a deliberate act.
+   */
+  get goNextPageAutomatic(): boolean {
+    return this.getBooleanProperty('goNextPageAutomatic');
+  }
+
+  /** Whether the first question on each page takes focus as the page arrives. */
+  get autoFocusFirstQuestion(): boolean {
+    return this.getBooleanProperty('autoFocusFirstQuestion');
+  }
+
   /** Where the progress bar is drawn, if at all. */
   get showProgressBar(): ProgressBarLocation {
     return toProgressBarLocation(this.getStringProperty('showProgressBar'));

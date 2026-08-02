@@ -29,6 +29,11 @@ const AUTO_DROPDOWN_THRESHOLD = 11;
  * properties on the type that an author has to be told to ignore.
  */
 export class RatingQuestion extends Question {
+  /** Picking is answering: there is nothing else for the respondent to add. */
+  override get answersInOneStep(): boolean {
+    return true;
+  }
+
   readonly #rateValues: ItemValue[] = [];
 
   override get type(): string {

@@ -47,6 +47,16 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         description: 'The whole survey is for reading rather than answering.',
       },
       {
+        name: 'goNextPageAutomatic',
+        type: 'boolean',
+        description: 'Turn the page once every question on it has a one-step answer.',
+      },
+      {
+        name: 'autoFocusFirstQuestion',
+        type: 'boolean',
+        description: 'Give the first question on each page focus as the page arrives.',
+      },
+      {
         name: 'showProgressBar',
         type: 'string',
         defaultValue: 'off',

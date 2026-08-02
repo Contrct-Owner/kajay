@@ -2111,6 +2111,16 @@
           "default": false,
           "description": "The whole survey is for reading rather than answering."
         },
+        "goNextPageAutomatic": {
+          "type": "boolean",
+          "default": false,
+          "description": "Turn the page once every question on it has a one-step answer."
+        },
+        "autoFocusFirstQuestion": {
+          "type": "boolean",
+          "default": false,
+          "description": "Give the first question on each page focus as the page arrives."
+        },
         "showProgressBar": {
           "type": "string",
           "default": "off",

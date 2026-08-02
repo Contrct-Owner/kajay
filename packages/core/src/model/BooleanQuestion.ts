@@ -18,6 +18,11 @@ export type BooleanRenderMode = 'switch' | 'radio';
  * ever deals in "checked or not".
  */
 export class BooleanQuestion extends Question {
+  /** Picking is answering: there is nothing else for the respondent to add. */
+  override get answersInOneStep(): boolean {
+    return true;
+  }
+
   override get type(): string {
     return 'boolean';
   }

@@ -46,6 +46,7 @@ export { useReorder } from './useReorder.js';
 export type { Reorder, ReorderItemProps } from './useReorder.js';
 export { reorderAnnouncement } from './reorderAnnouncement.js';
 export type { ReorderEventKind } from './reorderAnnouncement.js';
+export { useAutoFocus } from './useAutoFocus.js';
 export {
   useSurveyCompleted,
   useSurveyCurrentPageNo,

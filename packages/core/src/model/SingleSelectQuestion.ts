@@ -9,6 +9,11 @@ import { isOneSelected, selectOne } from './singleSelectSemantics.js';
  * dropdown differ in how they look, not in what picking means.
  */
 export abstract class SingleSelectQuestion extends SelectQuestion {
+  /** Picking is answering: there is nothing else for the respondent to add. */
+  override get answersInOneStep(): boolean {
+    return true;
+  }
+
   override isSelected(choiceValue: PropertyValue): boolean {
     return isOneSelected(this.value, choiceValue);
   }

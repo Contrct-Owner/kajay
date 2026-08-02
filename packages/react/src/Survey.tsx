@@ -10,6 +10,7 @@ import { SurveyPreview } from './SurveyPreview.js';
 import { SurveyProgressBar } from './SurveyProgressBar.js';
 import { SurveyToc } from './SurveyToc.js';
 import { SurveyStatusPage } from './SurveyStatusPage.js';
+import { useAutoFocus } from './useAutoFocus.js';
 import { useErrorFocus } from './useErrorFocus.js';
 import {
   useSurveyCurrentPageNo,
@@ -60,8 +61,9 @@ export function Survey({
   // elements between renders, and validation errors ride the same channel.
   useSurveyLogicState(model);
   // And again for navigation, which moves for reasons logic knows nothing about.
-  useSurveyCurrentPageNo(model);
+  const currentPageNo = useSurveyCurrentPageNo(model);
   const { formRef, requestFocus } = useErrorFocus(model);
+  useAutoFocus(model, formRef, currentPageNo);
 
   if (state !== 'running') {
     // Everything that is not the form still needs the sanitizer: the completed markup

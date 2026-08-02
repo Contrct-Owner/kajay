@@ -55,6 +55,21 @@ export abstract class Question extends PageElement {
     return (this.#valueHost?.isReadOnly ?? false) || this.getBooleanProperty('readOnly');
   }
 
+  /**
+   * Whether a single action finishes this answer.
+   *
+   * False here, and true for the types where picking *is* answering — a radiogroup, a
+   * rating, a boolean. It is what `goNextPageAutomatic` asks before turning the page:
+   * a text question is answered a character at a time, and a survey that moved on after
+   * the first letter of a name would be unusable.
+   *
+   * A fact the question type states about itself rather than a list kept somewhere
+   * else, because that list would be wrong the day a new type arrived.
+   */
+  get answersInOneStep(): boolean {
+    return false;
+  }
+
   /** Author's replacement for the built-in "this is required" message. */
   get requiredErrorText(): string {
     return this.getStringProperty('requiredErrorText');

@@ -13,6 +13,7 @@ import type { ChoicePageLoader } from './ChoicePageLoader.js';
 import type { ChoiceFetcher } from './ChoiceSourceController.js';
 import type { SurveyOptions } from './SurveyOptions.js';
 import { clearHiddenAnswers } from './clearInvisibleAnswers.js';
+import { shouldAdvanceAutomatically } from './autoAdvance.js';
 import { collectPreviewQuestions } from './previewQuestions.js';
 import { SurveyProperties } from './SurveyProperties.js';
 import { readProgress, restoreProgress } from './SurveyProgress.js';
@@ -372,6 +373,11 @@ export class Survey extends SurveyProperties implements ValueHost {
     // `setValueIf` forcing it to zero — and checking the value on the way past would
     // report an error against a number the respondent never sees.
     this.#validation.revalidateChanged(name);
+    if (shouldAdvanceAutomatically(this, name)) {
+      // Through the ordinary gate, so a page that would refuse the move still refuses
+      // it — saving a click must not skip a check.
+      this.nextPageOrComplete();
+    }
   }
 
   /** Writes model state without starting a nested settle. Rule execution reports the path. */

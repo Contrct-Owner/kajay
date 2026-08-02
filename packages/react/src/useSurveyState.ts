@@ -17,6 +17,22 @@ export function useSurveyValue(survey: Survey, name: string): unknown {
   return useSyncExternalStore(subscribe, getSnapshot);
 }
 
+/**
+ * Re-renders when conditional logic changes what is visible.
+ *
+ * The model exposes a monotonic version rather than the visible set itself, because
+ * `useSyncExternalStore` compares snapshots by identity — a freshly filtered array
+ * would differ on every read and loop forever.
+ */
+export function useSurveyStructure(survey: Survey): number {
+  const subscribe = useCallback(
+    (onStoreChange: () => void): (() => void) => survey.onVisibilityChanged.add(onStoreChange),
+    [survey],
+  );
+  const getSnapshot = useCallback((): number => survey.structureVersion, [survey]);
+  return useSyncExternalStore(subscribe, getSnapshot);
+}
+
 export function useSurveyCompleted(survey: Survey): boolean {
   const subscribe = useCallback(
     (onStoreChange: () => void): (() => void) => survey.onComplete.add(onStoreChange),

@@ -6,7 +6,15 @@ describe('parity/A3-metadata-registry', () => {
   test('resolves inherited properties ancestors-first in declaration order', () => {
     const registry = createTestRegistry();
     const names = registry.getProperties('text').map((property) => property.name);
-    expect(names).toEqual(['name', 'title', 'isRequired', 'inputType', 'placeholder']);
+    // Inherited from `question` first, in its declaration order, then text's own.
+    expect(names).toEqual([
+      'name',
+      'title',
+      'isRequired',
+      'visibleIf',
+      'inputType',
+      'placeholder',
+    ]);
   });
 
   test('a subclass redeclaring an inherited property replaces it in place', () => {
@@ -19,7 +27,13 @@ describe('parity/A3-metadata-registry', () => {
     });
 
     const properties = registry.getProperties('test-override');
-    expect(properties.map((property) => property.name)).toEqual(['name', 'title', 'isRequired']);
+    expect(properties.map((property) => property.name)).toEqual([
+      'name',
+      'title',
+      'isRequired',
+      'visibleIf',
+    ]);
+    // Replaced in place: `title` keeps position 1 rather than moving to the end.
     expect(properties[1]?.defaultValue).toBe('overridden');
   });
 

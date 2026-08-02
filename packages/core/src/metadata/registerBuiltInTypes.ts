@@ -4,13 +4,17 @@ import { TextQuestion } from '../model/TextQuestion.js';
 import type { MetadataRegistry } from './MetadataRegistry.js';
 
 /**
- * Registers the Phase 0 type set.
- *
- * Property declaration order here *is* the canonical key order of serialized output
- * (ADR-0002), so reordering this list is a contract change and will show up as a diff
- * in `contracts/survey-schema.json`.
+ * Property declaration order *is* the canonical key order of serialized output
+ * (ADR-0002), so reordering any of these lists is a contract change and will show up
+ * as a diff in `contracts/survey-schema.json`.
  */
-export function registerBuiltInTypes(registry: MetadataRegistry): void {
+
+const VISIBLE_IF = {
+  name: 'visibleIf',
+  type: 'string',
+} as const;
+
+function registerSurveyType(registry: MetadataRegistry): void {
   registry.addClass({
     name: 'survey',
     properties: [
@@ -20,17 +24,26 @@ export function registerBuiltInTypes(registry: MetadataRegistry): void {
     childCollection: { property: 'pages', elementBaseType: 'page' },
     create: () => new Survey(),
   });
+}
 
+function registerPageType(registry: MetadataRegistry): void {
   registry.addClass({
     name: 'page',
     properties: [
       { name: 'name', type: 'string', isRequired: true, description: 'Unique page identifier.' },
       { name: 'title', type: 'string' },
+      {
+        ...VISIBLE_IF,
+        description: 'Expression; the page is shown only while it evaluates truthy.',
+      },
     ],
     childCollection: { property: 'elements', elementBaseType: 'question' },
     create: () => new Page(),
   });
+}
 
+/** Abstract base. Contributes inherited properties; cannot be instantiated. */
+function registerQuestionBase(registry: MetadataRegistry): void {
   registry.addClass({
     name: 'question',
     isAbstract: true,
@@ -43,9 +56,15 @@ export function registerBuiltInTypes(registry: MetadataRegistry): void {
       },
       { name: 'title', type: 'string', description: 'Display title; falls back to name.' },
       { name: 'isRequired', type: 'boolean' },
+      {
+        ...VISIBLE_IF,
+        description: 'Expression; the question is shown only while it evaluates truthy.',
+      },
     ],
   });
+}
 
+function registerQuestionTypes(registry: MetadataRegistry): void {
   registry.addClass({
     name: 'text',
     parent: 'question',
@@ -55,4 +74,12 @@ export function registerBuiltInTypes(registry: MetadataRegistry): void {
     ],
     create: () => new TextQuestion(),
   });
+}
+
+/** Registers the built-in type set. Parents must be registered before their children. */
+export function registerBuiltInTypes(registry: MetadataRegistry): void {
+  registerSurveyType(registry);
+  registerPageType(registry);
+  registerQuestionBase(registry);
+  registerQuestionTypes(registry);
 }

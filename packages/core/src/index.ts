@@ -83,7 +83,17 @@ export type {
   CompleteEvent,
   CurrentPageChangedEvent,
   ValueChangedEvent,
+  VisibilityChangedEvent,
 } from './events/SurveyEvents.js';
+
+// --- Conditional logic (checklist §B) -------------------------------------
+export type { ConditionBinding } from './logic/ConditionBinding.js';
+export { LogicEngine } from './logic/LogicEngine.js';
+export type {
+  LogicEngineOptions,
+  LogicRunResult,
+  ValueResolver,
+} from './logic/LogicEngine.js';
 export type {
   ChildCollectionDescriptor,
   ClassDefinition,

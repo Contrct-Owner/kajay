@@ -50,7 +50,7 @@ Proof naming convention: `parity/<row-id>-<slug>` (e.g. `parity/B3-visible-if`).
 | --- | --- | --- | --- |
 | B1 | Expression language: literals, `{question}` refs incl. composite paths (`{matrix.row.col}`, `{panel[0].q}`), arithmetic, comparison, and/or/not, contains/anyof/allof, empty/notempty | ☑ | `parity/B1-expression-grammar` (precedence/associativity via print round-trip) + `parity/B1-operators` (evaluation), unit, through public API |
 | B2 | Built-in function library (iif, sum, avg, min, max, count, age, today, currentDate, getDate, diffDays, ...) + custom sync and async function registration | ☐ | Partial: library and **sync** custom registration proven by `built-in function library`; async registration not built |
-| B3 | `visibleIf` on questions, panels, pages, and individual choices | ☐ | |
+| B3 | `visibleIf` on questions, panels, pages, and individual choices | ☐ | Partial: **questions and pages** closed by `parity/B3-visible-if` (unit, browser, host E2E). Panels and choices cannot be proven yet — neither the panel element (§E1) nor any choice-based question type (§C3–C6) exists. The mechanism is registry-driven, so both are registration rather than new logic |
 | B4 | `enableIf` / `requiredIf` | ☐ | |
 | B5 | `setValueIf` + `setValueExpression`, `resetValueIf`, `defaultValueExpression` | ☐ | |
 | B6 | Calculated values (survey-level `calculatedValues`, usable in expressions and completed HTML) | ☐ | |

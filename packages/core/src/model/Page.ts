@@ -30,6 +30,11 @@ export class Page extends SurveyElement {
     return this.#elements;
   }
 
+  /** Elements a respondent can currently see. What the renderer draws. */
+  get visibleElements(): readonly Question[] {
+    return this.#elements.filter((element) => element.isVisible);
+  }
+
   override getChildren(): readonly SurveyElement[] {
     return this.#elements;
   }

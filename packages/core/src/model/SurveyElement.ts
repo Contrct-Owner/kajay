@@ -10,6 +10,7 @@ import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
 export abstract class SurveyElement {
   readonly #values: Map<string, PropertyValue> = new Map();
   readonly #unknownProperties: Map<string, unknown> = new Map();
+  #isVisible = true;
 
   /** Registered class name. Drives every registry lookup for this element. */
   abstract get type(): string;
@@ -33,6 +34,22 @@ export abstract class SurveyElement {
 
   setUnknownProperty(name: string, value: unknown): void {
     this.#unknownProperties.set(name, value);
+  }
+
+  /**
+   * Computed visibility.
+   *
+   * Not a stored property: it is derived from `visibleIf` by the logic engine, and is
+   * deliberately absent from serialization — the definition records the *rule*, never
+   * the rule's current answer.
+   */
+  get isVisible(): boolean {
+    return this.#isVisible;
+  }
+
+  /** Set by the logic engine. Authors change visibility through `visibleIf`. */
+  setVisibility(isVisible: boolean): void {
+    this.#isVisible = isVisible;
   }
 
   getChildren(): readonly SurveyElement[] {

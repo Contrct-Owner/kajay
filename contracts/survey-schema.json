@@ -20,6 +20,11 @@
           "type": "string",
           "default": ""
         },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the page is shown only while it evaluates truthy."
+        },
         "elements": {
           "type": "array",
           "items": {
@@ -87,6 +92,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the question is shown only while it evaluates truthy."
         },
         "inputType": {
           "type": "string",

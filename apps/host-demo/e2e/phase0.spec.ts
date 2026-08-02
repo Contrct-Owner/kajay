@@ -42,6 +42,17 @@ test('parity/C1-text-question-renders', async ({ page }) => {
   await expect(input).toHaveAttribute('aria-required', 'true');
 });
 
+test('parity/B3-visible-if', async ({ page }) => {
+  const nickname = page.getByLabel('What should we call you?');
+  await expect(nickname).toHaveCount(0);
+
+  await page.getByLabel(/What is your name\?/u).fill('Ada Lovelace');
+  await expect(nickname).toBeVisible();
+
+  await page.getByLabel(/What is your name\?/u).fill('');
+  await expect(nickname).toHaveCount(0);
+});
+
 test('parity/E5-completion-flow', async ({ page }) => {
   await page.getByLabel(/What is your name\?/u).fill('Ada');
   await page.getByRole('button', { name: 'Complete' }).click();

@@ -69,6 +69,9 @@ export function parseSurvey(
   if (!(root instanceof Survey)) {
     throw new TypeError('The root of a definition must deserialize to a survey.');
   }
+  // Conditions can only be registered once the whole tree exists, so this runs here
+  // rather than as elements are added.
+  root.refreshLogic();
   return { survey: root, diagnostics: context.diagnostics };
 }
 

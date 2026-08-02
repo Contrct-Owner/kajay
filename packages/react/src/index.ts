@@ -7,4 +7,4 @@ export type { QuestionRenderer } from './QuestionRendererRegistry.js';
 export { Survey } from './Survey.js';
 export type { SurveyProps } from './Survey.js';
 export { TextQuestionRenderer } from './TextQuestionRenderer.js';
-export { useSurveyCompleted, useSurveyValue } from './useSurveyState.js';
+export { useSurveyCompleted, useSurveyStructure, useSurveyValue } from './useSurveyState.js';

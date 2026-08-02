@@ -7,7 +7,7 @@
  */
 export const surveyDefinition: Readonly<Record<string, unknown>> = {
   title: 'Kajay Phase 0 demo',
-  description: 'One question, rendered through the published package APIs.',
+  description: 'Conditional logic, rendered through the published package APIs.',
   pages: [
     {
       name: 'page1',
@@ -20,6 +20,15 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
           isRequired: true,
           placeholder: 'Ada Lovelace',
           department: 'engineering',
+        },
+        {
+          type: 'text',
+          name: 'nickname',
+          title: 'What should we call you?',
+          placeholder: 'Ada',
+          // Hidden until there is a name to shorten. The expression is evaluated by
+          // the engine and re-evaluated only when `fullName` changes.
+          visibleIf: '{fullName} notempty',
         },
       ],
     },

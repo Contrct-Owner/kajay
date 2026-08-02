@@ -75,6 +75,31 @@ test('submitting completes the survey and swaps in the completed view', async ()
   await expect.element(screen.getByRole('status')).toBeVisible();
 });
 
+test('parity/B3-visible-if: a hidden question appears once its condition holds', async () => {
+  const model = parseSurvey({
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          { type: 'text', name: 'fullName', title: 'Your name' },
+          { type: 'text', name: 'nickname', title: 'Preferred name', visibleIf: '{fullName} notempty' },
+        ],
+      },
+    ],
+  }).survey;
+
+  const screen = await render(<Survey model={model} />);
+
+  // Not merely hidden with CSS — absent from the DOM entirely.
+  await expect.element(screen.getByLabelText('Preferred name')).not.toBeInTheDocument();
+
+  await screen.getByLabelText('Your name').fill('Ada Lovelace');
+  await expect.element(screen.getByLabelText('Preferred name')).toBeVisible();
+
+  await screen.getByLabelText('Your name').fill('');
+  await expect.element(screen.getByLabelText('Preferred name')).not.toBeInTheDocument();
+});
+
 test('an answer typed in the browser survives serialization', async () => {
   const model = buildModel();
   const screen = await render(<Survey model={model} />);

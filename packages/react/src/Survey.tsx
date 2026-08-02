@@ -2,7 +2,8 @@ import type { Survey as SurveyModel } from '@kajay/core';
 import type { FormEvent, ReactElement } from 'react';
 import { defaultQuestionRenderers } from './defaultQuestionRenderers.js';
 import type { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
-import { useSurveyCompleted } from './useSurveyState.js';
+import { SurveyPage } from './SurveyPage.js';
+import { useSurveyCompleted, useSurveyStructure } from './useSurveyState.js';
 
 export interface SurveyProps {
   readonly model: SurveyModel;
@@ -19,6 +20,9 @@ export interface SurveyProps {
  */
 export function Survey({ model, renderers = defaultQuestionRenderers }: SurveyProps): ReactElement {
   const isCompleted = useSurveyCompleted(model);
+  // Subscribed for the re-render: `visibleIf` can add or remove elements between
+  // renders, and nothing else would tell React about it.
+  useSurveyStructure(model);
 
   if (isCompleted) {
     return (
@@ -40,25 +44,8 @@ export function Survey({ model, renderers = defaultQuestionRenderers }: SurveyPr
         <p className="kajay-survey__description">{model.description}</p>
       ) : null}
 
-      {model.pages.map((page) => (
-        <section
-          className="kajay-page"
-          key={page.name}
-          aria-label={page.title.length > 0 ? page.title : page.name}
-        >
-          {page.title.length > 0 ? <h2 className="kajay-page__title">{page.title}</h2> : null}
-          {page.elements.map((question) => {
-            const Renderer = renderers.get(question.type);
-            if (Renderer === undefined) {
-              return (
-                <div className="kajay-question kajay-question--unsupported" key={question.name}>
-                  {`No renderer is registered for question type "${question.type}".`}
-                </div>
-              );
-            }
-            return <Renderer key={question.name} survey={model} question={question} />;
-          })}
-        </section>
+      {model.visiblePages.map((page) => (
+        <SurveyPage key={page.name} survey={model} page={page} renderers={renderers} />
       ))}
 
       <button className="kajay-survey__complete" type="submit">

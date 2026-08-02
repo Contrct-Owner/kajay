@@ -52,13 +52,18 @@ const failures = [];
 try {
   console.log(`Scratch project: ${scratch}`);
 
+  // Packed with pnpm because the workspace uses it: `workspace:*` and `catalog:`
+  // specifiers must be rewritten to real versions in the tarball, and only the
+  // workspace's own package manager does that. If it ever failed, the npm install
+  // below would reject the unrewritten specifier — which is the point of packing with
+  // one tool and consuming with another.
   const tarballs = [];
   for (const pkg of PACKAGES) {
     const dir = join(repoRoot, 'packages', pkg);
-    const output = run('npm', ['pack', '--pack-destination', scratch, '--silent'], dir);
+    const output = run('pnpm', ['pack', '--pack-destination', scratch], dir);
     const file = output.trim().split('\n').pop().trim();
-    tarballs.push(join(scratch, file));
-    console.log(`  packed ${pkg} -> ${file}`);
+    tarballs.push(file.startsWith('/') ? file : join(scratch, file));
+    console.log(`  packed ${pkg} -> ${basename(file)}`);
   }
 
   writeFileSync(

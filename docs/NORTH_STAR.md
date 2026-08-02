@@ -56,7 +56,7 @@ library, not a service.
    verified by architecture checks that fail the build: core packages may not import
    UI packages, no package may deep-import another's internals, and the host app may
    import only public entry points.
-6. **Boring, durable, solo-operable.** npm workspaces, tsc for emit, Vite for apps,
+6. **Boring, durable, solo-operable.** pnpm workspaces, tsc for emit, Vite for apps,
    Vitest for tests, oxlint for linting. Mature tools, low operational surface; one
    person must be able to run and reason about the whole repo.
 7. **Surface conflicts; never silently weaken a rule.** If a request or a feature
@@ -179,8 +179,12 @@ and as the validation target for definitions authored outside the Creator.
   `isolatedDeclarations` on published packages, no `namespace`/`enum`/parameter
   properties, no deprecated compiler options. CI type-checks with **both** `tsc` and
   `tsgo` so the repo rides the 6 → 7 transition without a migration event.
-- **Monorepo:** npm workspaces + TypeScript project references (`tsc -b`). No extra
-  orchestrator until the build provably needs one (boring & solo-operable).
+- **Monorepo:** pnpm workspaces + TypeScript project references (`tsc -b`), with a
+  pnpm **catalog** pinning shared versions once for the whole workspace
+  ([ADR-0015](./adr/0015-pnpm-workspace.md)). pnpm is pinned via `packageManager` and
+  supplied by corepack. Still no build orchestrator until the build provably needs one.
+  Consumers are unaffected: packages are published for npm and the pack test installs
+  them with it.
 - **Emit:** `tsc` emits ESM `.js` + `.d.ts` per package; `exports` maps define the
   public surface; no bundler for libraries. Apps use **Vite 8**.
 - **UI:** React 19 for `@kajay/react` and `@kajay/creator-react` (peer
@@ -317,6 +321,7 @@ The host app exists to make embeddability falsifiable:
 | Date | Decision |
 | --- | --- |
 | 2026-08-02 | Corpus created. Framework-agnostic core + React-first adapters; parity scope = Form Library + Creator; proof = in-repo host app consuming public APIs + CI pack test; TS 6 strict with tsgo dual-check. |
+| 2026-08-02 | **Workspace moved from npm to pnpm** ([ADR-0015](./adr/0015-pnpm-workspace.md)), reversing the npm-workspaces choice in §5 and superseding ADR-0010's rejection of corepack. Deciding feature: catalogs, which pin a shared version once across the workspace and are what the single version train wants. Consumers are unaffected — packages still publish for npm, and the pack test now packs with pnpm and installs with npm precisely so the `workspace:*` rewrite is verified rather than assumed. |
 | 2026-08-02 | **Phase 0 complete.** Monorepo, metadata kernel, serializer, React renderer, host-demo, enforcement scripts and CI all landed; `npm run verify` runs eight gates green. Two toolchain amendments were forced by reality: TypeScript 7 has shipped, so `tsgo`/`@typescript/native-preview` is superseded by real `typescript@7` (ADR-0012), and the oxlint baseline had to disable `unicorn/prefer-event-target` because it recommends a DOM global into a DOM-free package (ADR-0013). |
 | 2026-08-02 | Second pass: the `survey` npm org proved taken, so the scope became **`@kajay/*`** and the corpus was renamed (ADR-0006). Remaining Phase-0 decisions closed as ADR-0010 (Node ≥22.12, single-entry `exports`, host-imported CSS) and ADR-0011 (URN `$id`, `schemaVersion` on the definition, refuse-don't-guess on version mismatch). Checklist vocabulary migrates per-PR rather than in one pass. Only the org claim still gates Phase 0. |
 | 2026-08-02 | All nine §11 open decisions worked through; ADRs 0001–0009 recorded. Headline: the definition format is **our own** rather than SurveyJS-compatible, which moves parity evidence from executable (running their JSON) to capability-level (against their documentation) and makes deliberate format design Phase 0 work. Round-trip bar set at fixed-point equivalence. Expression parser and reactivity both hand-rolled and zero-dep. Single version train. Repo stays private and unlicensed until Phase 2 exit. |

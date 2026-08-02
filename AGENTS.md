@@ -41,18 +41,21 @@ Before planning, implementing, or reviewing code or tests, read
 ## Commands
 
 Run from the repo root. These are the same commands CI runs; keep the two in step.
-*(Phase 0 scaffolding will make each of these real; until a command exists, this
-list is the specification for it.)*
+All of them are real as of Phase 0. `pnpm run verify` runs the whole chain in order.
+
+The workspace uses **pnpm** ([ADR-0015](docs/adr/0015-pnpm-workspace.md)), pinned by
+`packageManager` and supplied by corepack — run `corepack enable pnpm` once. Consumers
+are unaffected: packages publish for npm, and the pack test installs them with it.
 
 ```bash
-npm run lint          # oxlint, warnings as errors
-npm run typecheck     # tsc -b && tsc7 -b  (see ADR-0012; tsgo is superseded)
-npm run check:arch    # dependency direction, DOM-free core, no deep imports
-npm run test:unit     # Vitest, node environment, pure logic
-npm run test:browser  # Vitest browser mode, real Chromium
-npm run test:e2e      # Playwright against apps/host-demo
-npm run check:contract# regenerate contracts/survey-schema.json, fail on drift
-npm run test:pack     # npm pack all packages, install tarballs in scratch project,
+pnpm run lint         # oxlint, warnings as errors
+pnpm run typecheck    # tsc -b && tsc7 -b  (see ADR-0012; tsgo is superseded)
+pnpm run check:arch   # dependency direction, DOM-free core, no deep imports
+pnpm run test:unit    # Vitest, node environment, pure logic
+pnpm run test:browser # Vitest browser mode, real Chromium
+pnpm run test:e2e     # Playwright against apps/host-demo
+pnpm run check:contract # regenerate contracts/survey-schema.json, fail on drift
+pnpm run test:pack    # pnpm pack all packages, install tarballs in scratch project,
                       # compile (tsc + tsgo) and run smoke scenario
 ```
 

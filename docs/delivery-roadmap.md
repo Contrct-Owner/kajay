@@ -41,7 +41,7 @@ features without re-plumbing.
 
 **In scope**
 
-- npm workspaces + TypeScript project references per North Star §4/§5: `core`,
+- pnpm workspaces + TypeScript project references per North Star §4/§5: `core`,
   `react`, `creator-core` (stub), `creator-react` (stub), `themes` (stub),
   `apps/host-demo`.
 - TS ~6.0 strict configs (`verbatimModuleSyntax`, `erasableSyntaxOnly`,

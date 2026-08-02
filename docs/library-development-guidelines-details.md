@@ -22,7 +22,7 @@ packaged artifacts*.
   under `isolatedDeclarations` and `erasableSyntaxOnly` — no `namespace`, no runtime
   `enum`, no parameter properties — so the code is tsgo (TypeScript 7)-clean by
   construction. CI type-checks with both `tsc -b` and `tsgo`.
-- **npm workspaces + project references.** Each package owns exactly one publishable
+- **pnpm workspaces + project references.** Each package owns exactly one publishable
   API, declared in its `package.json` `exports` map. There is no other public
   surface: anything not exported is private, and deep imports
   (`@kajay/core/dist/...`) are architecture-check failures.
@@ -85,7 +85,7 @@ real consumer uses.
 - Host E2E scenarios in `apps/host-demo` are the parity ledger's currency: a parity
   checklist item is green **only** when a named scenario proves it. Scenario names
   reference checklist IDs (e.g. `parity/B3-visible-if`).
-- The **pack test** is part of this category: CI runs `npm pack` on every package,
+- The **pack test** is part of this category: CI runs `pnpm pack` on every package,
   installs the tarballs into a scratch project outside the workspace, compiles it
   under tsc and tsgo, and runs a smoke scenario. This catches broken `exports` maps,
   missing files, accidental workspace-symlink reliance, and type-emit errors that

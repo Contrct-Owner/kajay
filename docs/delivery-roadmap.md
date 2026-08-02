@@ -105,7 +105,15 @@ core question set with full logic, validation, and flow.
   `onValidateQuestion`, ...).
 
 **Entry gate:** Phase 0 exit. **Exit gate:** parity checklist sections §A–§E green,
-each item proven by a host-demo scenario test.
+each item proven by a passing named test of the kind the
+[checklist header](./feature-parity-checklist.md) permits — a host-demo scenario, a
+rendering-integration test, or a unit suite exercised through public APIs.
+
+Prefer a host-demo scenario wherever the feature is observable in the UI; some §B rows
+are not. The expression language has no UI surface until `visibleIf` exists, so
+requiring a demo scenario for it would make the row unprovable rather than rigorous.
+The bar that matters is unchanged: a named test through the public API, never an
+assertion in a document.
 
 **Out:** matrix family, dynamic panels, file/signature, quiz mode, theme JSON.
 

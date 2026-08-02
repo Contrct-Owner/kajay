@@ -52,6 +52,8 @@ export interface SurveyValidationHost {
   readonly currentPageQuestions: () => readonly Question[];
   readonly allQuestions: () => readonly Question[];
   readonly isLastPage: () => boolean;
+  /** Identifies where the respondent is standing, for comparison after a round trip. */
+  readonly currentPageName: () => string;
   readonly evaluate: ExpressionEvaluator;
   /** The answers as a host would submit them. Handed to the server validator. */
   readonly data: () => Readonly<Record<string, unknown>>;
@@ -229,10 +231,29 @@ export class SurveyValidation {
     return this.#host.isLastPage() ? this.#host.allQuestions() : [];
   }
 
-  #startAsync(questions: readonly Question[], onSettled: (isValid: boolean) => void): void {
-    // Captured now: the respondent can keep typing while the request is in flight, and
-    // an objection to a value they have already replaced is worse than no objection.
+  /**
+   * What the world looked like when the request went out.
+   *
+   * Both halves matter and neither implies the other. The answers, because a
+   * respondent can keep typing while a request is in flight and an objection to a value
+   * they have already replaced is worse than no objection. The page, because a check
+   * that comes back clean *advances* them — and a respondent who pressed Next, changed
+   * their mind and pressed Previous must not be dragged forward a moment later by a
+   * reply to a question they withdrew.
+   */
+  #snapshot(questions: readonly Question[]): () => boolean {
+    const page = this.#host.currentPageName();
     const asked = questions.map((question) => [question.name, question.value] as const);
+    return () =>
+      page !== this.#host.currentPageName() ||
+      asked.some(
+        ([name, value]) =>
+          questions.find((question) => question.name === name)?.value !== value,
+      );
+  }
+
+  #startAsync(questions: readonly Question[], onSettled: (isValid: boolean) => void): void {
+    const isStale = this.#snapshot(questions);
     this.#setValidating(true);
 
     void collectAsyncErrors({
@@ -242,15 +263,11 @@ export class SurveyValidation {
       serverValidator: this.#serverValidator,
     }).then((result) => {
       this.#setValidating(false);
-      this.#serverError = result.serverError;
-      const isStale = asked.some(
-        ([name, value]) =>
-          questions.find((question) => question.name === name)?.value !== value,
-      );
-      if (isStale) {
+      if (isStale()) {
         onSettled(false);
         return;
       }
+      this.#serverError = result.serverError;
       const isValid = this.#run(questions, result.errors) && result.serverError === undefined;
       onSettled(isValid);
     });

@@ -21,6 +21,18 @@ export async function gotoLogicShowcase(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { name: 'Logic showcase' })).toBeVisible();
 }
 
+/**
+ * Moves to the demo's third page, where §C's question types live.
+ *
+ * Page two gates nothing of its own unless a scenario has put something wrong there,
+ * so this is one more Next past the logic showcase.
+ */
+export async function gotoQuestionTypes(page: Page): Promise<void> {
+  await gotoLogicShowcase(page);
+  await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page.getByRole('heading', { name: 'Question types' })).toBeVisible();
+}
+
 async function fillIfEmpty(page: Page, label: RegExp, value: string): Promise<void> {
   const field = page.getByLabel(label);
   if ((await field.inputValue()) === '') {

@@ -89,6 +89,7 @@ export { registerBuiltInTypes } from './metadata/registerBuiltInTypes.js';
 export { CalculatedValue } from './model/CalculatedValue.js';
 export type { ChoiceFetcher } from './model/ChoiceSourceController.js';
 export { CheckboxQuestion } from './model/CheckboxQuestion.js';
+export { CommentQuestion } from './model/CommentQuestion.js';
 export { DropdownQuestion } from './model/DropdownQuestion.js';
 export { MultiSelectQuestion } from './model/MultiSelectQuestion.js';
 export { SingleSelectQuestion } from './model/SingleSelectQuestion.js';

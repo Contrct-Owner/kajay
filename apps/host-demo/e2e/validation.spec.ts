@@ -17,7 +17,7 @@ test('parity/D1-required', async ({ page }) => {
   await page.getByRole('button', { name: 'Next' }).click();
 
   // Still on page one, and the definition's own wording is what the respondent reads.
-  await expect(page.getByTestId('page-position')).toHaveText('Page 1 of 2');
+  await expect(page.getByTestId('page-position')).toHaveText('Page 1 of 3');
   await expect(page.getByRole('alert')).toHaveText('We need a name to address you by.');
 
   // Answering it makes the nickname required in turn — `requiredIf` and `isRequired`
@@ -25,7 +25,7 @@ test('parity/D1-required', async ({ page }) => {
   await page.getByLabel(/What is your name\?/u).fill('Ada');
   await page.getByRole('button', { name: 'Next' }).click();
   await expect(page.getByRole('alert')).toHaveText('This question requires an answer.');
-  await expect(page.getByTestId('page-position')).toHaveText('Page 1 of 2');
+  await expect(page.getByTestId('page-position')).toHaveText('Page 1 of 3');
 
   await page.getByLabel(/What should we call you\?/u).fill('Ada');
   await page.getByRole('button', { name: 'Next' }).click();
@@ -97,7 +97,7 @@ test('parity/D3-async-validators', async ({ page }) => {
   // A check the host registered, answering out of process. The button says so.
   await expect(page.getByRole('button', { name: 'Checking…' })).toBeDisabled();
   await expect(page.getByRole('alert')).toHaveText('"admin" is already taken.');
-  await expect(page.getByTestId('page-position')).toHaveText('Page 1 of 2');
+  await expect(page.getByTestId('page-position')).toHaveText('Page 1 of 3');
 
   await page.getByLabel(/What should we call you\?/u).fill('Ada');
   await page.getByRole('button', { name: 'Next' }).click();
@@ -109,15 +109,15 @@ test('parity/D4-server-validation', async ({ page }) => {
   await page.getByLabel('paid').check();
   await page.getByLabel('Monthly price').fill('13');
 
-  await page.getByRole('button', { name: 'Complete' }).click();
+  await page.getByRole('button', { name: 'Next' }).click();
 
   // The objection came from the host's server hook, and landed on the question it named.
   await expect(page.getByRole('alert')).toHaveText('Our billing system refuses 13. Sorry.');
-  await expect(page.getByTestId('page-position')).toHaveText('Page 2 of 2');
+  await expect(page.getByTestId('page-position')).toHaveText('Page 2 of 3');
 
   await page.getByLabel('Monthly price').fill('42');
-  await page.getByRole('button', { name: 'Complete' }).click();
-  await expect(page.getByRole('status')).toContainText('Thank you');
+  await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page.getByRole('heading', { name: 'Question types' })).toBeVisible();
 });
 
 test('parity/D5-validation-scope', async ({ page }) => {
@@ -125,8 +125,8 @@ test('parity/D5-validation-scope', async ({ page }) => {
   await page.getByLabel('paid').check();
   await page.getByLabel('Monthly price').fill('5000');
 
-  // Complete is refused by page two's own bound; page one's answers are not re-reported.
-  await page.getByRole('button', { name: 'Complete' }).click();
+  // The move is refused by page two's own bound; page one's answers are not re-reported.
+  await page.getByRole('button', { name: 'Next' }).click();
   await expect(page.getByRole('alert')).toHaveText('Please enter a value no greater than 1000.');
-  await expect(page.getByTestId('page-position')).toHaveText('Page 2 of 2');
+  await expect(page.getByTestId('page-position')).toHaveText('Page 2 of 3');
 });

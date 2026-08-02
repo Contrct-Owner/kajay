@@ -34,6 +34,7 @@ export function createValidationHost(
     allQuestions: () =>
       survey.visiblePages.flatMap((page) => collectVisibleQuestions(page.elements)),
     isLastPage: () => survey.isLastPage,
+    currentPageName: () => survey.currentPage?.name ?? '',
     ...wiring,
   };
 }

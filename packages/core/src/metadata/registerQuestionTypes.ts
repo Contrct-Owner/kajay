@@ -1,3 +1,4 @@
+import { CommentQuestion } from '../model/CommentQuestion.js';
 import { TextQuestion } from '../model/TextQuestion.js';
 import type { MetadataRegistry } from './MetadataRegistry.js';
 import { QUESTION_TYPE_DEFINITIONS } from './questionTypeDefinitions.js';
@@ -8,5 +9,9 @@ export function registerQuestionTypes(registry: MetadataRegistry): void {
   registry.addClass({
     ...QUESTION_TYPE_DEFINITIONS.text,
     create: () => new TextQuestion(),
+  });
+  registry.addClass({
+    ...QUESTION_TYPE_DEFINITIONS.comment,
+    create: () => new CommentQuestion(),
   });
 }

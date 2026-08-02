@@ -28,7 +28,13 @@ describe('parity/A3-metadata-registry', () => {
     // Stated as the invariant rather than a literal list: every property added to the
     // base would otherwise break this test without telling us anything new.
     expect(names.slice(0, inherited.length)).toEqual(inherited);
-    expect(names.slice(inherited.length)).toEqual(['inputType', 'placeholder']);
+    expect(names.slice(inherited.length)).toEqual([
+      'inputType',
+      'placeholder',
+      'min',
+      'max',
+      'step',
+    ]);
   });
 
   test('a subclass redeclaring an inherited property replaces it in place', () => {
@@ -91,8 +97,17 @@ describe('parity/A3-metadata-registry', () => {
     expect(dropdown.choicesFromQuestionMode).toBe('all');
     expect(tagbox.selectAllText).toBe('Select all');
 
-    text.inputType = '';
-    expect(text.inputType).toBe('');
+    // ADR-0016's distinction: an explicitly empty value is not an unset one, so it
+    // must not fall back to the descriptor default.
+    //
+    // Read through `getResolvedProperty` — the same lookup the typed accessors use —
+    // because `inputType` narrows an unknown value to `text` at the accessor. That set
+    // is closed because the renderer hands it straight to the DOM; the raw property
+    // still records the empty string, which is what the round-trip reads.
+    dropdown.setPropertyValue('otherText', '');
+    expect(dropdown.otherText).toBe('');
+    text.setPropertyValue('inputType', '');
+    expect(text.getResolvedProperty('inputType')).toBe('');
   });
 
   test('a creating registry overrides the built-in fallback for the same class name', () => {

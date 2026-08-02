@@ -144,6 +144,40 @@ describe('parity/D3-async-validators', () => {
     expect(survey.isCompleted).toBe(false);
   });
 
+  test('a respondent who navigated away is not dragged forward when the check lands', async () => {
+    const survey = build({
+      pages: [
+        {
+          name: 'p1',
+          elements: [
+            {
+              type: 'text',
+              name: 'nickname',
+              isRequired: true,
+              validators: [{ type: 'reservednamevalidator' }],
+            },
+          ],
+        },
+        { name: 'p2', elements: [{ type: 'text', name: 'other' }] },
+        { name: 'p3', elements: [{ type: 'text', name: 'third' }] },
+      ],
+    });
+    survey.setValue('nickname', 'ada');
+    survey.setCurrentPageNo(0);
+
+    expect(survey.nextPageOrComplete()).toBe('pending');
+    // Changed their mind. The check they started is still in flight, and it is about
+    // to come back clean — but it is a reply to a question they withdrew.
+    survey.goTo('p2');
+    await flushPendingWork();
+
+    // Still on p2. A middle page on purpose: from the last page the stale advance
+    // would complete the survey instead of moving, and the assertion could not tell
+    // "stayed put" from "had nowhere to go".
+    expect(survey.currentPageNo).toBe(1);
+    expect(survey.isCompleted).toBe(false);
+  });
+
   test('validating state is announced both ways', async () => {
     const survey = withReservedName();
     survey.setValue('nickname', 'ada');

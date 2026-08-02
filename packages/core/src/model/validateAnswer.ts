@@ -35,11 +35,16 @@ export function collectAnswerErrors(
     return [{ kind: REQUIRED_KIND, text: authored.length > 0 ? authored : DEFAULT_REQUIRED_TEXT }];
   }
 
+  // The question's own constraints first: a `min` the author wrote as a property is
+  // the same statement as a validator, made earlier, and it reads first for that reason.
   const context = { value, evaluate };
-  return question.validators.flatMap((validator) => {
-    const error = validator.validate(context);
-    return error === undefined ? [] : [error];
-  });
+  return [
+    ...question.checkValue(value),
+    ...question.validators.flatMap((validator) => {
+      const error = validator.validate(context);
+      return error === undefined ? [] : [error];
+    }),
+  ];
 }
 
 export interface QuestionCheck {

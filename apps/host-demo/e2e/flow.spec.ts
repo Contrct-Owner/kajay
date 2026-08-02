@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { gotoLogicShowcase } from './support/navigate.js';
+import { gotoLogicShowcase, gotoQuestionTypes } from './support/navigate.js';
 
 /**
  * Navigation, panels and completion — checklist §E.
@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
 
 test('parity/E5-completion-flow', async ({ page }) => {
   await page.getByLabel(/What is your name\?/u).fill('Ada');
-  await gotoLogicShowcase(page);
+  await gotoQuestionTypes(page);
   // Complete only exists on the last page: the primary button is one control that
   // changes label, so it never moves out from under the cursor.
   await page.getByRole('button', { name: 'Complete' }).click();
@@ -63,17 +63,17 @@ test('parity/E1-panel-collapse', async ({ page }) => {
 
 test('parity/E2-navigation', async ({ page }) => {
   const position = page.getByTestId('page-position');
-  await expect(position).toHaveText('Page 1 of 2');
+  await expect(position).toHaveText('Page 1 of 3');
   // Nowhere to go back to yet, so the control is absent rather than disabled.
   await expect(page.getByRole('button', { name: 'Previous' })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'About you' })).toBeVisible();
 
   await gotoLogicShowcase(page);
-  await expect(position).toHaveText('Page 2 of 2');
+  await expect(position).toHaveText('Page 2 of 3');
   await expect(page.getByRole('heading', { name: 'About you' })).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Previous' }).click();
-  await expect(position).toHaveText('Page 1 of 2');
+  await expect(position).toHaveText('Page 1 of 3');
   await expect(page.getByRole('heading', { name: 'About you' })).toBeVisible();
 });
 
@@ -96,5 +96,5 @@ test('parity/B7-trigger-skip', async ({ page }) => {
 
   // The trigger moved the respondent, and the renderer followed.
   await expect(page.getByRole('heading', { name: 'About you' })).toBeVisible();
-  await expect(page.getByTestId('page-position')).toHaveText('Page 1 of 2');
+  await expect(page.getByTestId('page-position')).toHaveText('Page 1 of 3');
 });

@@ -49,6 +49,18 @@ export abstract class Question extends PageElement {
   }
 
   /**
+   * Checks intrinsic to the question type, before any authored validator runs.
+   *
+   * A type whose own properties constrain the answer — a text question's `min`/`max`,
+   * a multipletext's per-item rules — states that here rather than requiring the author
+   * to add a validator that repeats what the property already said. Never called with
+   * an empty answer, on the same reasoning that keeps validators away from one.
+   */
+  checkValue(_value: unknown): readonly SurveyError[] {
+    return [];
+  }
+
+  /**
    * Why the current answer is unacceptable, or empty when it is fine.
    *
    * Empty before anything has been validated, which is not the same as "valid": a

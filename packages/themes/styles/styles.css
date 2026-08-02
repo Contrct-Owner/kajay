@@ -80,6 +80,44 @@
   outline-offset: 1px;
 }
 
+.kajay-question__textarea {
+  padding: calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+}
+
+.kajay-question__textarea:focus-visible {
+  outline: 2px solid var(--kajay-color-accent);
+  outline-offset: 1px;
+}
+
+.kajay-question__textarea[aria-invalid] {
+  border-color: var(--kajay-color-danger);
+}
+
+.kajay-question__counter {
+  margin: 0;
+  color: var(--kajay-color-muted);
+  font-size: 0.8125em;
+  text-align: right;
+}
+
+/* A range slider has no visible value of its own, so it gets its title and nothing
+ * else unless the host adds one. Full width so the track is worth dragging. */
+.kajay-question__input[type='range'] {
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.kajay-question__input[type='color'] {
+  width: 4rem;
+  padding: 2px;
+}
+
 .kajay-question--select {
   margin: 0;
   padding: 0;

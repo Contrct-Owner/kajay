@@ -233,5 +233,40 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
         },
       ],
     },
+    {
+      // A page per subject rather than one long one: §C adds a question type at a
+      // time, and they have nothing to do with the logic the pages above demonstrate.
+      name: 'page3',
+      title: 'Question types',
+      elements: [
+        {
+          type: 'text',
+          name: 'startDate',
+          title: 'When would you like to start?',
+          inputType: 'date',
+          // Bounds the browser offers as affordances and the engine enforces as rules.
+          min: '2026-01-01',
+          max: '2026-12-31',
+        },
+        {
+          type: 'text',
+          name: 'teamSize',
+          title: 'How many people on your team?',
+          inputType: 'number',
+          min: 1,
+          max: 500,
+          step: 1,
+        },
+        {
+          type: 'comment',
+          name: 'feedback',
+          title: 'Anything else we should know?',
+          placeholder: 'Type as much as you like — the field grows to fit.',
+          rows: 3,
+          autoGrow: true,
+          maxLength: 120,
+        },
+      ],
+    },
   ],
 };

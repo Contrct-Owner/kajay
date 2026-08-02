@@ -210,6 +210,102 @@
       ],
       "additionalProperties": true
     },
+    "comment": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "comment"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "placeholder": {
+          "type": "string",
+          "default": ""
+        },
+        "rows": {
+          "type": "number",
+          "default": 4,
+          "description": "Visible height, in lines."
+        },
+        "autoGrow": {
+          "type": "boolean",
+          "default": false,
+          "description": "Grow to fit the answer rather than scrolling."
+        },
+        "allowResize": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether the respondent may drag the field taller."
+        },
+        "maxLength": {
+          "type": "number",
+          "default": 0,
+          "description": "Length budget. 0 means none, which also hides the counter."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
     "complete": {
       "type": "object",
       "properties": {
@@ -543,6 +639,9 @@
           "$ref": "#/$defs/checkbox"
         },
         {
+          "$ref": "#/$defs/comment"
+        },
+        {
           "$ref": "#/$defs/dropdown"
         },
         {
@@ -612,6 +711,9 @@
       "oneOf": [
         {
           "$ref": "#/$defs/checkbox"
+        },
+        {
+          "$ref": "#/$defs/comment"
         },
         {
           "$ref": "#/$defs/dropdown"
@@ -1168,11 +1270,35 @@
         },
         "inputType": {
           "type": "string",
-          "default": "text"
+          "default": "text",
+          "description": "text, number, email, date, datetime-local, time, tel, url, color, range or password."
         },
         "placeholder": {
           "type": "string",
           "default": ""
+        },
+        "min": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "default": "",
+          "description": "Lower bound. A number for numeric types, an ISO string for date ones."
+        },
+        "max": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "default": "",
+          "description": "Upper bound, read the same way as min."
+        },
+        "step": {
+          "type": "number",
+          "default": 0,
+          "description": "0 lets the browser choose."
         },
         "validators": {
           "type": "array",

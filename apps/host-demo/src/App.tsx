@@ -2,6 +2,7 @@ import { parseSurvey, serializeSurvey } from '@kajay/core';
 import { Survey } from '@kajay/react';
 import type { ReactElement } from 'react';
 import { useMemo } from 'react';
+import { fetchJson } from './fetchJson.js';
 import { surveyDefinition } from './surveyDefinition.js';
 import { useSurveyData } from './useSurveyData.js';
 
@@ -11,7 +12,7 @@ function stableStringify(value: unknown): string {
 
 export function App(): ReactElement {
   const { model, diagnostics, canonical, isFixedPoint } = useMemo(() => {
-    const first = parseSurvey(surveyDefinition);
+    const first = parseSurvey(surveyDefinition, { fetchJson });
     const firstCanonical = serializeSurvey(first.survey);
     // ADR-0002: the first pass may canonicalise; the second must not change a byte.
     const secondCanonical = serializeSurvey(parseSurvey(firstCanonical).survey);

@@ -130,6 +130,28 @@ test('parity/B3-visible-if-choice', async ({ page }) => {
   await expect(page.getByLabel('management')).toBeVisible();
 });
 
+test('parity/B10-rest-choices', async ({ page }) => {
+  // The request is intercepted rather than left to hit the real service: the app's own
+  // fetch path still runs end to end, but CI never depends on a third party being up.
+  await page.route('https://jsonplaceholder.typicode.com/users', async (route) => {
+    await route.fulfill({
+      json: [
+        { id: 7, name: 'Fixture Person' },
+        { id: 8, name: 'Second Person' },
+      ],
+    });
+  });
+  await page.reload();
+
+  const contact = page.getByLabel('Who should we contact?');
+  // Two loaded choices plus the placeholder.
+  await expect(contact.locator('option')).toHaveCount(3);
+  await expect(contact).toContainText('Fixture Person');
+
+  await contact.selectOption('7');
+  await expect(page.getByTestId('survey-data')).toContainText('"contact": "7"');
+});
+
 test('parity/E5-completion-flow', async ({ page }) => {
   await page.getByLabel(/What is your name\?/u).fill('Ada');
   await page.getByRole('button', { name: 'Complete' }).click();

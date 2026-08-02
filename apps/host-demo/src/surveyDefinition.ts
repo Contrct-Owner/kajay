@@ -83,6 +83,19 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
           choices: ['Europe', 'Americas', 'Asia-Pacific'],
         },
         {
+          type: 'dropdown',
+          name: 'contact',
+          title: 'Who should we contact?',
+          // Not "Loading…": nothing clears a placeholder once the list arrives, and
+          // the model carries no loading flag for a renderer to show one.
+          placeholder: 'Choose a contact',
+          // A real HTTP call, made by the host's fetcher. The response is the array
+          // itself, so no choicesPath is needed.
+          choicesByUrl: 'https://jsonplaceholder.typicode.com/users',
+          choicesValueName: 'id',
+          choicesTitleName: 'name',
+        },
+        {
           type: 'radiogroup',
           name: 'seniority',
           title: 'How senior are you?',

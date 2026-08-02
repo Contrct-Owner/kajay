@@ -1,7 +1,7 @@
 import type { ChoiceFetcher } from '../logic/createChoicesByUrlRule.js';
 import type { ChildCollectionDescriptor } from '../metadata/ClassDescriptor.js';
 import { globalRegistry } from '../metadata/globalRegistry.js';
-import type { MetadataRegistry } from '../metadata/MetadataRegistry.js';
+import { MetadataRegistry } from '../metadata/MetadataRegistry.js';
 import { matchesPropertyType } from '../metadata/PropertyDescriptor.js';
 import type { PropertyDescriptor } from '../metadata/PropertyDescriptor.js';
 import { Survey } from '../model/Survey.js';
@@ -47,6 +47,11 @@ function assertSupportedSchemaVersion(definition: Record<string, unknown>): void
   }
 }
 
+export interface ParseOptions {
+  /** Supplies `choicesByUrl` loading. Core is I/O-free, so the host provides it. */
+  readonly fetchJson?: ChoiceFetcher;
+}
+
 /**
  * Reads a definition into a model.
  *
@@ -54,17 +59,20 @@ function assertSupportedSchemaVersion(definition: Record<string, unknown>): void
  * there is no useful model to hand back. Everything else — unknown properties, wrong
  * value types — is reported as a diagnostic so the caller sees the whole picture at
  * once instead of one error per attempt.
+ *
+ * The second argument accepts either a registry or the options, because a host that
+ * only wants to pass `fetchJson` should not have to name a registry it does not care
+ * about. The host-demo found this the moment it needed a fetcher.
  */
-export interface ParseOptions {
-  /** Supplies `choicesByUrl` loading. Core is I/O-free, so the host provides it. */
-  readonly fetchJson?: ChoiceFetcher;
-}
-
 export function parseSurvey(
   definition: unknown,
-  registry: MetadataRegistry = globalRegistry,
-  options: ParseOptions = {},
+  registryOrOptions?: MetadataRegistry | ParseOptions,
+  maybeOptions: ParseOptions = {},
 ): ParseResult {
+  const usedRegistry = registryOrOptions instanceof MetadataRegistry;
+  const registry = usedRegistry ? registryOrOptions : globalRegistry;
+  const options = usedRegistry ? maybeOptions : (registryOrOptions ?? maybeOptions);
+
   if (!isJsonObject(definition)) {
     throw new TypeError(
       `A survey definition must be a JSON object; received ${describeType(definition)}.`,

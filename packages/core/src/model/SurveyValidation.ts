@@ -4,6 +4,7 @@ import type { ServerValidator } from './ServerValidator.js';
 import type { SurveyError } from './SurveyError.js';
 import type { ExpressionEvaluator } from './validateAnswer.js';
 import { clearQuestionErrors, validateQuestions } from './validateAnswer.js';
+import type { AsyncValidationResult } from './validateAnswerAsync.js';
 import { collectAsyncErrors, hasAsyncWork } from './validateAnswerAsync.js';
 
 /**
@@ -263,10 +264,48 @@ export class SurveyValidation {
       evaluate: this.#host.evaluate,
       data: this.#host.data(),
       serverValidator: this.#serverValidator,
-    }).then((result) => {
+    }).then(
+      (result) => {
+        this.#settleAsync(questions, isStale, onSettled, result);
+      },
+      // `collectAsyncErrors` turns every failure it can foresee into data, but it is not
+      // the last word on what can go wrong out here: a server hook that resolves with
+      // something which is not a list of errors fails *inside* it, past its own guards.
+      // A rejection is therefore treated as exactly what it is — a check that could not
+      // be performed, blaming no answer.
+      (cause: unknown) => {
+        this.#settleAsync(questions, isStale, onSettled, {
+          errors: new Map(),
+          failure: describeFailure(cause),
+        });
+      },
+    );
+  }
+
+  /**
+   * Applies what the checks reported, and stops validating **whatever happens**.
+   *
+   * The `finally` is load-bearing rather than tidy. Between entering this method and
+   * leaving it the model runs every check again and flushes to whatever the host has
+   * subscribed — a renderer, in practice — so a listener that throws would otherwise
+   * leave `isValidating` true for good. A respondent sees that as a Next button reading
+   * "Checking…" that never comes back: a hung survey with no error and no way forward,
+   * which is precisely the failure the async validators had before `runOne` caught it.
+   *
+   * A throw is reported the same way that one is — as a check failure rather than an
+   * objection to an answer — because it is the host's bug and nothing the respondent
+   * typed is at fault. Swallowing it silently would leave them pressing a button that
+   * refuses to move with nothing on screen to say why.
+   */
+  #settleAsync(
+    questions: readonly Question[],
+    isStale: () => boolean,
+    onSettled: (isValid: boolean) => void,
+    result: AsyncValidationResult,
+  ): void {
+    let isValid = false;
+    try {
       if (isStale()) {
-        this.#setValidating(false);
-        onSettled(false);
         return;
       }
       // Everything the renderer reads is settled *before* the event that makes it
@@ -275,10 +314,14 @@ export class SurveyValidation {
       // It happened to work — React flushes after the current task — but relying on a
       // scheduler for state consistency is a bug waiting for a slow frame.
       this.#checkError = result.failure;
-      const isValid = this.#run(questions, result.errors) && result.failure === undefined;
+      isValid = this.#run(questions, result.errors) && result.failure === undefined;
+    } catch (cause) {
+      this.#checkError = describeFailure(cause);
+      isValid = false;
+    } finally {
       this.#setValidating(false);
-      onSettled(isValid);
-    });
+    }
+    onSettled(isValid);
   }
 
   #setValidating(isValidating: boolean): void {
@@ -299,4 +342,9 @@ export class SurveyValidation {
     this.#host.flush();
     return isValid;
   }
+}
+
+/** The same wording a validator that threw gets, for the same reason. */
+function describeFailure(cause: unknown): string {
+  return cause instanceof Error ? cause.message : String(cause);
 }

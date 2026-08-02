@@ -176,6 +176,13 @@ describe('parity/D3-async-validators', () => {
     // "stayed put" from "had nowhere to go".
     expect(survey.currentPageNo).toBe(1);
     expect(survey.isCompleted).toBe(false);
+
+    // And the survey is usable again. Discarding a reply nobody is waiting for must
+    // still put the flag down, or the respondent who changed their mind is left with a
+    // Next button reading "Checking…" for the rest of the survey.
+    expect(survey.validation.isValidating).toBe(false);
+    expect(survey.nextPageOrComplete()).toBe('advanced');
+    expect(survey.currentPageNo).toBe(2);
   });
 
   test('validating state is announced both ways', async () => {

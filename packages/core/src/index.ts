@@ -4,6 +4,29 @@
 export { generateContract } from './contract/generateContract.js';
 export { EventEmitter } from './events/EventEmitter.js';
 
+// --- Dependency graph (ADR-0004) ------------------------------------------
+export type { DependencyError, DependencyErrorCode } from './dependencies/DependencyError.js';
+export { DependencyGraph } from './dependencies/DependencyGraph.js';
+export type { DependencyPlan } from './dependencies/DependencyGraph.js';
+export type { DependencyNode } from './dependencies/DependencyNode.js';
+export {
+  ANY_INDEX,
+  formatPattern,
+  generalizeIndices,
+  pathMatchesPattern,
+} from './dependencies/DependencyPattern.js';
+export type {
+  AnyIndexSegment,
+  DependencyPattern,
+  PatternSegment,
+} from './dependencies/DependencyPattern.js';
+export { runDependencyTransaction } from './dependencies/runDependencyTransaction.js';
+export type {
+  ComputeNode,
+  TransactionOptions,
+  TransactionResult,
+} from './dependencies/runDependencyTransaction.js';
+
 // --- Expression language (ADR-0003) ---------------------------------------
 export {
   createDefaultFunctionRegistry,

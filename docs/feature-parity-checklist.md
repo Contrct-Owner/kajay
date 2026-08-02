@@ -55,7 +55,7 @@ Proof naming convention: `parity/<row-id>-<slug>` (e.g. `parity/B3-visible-if`).
 | B5 | `setValueIf` + `setValueExpression`, `resetValueIf`, `defaultValueExpression` | ☐ | |
 | B6 | Calculated values (survey-level `calculatedValues`, usable in expressions and completed HTML) | ☐ | |
 | B7 | Triggers: complete, setvalue, copyvalue, runexpression, skip | ☐ | |
-| B8 | Dependency graph: value change re-evaluates only dependents; cycles detected and reported | ☐ | Partial: static reference extraction from the AST (the graph's input) proven by `reference collection for the dependency graph`; the graph itself is not built |
+| B8 | Dependency graph: value change re-evaluates only dependents; cycles detected and reported | ☑ | `parity/B8-dependency-graph` (selective re-evaluation, ordering), `parity/B8-cycle-reporting` (participating nodes named), `parity/B8-pattern-edges` (dynamic collections), unit, through public API |
 | B9 | Carry-forward choices (`choicesFromQuestion`, selected/unselected modes) | ☐ | |
 | B10 | REST choices (`choicesByUrl`: url/path/valueName/titleName, caching, url with `{question}` placeholders) | ☐ | |
 

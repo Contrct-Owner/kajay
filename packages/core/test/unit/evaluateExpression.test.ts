@@ -7,6 +7,9 @@ import {
   parseExpression,
 } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
+// Internal by design — a host has no reason to hold a parse cache — but the engine
+// parses every expression through it on every settle, so it stays proven.
+import { ExpressionCache } from '../../src/expressions/ExpressionCache.js';
 
 /** A fixed clock: date-dependent expressions must not depend on when tests run. */
 const NOW = new Date('2026-08-02T12:34:56.000Z');
@@ -218,5 +221,24 @@ describe('reference collection for the dependency graph', () => {
 
   test('an expression with no references collects nothing', () => {
     expect(collectReferences(parseExpression('1 + 2').node)).toEqual([]);
+  });
+});
+
+describe('ExpressionCache', () => {
+  test('returns the same parse for the same source', () => {
+    const cache = new ExpressionCache();
+    const first = cache.parse('{a} == 1');
+    const second = cache.parse('{a} == 1');
+    expect(second).toBe(first);
+    expect(cache.size).toBe(1);
+  });
+
+  test('distinct sources are parsed separately and clear empties the cache', () => {
+    const cache = new ExpressionCache();
+    cache.parse('{a}');
+    cache.parse('{b}');
+    expect(cache.size).toBe(2);
+    cache.clear();
+    expect(cache.size).toBe(0);
   });
 });

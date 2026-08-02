@@ -28,7 +28,7 @@ proven by the host application and the parity checklist. Phase 4 is horizon.
 | Phase | Goal | Exit gate | Status |
 | --- | --- | --- | --- |
 | **0 — Foundation** | Monorepo + metadata kernel + one question end-to-end | A JSON definition renders in host-demo via public API only, round-trips, and all CI gates are green | **complete (2026-08-02)** |
-| **1 — Runtime core** | Expression engine, core question types, logic, validation, flow | Checklist §A–§E green via host-demo scenarios | proposed |
+| **1 — Runtime core** | Expression engine, core question types, logic, validation, flow | Checklist §A–§E green via host-demo scenarios, less the rows that name later-phase surface | proposed |
 | **2 — Form Library parity** | Matrix family, dynamic panels, quiz, theming, localization, a11y | Checklist §A–§J (all Form Library sections) green | proposed |
 | **3 — Creator parity** ⭐ | Drag-drop designer, property grid, logic/JSON/translation/theme editors | Checklist §K–§N green; build→render→round-trip proven in host-demo | proposed (overall AC) |
 | **4 — Horizon** | PDF, dashboard, other frameworks, SSR | Opportunity-driven | horizon |
@@ -114,6 +114,22 @@ each item proven by a passing named test of the kind the
 [checklist header](./feature-parity-checklist.md) permits — a host-demo scenario, a
 rendering-integration test, or a unit suite exercised through public APIs.
 
+**Except the rows that name surface a later phase builds.** Those cannot go green here
+however much Phase 1 work is done, and reading the gate literally would make the
+milestone unreachable rather than demanding. Each such row says on its face which phase
+closes it, and the exception is exhausted by this list:
+
+| Row | Closes in | Because |
+| --- | --- | --- |
+| A4, A5 | Phase 3 | Both wait on the Creator's property grid and renderer registration. |
+| A7 | Phase 2 | The upload, dynamic-panel and matrix events cannot exist before their features do. |
+| D1 (matrix half) | Phase 2 | `isRequired` on a matrix row needs matrix rows. |
+| E3 (correct-answer bar) | Phase 2 | It counts `correctAnswer`, which is quiz scoring. |
+| E8 | Phase 2 | Quiz mode entire — see the decision below. |
+
+A row on this list is green for Phase 1's purposes when everything *not* naming later
+surface is proven and the row states the remainder. Anything else is not.
+
 Prefer a host-demo scenario wherever the feature is observable in the UI; some §B rows
 are not. The expression language has no UI surface until `visibleIf` exists, so
 requiring a demo scenario for it would make the row unprovable rather than rigorous.
@@ -121,17 +137,26 @@ The bar that matters is unchanged: a named test through the public API, never an
 assertion in a document.
 
 **Progress (2026-08-02).** §A closed but for A4/A5/A7, which name Phase 2–3 surface.
-§B closed but for B2 (async function registration) and B6 (needs `completedHtml`), with
-B11 newly scheduled. §C partial: C5/C6 lack lazy paging, and C7–C12 are not started.
-§D closed but for D1's matrix half: six built-in validators, three `checkErrorsMode`
-policies, error placement, the `validationEnabled` toggle, focus-to-first-error,
-host-registered async validators and the server seam. D1 is closed for every question
-type that exists; matrix rows are §F. §E1 and §E2 closed — panels nest, collapse and carry their own
-`visibleIf`/`enableIf`; navigation counts visible pages and `questionsOnPageMode`
-reshapes what the respondent walks through without touching the definition. That closed
-B3 and made B7's `skip` observable for the first time. E3–E10 remain.
+§B closed but for B2 (async function registration) and B11, which is scheduled. **§C
+closed** but for C1's `maskSettings`, which is not built and says so: input masking is a
+caret-management problem, and a half-mask that mangles mid-string editing is worse than
+none. §D closed but for D1's matrix half. **§E closed but for E3's correct-answer bar and
+E8**, both of which now belong to Phase 2: pages and panels, navigation and
+`questionsOnPageMode`, the completed page with conditional endings, clear-invisible-value
+policies, partial save and resume, read-only mode, preview before completing, the
+progress bar and contents list, autofocus and automatic advance are all proven by named
+tests. Preview, TOC and read-only were listed as Phase 2 work and landed here instead,
+because E4 needed E7 and both were cheaper than deferring them.
 
 **Out:** matrix family, dynamic panels, file/signature, quiz mode, theme JSON.
+
+**Quiz mode (§E8) is Phase 2, decided 2026-08-02.** It was in both lists at once: named
+under *Out* here and demanded by an exit gate that asks for §E green. Phase 2 already
+owns quiz mode in its own scope list, and E8 is the least load-bearing row in §E — no
+other row waits on it — so the gate moves rather than the work. It also needs a decision
+Phase 1 has no reason to take: timers put *time* in the model, and core is I/O-free by
+rule, so the clock has to be injected or the suite becomes flaky in exactly the way this
+project keeps having to fix. That belongs beside Phase 2's other time-adjacent work.
 
 ## Phase 2 — Form Library parity
 
@@ -143,8 +168,13 @@ B3 and made B7's `skip` observable for the first time. E3–E10 remain.
   rows, per-cell question types, totals, detail panels).
 - paneldynamic (repeating groups, templates, navigation modes).
 - File upload, signature pad, choices-by-URL, carry-forward choices.
-- Quiz mode: timers, correct answers, scoring, instant feedback.
-- Preview mode, TOC, single-page and question-per-page modes, read-only/display mode.
+- **Quiz mode: timers, correct answers, scoring, instant feedback (§E8), and the
+  correct-answer progress bar (§E3's remaining half), moved here from Phase 1 on
+  2026-08-02.** Needs an injected clock: core is I/O-free by rule, and a model that
+  reaches for `Date.now()` makes every timed test a race.
+- ~~Preview mode, TOC, single-page and question-per-page modes, read-only/display
+  mode~~ — all landed in Phase 1 (§E2, §E3, §E4, §E7). E4's preview needed E7's
+  read-only, and building both there was cheaper than deferring either.
 - Theming: CSS variable system, theme JSON format, `@kajay/themes` presets,
   light/dark; RTL.
 - Localization at breadth (locale dictionary infrastructure + seed locales; breadth

@@ -1,5 +1,8 @@
 import { CalculatedValue } from '../model/CalculatedValue.js';
+import { CheckboxQuestion } from '../model/CheckboxQuestion.js';
+import { ItemValue } from '../model/ItemValue.js';
 import { Page } from '../model/Page.js';
+import { RadiogroupQuestion } from '../model/RadiogroupQuestion.js';
 import { Survey } from '../model/Survey.js';
 import { TextQuestion } from '../model/TextQuestion.js';
 import { Trigger } from '../model/Trigger.js';
@@ -203,6 +206,59 @@ function registerQuestionTypes(registry: MetadataRegistry): void {
   });
 }
 
+function registerChoiceItemType(registry: MetadataRegistry): void {
+  registry.addClass({
+    name: 'itemvalue',
+    properties: [
+      { name: 'value', type: 'value', isRequired: true },
+      { name: 'text', type: 'string', description: 'Display text; falls back to the value.' },
+      { ...VISIBLE_IF, description: 'Expression; the choice is offered only while truthy.' },
+    ],
+    create: () => new ItemValue(),
+  });
+}
+
+/** Abstract base for questions answered by picking from a list. */
+function registerSelectBase(registry: MetadataRegistry): void {
+  registry.addClass({
+    name: 'selectbase',
+    parent: 'question',
+    isAbstract: true,
+    properties: [
+      { name: 'choicesOrder', type: 'string', description: 'none, asc or desc.' },
+      { name: 'colCount', type: 'number' },
+      { name: 'showOtherItem', type: 'boolean' },
+      { name: 'otherText', type: 'string', defaultValue: 'Other' },
+      { name: 'showNoneItem', type: 'boolean' },
+      { name: 'noneText', type: 'string', defaultValue: 'None' },
+    ],
+    childCollections: [
+      // `choices: ["a", "b"]` is how choice lists are actually written.
+      { property: 'choices', elementBaseType: 'itemvalue', shorthandProperty: 'value' },
+    ],
+  });
+}
+
+function registerSelectQuestionTypes(registry: MetadataRegistry): void {
+  registry.addClass({
+    name: 'radiogroup',
+    parent: 'selectbase',
+    properties: [{ name: 'showClearButton', type: 'boolean' }],
+    create: () => new RadiogroupQuestion(),
+  });
+
+  registry.addClass({
+    name: 'checkbox',
+    parent: 'selectbase',
+    properties: [
+      { name: 'showSelectAllItem', type: 'boolean' },
+      { name: 'selectAllText', type: 'string', defaultValue: 'Select all' },
+      { name: 'maxSelectedChoices', type: 'number', description: '0 means no limit.' },
+    ],
+    create: () => new CheckboxQuestion(),
+  });
+}
+
 /** Registers the built-in type set. Parents must be registered before their children. */
 export function registerBuiltInTypes(registry: MetadataRegistry): void {
   registerSurveyType(registry);
@@ -212,5 +268,8 @@ export function registerBuiltInTypes(registry: MetadataRegistry): void {
   registerFlowTriggers(registry);
   registerPageType(registry);
   registerQuestionBase(registry);
+  registerChoiceItemType(registry);
+  registerSelectBase(registry);
   registerQuestionTypes(registry);
+  registerSelectQuestionTypes(registry);
 }

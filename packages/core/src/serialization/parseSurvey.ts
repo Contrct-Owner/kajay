@@ -175,25 +175,54 @@ function readChildren(
 
   const allowedTypes = context.registry.getConcreteSubclasses(childCollection.elementBaseType);
   for (const [index, child] of raw.entries()) {
-    const resolved = resolveChild(child, `${collectionPath}/${index}`, allowedTypes, childCollection.elementBaseType, context);
+    const resolved = resolveChild(
+      child,
+      `${collectionPath}/${index}`,
+      allowedTypes,
+      childCollection,
+      context,
+    );
     if (resolved !== undefined) {
       element.addChild(childCollection.property, resolved);
     }
   }
 }
 
-function resolveChild(
+/**
+ * Expands a shorthand child into its object form.
+ *
+ * `"a"` inside a collection declaring `shorthandProperty: 'value'` means
+ * `{ value: "a" }`. Returns undefined when the collection has no shorthand, so the
+ * caller can report the entry as malformed instead.
+ */
+function expandShorthand(
   child: unknown,
+  collection: ChildCollectionDescriptor,
+): Record<string, unknown> | undefined {
+  const { shorthandProperty } = collection;
+  if (shorthandProperty === undefined) {
+    return undefined;
+  }
+  if (typeof child === 'string' || typeof child === 'number' || typeof child === 'boolean') {
+    return { [shorthandProperty]: child };
+  }
+  return undefined;
+}
+
+function resolveChild(
+  rawChild: unknown,
   childPath: string,
   allowedTypes: readonly string[],
-  elementBaseType: string,
+  collection: ChildCollectionDescriptor,
   context: ReadContext,
 ): SurveyElement | undefined {
-  if (!isJsonObject(child)) {
+  const elementBaseType = collection.elementBaseType;
+  const child = isJsonObject(rawChild) ? rawChild : expandShorthand(rawChild, collection);
+  if (child === undefined) {
     context.diagnostics.push({
       severity: 'error',
       code: 'invalid-element',
-      message: `Element must be an object; received ${describeType(child)}.`,
+      message: `Element must be an object; received ${describeType(rawChild)}.`,
       path: childPath,
     });
     return undefined;

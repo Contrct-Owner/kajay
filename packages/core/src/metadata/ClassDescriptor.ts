@@ -16,6 +16,15 @@ export interface ChildCollectionDescriptor {
    * subclasses are legal here.
    */
   readonly elementBaseType: string;
+  /**
+   * Property a bare scalar is read into, when the collection accepts a shorthand.
+   *
+   * `choices: ["a", "b"]` is how anyone actually writes a choice list, and it means
+   * `[{ value: "a" }, { value: "b" }]`. The expansion happens on the way in, so the
+   * canonical form has one shape — which is exactly the case ADR-0002 cites for why
+   * the round-trip bar is a fixed point rather than byte stability.
+   */
+  readonly shorthandProperty?: string;
 }
 
 /** Input form of a class registration. */

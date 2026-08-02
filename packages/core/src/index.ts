@@ -116,6 +116,10 @@ export type {
 } from './metadata/PropertyDescriptor.js';
 export { registerBuiltInTypes } from './metadata/registerBuiltInTypes.js';
 export { CalculatedValue } from './model/CalculatedValue.js';
+export { CheckboxQuestion } from './model/CheckboxQuestion.js';
+export { ItemValue } from './model/ItemValue.js';
+export { RadiogroupQuestion } from './model/RadiogroupQuestion.js';
+export { NONE_VALUE, OTHER_VALUE, SelectQuestion } from './model/SelectQuestion.js';
 export { Page } from './model/Page.js';
 export { Question } from './model/Question.js';
 export { Survey } from './model/Survey.js';

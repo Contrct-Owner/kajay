@@ -1,6 +1,7 @@
 import { TextQuestion } from '@kajay/core';
 import type { ChangeEvent, ReactElement } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
+import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
 
 export function TextQuestionRenderer({ survey, question }: QuestionRendererProps): ReactElement {
@@ -19,12 +20,7 @@ export function TextQuestionRenderer({ survey, question }: QuestionRendererProps
   return (
     <div className="kajay-question" data-question-name={question.name}>
       <label className="kajay-question__title" htmlFor={inputId}>
-        {question.title}
-        {question.isRequired ? (
-          <span className="kajay-question__required" aria-hidden="true">
-            {' *'}
-          </span>
-        ) : null}
+        <QuestionTitleContent question={question} />
       </label>
       <input
         id={inputId}

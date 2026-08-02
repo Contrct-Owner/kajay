@@ -50,7 +50,7 @@ Proof naming convention: `parity/<row-id>-<slug>` (e.g. `parity/B3-visible-if`).
 | --- | --- | --- | --- |
 | B1 | Expression language: literals, `{question}` refs incl. composite paths (`{matrix.row.col}`, `{panel[0].q}`), arithmetic, comparison, and/or/not, contains/anyof/allof, empty/notempty | ☑ | `parity/B1-expression-grammar` (precedence/associativity via print round-trip) + `parity/B1-operators` (evaluation), unit, through public API |
 | B2 | Built-in function library (iif, sum, avg, min, max, count, age, today, currentDate, getDate, diffDays, ...) + custom sync and async function registration | ☐ | Partial: library and **sync** custom registration proven by `built-in function library`; async registration not built |
-| B3 | `visibleIf` on questions, panels, pages, and individual choices | ☐ | Partial: **questions and pages** closed by `parity/B3-visible-if` (unit, browser, host E2E). Panels and choices cannot be proven yet — neither the panel element (§E1) nor any choice-based question type (§C3–C6) exists. The mechanism is registry-driven, so both are registration rather than new logic |
+| B3 | `visibleIf` on questions, panels, pages, and individual choices | ☐ | Partial: **questions, pages and individual choices** closed by `parity/B3-visible-if` and `parity/B3-visible-if-choice` (unit, browser, host E2E). Only panels remain, awaiting the panel element (§E1) |
 | B4 | `enableIf` / `requiredIf` | ☑ | `parity/B4-enable-if`, `parity/B4-required-if` (unit, browser, host E2E). Scope: questions, the only element that holds an answer — `requiredIf` is meaningless elsewhere. Container-level `enableIf` arrives with panels (§E1) |
 | B5 | `setValueIf` + `setValueExpression`, `resetValueIf`, `defaultValueExpression` | ☑ | `parity/B5-default-value-expression` (unit + host E2E), `parity/B5-set-value-if`, `parity/B5-reset-value-if` (unit). Precedence reset > set > default is defined in `createValueRule`, not left to graph ordering |
 | B6 | Calculated values (survey-level `calculatedValues`, usable in expressions and completed HTML) | ☐ | Partial: `parity/B6-calculated-values` (unit + host E2E) covers computation, chaining, use from question expressions, and `includeIntoResult`. "Completed HTML" cannot be proven — `completedHtml` is §E5 and does not exist yet |
@@ -65,8 +65,8 @@ Proof naming convention: `parity/<row-id>-<slug>` (e.g. `parity/B3-visible-if`).
 | --- | --- | --- | --- |
 | C1 | text — all inputTypes (text, number, email, date, datetime-local, time, tel, url, color, range, password), min/max, step, maskSettings (numeric, currency, datetime, pattern) | ☐ | |
 | C2 | comment (multi-line, autoGrow, character counter) | ☐ | |
-| C3 | radiogroup (choices, otherItem, noneItem, showClearButton, colCount, choicesOrder) | ☐ | |
-| C4 | checkbox (selectAll, none, other, maxSelectedChoices, colCount) | ☐ | |
+| C3 | radiogroup (choices, otherItem, noneItem, showClearButton, colCount, choicesOrder) | ☑ | `parity/C3-radiogroup` (unit), `parity/C3-C4-select-questions` (host E2E), browser proof for selection. `choicesOrder` supports none/asc/desc; random is deferred as it would make the suite non-deterministic |
+| C4 | checkbox (selectAll, none, other, maxSelectedChoices, colCount) | ☑ | `parity/C4-checkbox` (unit), `parity/C3-C4-select-questions` (host E2E), browser proof for multi-select |
 | C5 | dropdown (search/filter, lazy loading, placeholder, showOtherItem) | ☐ | |
 | C6 | tagbox (multi-select dropdown with search + lazy load) | ☐ | |
 | C7 | boolean (switch + radio render modes, labelTrue/False, valueTrue/False) | ☐ | |

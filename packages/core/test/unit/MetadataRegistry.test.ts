@@ -70,7 +70,13 @@ describe('parity/A3-metadata-registry', () => {
 
   test('getConcreteSubclasses omits abstract classes', () => {
     const registry = createTestRegistry();
-    expect(registry.getConcreteSubclasses('question')).toEqual(['text']);
+    const concrete = registry.getConcreteSubclasses('question');
+
+    expect(concrete).toContain('text');
+    // The point of the rule, stated directly: bases are excluded however many
+    // concrete types get added beneath them.
+    expect(concrete).not.toContain('question');
+    expect(concrete).not.toContain('selectbase');
   });
 
   test('refuses to instantiate an abstract class', () => {

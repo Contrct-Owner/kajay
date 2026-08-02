@@ -1,9 +1,12 @@
 import { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
+import { SelectQuestionRenderer } from './SelectQuestionRenderer.js';
 import { TextQuestionRenderer } from './TextQuestionRenderer.js';
 
 function createDefaultRenderers(): QuestionRendererRegistry {
   const registry = new QuestionRendererRegistry();
   registry.register('text', TextQuestionRenderer);
+  registry.register('radiogroup', SelectQuestionRenderer);
+  registry.register('checkbox', SelectQuestionRenderer);
   return registry;
 }
 

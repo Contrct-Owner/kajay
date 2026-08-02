@@ -113,6 +113,23 @@ test('parity/B7-triggers', async ({ page }) => {
   await expect(status).toHaveValue('complete');
 });
 
+test('parity/C3-C4-select-questions', async ({ page }) => {
+  await page.getByLabel('engineering').check();
+  await page.getByLabel('design').check();
+  await expect(page.getByTestId('survey-data')).toContainText('"engineering"');
+
+  // `none` is exclusive: choosing it clears the rest.
+  await page.getByLabel('None').check();
+  const answers = await page.getByTestId('survey-data').textContent();
+  expect(JSON.parse(answers ?? '{}')['topics']).toEqual(['none']);
+});
+
+test('parity/B3-visible-if-choice', async ({ page }) => {
+  await expect(page.getByLabel('management')).toHaveCount(0);
+  await page.getByLabel('Manager').check();
+  await expect(page.getByLabel('management')).toBeVisible();
+});
+
 test('parity/E5-completion-flow', async ({ page }) => {
   await page.getByLabel(/What is your name\?/u).fill('Ada');
   await page.getByRole('button', { name: 'Complete' }).click();

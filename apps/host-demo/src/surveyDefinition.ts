@@ -69,12 +69,32 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
           visibleIf: '{status} notempty',
         },
         {
+          type: 'checkbox',
+          name: 'topics',
+          title: 'What should we talk about?',
+          choices: ['engineering', 'design', { value: 'management', visibleIf: '{seniority} == 1' }],
+          showNoneItem: true,
+        },
+        {
+          type: 'radiogroup',
+          name: 'seniority',
+          title: 'How senior are you?',
+          choices: [
+            { value: 0, text: 'Individual contributor' },
+            { value: 1, text: 'Manager' },
+          ],
+        },
+        {
           type: 'text',
           name: 'greeting',
           title: 'How we will greet you',
           // Prefilled from the answers above and kept in step with them — until you
           // type over it, after which it is yours.
-          defaultValueExpression: "'Hello, ' + {nickname}",
+          //
+          // Guarded with iif because a hidden question's rules still run: clearing
+          // values for invisible questions is §E9 and does not exist yet, so without
+          // this the survey would carry a half-built "Hello, " from the start.
+          defaultValueExpression: "iif({nickname} notempty, 'Hello, ' + {nickname}, '')",
           visibleIf: '{nickname} notempty',
         },
       ],

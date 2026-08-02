@@ -23,9 +23,16 @@ describe('parity/A6-contract-generated-from-registry', () => {
   });
 
   test('projects an abstract class as a union of its concrete subclasses', () => {
-    const contract = generateContract(createTestRegistry());
-    const definitions = contract['$defs'] as Record<string, Record<string, unknown>>;
-    expect(definitions['question']?.['oneOf']).toEqual([{ $ref: '#/$defs/text' }]);
+    const registry = createTestRegistry();
+    const definitions = generateContract(registry)['$defs'] as Record<
+      string,
+      Record<string, unknown>
+    >;
+    // Derived from the registry rather than listed, so adding a question type does not
+    // break this test without telling us anything.
+    expect(definitions['question']?.['oneOf']).toEqual(
+      registry.getConcreteSubclasses('question').map((name) => ({ $ref: `#/$defs/${name}` })),
+    );
   });
 
   test('requires the type discriminator only where an abstract ancestor exists', () => {
@@ -71,10 +78,9 @@ describe('parity/A6-contract-generated-from-registry', () => {
     });
     const contract = generateContract(registry);
     const definitions = contract['$defs'] as Record<string, Record<string, unknown>>;
+
     expect(definitions['rating']).toBeDefined();
-    expect(definitions['question']?.['oneOf']).toEqual([
-      { $ref: '#/$defs/rating' },
-      { $ref: '#/$defs/text' },
-    ]);
+    // The custom type joins the union without any further wiring — the point of A4.
+    expect(definitions['question']?.['oneOf']).toContainEqual({ $ref: '#/$defs/rating' });
   });
 });

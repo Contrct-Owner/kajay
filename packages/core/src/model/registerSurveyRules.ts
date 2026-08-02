@@ -7,6 +7,7 @@ import type { LogicEngine } from '../logic/LogicEngine.js';
 import type { CalculatedValue } from './CalculatedValue.js';
 import type { ElementStateController } from './ElementStateController.js';
 import type { Question } from './Question.js';
+import { SelectQuestion } from './SelectQuestion.js';
 import type { SurveyChildren } from './SurveyChildren.js';
 import type { SurveyElement } from './SurveyElement.js';
 import type { Trigger } from './Trigger.js';
@@ -121,6 +122,21 @@ function registerValueRule(question: Question, owner: string, host: RuleHost): v
 }
 
 /**
+ * Individual choices carry their own `visibleIf`.
+ *
+ * Choices are keyed by index rather than by value, because two choices may legitimately
+ * share a value and a rule key has to be unique.
+ */
+function registerChoiceConditions(question: Question, owner: string, host: RuleHost): void {
+  if (!(question instanceof SelectQuestion)) {
+    return;
+  }
+  for (const [index, choice] of question.choices.entries()) {
+    registerConditions(choice, `${owner}:choice:${index}`, host);
+  }
+}
+
+/**
  * Registers every rule the definition declares.
  *
  * Calculated values go first only for readability — the dependency graph orders
@@ -139,6 +155,7 @@ export function registerSurveyRules(children: SurveyChildren, host: RuleHost): v
       const owner = `question:${question.name}`;
       registerConditions(question, owner, host);
       registerValueRule(question, owner, host);
+      registerChoiceConditions(question, owner, host);
     }
   }
 }

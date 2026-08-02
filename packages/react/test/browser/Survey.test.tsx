@@ -141,6 +141,69 @@ test('parity/B4-required-if: requiredness follows the condition', async () => {
   await expect.element(screen.getByLabelText('Maybe')).toHaveAttribute('aria-required', 'true');
 });
 
+test('parity/C3-radiogroup: picking a choice records it', async () => {
+  const model = parseSurvey({
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          { type: 'radiogroup', name: 'size', title: 'Size', choices: ['small', 'large'] },
+        ],
+      },
+    ],
+  }).survey;
+
+  const screen = await render(<Survey model={model} />);
+
+  await screen.getByLabelText('large').click();
+  expect(model.data).toEqual({ size: 'large' });
+  await expect.element(screen.getByLabelText('large')).toBeChecked();
+});
+
+test('parity/C4-checkbox: multiple choices accumulate', async () => {
+  const model = parseSurvey({
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          { type: 'checkbox', name: 'toppings', title: 'Toppings', choices: ['cheese', 'ham'] },
+        ],
+      },
+    ],
+  }).survey;
+
+  const screen = await render(<Survey model={model} />);
+
+  await screen.getByLabelText('cheese').click();
+  await screen.getByLabelText('ham').click();
+  expect(model.data).toEqual({ toppings: ['cheese', 'ham'] });
+});
+
+test('parity/B3-visible-if: a choice appears once its own condition holds', async () => {
+  const model = parseSurvey({
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          { type: 'text', name: 'gate', title: 'Gate' },
+          {
+            type: 'radiogroup',
+            name: 'pick',
+            title: 'Pick',
+            choices: ['always', { value: 'sometimes', visibleIf: "{gate} == 'yes'" }],
+          },
+        ],
+      },
+    ],
+  }).survey;
+
+  const screen = await render(<Survey model={model} />);
+
+  await expect.element(screen.getByLabelText('sometimes')).not.toBeInTheDocument();
+  await screen.getByLabelText('Gate').fill('yes');
+  await expect.element(screen.getByLabelText('sometimes')).toBeVisible();
+});
+
 test('an answer typed in the browser survives serialization', async () => {
   const model = buildModel();
   const screen = await render(<Survey model={model} />);

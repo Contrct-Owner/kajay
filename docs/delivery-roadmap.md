@@ -96,6 +96,11 @@ core question set with full logic, validation, and flow.
   multipletext, html, expression, image.
 - Panels, pages, visibility/enable/require logic, `setValueIf`/`resetValueIf`,
   calculated values, triggers, default values from expressions.
+- **Deployment variable scope** (`{@name}`, checklist B11): a definition promotes
+  across environments unedited, and a multi-origin definition resolves each origin
+  from host-supplied endpoints ([ADR-0017](./adr/0017-choices-url-environment-portability.md)).
+  Sequenced after §E — it is small and self-contained, and it belongs in Phase 1
+  because §B going green is a Phase 1 exit gate.
 - Validation: built-in validators, expression validators, custom + async, error
   placement; navigation: progress, page logic, completed pages, `data`+page
   save/resume seam.

@@ -60,7 +60,7 @@ untouched. This is also where the seam already belongs — core is I/O-free
 ([ADR-0010](./0010-package-manifest-and-distribution.md)), so the host owns the network
 boundary and therefore owns what the network means in its environment.
 
-### 2. A deployment variable scope, `{@name}` (deferred)
+### 2. A deployment variable scope, `{@name}` (planned — checklist B11)
 
 Relative URLs assume one backend. When a definition needs two origins, or the API cannot
 be served from the app's origin, the answer is a scope that is explicitly *not* the
@@ -88,9 +88,17 @@ Recorded now so it is not re-litigated later, the rules are:
   loaded choices already follow, and required by
   [ADR-0002](./0002-round-trip-fixed-point.md).
 
-**Trigger to build it:** the first definition that needs two origins, or the first host
-that cannot serve its API from the app's origin. Not before — a variable scope with one
-possible value is worse than a relative path.
+**Amended 2026-08-02, before any of it was built.** This was originally gated on a
+trigger — the first definition needing two origins — on the reasoning that a variable
+scope with one possible value is worse than a relative path. That reasoning holds for
+*whether the scope earns its place*, and the answer came back yes: multi-origin
+deployments are a requirement, not a maybe, so waiting only guarantees the feature
+arrives after someone has already worked around its absence. It is now **checklist B11,
+scheduled in Phase 1 §B**, sequenced after §E.
+
+Phase 1 rather than later for a ledger reason: B11 sits in §B, and §B going green is a
+Phase 1 exit gate. Deferring the row would mean reopening a section after it closed,
+which is exactly the drift the checklist exists to prevent.
 
 ### The invariant both parts preserve
 
@@ -121,18 +129,18 @@ the browser target and the zero-dependency rule in one move.
 
 - Promotion needs no edit to the definition. The only thing that differs per environment
   is the host's `fetchJson`.
-- A survey needing two origins has no answer until part 2 exists, beyond a host fetcher
-  clever enough to route on path. That is the accepted cost of not building it yet.
+- A survey needing two origins has no answer until B11 lands, beyond a host fetcher
+  clever enough to route on path.
 - `apps/host-demo` keeps its absolute `jsonplaceholder.typicode.com` URL. It demonstrates
   a public third-party API, not deployment portability, and conflating the two would make
   the demo teach the wrong lesson. The B10 row says so.
 - `new URL('/users', 'https://uat.acme.com/api')` discards `/api`. Hosts joining a base
   with a path must use a relative segment or join explicitly — worth stating in the
-  integration guide when §H is written.
+  integration guide when §N is written.
 
 ## Parent and related links
 
 - [ADR-0001 — our own definition format](./0001-own-definition-format.md)
 - [ADR-0002 — round-trip fixed point](./0002-round-trip-fixed-point.md)
 - [ADR-0010 — package manifest and distribution](./0010-package-manifest-and-distribution.md)
-- [Feature-parity checklist](../feature-parity-checklist.md) — §B10, §H
+- [Feature-parity checklist](../feature-parity-checklist.md) — §B10, §B11, §N

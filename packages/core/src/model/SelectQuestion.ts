@@ -74,8 +74,7 @@ export abstract class SelectQuestion extends Question {
   }
 
   get colCount(): number {
-    const colCount = this.getPropertyValue('colCount');
-    return typeof colCount === 'number' ? colCount : 0;
+    return this.getNumberProperty('colCount');
   }
 
   get showOtherItem(): boolean {
@@ -83,8 +82,7 @@ export abstract class SelectQuestion extends Question {
   }
 
   get otherText(): string {
-    const text = this.getStringProperty('otherText');
-    return text.length > 0 ? text : 'Other';
+    return this.getStringProperty('otherText');
   }
 
   get showNoneItem(): boolean {
@@ -92,8 +90,7 @@ export abstract class SelectQuestion extends Question {
   }
 
   get noneText(): string {
-    const text = this.getStringProperty('noneText');
-    return text.length > 0 ? text : 'None';
+    return this.getStringProperty('noneText');
   }
 
   /**
@@ -131,8 +128,7 @@ export abstract class SelectQuestion extends Question {
   }
 
   get choicesFromQuestionMode(): string {
-    const mode = this.getStringProperty('choicesFromQuestionMode');
-    return mode.length > 0 ? mode : 'all';
+    return this.getStringProperty('choicesFromQuestionMode');
   }
 
   get choicesByUrl(): string {
@@ -158,8 +154,7 @@ export abstract class SelectQuestion extends Question {
 
   /** Whether the respondent may narrow a long list by typing. Defaults to on. */
   get searchEnabled(): boolean {
-    const enabled = this.getPropertyValue('searchEnabled');
-    return typeof enabled === 'boolean' ? enabled : true;
+    return this.getBooleanProperty('searchEnabled');
   }
 
   /**
@@ -182,6 +177,9 @@ export abstract class SelectQuestion extends Question {
 
   /** Applies a respondent's click on a choice. */
   abstract select(choiceValue: PropertyValue): void;
+
+  /** Replaces the answer from an adapter that reports its whole current selection. */
+  abstract applySelection(choiceValues: readonly PropertyValue[]): void;
 }
 
 /**

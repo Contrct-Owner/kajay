@@ -1,4 +1,4 @@
-import type { ChoiceFetcher } from '../logic/createChoicesByUrlRule.js';
+import type { ChoiceFetcher } from '../model/ChoiceSourceController.js';
 import type { ChildCollectionDescriptor } from '../metadata/ClassDescriptor.js';
 import { globalRegistry } from '../metadata/globalRegistry.js';
 import { MetadataRegistry } from '../metadata/MetadataRegistry.js';

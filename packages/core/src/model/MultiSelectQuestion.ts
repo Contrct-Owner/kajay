@@ -9,14 +9,12 @@ export abstract class MultiSelectQuestion extends SelectQuestion {
   }
 
   get selectAllText(): string {
-    const text = this.getStringProperty('selectAllText');
-    return text.length > 0 ? text : 'Select all';
+    return this.getStringProperty('selectAllText');
   }
 
   /** 0 means no limit. */
   get maxSelectedChoices(): number {
-    const max = this.getPropertyValue('maxSelectedChoices');
-    return typeof max === 'number' ? max : 0;
+    return this.getNumberProperty('maxSelectedChoices');
   }
 
   get selectedValues(): readonly PropertyValue[] {
@@ -41,7 +39,7 @@ export abstract class MultiSelectQuestion extends SelectQuestion {
    */
   override select(choiceValue: PropertyValue): void {
     if (valuesAreEqual(choiceValue, NONE_VALUE)) {
-      this.value = this.isSelected(NONE_VALUE) ? [] : [NONE_VALUE];
+      this.applySelection(this.isSelected(NONE_VALUE) ? [] : [NONE_VALUE]);
       return;
     }
 
@@ -57,12 +55,36 @@ export abstract class MultiSelectQuestion extends SelectQuestion {
       }
       next.push(choiceValue);
     }
-    this.value = next;
+    this.applySelection(next);
+  }
+
+  /**
+   * Applies a complete selection while preserving the same invariants as one click.
+   *
+   * Native multi-select adapters report the whole selected set. If `none` was newly
+   * selected it wins; selecting an ordinary choice while `none` was already active
+   * clears `none`. Limits are enforced here so every adapter records the same answer.
+   */
+  override applySelection(choiceValues: readonly PropertyValue[]): void {
+    const unique = choiceValues.filter(
+      (value, index) =>
+        choiceValues.findIndex((candidate) => valuesAreEqual(candidate, value)) === index,
+    );
+    const wantsNone = unique.some((value) => valuesAreEqual(value, NONE_VALUE));
+    const hadNone = this.isSelected(NONE_VALUE);
+    if (wantsNone && (!hadNone || unique.length === 1)) {
+      this.value = [NONE_VALUE];
+      return;
+    }
+
+    const ordinary = unique.filter((value) => !valuesAreEqual(value, NONE_VALUE));
+    const max = this.maxSelectedChoices;
+    this.value = max > 0 ? ordinary.slice(0, max) : ordinary;
   }
 
   /** Selects every visible choice, or clears them if all are already selected. */
   selectAll(): void {
-    this.value = this.isAllSelected ? [] : [...this.#selectableValues()];
+    this.applySelection(this.isAllSelected ? [] : this.#selectableValues());
   }
 
   /** Ordinary choices only: `none` and `other` are not part of "all". */

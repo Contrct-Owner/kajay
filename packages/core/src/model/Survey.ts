@@ -8,7 +8,7 @@ import type {
 import type { PathSegment } from '../expressions/ExpressionNode.js';
 import { LogicEngine } from '../logic/LogicEngine.js';
 import type { LogicDiagnostics, LogicEngineOptions } from '../logic/LogicEngine.js';
-import type { ChoiceFetcher } from '../logic/createChoicesByUrlRule.js';
+import type { ChoiceFetcher } from './ChoiceSourceController.js';
 
 /**
  * Everything a survey may be given at construction.
@@ -22,7 +22,7 @@ export interface SurveyOptions extends LogicEngineOptions {
 }
 import type { CalculatedValue } from './CalculatedValue.js';
 import { CalculatedValueStore } from './CalculatedValueStore.js';
-import { ChoiceSourceState } from './ChoiceSourceState.js';
+import { ChoiceSourceController } from './ChoiceSourceController.js';
 import { createPathResolver } from './createPathResolver.js';
 import { ElementStateController } from './ElementStateController.js';
 import { NavigationController } from './NavigationController.js';
@@ -50,7 +50,7 @@ export class Survey extends SurveyElement implements ValueHost {
       this.onElementStateChanged.emit(event);
     }
   });
-  readonly #choiceSources: ChoiceSourceState = new ChoiceSourceState();
+  readonly #choiceSources: ChoiceSourceController = new ChoiceSourceController();
   readonly #navigation: NavigationController = new NavigationController(
     () => this.#children.pages,
     (event) => {
@@ -181,11 +181,9 @@ export class Survey extends SurveyElement implements ValueHost {
       logic: this.#logic,
       states: this.#states,
       getValue: (name) => this.getValue(name),
-      setValue: (name, value) => {
-        this.setValue(name, value);
-      },
+      setValue: (name, value) => this.#writeValue(name, value),
       setCalculated: (calculated, value) => {
-        this.#setCalculated(calculated, value);
+        return this.#setCalculated(calculated, value);
       },
       complete: () => {
         this.complete();
@@ -202,23 +200,20 @@ export class Survey extends SurveyElement implements ValueHost {
           this.#settle.release();
         }
       },
-      fetchJson: this.#choiceSources.fetchJson,
+      choiceSources: this.#choiceSources,
       resolveValue: (name) => this.#resolvePath([{ kind: 'name', name }]),
-      reportChoiceError: (message) => {
-        this.#choiceSources.report(message);
-      },
-      choiceCache: this.#choiceSources.cache,
     });
     this.#settle.run(() => this.#logic.evaluateAll(this.#resolvePath));
   }
 
-  #setCalculated(calculated: CalculatedValue, value: unknown): void {
+  #setCalculated(calculated: CalculatedValue, value: unknown): boolean {
     const { changed, previousValue } = this.#calculated.set(calculated.name, value);
     // Announced only when it reaches `data`: onValueChanged means "an answer changed",
     // and reporting something the host cannot find in `data` would mislead.
     if (changed && calculated.includeIntoResult) {
       this.#settle.queueValue({ name: calculated.name, value, previousValue });
     }
+    return changed;
   }
 
   get currentPageNo(): number {
@@ -267,9 +262,19 @@ export class Survey extends SurveyElement implements ValueHost {
    * finished, so a listener never observes the model part-way through a cascade.
    */
   setValue(name: string, value: unknown): void {
+    if (!this.#writeValue(name, value)) {
+      return;
+    }
+    this.#settle.run(() =>
+      this.#logic.applyValueChange([{ kind: 'name', name }], this.#resolvePath),
+    );
+  }
+
+  /** Writes model state without starting a nested settle. Rule execution reports the path. */
+  #writeValue(name: string, value: unknown): boolean {
     const previousValue = this.#data.get(name);
     if (Object.is(previousValue, value)) {
-      return;
+      return false;
     }
     if (value === undefined) {
       this.#data.delete(name);
@@ -277,10 +282,7 @@ export class Survey extends SurveyElement implements ValueHost {
       this.#data.set(name, value);
     }
     this.#settle.queueValue({ name, value, previousValue });
-
-    this.#settle.run(() =>
-      this.#logic.applyValueChange([{ kind: 'name', name }], this.#resolvePath),
-    );
+    return true;
   }
 
   get isCompleted(): boolean {

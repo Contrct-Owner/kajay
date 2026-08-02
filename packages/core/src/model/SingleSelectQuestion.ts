@@ -18,6 +18,10 @@ export abstract class SingleSelectQuestion extends SelectQuestion {
     this.value = this.isSelected(choiceValue) ? undefined : choiceValue;
   }
 
+  override applySelection(choiceValues: readonly PropertyValue[]): void {
+    this.value = choiceValues[0];
+  }
+
   clear(): void {
     this.value = undefined;
   }

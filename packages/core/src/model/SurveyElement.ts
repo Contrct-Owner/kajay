@@ -1,4 +1,5 @@
 import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
+import { getPropertyDefault } from '../metadata/PropertyDefaults.js';
 
 /**
  * Base of every model object. Holds declared property values and — separately —
@@ -81,11 +82,20 @@ export abstract class SurveyElement {
   }
 
   protected getStringProperty(name: string): string {
-    const value = this.#values.get(name);
+    const value = this.#resolvedPropertyValue(name);
     return typeof value === 'string' ? value : '';
   }
 
   protected getBooleanProperty(name: string): boolean {
-    return this.#values.get(name) === true;
+    return this.#resolvedPropertyValue(name) === true;
+  }
+
+  protected getNumberProperty(name: string): number {
+    const value = this.#resolvedPropertyValue(name);
+    return typeof value === 'number' ? value : 0;
+  }
+
+  #resolvedPropertyValue(name: string): PropertyValue | undefined {
+    return this.#values.has(name) ? this.#values.get(name) : getPropertyDefault(this, name);
   }
 }

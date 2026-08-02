@@ -25,5 +25,6 @@ export interface LogicRule {
   readonly reads: readonly DependencyPattern[];
   /** The value this rule assigns, if any. */
   readonly writes?: readonly PathSegment[];
-  readonly run: (context: RuleContext) => void;
+  /** Paths whose values actually changed while the rule ran. */
+  readonly run: (context: RuleContext) => readonly (readonly PathSegment[])[] | void;
 }

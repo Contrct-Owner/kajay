@@ -61,16 +61,17 @@ describe('parity/C6-tagbox', () => {
 
   test('honours maxSelectedChoices, inherited from the multi-select base', () => {
     const question = selectQuestion({ type: 'tagbox', maxSelectedChoices: 1 });
-    question.select('Apple');
-    question.select('Banana');
+    question.applySelection(['Apple', 'Banana']);
     expect(question.value).toEqual(['Apple']);
   });
 
   test('honours the exclusive none, inherited from the multi-select base', () => {
     const question = selectQuestion({ type: 'tagbox', showNoneItem: true });
-    question.select('Apple');
-    question.select('none');
+    question.applySelection(['Apple', 'none']);
     expect(question.value).toEqual(['none']);
+
+    question.applySelection(['none', 'Banana']);
+    expect(question.value).toEqual(['Banana']);
   });
 });
 

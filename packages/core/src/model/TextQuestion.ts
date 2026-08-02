@@ -7,8 +7,7 @@ export class TextQuestion extends Question {
   }
 
   get inputType(): string {
-    const inputType = this.getStringProperty('inputType');
-    return inputType.length > 0 ? inputType : 'text';
+    return this.getStringProperty('inputType');
   }
 
   set inputType(value: string) {

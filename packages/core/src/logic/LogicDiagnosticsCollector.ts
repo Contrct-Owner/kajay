@@ -5,9 +5,8 @@ import type { LogicDiagnostics, LogicRunResult } from './LogicEngine.js';
 /**
  * Accumulates what a settle reported.
  *
- * A settle can run the engine more than once — a rule writing a value re-enters — so
- * results are gathered rather than replaced, and reset once per top-level settle
- * instead of once per run.
+ * A dependency transaction may need several bounded rounds for undeclared writes, so
+ * results are gathered rather than replaced and reset once per top-level settle.
  */
 export class LogicDiagnosticsCollector {
   #dependencyErrors: DependencyError[] = [];

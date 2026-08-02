@@ -1,5 +1,4 @@
 import {
-  ExpressionCache,
   collectReferences,
   createDefaultFunctionRegistry,
   createValueResolver,
@@ -219,24 +218,5 @@ describe('reference collection for the dependency graph', () => {
 
   test('an expression with no references collects nothing', () => {
     expect(collectReferences(parseExpression('1 + 2').node)).toEqual([]);
-  });
-});
-
-describe('ExpressionCache', () => {
-  test('returns the same parse for the same source', () => {
-    const cache = new ExpressionCache();
-    const first = cache.parse('{a} == 1');
-    const second = cache.parse('{a} == 1');
-    expect(second).toBe(first);
-    expect(cache.size).toBe(1);
-  });
-
-  test('distinct sources are parsed separately and clear empties the cache', () => {
-    const cache = new ExpressionCache();
-    cache.parse('{a}');
-    cache.parse('{b}');
-    expect(cache.size).toBe(2);
-    cache.clear();
-    expect(cache.size).toBe(0);
   });
 });

@@ -2,6 +2,7 @@ import type { SurveyElement } from '../model/SurveyElement.js';
 import type { ChildCollectionDescriptor, ClassDefinition, ClassDescriptor } from './ClassDescriptor.js';
 import type { PropertyDefinition, PropertyDescriptor } from './PropertyDescriptor.js';
 import { normalizePropertyDefinition } from './PropertyDescriptor.js';
+import { attachPropertyDefaults } from './PropertyDefaults.js';
 
 /**
  * The load-bearing wall: every question type, its typed property descriptors, and its
@@ -141,6 +142,8 @@ export class MetadataRegistry {
     if (descriptor.create === undefined) {
       throw new Error(`Cannot create "${className}": it is abstract or has no factory.`);
     }
-    return descriptor.create();
+    const instance = descriptor.create();
+    attachPropertyDefaults(instance, this.getProperties(className));
+    return instance;
   }
 }

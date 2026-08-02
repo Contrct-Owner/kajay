@@ -55,6 +55,7 @@ describe('parity/B10-rest-choices', () => {
       Promise.resolve({ data: { items: countries } }),
     );
     await Promise.resolve();
+    await Promise.resolve();
 
     const question = select(survey, 'country');
     expect(question.visibleChoices.map((c) => c.value)).toEqual(['uk', 'fr']);
@@ -73,6 +74,7 @@ describe('parity/B10-rest-choices', () => {
       },
       () => Promise.resolve(['x', 'y']),
     );
+    await Promise.resolve();
     await Promise.resolve();
     expect(select(survey, 'q').visibleChoices.map((c) => c.value)).toEqual(['x', 'y']);
   });
@@ -122,6 +124,81 @@ describe('parity/B10-rest-choices', () => {
 
     // apac was new; going back to emea reused the cached response.
     expect(calls).toBe(afterFirst + 1);
+  });
+
+  test('a slower obsolete request cannot replace choices from the latest URL', async () => {
+    const responses = new Map<string, (payload: unknown) => void>();
+    const survey = build(
+      {
+        pages: [
+          {
+            name: 'p1',
+            elements: [
+              { type: 'text', name: 'region' },
+              { type: 'dropdown', name: 'country', choicesByUrl: '{region}' },
+            ],
+          },
+        ],
+      },
+      (url) =>
+        new Promise((resolve) => {
+          responses.set(url, resolve);
+        }),
+    );
+
+    survey.setValue('region', 'request-a');
+    survey.setValue('region', 'request-b');
+
+    responses.get('request-b')?.(['newest']);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(select(survey, 'country').visibleChoices.map((choice) => choice.value)).toEqual([
+      'newest',
+    ]);
+
+    responses.get('request-a')?.(['obsolete']);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(select(survey, 'country').visibleChoices.map((choice) => choice.value)).toEqual([
+      'newest',
+    ]);
+  });
+
+  test('a response cannot install itself after its URL source is removed', async () => {
+    let resolveResponse: ((payload: unknown) => void) | undefined;
+    const survey = build(
+      {
+        pages: [
+          {
+            name: 'p1',
+            elements: [
+              {
+                type: 'dropdown',
+                name: 'country',
+                choices: ['authored'],
+                choicesByUrl: 'request',
+              },
+            ],
+          },
+        ],
+      },
+      () =>
+        new Promise((resolve) => {
+          resolveResponse = resolve;
+        }),
+    );
+    const question = select(survey, 'country');
+
+    question.setPropertyValue('choicesByUrl', '');
+    survey.refreshLogic();
+    if (resolveResponse === undefined) {
+      throw new TypeError('expected the URL source to start a request');
+    }
+    resolveResponse(['obsolete']);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(question.visibleChoices.map((choice) => choice.value)).toEqual(['authored']);
   });
 
   test('a failed load is reported and leaves the authored list in place', async () => {
@@ -176,4 +253,3 @@ describe('parity/B10-rest-choices', () => {
     expect(serialized).not.toContain('United Kingdom');
   });
 });
-

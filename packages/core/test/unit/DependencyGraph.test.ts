@@ -6,7 +6,6 @@ import {
   generalizeIndices,
   parseExpression,
   pathMatchesPattern,
-  runDependencyTransaction,
 } from '@kajay/core';
 import type { DependencyPattern, PathSegment } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
@@ -206,82 +205,5 @@ describe('graph maintenance', () => {
     graph.removeNode('a');
     expect(graph.hasNode('a')).toBe(false);
     expect(graph.plan([path('x')]).order).toEqual([]);
-  });
-});
-
-describe('transaction model', () => {
-  test('one change runs each affected node exactly once, in order', () => {
-    const graph = new DependencyGraph();
-    graph.addNode({ key: 'subtotal', reads: readsOf('{price}'), writes: path('subtotal') });
-    graph.addNode({ key: 'total', reads: readsOf('{subtotal}'), writes: path('total') });
-    graph.addNode({ key: 'banner', reads: readsOf('{total} > 10') });
-
-    const ran: string[] = [];
-    const result = runDependencyTransaction(graph, [path('price')], (key) => {
-      ran.push(key);
-    });
-
-    expect(ran).toEqual(['subtotal', 'total', 'banner']);
-    expect(result.rounds).toBe(1);
-    expect(result.errors).toEqual([]);
-  });
-
-  test('an undeclared write re-enters and settles', () => {
-    const graph = new DependencyGraph();
-    // A trigger writing a value it never declared — the graph cannot order around it.
-    graph.addNode({ key: 'trigger', reads: readsOf('{start}') });
-    graph.addNode({ key: 'consumer', reads: readsOf('{sideEffect}') });
-
-    const result = runDependencyTransaction(graph, [path('start')], (key) =>
-      key === 'trigger' ? [path('sideEffect')] : undefined,
-    );
-
-    expect(result.recomputed).toEqual(['trigger', 'consumer']);
-    expect(result.rounds).toBe(2);
-    expect(result.errors).toEqual([]);
-  });
-
-  test('a cascade that never settles is bounded and reported, not hung', () => {
-    const graph = new DependencyGraph();
-    graph.addNode({ key: 'ping', reads: readsOf('{pong}') });
-    graph.addNode({ key: 'pong', reads: readsOf('{ping}') });
-
-    const result = runDependencyTransaction(
-      graph,
-      [path('ping')],
-      (key) => (key === 'ping' ? [path('ping')] : [path('pong')]),
-      { maxRounds: 4 },
-    );
-
-    const limit = result.errors.find((error) => error.code === 'cascade-limit');
-    expect(limit).toBeDefined();
-    expect(limit?.message).toMatch(/did not settle after 4 rounds/u);
-    expect(limit?.nodes.length).toBeGreaterThan(0);
-    expect(result.rounds).toBe(4);
-  });
-
-  test('a change affecting nothing does no work at all', () => {
-    const graph = new DependencyGraph();
-    graph.addNode({ key: 'a', reads: readsOf('{x}') });
-
-    let calls = 0;
-    const result = runDependencyTransaction(graph, [path('somethingElse')], () => {
-      calls += 1;
-    });
-
-    expect(calls).toBe(0);
-    expect(result.recomputed).toEqual([]);
-    expect(result.rounds).toBe(1);
-  });
-
-  test('a cycle surfaces through the transaction rather than looping', () => {
-    const graph = new DependencyGraph();
-    graph.addNode({ key: 'a', reads: readsOf('{b}'), writes: path('a') });
-    graph.addNode({ key: 'b', reads: readsOf('{a}'), writes: path('b') });
-
-    const result = runDependencyTransaction(graph, [path('a')], () => {
-      // No writes; the cycle is structural, not a runtime cascade.
-    });
-    expect(result.errors.some((error) => error.code === 'cycle')).toBe(true);
   });
 });

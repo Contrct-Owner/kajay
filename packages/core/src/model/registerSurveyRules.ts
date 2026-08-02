@@ -3,14 +3,11 @@ import { parseExpression } from '../expressions/parseExpression.js';
 import { CONDITIONAL_PROPERTIES } from '../logic/conditionalProperties.js';
 import { createCarryForwardRule } from '../logic/createCarryForwardRule.js';
 import type { CarryForwardMode } from '../logic/createCarryForwardRule.js';
-import { createChoicesByUrlRule } from '../logic/createChoicesByUrlRule.js';
-import type { ChoiceFetcher } from '../logic/createChoicesByUrlRule.js';
 import { createTriggerRule } from '../logic/createTriggerRule.js';
 import { createValueRule } from '../logic/createValueRule.js';
 import type { LogicEngine } from '../logic/LogicEngine.js';
-import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
 import type { CalculatedValue } from './CalculatedValue.js';
-import { ItemValue } from './ItemValue.js';
+import type { ChoiceSourceController } from './ChoiceSourceController.js';
 import type { ElementStateController } from './ElementStateController.js';
 import type { Question } from './Question.js';
 import { SelectQuestion } from './SelectQuestion.js';
@@ -23,16 +20,14 @@ export interface RuleHost {
   readonly logic: LogicEngine;
   readonly states: ElementStateController;
   readonly getValue: (name: string) => unknown;
-  readonly setValue: (name: string, value: unknown) => void;
-  readonly setCalculated: (calculated: CalculatedValue, value: unknown) => void;
+  readonly setValue: (name: string, value: unknown) => boolean;
+  readonly setCalculated: (calculated: CalculatedValue, value: unknown) => boolean;
   readonly complete: () => void;
   readonly goTo: (name: string) => void;
   readonly findQuestion: (name: string) => Question | undefined;
   readonly announceChoices: (question: SelectQuestion) => void;
-  readonly fetchJson: ChoiceFetcher | undefined;
+  readonly choiceSources: ChoiceSourceController;
   readonly resolveValue: (name: string) => unknown;
-  readonly reportChoiceError: (message: string) => void;
-  readonly choiceCache: Map<string, readonly ItemValue[]>;
 }
 
 /**
@@ -76,36 +71,15 @@ function registerChoicesByUrl(
   host: RuleHost,
 ): void {
   host.logic.addRule(
-    createChoicesByUrlRule(
-      `${owner}:choicesByUrl`,
-      {
-        url,
-        path: question.choicesPath,
-        valueName: question.choicesValueName,
-        titleName: question.choicesTitleName,
+    host.choiceSources.createUrlRule({
+      key: `${owner}:choicesByUrl`,
+      question,
+      url,
+      resolvePlaceholder: host.resolveValue,
+      announce: () => {
+        host.announceChoices(question);
       },
-      {
-        fetchJson: host.fetchJson,
-        resolvePlaceholder: host.resolveValue,
-        createChoice: (value, text) => {
-          const item = new ItemValue();
-          item.value = toPropertyValue(value);
-          item.text = text === null || text === undefined ? '' : String(text);
-          return item;
-        },
-        installProvider: (provider) => {
-          question.setChoiceProvider(provider);
-        },
-        clearProvider: () => {
-          question.clearChoiceProvider();
-        },
-        announce: () => {
-          host.announceChoices(question);
-        },
-        reportError: host.reportChoiceError,
-        cache: host.choiceCache,
-      },
-    ),
+    }),
   );
 }
 
@@ -119,26 +93,30 @@ function registerChoiceSource(question: Question, owner: string, host: RuleHost)
   if (!(question instanceof SelectQuestion)) {
     return;
   }
+  const key = `${owner}:choicesByUrl`;
+  const hadDynamicChoices = question.hasDynamicChoices;
+  question.clearChoiceProvider();
+
   const carryForward = optionalString(question.choicesFromQuestion);
   if (carryForward !== undefined) {
+    host.choiceSources.invalidate(key);
     registerCarryForward(question, carryForward, owner, host);
     return;
   }
   const url = optionalString(question.choicesByUrl);
   if (url !== undefined) {
     registerChoicesByUrl(question, url, owner, host);
+    return;
+  }
+
+  host.choiceSources.invalidate(key);
+  if (hadDynamicChoices) {
+    host.announceChoices(question);
   }
 }
 
 function toMode(mode: string): CarryForwardMode {
   return mode === 'selected' || mode === 'unselected' ? mode : 'all';
-}
-
-function toPropertyValue(value: unknown): PropertyValue {
-  if (typeof value === 'string' || typeof value === 'boolean') {
-    return value;
-  }
-  return typeof value === 'number' && Number.isFinite(value) ? value : String(value ?? '');
 }
 
 function optionalString(value: string): string | undefined {
@@ -207,9 +185,12 @@ function registerCalculatedValue(calculated: CalculatedValue, host: RuleHost): v
     writes: [{ kind: 'name', name }],
     run: (context) => {
       const evaluation = context.evaluate(expression);
-      if (evaluation.errors.length === 0) {
-        host.setCalculated(calculated, evaluation.value);
+      if (evaluation.errors.length > 0) {
+        return [];
       }
+      return host.setCalculated(calculated, evaluation.value)
+        ? [[{ kind: 'name' as const, name }]]
+        : [];
     },
   });
 }
@@ -226,12 +207,8 @@ function registerValueRule(question: Question, owner: string, host: RuleHost): v
     {
       path: [{ kind: 'name', name: question.name }],
       getValue: () => host.getValue(question.name),
-      setValue: (value) => {
-        host.setValue(question.name, value);
-      },
-      clearValue: () => {
-        host.setValue(question.name, undefined);
-      },
+      setValue: (value) => host.setValue(question.name, value),
+      clearValue: () => host.setValue(question.name, undefined),
     },
   );
   if (rule !== undefined) {

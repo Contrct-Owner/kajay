@@ -33,6 +33,11 @@ export interface LogicRunResult {
   readonly expressionErrors: readonly ExpressionError[];
 }
 
+interface RuleRunResult {
+  readonly errors: readonly ExpressionError[];
+  readonly undeclaredWrites: readonly (readonly PathSegment[])[];
+}
+
 /**
  * Holds the survey's logic: which expression drives which property or value, and what
  * has to be re-evaluated when an answer changes.
@@ -104,7 +109,7 @@ export class LogicEngine {
     const expressionErrors: ExpressionError[] = [];
     const plan = this.#graph.planAll();
     for (const key of plan.order) {
-      expressionErrors.push(...this.#runRule(key, resolve));
+      expressionErrors.push(...this.#runRule(key, resolve).errors);
     }
     return {
       evaluated: plan.order,
@@ -117,7 +122,9 @@ export class LogicEngine {
   applyValueChange(changedPath: readonly PathSegment[], resolve: ValueResolver): LogicRunResult {
     const expressionErrors: ExpressionError[] = [];
     const transaction = runDependencyTransaction(this.#graph, [changedPath], (key) => {
-      expressionErrors.push(...this.#runRule(key, resolve));
+      const result = this.#runRule(key, resolve);
+      expressionErrors.push(...result.errors);
+      return result.undeclaredWrites;
     });
     return {
       evaluated: transaction.recomputed,
@@ -126,10 +133,10 @@ export class LogicEngine {
     };
   }
 
-  #runRule(key: string, resolve: ValueResolver): readonly ExpressionError[] {
+  #runRule(key: string, resolve: ValueResolver): RuleRunResult {
     const rule = this.#rules.get(key);
     if (rule === undefined) {
-      return [];
+      return { errors: [], undeclaredWrites: [] };
     }
 
     const errors: ExpressionError[] = [];
@@ -147,7 +154,27 @@ export class LogicEngine {
       },
     };
 
-    rule.run(context);
-    return errors;
+    const actualWrites = rule.run(context) ?? [];
+    const undeclaredWrites =
+      rule.writes === undefined
+        ? actualWrites
+        : actualWrites.filter((path) => !pathsAreEqual(path, rule.writes ?? []));
+    return { errors, undeclaredWrites };
   }
+}
+
+function pathsAreEqual(left: readonly PathSegment[], right: readonly PathSegment[]): boolean {
+  return (
+    left.length === right.length &&
+    left.every((segment, index) => {
+      const other = right[index];
+      return (
+        other !== undefined &&
+        segment.kind === other.kind &&
+        (segment.kind === 'name'
+          ? other.kind === 'name' && segment.name === other.name
+          : other.kind === 'index' && segment.index === other.index)
+      );
+    })
+  );
 }

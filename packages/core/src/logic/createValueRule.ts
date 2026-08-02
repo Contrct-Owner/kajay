@@ -18,8 +18,8 @@ export interface ValueRuleTarget {
   /** Where the answer lives; declared to the graph as this rule's write. */
   readonly path: readonly PathSegment[];
   readonly getValue: () => unknown;
-  readonly setValue: (value: unknown) => void;
-  readonly clearValue: () => void;
+  readonly setValue: (value: unknown) => boolean;
+  readonly clearValue: () => boolean;
 }
 
 function present(expression: string | undefined): string | undefined {
@@ -81,14 +81,14 @@ function applyValueRule(
   target: ValueRuleTarget,
   context: RuleContext,
   ownership: DefaultOwnership,
-): void {
+): boolean {
   const reset = present(expressions.resetValueIf);
   if (reset !== undefined) {
     const evaluation = context.evaluate(reset);
     if (evaluation.errors.length === 0 && isTruthy(evaluation.value)) {
-      target.clearValue();
+      const changed = target.clearValue();
       ownership.release();
-      return;
+      return changed;
     }
   }
 
@@ -99,10 +99,11 @@ function applyValueRule(
     if (condition.errors.length === 0 && isTruthy(condition.value)) {
       const next = context.evaluate(setExpression);
       if (next.errors.length === 0) {
-        target.setValue(next.value);
+        const changed = target.setValue(next.value);
         ownership.claim(next.value);
+        return changed;
       }
-      return;
+      return false;
     }
   }
 
@@ -110,10 +111,12 @@ function applyValueRule(
   if (defaultExpression !== undefined && ownership.mayWrite(target.getValue())) {
     const next = context.evaluate(defaultExpression);
     if (next.errors.length === 0) {
-      target.setValue(next.value);
+      const changed = target.setValue(next.value);
       ownership.claim(next.value);
+      return changed;
     }
   }
+  return false;
 }
 
 function collectReads(expressions: ValueRuleExpressions): readonly DependencyPattern[] {
@@ -171,7 +174,7 @@ export function createValueRule(
     reads,
     writes: target.path,
     run: (context) => {
-      applyValueRule(expressions, target, context, ownership);
+      return applyValueRule(expressions, target, context, ownership) ? [target.path] : [];
     },
   };
 }

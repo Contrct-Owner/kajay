@@ -20,13 +20,6 @@ export type {
   DependencyPattern,
   PatternSegment,
 } from './dependencies/DependencyPattern.js';
-export { runDependencyTransaction } from './dependencies/runDependencyTransaction.js';
-export type {
-  ComputeNode,
-  TransactionOptions,
-  TransactionResult,
-} from './dependencies/runDependencyTransaction.js';
-
 // --- Expression language (ADR-0003) ---------------------------------------
 export {
   createDefaultFunctionRegistry,
@@ -38,7 +31,6 @@ export type {
   EvaluationContext,
   EvaluationResult,
 } from './expressions/evaluateExpression.js';
-export { ExpressionCache } from './expressions/ExpressionCache.js';
 export type { ExpressionError } from './expressions/ExpressionError.js';
 export type {
   ExpressionFunction,
@@ -62,21 +54,10 @@ export type {
   UnaryNode,
   UnaryOperator,
 } from './expressions/ExpressionNode.js';
-export {
-  compareValues,
-  isEmptyValue,
-  isTruthy,
-  toArray,
-  toNumber,
-  valuesAreEqual,
-} from './expressions/expressionValues.js';
 export { FunctionRegistry } from './expressions/FunctionRegistry.js';
 export { parseExpression } from './expressions/parseExpression.js';
 export type { ParseExpressionResult } from './expressions/parseExpression.js';
 export { printExpression } from './expressions/printExpression.js';
-export { tokenize } from './expressions/tokenize.js';
-export type { TokenizeResult } from './expressions/tokenize.js';
-export type { Token, TokenKind } from './expressions/Token.js';
 
 export type { EventListener } from './events/EventEmitter.js';
 export type {
@@ -87,27 +68,8 @@ export type {
   ValueChangedEvent,
 } from './events/SurveyEvents.js';
 
-// --- Conditional logic (checklist §B) -------------------------------------
-export type { ConditionBinding } from './logic/ConditionBinding.js';
-export { createCarryForwardRule } from './logic/createCarryForwardRule.js';
-export type { CarryForwardMode } from './logic/createCarryForwardRule.js';
-export { createChoicesByUrlRule } from './logic/createChoicesByUrlRule.js';
-export type {
-  ChoiceFetcher,
-  ChoicesByUrlSettings,
-} from './logic/createChoicesByUrlRule.js';
-export { createTriggerRule } from './logic/createTriggerRule.js';
-export type { TriggerActions, TriggerDescriptor } from './logic/createTriggerRule.js';
-export { createValueRule } from './logic/createValueRule.js';
-export type { ValueRuleExpressions, ValueRuleTarget } from './logic/createValueRule.js';
-export type { LogicRule, RuleContext, RuleEvaluation } from './logic/LogicRule.js';
-export { LogicEngine } from './logic/LogicEngine.js';
-export type {
-  LogicDiagnostics,
-  LogicEngineOptions,
-  LogicRunResult,
-  ValueResolver,
-} from './logic/LogicEngine.js';
+// --- Survey model ----------------------------------------------------------
+export type { LogicDiagnostics } from './logic/LogicEngine.js';
 export type {
   ChildCollectionDescriptor,
   ClassDefinition,
@@ -123,6 +85,7 @@ export type {
 } from './metadata/PropertyDescriptor.js';
 export { registerBuiltInTypes } from './metadata/registerBuiltInTypes.js';
 export { CalculatedValue } from './model/CalculatedValue.js';
+export type { ChoiceFetcher } from './model/ChoiceSourceController.js';
 export { CheckboxQuestion } from './model/CheckboxQuestion.js';
 export { DropdownQuestion } from './model/DropdownQuestion.js';
 export { MultiSelectQuestion } from './model/MultiSelectQuestion.js';
@@ -139,7 +102,6 @@ export { SurveyElement } from './model/SurveyElement.js';
 export { TextQuestion } from './model/TextQuestion.js';
 export { Trigger } from './model/Trigger.js';
 export type { TriggerKind } from './model/Trigger.js';
-export type { ValueHost } from './model/ValueHost.js';
 export type { Diagnostic, DiagnosticSeverity } from './serialization/Diagnostic.js';
 export { parseSurvey } from './serialization/parseSurvey.js';
 export type { ParseOptions, ParseResult } from './serialization/parseSurvey.js';

@@ -20,7 +20,7 @@ export interface TriggerDescriptor {
 /** What a trigger is allowed to do to the survey. */
 export interface TriggerActions {
   readonly getValue: (name: string) => unknown;
-  readonly setValue: (name: string, value: unknown) => void;
+  readonly setValue: (name: string, value: unknown) => boolean;
   readonly complete: () => void;
   readonly goTo: (name: string) => void;
 }
@@ -29,34 +29,35 @@ function performAction(
   trigger: TriggerDescriptor,
   actions: TriggerActions,
   context: RuleContext,
-): void {
+): boolean {
   switch (trigger.kind) {
     case 'complete':
       actions.complete();
-      return;
+      return false;
     case 'skip':
       if (trigger.gotoName !== undefined) {
         actions.goTo(trigger.gotoName);
       }
-      return;
+      return false;
     case 'setvalue':
       if (trigger.setToName !== undefined && trigger.setValue !== undefined) {
-        actions.setValue(trigger.setToName, trigger.setValue);
+        return actions.setValue(trigger.setToName, trigger.setValue);
       }
-      return;
+      return false;
     case 'copyvalue':
       if (trigger.setToName !== undefined && trigger.fromName !== undefined) {
-        actions.setValue(trigger.setToName, actions.getValue(trigger.fromName));
+        return actions.setValue(trigger.setToName, actions.getValue(trigger.fromName));
       }
-      return;
+      return false;
     case 'runexpression': {
       if (trigger.runExpression === undefined) {
-        return;
+        return false;
       }
       const evaluation = context.evaluate(trigger.runExpression);
       if (evaluation.errors.length === 0 && trigger.setToName !== undefined) {
-        actions.setValue(trigger.setToName, evaluation.value);
+        return actions.setValue(trigger.setToName, evaluation.value);
       }
+      return false;
     }
   }
 }
@@ -99,7 +100,7 @@ export function createTriggerRule(
     run: (context) => {
       const evaluation = context.evaluate(trigger.expression);
       if (evaluation.errors.length > 0) {
-        return;
+        return [];
       }
       const isTrue = isTruthy(evaluation.value);
       const becameTrue = established && isTrue && !wasTrue;
@@ -107,8 +108,10 @@ export function createTriggerRule(
       wasTrue = isTrue;
 
       if (becameTrue) {
-        performAction(trigger, actions, context);
+        const changed = performAction(trigger, actions, context);
+        return changed && writes !== undefined ? [writes] : [];
       }
+      return [];
     },
   };
 }

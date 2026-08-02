@@ -149,7 +149,7 @@ test('parity/B10-rest-choices', async ({ page }) => {
   await expect(contact).toContainText('Fixture Person');
 
   await contact.selectOption('7');
-  await expect(page.getByTestId('survey-data')).toContainText('"contact": "7"');
+  await expect(page.getByTestId('survey-data')).toContainText('"contact": 7');
 });
 
 test('parity/B5-set-value-if', async ({ page }) => {

@@ -5,10 +5,9 @@ import type { LogicDiagnostics, LogicRunResult } from '../logic/LogicEngine.js';
 /**
  * Runs logic to completion, then releases everything it produced.
  *
- * The re-entrancy guard is what makes a rule's own `setValue` safe: writes are declared
- * to the graph, so the running plan already contains everything downstream of them.
- * Starting a nested transaction per write would re-plan mid-flight and, for two rules
- * feeding each other, recurse.
+ * Rule writes are returned to the dependency transaction rather than starting nested
+ * settles. The guard remains for host callbacks reached through completion or navigation
+ * events, so those callbacks cannot flush a half-settled model.
  */
 export class SettleCoordinator {
   #isSettling = false;

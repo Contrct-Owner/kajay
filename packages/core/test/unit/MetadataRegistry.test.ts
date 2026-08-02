@@ -1,6 +1,16 @@
-import { MetadataRegistry, globalRegistry } from '@kajay/core';
+import { MetadataRegistry, SurveyElement, globalRegistry } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
 import { createTestRegistry } from '../support/createTestRegistry.js';
+
+class DefaultedElement extends SurveyElement {
+  override get type(): string {
+    return 'defaulted';
+  }
+
+  get label(): string {
+    return this.getStringProperty('label');
+  }
+}
 
 describe('parity/A3-metadata-registry', () => {
   test('resolves inherited properties ancestors-first in declaration order', () => {
@@ -47,6 +57,20 @@ describe('parity/A3-metadata-registry', () => {
       0,
       false,
     ]);
+  });
+
+  test('model access resolves the default owned by its metadata descriptor', () => {
+    const registry = new MetadataRegistry();
+    registry.addClass({
+      name: 'defaulted',
+      properties: [{ name: 'label', type: 'string', defaultValue: 'From metadata' }],
+      create: () => new DefaultedElement(),
+    });
+
+    const element = registry.createInstance('defaulted') as DefaultedElement;
+
+    expect(element.getPropertyValue('label')).toBeUndefined();
+    expect(element.label).toBe('From metadata');
   });
 
   test('addProperty injects into an existing class', () => {

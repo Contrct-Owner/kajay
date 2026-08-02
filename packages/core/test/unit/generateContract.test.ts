@@ -70,17 +70,20 @@ describe('parity/A6-contract-generated-from-registry', () => {
 
   test('picks up a whole custom question type', () => {
     const registry = createTestRegistry();
+    // A deliberately host-flavoured name. This test used to say `rating`, which stopped
+    // being custom the day §C8 landed — a stand-in for "a type we will never ship" has
+    // to be one we will never ship.
     registry.addClass({
-      name: 'rating',
+      name: 'acmegauge',
       parent: 'question',
-      properties: [{ name: 'rateMax', type: 'number', defaultValue: 5 }],
+      properties: [{ name: 'gaugeMax', type: 'number', defaultValue: 5 }],
       create: () => registry.createInstance('text'),
     });
     const contract = generateContract(registry);
     const definitions = contract['$defs'] as Record<string, Record<string, unknown>>;
 
-    expect(definitions['rating']).toBeDefined();
+    expect(definitions['acmegauge']).toBeDefined();
     // The custom type joins the union without any further wiring — the point of A4.
-    expect(definitions['question']?.['oneOf']).toContainEqual({ $ref: '#/$defs/rating' });
+    expect(definitions['question']?.['oneOf']).toContainEqual({ $ref: '#/$defs/acmegauge' });
   });
 });

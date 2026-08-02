@@ -58,6 +58,60 @@ test('parity/C2-comment', async ({ page }) => {
   await expect(page.getByText('106 characters remaining')).toBeVisible();
 });
 
+test('parity/C7-boolean-switch', async ({ page }) => {
+  const updates = page.getByLabel('Email me when something ships');
+  await expect(updates).not.toBeChecked();
+  // Unanswered, not false: nothing is in `data` yet.
+  await expect(page.getByTestId('survey-data')).not.toContainText('wantsUpdates');
+
+  await updates.check();
+  await expect(page.getByTestId('survey-data')).toContainText('"wantsUpdates": true');
+});
+
+test('parity/C7-boolean-radio-with-custom-values', async ({ page }) => {
+  await page.getByLabel('Not yet', { exact: true }).check();
+  // What the backend asked for, not a boolean.
+  await expect(page.getByTestId('survey-data')).toContainText('"hasBudget": "pending"');
+
+  await page.getByLabel('Approved').check();
+  await expect(page.getByTestId('survey-data')).toContainText('"hasBudget": "approved"');
+});
+
+test('parity/C8-rating-stars', async ({ page }) => {
+  const stars = page.getByRole('group', { name: /How is it going so far\?/u });
+  // Real radios under the stars, reachable by name — the star itself is `aria-hidden`
+  // decoration, so the scale announces "4" rather than "star star star star".
+  await expect(stars.getByRole('radio', { name: '4' })).toBeAttached();
+
+  // Clicked through the label, which is what a pointer actually lands on: the input is
+  // moved out of sight so it keeps its keyboard behaviour and its focus ring.
+  const star = (position: number) => stars.locator(`label:has(input[value="${String(position)}"])`);
+  await star(4).click();
+  await expect(page.getByTestId('survey-data')).toContainText('"satisfaction": 4');
+  await expect(stars.getByRole('radio', { name: '4' })).toBeChecked();
+
+  // Picking it again takes the answer back, which is the only way out of a radio group.
+  await star(4).click();
+  await expect(page.getByTestId('survey-data')).not.toContainText('satisfaction');
+});
+
+test('parity/C8-rating-auto-collapses-a-long-scale', async ({ page }) => {
+  // Eleven steps and no `displayMode` in the definition: the model decided. The
+  // collapsed form is a labelled control rather than a group, so the select has a name
+  // of its own — a legend names a fieldset and nothing inside it.
+  const recommend = page.getByLabel(/How likely are you to recommend Kajay\?/u);
+  await expect(recommend).toHaveRole('combobox');
+  await expect(recommend.locator('option')).toHaveCount(12);
+
+  // Scoped to the question: the demo also prints the canonical JSON, where the same
+  // string appears as the property that produced it.
+  await expect(
+    page.locator('[data-question-name="recommend"]').getByText('Not at all likely'),
+  ).toBeVisible();
+  await recommend.selectOption('9');
+  await expect(page.getByTestId('survey-data')).toContainText('"recommend": 9');
+});
+
 test('parity/C2-comment-auto-grow', async ({ page }) => {
   const feedback = page.getByLabel(/Anything else we should know\?/u);
   const heightOf = async (): Promise<number> =>

@@ -30,6 +30,108 @@
       ],
       "additionalProperties": true
     },
+    "boolean": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "boolean"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "labelTrue": {
+          "type": "string",
+          "default": "Yes"
+        },
+        "labelFalse": {
+          "type": "string",
+          "default": "No"
+        },
+        "valueTrue": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "default": true,
+          "description": "What is stored for yes. Anything the host backend expects."
+        },
+        "valueFalse": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "default": false
+        },
+        "renderAs": {
+          "type": "string",
+          "default": "switch",
+          "description": "switch or radio."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
     "calculatedvalue": {
       "type": "object",
       "properties": {
@@ -636,6 +738,9 @@
       "description": "Any concrete \"pageelement\".",
       "oneOf": [
         {
+          "$ref": "#/$defs/boolean"
+        },
+        {
           "$ref": "#/$defs/checkbox"
         },
         {
@@ -649,6 +754,9 @@
         },
         {
           "$ref": "#/$defs/radiogroup"
+        },
+        {
+          "$ref": "#/$defs/rating"
         },
         {
           "$ref": "#/$defs/tagbox"
@@ -710,6 +818,9 @@
       "description": "Any concrete \"question\".",
       "oneOf": [
         {
+          "$ref": "#/$defs/boolean"
+        },
+        {
           "$ref": "#/$defs/checkbox"
         },
         {
@@ -720,6 +831,9 @@
         },
         {
           "$ref": "#/$defs/radiogroup"
+        },
+        {
+          "$ref": "#/$defs/rating"
         },
         {
           "$ref": "#/$defs/tagbox"
@@ -861,6 +975,114 @@
           }
         },
         "choices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/itemvalue"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "rating": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "rating"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "rateMin": {
+          "type": "number",
+          "default": 1
+        },
+        "rateMax": {
+          "type": "number",
+          "default": 5
+        },
+        "rateStep": {
+          "type": "number",
+          "default": 1
+        },
+        "rateType": {
+          "type": "string",
+          "default": "labels",
+          "description": "labels, stars or smileys."
+        },
+        "displayMode": {
+          "type": "string",
+          "default": "auto",
+          "description": "auto, buttons or dropdown. auto collapses a long scale."
+        },
+        "minRateDescription": {
+          "type": "string",
+          "default": ""
+        },
+        "maxRateDescription": {
+          "type": "string",
+          "default": ""
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
+        "rateValues": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/itemvalue"

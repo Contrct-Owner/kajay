@@ -4,6 +4,8 @@ interface QuestionTypeDefinitions {
   readonly question: ClassMetadataDefinition;
   readonly text: ClassMetadataDefinition;
   readonly comment: ClassMetadataDefinition;
+  readonly boolean: ClassMetadataDefinition;
+  readonly rating: ClassMetadataDefinition;
 }
 
 /** Authoritative metadata for the question base and plain question types. */
@@ -86,6 +88,53 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
         type: 'number',
         description: 'Length budget. 0 means none, which also hides the counter.',
       },
+    ],
+  },
+  boolean: {
+    name: 'boolean',
+    parent: 'question',
+    properties: [
+      { name: 'labelTrue', type: 'string', defaultValue: 'Yes' },
+      { name: 'labelFalse', type: 'string', defaultValue: 'No' },
+      {
+        name: 'valueTrue',
+        type: 'value',
+        defaultValue: true,
+        description: 'What is stored for yes. Anything the host backend expects.',
+      },
+      { name: 'valueFalse', type: 'value', defaultValue: false },
+      {
+        name: 'renderAs',
+        type: 'string',
+        defaultValue: 'switch',
+        description: 'switch or radio.',
+      },
+    ],
+  },
+  rating: {
+    name: 'rating',
+    parent: 'question',
+    properties: [
+      { name: 'rateMin', type: 'number', defaultValue: 1 },
+      { name: 'rateMax', type: 'number', defaultValue: 5 },
+      { name: 'rateStep', type: 'number', defaultValue: 1 },
+      {
+        name: 'rateType',
+        type: 'string',
+        defaultValue: 'labels',
+        description: 'labels, stars or smileys.',
+      },
+      {
+        name: 'displayMode',
+        type: 'string',
+        defaultValue: 'auto',
+        description: 'auto, buttons or dropdown. auto collapses a long scale.',
+      },
+      { name: 'minRateDescription', type: 'string' },
+      { name: 'maxRateDescription', type: 'string' },
+    ],
+    childCollections: [
+      { property: 'rateValues', elementBaseType: 'itemvalue', shorthandProperty: 'value' },
     ],
   },
 };

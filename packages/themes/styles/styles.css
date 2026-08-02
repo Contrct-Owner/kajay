@@ -202,6 +202,119 @@
   cursor: progress;
 }
 
+/* --- boolean ------------------------------------------------------------- */
+
+.kajay-question--boolean {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.kajay-boolean {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 2);
+  align-items: center;
+  cursor: pointer;
+}
+
+.kajay-boolean__switch {
+  width: 2.5em;
+  height: 1.4em;
+  cursor: pointer;
+}
+
+.kajay-boolean__options {
+  display: flex;
+  gap: var(--kajay-spacing);
+}
+
+/* --- rating -------------------------------------------------------------- */
+
+.kajay-question--rating {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.kajay-rating {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--kajay-spacing) / 4);
+}
+
+/* Positioned so the hidden input below stays inside its own step. Absolute positioning
+ * without an anchor would place it against whatever ancestor happened to be positioned,
+ * which is a bug waiting for a layout change. */
+.kajay-rating__step {
+  position: relative;
+  cursor: pointer;
+}
+
+/* The radio is the control; it is moved out of sight rather than removed, so it keeps
+ * its focus ring, its keyboard behaviour and its place in the accessibility tree. The
+ * visible label is what a pointer lands on, and forwards the click. */
+.kajay-rating__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.kajay-rating__label {
+  display: inline-flex;
+  gap: 0.25em;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25em;
+  padding: calc(var(--kajay-spacing) / 4) calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+}
+
+.kajay-rating__input:focus-visible + .kajay-rating__label {
+  outline: 2px solid var(--kajay-color-accent);
+  outline-offset: 1px;
+}
+
+.kajay-rating__input:checked + .kajay-rating__label {
+  border-color: var(--kajay-color-accent);
+  background: var(--kajay-color-accent);
+  color: #ffffff;
+}
+
+/* Behind a glyph the number is the accessible name and nothing more, so it is hidden
+ * the same way the radio is — out of sight, still announced. */
+.kajay-rating[data-rate-type='stars'] .kajay-rating__value,
+.kajay-rating[data-rate-type='smileys'] .kajay-rating__value {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.kajay-rating[data-rate-type='stars'] .kajay-rating__label,
+.kajay-rating[data-rate-type='smileys'] .kajay-rating__label {
+  border: none;
+  background: none;
+  font-size: 1.5em;
+}
+
+.kajay-rating[data-rate-type='stars'] .kajay-rating__input:checked + .kajay-rating__label {
+  background: none;
+  color: inherit;
+}
+
+.kajay-rating__descriptions {
+  display: flex;
+  justify-content: space-between;
+  margin: calc(var(--kajay-spacing) / 4) 0 0;
+  color: var(--kajay-color-muted);
+  font-size: 0.8125em;
+}
+
 .kajay-question--unsupported {
   color: var(--kajay-color-muted);
   font-style: italic;

@@ -1,7 +1,9 @@
 // The entire public surface of @kajay/react.
 
+export { BooleanQuestionRenderer } from './BooleanQuestionRenderer.js';
 export { CollapsedSelectRenderer } from './CollapsedSelectRenderer.js';
 export { CommentQuestionRenderer } from './CommentQuestionRenderer.js';
+export { RatingQuestionRenderer } from './RatingQuestionRenderer.js';
 export { defaultQuestionRenderers } from './defaultQuestionRenderers.js';
 export { QuestionErrors } from './QuestionErrors.js';
 export type { QuestionErrorsProps } from './QuestionErrors.js';

@@ -55,7 +55,11 @@ globalRegistry.addClass({
  * where the respondent will see it.
  */
 export const validateOnServer: ServerValidator = async ({ data, questionNames }) => {
-  await delay(200);
+  // Deliberately brief. A server validator runs on *every* gate, so an artificially
+  // slow one taxes every scenario in the suite — and what D4 proves is the seam, not
+  // the latency. The visible waiting state is demonstrated by the validator above,
+  // which fires on one field.
+  await delay(60);
   const errors: ServerValidationError[] = [];
   if (questionNames.includes('price') && Number(data['price']) === 13) {
     errors.push({ questionName: 'price', text: 'Our billing system refuses 13. Sorry.' });

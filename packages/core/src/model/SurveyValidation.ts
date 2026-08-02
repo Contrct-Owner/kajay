@@ -262,13 +262,19 @@ export class SurveyValidation {
       data: this.#host.data(),
       serverValidator: this.#serverValidator,
     }).then((result) => {
-      this.#setValidating(false);
       if (isStale()) {
+        this.#setValidating(false);
         onSettled(false);
         return;
       }
+      // Everything the renderer reads is settled *before* the event that makes it
+      // read: `isValidating` going false is what un-disables the button and re-renders
+      // the navigation, and that render must not catch `serverError` half-assigned.
+      // It happened to work — React flushes after the current task — but relying on a
+      // scheduler for state consistency is a bug waiting for a slow frame.
       this.#serverError = result.serverError;
       const isValid = this.#run(questions, result.errors) && result.serverError === undefined;
+      this.#setValidating(false);
       onSettled(isValid);
     });
   }

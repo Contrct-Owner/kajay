@@ -1,4 +1,6 @@
+import { BooleanQuestion } from '../model/BooleanQuestion.js';
 import { CommentQuestion } from '../model/CommentQuestion.js';
+import { RatingQuestion } from '../model/RatingQuestion.js';
 import { TextQuestion } from '../model/TextQuestion.js';
 import type { MetadataRegistry } from './MetadataRegistry.js';
 import { QUESTION_TYPE_DEFINITIONS } from './questionTypeDefinitions.js';
@@ -13,5 +15,13 @@ export function registerQuestionTypes(registry: MetadataRegistry): void {
   registry.addClass({
     ...QUESTION_TYPE_DEFINITIONS.comment,
     create: () => new CommentQuestion(),
+  });
+  registry.addClass({
+    ...QUESTION_TYPE_DEFINITIONS.boolean,
+    create: () => new BooleanQuestion(),
+  });
+  registry.addClass({
+    ...QUESTION_TYPE_DEFINITIONS.rating,
+    create: () => new RatingQuestion(),
   });
 }

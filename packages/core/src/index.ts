@@ -88,8 +88,12 @@ export type {
 export { registerBuiltInTypes } from './metadata/registerBuiltInTypes.js';
 export { CalculatedValue } from './model/CalculatedValue.js';
 export type { ChoiceFetcher } from './model/ChoiceSourceController.js';
+export { BooleanQuestion } from './model/BooleanQuestion.js';
+export type { BooleanRenderMode } from './model/BooleanQuestion.js';
 export { CheckboxQuestion } from './model/CheckboxQuestion.js';
 export { CommentQuestion } from './model/CommentQuestion.js';
+export { RatingQuestion } from './model/RatingQuestion.js';
+export type { RateType, RatingDisplayMode } from './model/RatingQuestion.js';
 export { DropdownQuestion } from './model/DropdownQuestion.js';
 export { MultiSelectQuestion } from './model/MultiSelectQuestion.js';
 export { SingleSelectQuestion } from './model/SingleSelectQuestion.js';

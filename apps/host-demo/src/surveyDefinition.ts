@@ -266,6 +266,42 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
           autoGrow: true,
           maxLength: 120,
         },
+        {
+          type: 'boolean',
+          name: 'wantsUpdates',
+          title: 'Product updates',
+          labelTrue: 'Email me when something ships',
+        },
+        {
+          // The radio form, and a pair of values the backend chose rather than the
+          // booleans. Both halves of C7 in one question.
+          type: 'boolean',
+          name: 'hasBudget',
+          title: 'Do you have a budget approved?',
+          renderAs: 'radio',
+          labelTrue: 'Approved',
+          labelFalse: 'Not yet',
+          valueTrue: 'approved',
+          valueFalse: 'pending',
+        },
+        {
+          type: 'rating',
+          name: 'satisfaction',
+          title: 'How is it going so far?',
+          rateType: 'stars',
+          rateMax: 5,
+        },
+        {
+          // Eleven steps, so `auto` collapses it to a list rather than a wall of
+          // buttons. Nothing in the definition says "dropdown".
+          type: 'rating',
+          name: 'recommend',
+          title: 'How likely are you to recommend Kajay?',
+          rateMin: 0,
+          rateMax: 10,
+          minRateDescription: 'Not at all likely',
+          maxRateDescription: 'Extremely likely',
+        },
       ],
     },
   ],

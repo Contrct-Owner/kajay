@@ -89,8 +89,12 @@ export type {
 
 // --- Conditional logic (checklist §B) -------------------------------------
 export type { ConditionBinding } from './logic/ConditionBinding.js';
+export { createValueRule } from './logic/createValueRule.js';
+export type { ValueRuleExpressions, ValueRuleTarget } from './logic/createValueRule.js';
+export type { LogicRule, RuleContext, RuleEvaluation } from './logic/LogicRule.js';
 export { LogicEngine } from './logic/LogicEngine.js';
 export type {
+  LogicDiagnostics,
   LogicEngineOptions,
   LogicRunResult,
   ValueResolver,

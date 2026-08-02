@@ -73,6 +73,23 @@ test('parity/B4-required-if', async ({ page }) => {
   );
 });
 
+test('parity/B5-default-value-expression', async ({ page }) => {
+  await page.getByLabel(/What is your name\?/u).fill('Ada Lovelace');
+  await page.getByLabel('What should we call you?').fill('Ada');
+
+  const greeting = page.getByLabel('How we will greet you');
+  await expect(greeting).toHaveValue('Hello, Ada');
+
+  // Still tracking, because nobody has overridden it.
+  await page.getByLabel('What should we call you?').fill('Ada L');
+  await expect(greeting).toHaveValue('Hello, Ada L');
+
+  // Typed over: now it belongs to the respondent and stops following.
+  await greeting.fill('Hi there');
+  await page.getByLabel('What should we call you?').fill('Augusta');
+  await expect(greeting).toHaveValue('Hi there');
+});
+
 test('parity/E5-completion-flow', async ({ page }) => {
   await page.getByLabel(/What is your name\?/u).fill('Ada');
   await page.getByRole('button', { name: 'Complete' }).click();

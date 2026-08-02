@@ -108,6 +108,25 @@
           "default": "",
           "description": "Expression; when present it overrides isRequired."
         },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
         "inputType": {
           "type": "string",
           "default": "text"

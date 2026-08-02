@@ -1,48 +1,48 @@
+import type { DependencyError } from '../dependencies/DependencyError.js';
 import { EventEmitter } from '../events/EventEmitter.js';
 import type {
   CompleteEvent,
   CurrentPageChangedEvent,
   ElementStateChangedEvent,
-  ElementStateKind,
   ValueChangedEvent,
 } from '../events/SurveyEvents.js';
+import type { ExpressionError } from '../expressions/ExpressionError.js';
 import type { PathSegment } from '../expressions/ExpressionNode.js';
+import { CONDITIONAL_PROPERTIES } from '../logic/conditionalProperties.js';
+import { createValueRule } from '../logic/createValueRule.js';
 import { LogicEngine } from '../logic/LogicEngine.js';
-import type { LogicEngineOptions } from '../logic/LogicEngine.js';
+import type {
+  LogicDiagnostics,
+  LogicEngineOptions,
+  LogicRunResult,
+} from '../logic/LogicEngine.js';
+import { createPathResolver } from './createPathResolver.js';
+import { ElementStateController } from './ElementStateController.js';
 import { Page } from './Page.js';
-import { Question } from './Question.js';
+import type { Question } from './Question.js';
 import { SurveyElement } from './SurveyElement.js';
 import type { ValueHost } from './ValueHost.js';
 
-interface ConditionalProperty {
-  readonly property: string;
-  readonly state: ElementStateKind;
-  /**
-   * Result used when the expression is malformed or unevaluable.
-   *
-   * Visibility and enablement fall back to *permissive*: hiding or freezing a question
-   * because its expression is broken loses answers silently. Requiredness falls back
-   * to *lenient* for the mirror-image reason — blocking submission over a broken
-   * expression is worse than letting the answer through.
-   */
-  readonly fallback: boolean;
+/** A non-blank string property, or undefined. */
+function stringProperty(element: SurveyElement, name: string): string | undefined {
+  const value = element.getPropertyValue(name);
+  return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
 }
-
-const CONDITIONAL_PROPERTIES: readonly ConditionalProperty[] = [
-  { property: 'visibleIf', state: 'visible', fallback: true },
-  { property: 'enableIf', state: 'enabled', fallback: true },
-  { property: 'requiredIf', state: 'required', fallback: false },
-];
 
 /** Root of the model, and the value host every question writes through. */
 export class Survey extends SurveyElement implements ValueHost {
   readonly #pages: Page[] = [];
   readonly #data: Map<string, unknown> = new Map();
   readonly #logic: LogicEngine;
+  readonly #states: ElementStateController = new ElementStateController();
+  readonly #resolvePath: (path: readonly PathSegment[]) => unknown = createPathResolver(this.#data);
+
   #currentPageNo = 0;
   #isCompleted = false;
-  #logicVersion = 0;
-  #pendingStateChanges: ElementStateChangedEvent[] = [];
+  #isSettling = false;
+  #pendingValueChanges: ValueChangedEvent[] = [];
+  #dependencyErrors: DependencyError[] = [];
+  #expressionErrors: ExpressionError[] = [];
 
   readonly onValueChanged: EventEmitter<ValueChangedEvent> = new EventEmitter();
   readonly onComplete: EventEmitter<CompleteEvent> = new EventEmitter();
@@ -103,14 +103,19 @@ export class Survey extends SurveyElement implements ValueHost {
     child.attachValueHost(this);
   }
 
-  /**
-   * Increments whenever logic changes an element's visible, enabled or required state.
-   *
-   * A monotonic counter is exactly the snapshot `useSyncExternalStore` wants, which is
-   * how the React adapter re-renders without core knowing React exists.
-   */
+  /** Advances whenever logic changes an element's visible, enabled or required state. */
   get logicVersion(): number {
-    return this.#logicVersion;
+    return this.#states.version;
+  }
+
+  /**
+   * What the most recent logic run reported: cycles, and malformed expressions.
+   *
+   * Checklist B8 asks for cycles to be *reported*, which is only true if a host can
+   * actually read them. The graph knows; without this it had nowhere to say so.
+   */
+  get logicDiagnostics(): LogicDiagnostics {
+    return { dependencyErrors: this.#dependencyErrors, expressionErrors: this.#expressionErrors };
   }
 
   /**
@@ -126,18 +131,19 @@ export class Survey extends SurveyElement implements ValueHost {
     for (const page of this.#pages) {
       this.#registerConditions(page, `page:${page.name}`);
       for (const question of page.elements) {
-        this.#registerConditions(question, `question:${question.name}`);
+        const owner = `question:${question.name}`;
+        this.#registerConditions(question, owner);
+        this.#registerValueRule(question, owner);
       }
     }
-    this.#logic.evaluateAll(this.#resolvePath);
-    this.#flushStateChanges();
+    this.#settle(() => this.#logic.evaluateAll(this.#resolvePath));
   }
 
   #registerConditions(element: SurveyElement, owner: string): void {
     for (const conditional of CONDITIONAL_PROPERTIES) {
-      const expression = element.getPropertyValue(conditional.property);
-      if (typeof expression !== 'string' || expression.trim().length === 0) {
-        this.#clearCondition(element, conditional.state);
+      const expression = stringProperty(element, conditional.property);
+      if (expression === undefined) {
+        this.#states.clear(element, conditional.state);
         continue;
       }
       this.#logic.addCondition({
@@ -145,72 +151,77 @@ export class Survey extends SurveyElement implements ValueHost {
         expression,
         fallback: conditional.fallback,
         apply: (result) => {
-          this.#applyState(element, conditional.state, result);
+          this.#states.apply(element, conditional.state, result);
         },
       });
     }
   }
 
-  /** No expression: revert to the element's authored, unconditional state. */
-  #clearCondition(element: SurveyElement, state: ElementStateKind): void {
-    if (state === 'required') {
-      if (element instanceof Question) {
-        element.setRequiredOverride(undefined);
-      }
+  #registerValueRule(question: Question, owner: string): void {
+    const rule = createValueRule(
+      `${owner}:value`,
+      {
+        resetValueIf: stringProperty(question, 'resetValueIf'),
+        setValueIf: stringProperty(question, 'setValueIf'),
+        setValueExpression: stringProperty(question, 'setValueExpression'),
+        defaultValueExpression: stringProperty(question, 'defaultValueExpression'),
+      },
+      {
+        path: [{ kind: 'name', name: question.name }],
+        getValue: () => this.getValue(question.name),
+        setValue: (value) => {
+          this.setValue(question.name, value);
+        },
+        clearValue: () => {
+          this.setValue(question.name, undefined);
+        },
+      },
+    );
+    if (rule !== undefined) {
+      this.#logic.addRule(rule);
+    }
+  }
+
+  /**
+   * Runs logic to completion, then emits everything it produced.
+   *
+   * The guard is what makes a rule's own `setValue` safe: writes are declared to the
+   * graph, so the running plan already contains everything downstream of them.
+   * Starting a nested transaction per write would re-plan mid-flight and, for two
+   * rules feeding each other, recurse.
+   */
+  #settle(run: () => LogicRunResult): void {
+    if (this.#isSettling) {
+      this.#recordDiagnostics(run());
       return;
     }
-    this.#applyState(element, state, true);
-  }
-
-  #applyState(element: SurveyElement, state: ElementStateKind, value: boolean): void {
-    if (state === 'visible') {
-      if (element.isVisible === value) {
-        return;
-      }
-      element.setVisibility(value);
-    } else if (state === 'enabled') {
-      if (element.isEnabled === value) {
-        return;
-      }
-      element.setEnabled(value);
-    } else {
-      // `requiredIf` is meaningless on anything that cannot hold an answer.
-      if (!(element instanceof Question) || element.isRequired === value) {
-        return;
-      }
-      element.setRequiredOverride(value);
+    this.#isSettling = true;
+    this.#dependencyErrors = [];
+    this.#expressionErrors = [];
+    try {
+      this.#recordDiagnostics(run());
+    } finally {
+      this.#isSettling = false;
     }
-
-    this.#logicVersion += 1;
-    this.#pendingStateChanges.push({ element, state, value });
+    this.#flushEvents();
   }
 
-  /** Emits buffered state events once the model has finished settling. */
-  #flushStateChanges(): void {
-    const pending = this.#pendingStateChanges;
-    this.#pendingStateChanges = [];
-    for (const event of pending) {
+  #recordDiagnostics(result: LogicRunResult): void {
+    this.#dependencyErrors.push(...result.dependencyErrors);
+    this.#expressionErrors.push(...result.expressionErrors);
+  }
+
+  /** Emits buffered events once the model has finished settling. */
+  #flushEvents(): void {
+    const values = this.#pendingValueChanges;
+    this.#pendingValueChanges = [];
+    for (const event of values) {
+      this.onValueChanged.emit(event);
+    }
+    for (const event of this.#states.drain()) {
       this.onElementStateChanged.emit(event);
     }
   }
-
-  readonly #resolvePath = (path: readonly PathSegment[]): unknown => {
-    const [first, ...rest] = path;
-    if (first === undefined || first.kind !== 'name') {
-      return;
-    }
-    let current: unknown = this.#data.get(first.name);
-    for (const segment of rest) {
-      if (current === null || current === undefined) {
-        return;
-      }
-      current =
-        segment.kind === 'index'
-          ? (current as Record<number, unknown>)[segment.index]
-          : (current as Record<string, unknown>)[segment.name];
-    }
-    return current;
-  };
 
   get currentPageNo(): number {
     return this.#currentPageNo;
@@ -247,9 +258,8 @@ export class Survey extends SurveyElement implements ValueHost {
   /**
    * Records an answer and settles the logic it affects.
    *
-   * Logic runs *before* any event fires, and visibility events are buffered until it
-   * has finished, so a listener never observes the model part-way through a cascade
-   * (ADR-0004's transaction model).
+   * Logic runs *before* any event fires, and events are buffered until it has
+   * finished, so a listener never observes the model part-way through a cascade.
    */
   setValue(name: string, value: unknown): void {
     const previousValue = this.#data.get(name);
@@ -261,11 +271,9 @@ export class Survey extends SurveyElement implements ValueHost {
     } else {
       this.#data.set(name, value);
     }
+    this.#pendingValueChanges.push({ name, value, previousValue });
 
-    this.#logic.applyValueChange([{ kind: 'name', name }], this.#resolvePath);
-
-    this.onValueChanged.emit({ name, value, previousValue });
-    this.#flushStateChanges();
+    this.#settle(() => this.#logic.applyValueChange([{ kind: 'name', name }], this.#resolvePath));
   }
 
   get isCompleted(): boolean {

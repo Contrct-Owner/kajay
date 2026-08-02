@@ -43,6 +43,15 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
           // which the dependency graph orders without being told.
           enableIf: '{nickname} notempty',
         },
+        {
+          type: 'text',
+          name: 'greeting',
+          title: 'How we will greet you',
+          // Prefilled from the answers above and kept in step with them — until you
+          // type over it, after which it is yours.
+          defaultValueExpression: "'Hello, ' + {nickname}",
+          visibleIf: '{nickname} notempty',
+        },
       ],
     },
   ],

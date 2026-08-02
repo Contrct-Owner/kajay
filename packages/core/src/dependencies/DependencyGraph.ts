@@ -63,6 +63,18 @@ export class DependencyGraph {
     return this.#order(affected);
   }
 
+  /**
+   * Every node, in dependency order.
+   *
+   * Used for the initial evaluation, where there is no change to propagate from.
+   * Ordering still matters there: a rule that writes a value another rule reads has to
+   * run first, or the second sees a stale answer on the very first pass. It also
+   * surfaces cycles at load time rather than on the first keystroke.
+   */
+  planAll(): DependencyPlan {
+    return this.#order(new Set(this.getNodeKeys()));
+  }
+
   #collectAffected(changedPaths: readonly (readonly PathSegment[])[]): Set<string> {
     const affected = new Set<string>();
     const queue: string[] = [];

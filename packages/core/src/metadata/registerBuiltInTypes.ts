@@ -70,6 +70,22 @@ function registerQuestionBase(registry: MetadataRegistry): void {
         type: 'string',
         description: 'Expression; when present it overrides isRequired.',
       },
+      {
+        name: 'defaultValueExpression',
+        type: 'string',
+        description: 'Expression supplying a value while the question is unanswered.',
+      },
+      {
+        name: 'setValueIf',
+        type: 'string',
+        description: 'Expression; while truthy, setValueExpression drives the answer.',
+      },
+      { name: 'setValueExpression', type: 'string' },
+      {
+        name: 'resetValueIf',
+        type: 'string',
+        description: 'Expression; while truthy the answer is cleared. Wins over the others.',
+      },
     ],
   });
 }

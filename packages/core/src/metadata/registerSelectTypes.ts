@@ -3,6 +3,7 @@ import { DropdownQuestion } from '../model/DropdownQuestion.js';
 import { ImagePickerQuestion } from '../model/ImagePickerQuestion.js';
 import { ItemValue } from '../model/ItemValue.js';
 import { RadiogroupQuestion } from '../model/RadiogroupQuestion.js';
+import { RankingQuestion } from '../model/RankingQuestion.js';
 import { TagboxQuestion } from '../model/TagboxQuestion.js';
 import type { MetadataRegistry } from './MetadataRegistry.js';
 import { SELECT_TYPE_DEFINITIONS } from './selectTypeDefinitions.js';
@@ -34,5 +35,9 @@ export function registerSelectTypes(registry: MetadataRegistry): void {
   registry.addClass({
     ...SELECT_TYPE_DEFINITIONS.imagePicker,
     create: () => new ImagePickerQuestion(),
+  });
+  registry.addClass({
+    ...SELECT_TYPE_DEFINITIONS.ranking,
+    create: () => new RankingQuestion(),
   });
 }

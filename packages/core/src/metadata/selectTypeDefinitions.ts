@@ -1,5 +1,5 @@
 import type { ClassMetadataDefinition } from './ClassDescriptor.js';
-import { VISIBLE_IF } from './commonProperties.js';
+import { MAX_SELECTED_CHOICES, VISIBLE_IF } from './commonProperties.js';
 
 interface SelectTypeDefinitions {
   readonly itemValue: ClassMetadataDefinition;
@@ -10,6 +10,7 @@ interface SelectTypeDefinitions {
   readonly checkbox: ClassMetadataDefinition;
   readonly tagbox: ClassMetadataDefinition;
   readonly imagePicker: ClassMetadataDefinition;
+  readonly ranking: ClassMetadataDefinition;
 }
 
 /** Authoritative metadata for choice items and every select-question type. */
@@ -80,7 +81,7 @@ export const SELECT_TYPE_DEFINITIONS: SelectTypeDefinitions = {
     properties: [
       { name: 'showSelectAllItem', type: 'boolean' },
       { name: 'selectAllText', type: 'string', defaultValue: 'Select all' },
-      { name: 'maxSelectedChoices', type: 'number', description: '0 means no limit.' },
+      MAX_SELECTED_CHOICES,
     ],
   },
   radiogroup: {
@@ -114,6 +115,24 @@ export const SELECT_TYPE_DEFINITIONS: SelectTypeDefinitions = {
         type: 'boolean',
         description: 'Whether the choice text is shown. It is the tile name either way.',
       },
+    ],
+  },
+  ranking: {
+    name: 'ranking',
+    parent: 'selectbase',
+    properties: [
+      {
+        name: 'selectToRankEnabled',
+        type: 'boolean',
+        description: 'Choices start in a pool and are ranked only once placed.',
+      },
+      {
+        name: 'selectToRankAreasLayout',
+        type: 'string',
+        defaultValue: 'vertical',
+        description: 'horizontal or vertical. Where the pool sits relative to the ranking.',
+      },
+      MAX_SELECTED_CHOICES,
     ],
   },
 };

@@ -104,6 +104,34 @@ export const questionTypes: PageDefinition = {
       ],
     },
     {
+      // Ordered, not picked: the answer is an array whose positions carry the meaning,
+      // so `{priorities[0]}` is "what matters most".
+      type: 'ranking',
+      name: 'priorities',
+      title: 'What matters most to you?',
+      choices: [
+        { value: 'speed', text: 'Speed' },
+        { value: 'price', text: 'Price' },
+        { value: 'support', text: 'Support' },
+      ],
+    },
+    {
+      // The other shape of the same question: choices start in a pool, and only what
+      // has been placed is part of the answer.
+      type: 'ranking',
+      name: 'shortlist',
+      title: 'Which two should we build next, best first?',
+      selectToRankEnabled: true,
+      selectToRankAreasLayout: 'horizontal',
+      maxSelectedChoices: 2,
+      choices: [
+        { value: 'offline', text: 'Offline mode' },
+        { value: 'sso', text: 'Single sign-on' },
+        { value: 'api', text: 'Public API' },
+        { value: 'themes', text: 'Custom themes' },
+      ],
+    },
+    {
       type: 'rating',
       name: 'satisfaction',
       title: 'How is it going so far?',

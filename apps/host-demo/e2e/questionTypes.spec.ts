@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { gotoQuestionTypes } from './support/navigate.js';
 
 /**
@@ -203,4 +204,84 @@ test('parity/C2-comment-auto-grow', async ({ page }) => {
   // And back down again: measuring rather than counting is what lets it shrink.
   await feedback.fill('one');
   expect(await heightOf()).toBeLessThanOrEqual(collapsed);
+});
+
+/** The ranking rows of one question, in the order they are on screen. */
+function rankingRows(page: Page, name: string): Locator {
+  return page.locator(`[data-question-name="${name}"] .kajay-ranking__row`);
+}
+
+test('parity/C9-drag-reorder', async ({ page }) => {
+  const rows = rankingRows(page, 'priorities');
+  await expect(rows).toHaveText([/1\s*Speed/u, /2\s*Price/u, /3\s*Support/u]);
+
+  // Scrolled into view first: a bounding box is in viewport coordinates, and the
+  // pointer would otherwise be sent to whatever happens to be at those coordinates.
+  await rows.nth(2).scrollIntoViewIfNeeded();
+  const from = await rows.nth(2).boundingBox();
+  const to = await rows.nth(0).boundingBox();
+  if (from === null || to === null) {
+    throw new Error('the ranking rows are not laid out');
+  }
+
+  // A real pointer drag, in steps: the list rearranges under the pointer as it travels,
+  // so what is on screen mid-drag is the answer being recorded rather than a preview.
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 12 });
+  await page.mouse.up();
+
+  await expect(rows).toHaveText([/1\s*Support/u, /2\s*Speed/u, /3\s*Price/u]);
+  await expect(page.getByTestId('survey-data')).toContainText(
+    /"priorities": \[\s+"support",\s+"speed",\s+"price"\s+\]/u,
+  );
+});
+
+test('parity/C9-keyboard-reorder', async ({ page }) => {
+  const rows = rankingRows(page, 'priorities');
+  await rows.nth(0).scrollIntoViewIfNeeded();
+  await rows.nth(0).focus();
+
+  // Enter as well as space: both pick a row up, and a respondent should not have to
+  // guess which one this list wanted.
+  await page.keyboard.press('Enter');
+
+  const scrollY = await page.evaluate(() => window.scrollY);
+  const room = await page.evaluate(
+    () => document.documentElement.scrollHeight - window.innerHeight - window.scrollY,
+  );
+  // There is somewhere to scroll to, or the assertion below would pass for the wrong
+  // reason.
+  expect(room).toBeGreaterThan(0);
+
+  await page.keyboard.press('ArrowDown');
+  // Waited out on purpose: a keyboard scroll in Chromium is animated, so reading the
+  // offset straight after the key press would report the old one and pass whatever
+  // happened next.
+  await page.waitForTimeout(300);
+  // The arrow moved the row and not the page. An arrow key the widget does not claim
+  // scrolls, and a respondent would watch the survey slide away as they arranged it.
+  expect(await page.evaluate(() => window.scrollY)).toBe(scrollY);
+
+  await page.keyboard.press('Enter');
+  await expect(rows).toHaveText([/1\s*Price/u, /2\s*Speed/u, /3\s*Support/u]);
+});
+
+test('parity/C9-select-to-rank', async ({ page }) => {
+  const shortlist = page.locator('[data-question-name="shortlist"]');
+  await shortlist.getByRole('button', { name: 'Rank Public API' }).click();
+  await shortlist.getByRole('button', { name: 'Rank Offline mode' }).click();
+
+  await expect(shortlist.locator('.kajay-ranking__row')).toHaveText([
+    /1\s*Public API/u,
+    /2\s*Offline mode/u,
+  ]);
+
+  // Two is the limit, so the third is refused rather than replacing a choice the
+  // respondent deliberately made.
+  await shortlist.getByRole('button', { name: 'Rank Custom themes' }).click();
+  await expect(shortlist.locator('.kajay-ranking__row')).toHaveCount(2);
+  await expect(page.getByTestId('survey-data')).toContainText(
+    /"shortlist": \[\s+"api",\s+"offline"\s+\]/u,
+  );
 });

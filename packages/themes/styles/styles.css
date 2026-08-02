@@ -538,3 +538,129 @@
   height: auto;
   clip-path: none;
 }
+
+/* --- Ranking (C9) --------------------------------------------------------- */
+
+.kajay-question--ranking {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.kajay-ranking {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kajay-spacing);
+}
+
+/* Side by side only when there are two areas to put side by side, and only when
+ * there is room: a pool squeezed into half a phone screen is worse than a stack. */
+@media (min-width: 40rem) {
+  .kajay-ranking[data-layout='horizontal'] {
+    flex-direction: row;
+  }
+
+  .kajay-ranking[data-layout='horizontal'] > .kajay-ranking__area {
+    flex: 1 1 0;
+  }
+}
+
+.kajay-ranking__heading {
+  margin: 0 0 calc(var(--kajay-spacing) / 3);
+  color: var(--kajay-color-muted);
+  font-size: 0.875em;
+}
+
+/* Present for screen readers, which read it as each row's description; the same
+ * instructions rendered visibly beside every row would be noise. */
+.kajay-ranking__hint {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.kajay-ranking__list {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: calc(var(--kajay-spacing) / 4);
+  align-items: center;
+}
+
+.kajay-ranking__row {
+  display: flex;
+  grid-column: 1;
+  gap: calc(var(--kajay-spacing) / 2);
+  align-items: center;
+  padding: calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  /* Or a touch drag scrolls the page instead of moving the row. */
+  touch-action: none;
+  cursor: grab;
+}
+
+.kajay-ranking__row:focus-visible {
+  outline: 2px solid var(--kajay-color-accent);
+  outline-offset: 1px;
+}
+
+.kajay-ranking__row[data-grabbed],
+.kajay-ranking__row[data-dragged] {
+  border-color: var(--kajay-color-accent);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
+  cursor: grabbing;
+}
+
+.kajay-ranking__rank {
+  min-width: 1.5em;
+  color: var(--kajay-color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.kajay-ranking__unrank {
+  grid-column: 2;
+  padding: 0 calc(var(--kajay-spacing) / 2);
+  border: none;
+  background: none;
+  color: var(--kajay-color-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.kajay-ranking__pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--kajay-spacing) / 4);
+}
+
+.kajay-ranking__pool-choice {
+  padding: calc(var(--kajay-spacing) / 3) calc(var(--kajay-spacing) / 2);
+  border: 1px dashed var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kajay-ranking__empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--kajay-color-muted);
+  font-size: 0.875em;
+}
+
+/* Announcements only. Nothing here is drawn — the list itself is the visual. */
+.kajay-ranking__live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

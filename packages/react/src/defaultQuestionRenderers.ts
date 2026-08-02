@@ -5,6 +5,7 @@ import { ExpressionQuestionRenderer } from './ExpressionQuestionRenderer.js';
 import { ImagePickerRenderer } from './ImagePickerRenderer.js';
 import { MultipleTextQuestionRenderer } from './MultipleTextQuestionRenderer.js';
 import { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
+import { RankingQuestionRenderer } from './RankingQuestionRenderer.js';
 import { RatingQuestionRenderer } from './RatingQuestionRenderer.js';
 import { SelectQuestionRenderer } from './SelectQuestionRenderer.js';
 import { TextQuestionRenderer } from './TextQuestionRenderer.js';
@@ -22,6 +23,7 @@ function createDefaultRenderers(): QuestionRendererRegistry {
   registry.register('dropdown', CollapsedSelectRenderer);
   registry.register('tagbox', CollapsedSelectRenderer);
   registry.register('imagepicker', ImagePickerRenderer);
+  registry.register('ranking', RankingQuestionRenderer);
   return registry;
 }
 

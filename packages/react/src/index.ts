@@ -8,6 +8,7 @@ export { ExpressionQuestionRenderer } from './ExpressionQuestionRenderer.js';
 export type { HtmlSanitizer } from './HtmlSanitizerContext.js';
 export { ImagePickerRenderer } from './ImagePickerRenderer.js';
 export { MultipleTextQuestionRenderer } from './MultipleTextQuestionRenderer.js';
+export { RankingQuestionRenderer } from './RankingQuestionRenderer.js';
 export { RatingQuestionRenderer } from './RatingQuestionRenderer.js';
 export { defaultQuestionRenderers } from './defaultQuestionRenderers.js';
 export { QuestionErrors } from './QuestionErrors.js';
@@ -21,6 +22,17 @@ export type { SurveyNavigationProps } from './SurveyNavigation.js';
 export type { SurveyProps } from './Survey.js';
 export { SelectQuestionRenderer } from './SelectQuestionRenderer.js';
 export { TextQuestionRenderer } from './TextQuestionRenderer.js';
+export type {
+  DraggedRow,
+  GrabbedRow,
+  ReorderContext,
+  ReorderOptions,
+  ReorderState,
+} from './ReorderContext.js';
+export { useReorder } from './useReorder.js';
+export type { Reorder, ReorderItemProps } from './useReorder.js';
+export { reorderAnnouncement } from './reorderAnnouncement.js';
+export type { ReorderEventKind } from './reorderAnnouncement.js';
 export {
   useSurveyCompleted,
   useSurveyCurrentPageNo,

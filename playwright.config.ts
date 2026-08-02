@@ -16,7 +16,12 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'pnpm --filter @kajay/host-demo run preview -- --port 4173 --strictPort',
+    // `preview` serves whatever is already in the demo's `dist`. Building is the
+    // `test:e2e` script's job and is repeated here so that running Playwright directly
+    // cannot silently test a stale bundle — which it did once, reporting the old
+    // string-typed REST answer long after the fix had landed.
+    command:
+      'pnpm --filter @kajay/host-demo run build && pnpm --filter @kajay/host-demo run preview -- --port 4173 --strictPort',
     url: 'http://localhost:4173',
     reuseExistingServer: !process.env['CI'],
     timeout: 120_000,

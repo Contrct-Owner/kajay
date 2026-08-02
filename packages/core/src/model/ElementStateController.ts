@@ -70,6 +70,18 @@ export class ElementStateController {
   }
 
   /**
+   * Records that the survey turned read-only, or stopped being.
+   *
+   * On the same buffer as everything else a renderer watches, because it changes every
+   * control on the page at once and a separate channel for it would be one more thing
+   * an adapter could forget to subscribe to.
+   */
+  notifyReadOnlyChanged(element: SurveyElement, isReadOnly: boolean): void {
+    this.#version += 1;
+    this.#pending.push({ element, state: 'readonly', value: isReadOnly });
+  }
+
+  /**
    * Records that an element's choice list changed.
    *
    * Routed through the same buffer as the boolean states so the renderer has one

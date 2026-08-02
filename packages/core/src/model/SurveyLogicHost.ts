@@ -179,6 +179,12 @@ export class SurveyLogicHost {
     this.#settle.queueValue(event);
   }
 
+  /** Announces a read-only flip immediately: nothing else is settling to carry it. */
+  announceReadOnly(element: SurveyElement): void {
+    this.#states.notifyReadOnlyChanged(element, true);
+    this.release();
+  }
+
   notifyErrorsChanged(element: SurveyElement): void {
     this.#states.notifyErrorsChanged(element);
   }

@@ -38,6 +38,7 @@ function ItemField({ question, item, errors }: ItemFieldProps): ReactElement {
         id={inputId}
         className="kajay-question__input"
         type={item.inputType}
+        readOnly={question.isReadOnly}
         placeholder={item.placeholder}
         disabled={!question.isEnabled}
         required={item.isRequired}

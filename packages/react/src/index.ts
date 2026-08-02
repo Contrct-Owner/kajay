@@ -16,6 +16,7 @@ export { RankingQuestionRenderer } from './RankingQuestionRenderer.js';
 export { RatingQuestionRenderer } from './RatingQuestionRenderer.js';
 export { defaultQuestionRenderers } from './defaultQuestionRenderers.js';
 export { QuestionErrors } from './QuestionErrors.js';
+export { readOnlyGroup, whenEditable } from './readOnly.js';
 export type { QuestionErrorsProps } from './QuestionErrors.js';
 export type { QuestionRendererProps } from './QuestionRendererProps.js';
 export { QuestionRendererRegistry } from './QuestionRendererRegistry.js';

@@ -93,6 +93,7 @@ export function CommentQuestionRenderer({
         ref={autoGrow}
         className="kajay-question__textarea"
         rows={isComment ? question.rows : 4}
+        readOnly={question.isReadOnly}
         placeholder={isComment ? question.placeholder : ''}
         disabled={!question.isEnabled}
         required={question.isRequired}

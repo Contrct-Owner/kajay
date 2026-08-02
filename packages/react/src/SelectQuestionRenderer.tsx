@@ -1,6 +1,7 @@
 import { CheckboxQuestion, RadiogroupQuestion, SelectQuestion } from '@kajay/core';
 import type { ReactElement } from 'react';
 import { ChoiceInput } from './ChoiceInput.js';
+import { readOnlyGroup } from './readOnly.js';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
@@ -95,6 +96,7 @@ export function SelectQuestionRenderer({ survey, question }: QuestionRendererPro
       aria-required={question.isRequired}
       aria-invalid={question.hasErrors || undefined}
       aria-describedby={question.hasErrors ? errorId : undefined}
+      {...readOnlyGroup(question.isReadOnly)}
     >
       <legend className="kajay-question__title">
         <QuestionTitleContent question={question} />

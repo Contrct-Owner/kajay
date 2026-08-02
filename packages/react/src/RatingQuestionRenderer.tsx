@@ -1,6 +1,7 @@
 import { RatingQuestion } from '@kajay/core';
 import type { ChangeEvent, ReactElement } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
+import { readOnlyGroup, whenEditable } from './readOnly.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
@@ -63,9 +64,9 @@ function RatingButtons({ question }: { readonly question: RatingQuestion }): Rea
             disabled={!question.isEnabled}
             // `onClick`, not only `onChange`: picking the step already chosen is how a
             // respondent takes an answer back, and a radio fires no change for that.
-            onClick={() => {
+            onClick={whenEditable(question.isReadOnly, () => {
               question.select(step.value);
-            }}
+            })}
             onChange={() => {
               /* handled by onClick, which also covers re-selecting the same step */
             }}
@@ -131,9 +132,13 @@ function RatingDropdown({ survey, question }: RatingProps): ReactElement {
         aria-describedby={question.hasErrors ? errorId : undefined}
         value={String(question.value ?? '')}
         onChange={handleChange}
+        {...readOnlyGroup(question.isReadOnly)}
       >
-        <option value="">{'Choose a rating'}</option>
-        {question.rateValues.map((step) => (
+        {/* Reading: only the chosen step is on offer, so there is nothing to change. */}
+        {question.isReadOnly ? null : <option value="">{'Choose a rating'}</option>}
+        {question.rateValues
+          .filter((step) => !question.isReadOnly || question.isSelected(step.value))
+          .map((step) => (
           <option key={String(step.value)} value={String(step.value)}>
             {step.text}
           </option>

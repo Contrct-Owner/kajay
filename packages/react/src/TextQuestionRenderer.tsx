@@ -54,6 +54,9 @@ export function TextQuestionRenderer({ survey, question }: QuestionRendererProps
         id={inputId}
         className="kajay-question__input"
         type={inputType}
+        // Native, because this is the control HTML defines it for: the value stays
+        // selectable, focusable and announced, and only editing is refused.
+        readOnly={question.isReadOnly}
         placeholder={placeholder}
         disabled={!question.isEnabled}
         required={question.isRequired}

@@ -35,6 +35,26 @@ export abstract class Question extends PageElement {
     this.#requiredOverride = isRequired;
   }
 
+  /**
+   * Whether this question is for reading rather than answering.
+   *
+   * True when the whole survey is read-only or this question was authored that way. The
+   * two are one state to a renderer, and asking it to combine them itself is how one
+   * adapter ends up honouring the survey-wide flag and another only the per-question
+   * one.
+   *
+   * **Not the same as disabled.** A disabled control leaves the tab order and stops
+   * being readable; a read-only one keeps its value, its focus and its announcement,
+   * which is exactly what someone reviewing what they submitted needs.
+   *
+   * It does not block programmatic writes. Logic and triggers write into read-only
+   * questions on purpose — that is what makes a computed field that nobody may type
+   * into work at all.
+   */
+  get isReadOnly(): boolean {
+    return (this.#valueHost?.isReadOnly ?? false) || this.getBooleanProperty('readOnly');
+  }
+
   /** Author's replacement for the built-in "this is required" message. */
   get requiredErrorText(): string {
     return this.getStringProperty('requiredErrorText');

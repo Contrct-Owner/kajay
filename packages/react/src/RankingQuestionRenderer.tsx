@@ -5,11 +5,19 @@ import { Fragment } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
+import { readOnlyGroup } from './readOnly.js';
 import { useReorder } from './useReorder.js';
 import { useSurveyValue } from './useSurveyState.js';
 
 const HOW_TO_REORDER =
   'Press space to pick this up, then use the arrow keys to move it and space again to drop it.';
+
+function rankingHeading(question: RankingQuestion): string {
+  if (question.isReadOnly) {
+    return 'Your ranking';
+  }
+  return question.selectToRankEnabled ? 'Your ranking' : 'Drag or use the keyboard to reorder';
+}
 
 /**
  * The ranking itself: rows that can be dragged or walked into place.
@@ -33,11 +41,13 @@ function RankedList({ question }: { readonly question: RankingQuestion }): React
   return (
     <div className="kajay-ranking__area" role="group" aria-labelledby={`${listId}-heading`}>
       <p className="kajay-ranking__heading" id={`${listId}-heading`}>
-        {question.selectToRankEnabled ? 'Your ranking' : 'Drag or use the keyboard to reorder'}
+        {rankingHeading(question)}
       </p>
-      <p className="kajay-ranking__hint" id={`${listId}-hint`}>
-        {HOW_TO_REORDER}
-      </p>
+      {question.isReadOnly ? null : (
+        <p className="kajay-ranking__hint" id={`${listId}-hint`}>
+          {HOW_TO_REORDER}
+        </p>
+      )}
       {/* The rows are direct children, and the remove buttons alongside them: that is
           the contract `useReorder` reads positions through, and a wrapper per row would
           break it. */}
@@ -47,13 +57,15 @@ function RankedList({ question }: { readonly question: RankingQuestion }): React
             <button
               type="button"
               className="kajay-ranking__row"
-              aria-describedby={`${listId}-hint`}
-              {...reorder.getItemProps(index)}
+              // Reading: no hint and no handlers, because there is nothing to grab. The
+              // order itself is the answer and stays on the page to be read.
+              aria-describedby={question.isReadOnly ? undefined : `${listId}-hint`}
+              {...(question.isReadOnly ? {} : reorder.getItemProps(index))}
             >
               <span className="kajay-ranking__rank">{index + 1}</span>
               <span className="kajay-ranking__text">{choice.text}</span>
             </button>
-            {question.selectToRankEnabled ? (
+            {question.selectToRankEnabled && !question.isReadOnly ? (
               <UnrankButton question={question} choice={choice} />
             ) : null}
           </Fragment>
@@ -165,6 +177,7 @@ export function RankingQuestionRenderer({ survey, question }: QuestionRendererPr
       aria-required={question.isRequired}
       aria-invalid={question.hasErrors || undefined}
       aria-describedby={question.hasErrors ? errorId : undefined}
+      {...readOnlyGroup(question.isReadOnly)}
     >
       <legend className="kajay-question__title">
         <QuestionTitleContent question={question} />
@@ -172,7 +185,9 @@ export function RankingQuestionRenderer({ survey, question }: QuestionRendererPr
       <QuestionErrors survey={survey} question={question} at="top" id={errorId} />
 
       <div className="kajay-ranking" data-layout={question.selectToRankAreasLayout}>
-        {question.selectToRankEnabled ? <RankingPool question={question} /> : null}
+        {question.selectToRankEnabled && !question.isReadOnly ? (
+          <RankingPool question={question} />
+        ) : null}
         <RankedList question={question} />
       </div>
 

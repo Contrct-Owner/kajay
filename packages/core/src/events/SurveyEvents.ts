@@ -52,14 +52,15 @@ export type ElementStateKind =
   | 'required'
   | 'choices'
   | 'collapsed'
-  | 'errors';
+  | 'errors'
+  | 'readonly';
 
 /**
  * The subset an expression can drive.
  *
- * Narrower than `ElementStateKind` on purpose: `choices`, `collapsed` and `errors` also
- * travel on the state channel, but none has a condition behind it, so none may reach
- * the code that applies a rule's result.
+ * Narrower than `ElementStateKind` on purpose: `choices`, `collapsed`, `errors` and
+ * `readonly` also travel on the state channel, but none has a condition behind it, so
+ * none may reach the code that applies a rule's result.
  */
 export type ConditionalStateKind = 'visible' | 'enabled' | 'required';
 
@@ -73,7 +74,7 @@ export type ConditionalStateKind = 'visible' | 'enabled' | 'required';
 export type ElementStateChangedEvent =
   | {
       readonly element: SurveyElement;
-      readonly state: 'visible' | 'enabled' | 'required' | 'collapsed';
+      readonly state: 'visible' | 'enabled' | 'required' | 'collapsed' | 'readonly';
       readonly value: boolean;
     }
   | {

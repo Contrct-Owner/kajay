@@ -42,6 +42,11 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         description: 'Whether a question draws its errors above its input or below it.',
       },
       {
+        name: 'readOnly',
+        type: 'boolean',
+        description: 'The whole survey is for reading rather than answering.',
+      },
+      {
         name: 'clearInvisibleValues',
         type: 'string',
         defaultValue: 'onComplete',

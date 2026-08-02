@@ -326,3 +326,19 @@ test('parity/C5-lazy-search', async ({ page }) => {
   await expect(options).toHaveText(['Choose a city', 'Leeds']);
   await expect(page.getByTestId('survey-data')).toContainText('"city": "Portsmouth"');
 });
+
+test('parity/E7-read-only', async ({ page }) => {
+  const reference = page.getByLabel('Your reference');
+  // Editable is the default, so the attribute being there at all is the feature.
+  await expect(reference).toHaveAttribute('readonly');
+  // And not disabled: a respondent can still reach it, select it and read it out.
+  await expect(reference).toBeEnabled();
+  await expect(page.getByLabel(/How many people on your team\?/u)).not.toHaveAttribute(
+    'readonly',
+  );
+
+  await page.getByLabel(/How many people on your team\?/u).fill('12');
+  // The engine writes what the respondent may not.
+  await expect(reference).toHaveValue('KJ-12');
+  await expect(page.getByTestId('survey-data')).toContainText('"reference": "KJ-12"');
+});

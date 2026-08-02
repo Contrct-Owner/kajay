@@ -1,6 +1,7 @@
 import { BooleanQuestion } from '@kajay/core';
 import type { ReactElement } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
+import { readOnlyGroup, whenEditable } from './readOnly.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
@@ -36,7 +37,9 @@ function SwitchInput({ question, inputId }: ModeProps): ReactElement {
         checked={question.checkedValue === true}
         disabled={!question.isEnabled}
         onChange={(event) => {
-          question.setChecked(event.target.checked);
+          whenEditable(question.isReadOnly, () => {
+            question.setChecked(event.target.checked);
+          })();
         }}
       />
       <span className="kajay-boolean__label">{question.labelTrue}</span>
@@ -55,9 +58,9 @@ function RadioInputs({ question, inputId }: ModeProps): ReactElement {
             name={inputId}
             checked={question.checkedValue === isTrue}
             disabled={!question.isEnabled}
-            onChange={() => {
+            onChange={whenEditable(question.isReadOnly, () => {
               question.setChecked(isTrue);
-            }}
+            })}
           />
           <span>{isTrue ? question.labelTrue : question.labelFalse}</span>
         </label>
@@ -91,6 +94,7 @@ export function BooleanQuestionRenderer({
       aria-required={question.isRequired}
       aria-invalid={question.hasErrors || undefined}
       aria-describedby={question.hasErrors ? errorId : undefined}
+      {...readOnlyGroup(question.isReadOnly)}
     >
       <legend className="kajay-question__title">
         <QuestionTitleContent question={question} />

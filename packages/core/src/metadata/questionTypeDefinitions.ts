@@ -20,6 +20,11 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
     properties: [
       { name: 'isRequired', type: 'boolean' },
       {
+        name: 'readOnly',
+        type: 'boolean',
+        description: 'The answer is shown but cannot be changed by the respondent.',
+      },
+      {
         name: 'requiredIf',
         type: 'string',
         description: 'Expression; when present it overrides isRequired.',
@@ -178,6 +183,11 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
       { name: 'inputType', type: 'string', defaultValue: 'text' },
       { name: 'placeholder', type: 'string' },
       { name: 'isRequired', type: 'boolean' },
+      {
+        name: 'readOnly',
+        type: 'boolean',
+        description: 'The answer is shown but cannot be changed by the respondent.',
+      },
       { name: 'requiredErrorText', type: 'string' },
       { name: 'size', type: 'number', description: 'Width in characters. 0 uses itemSize.' },
     ],

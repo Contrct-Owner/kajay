@@ -1,5 +1,6 @@
 import type { ItemValue, SelectQuestion } from '@kajay/core';
 import type { ReactElement } from 'react';
+import { whenEditable } from './readOnly.js';
 
 export interface ChoiceInputProps {
   readonly question: SelectQuestion;
@@ -27,9 +28,9 @@ export function ChoiceInput({
         name={groupName}
         value={String(choice.value)}
         checked={question.isSelected(choice.value)}
-        onChange={() => {
+        onChange={whenEditable(question.isReadOnly, () => {
           question.select(choice.value);
-        }}
+        })}
       />
       <span>{choice.text}</span>
     </label>

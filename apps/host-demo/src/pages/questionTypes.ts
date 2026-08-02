@@ -41,6 +41,16 @@ export const questionTypes: PageDefinition = {
       step: 1,
     },
     {
+      // Held by the respondent's response and filled in by the engine. Read-only is
+      // what makes that pair work: they may not type into it, and something else must
+      // be able to.
+      type: 'text',
+      name: 'reference',
+      title: 'Your reference',
+      readOnly: true,
+      defaultValueExpression: "'KJ-' + {teamSize}",
+    },
+    {
       type: 'comment',
       name: 'feedback',
       title: 'Anything else we should know?',

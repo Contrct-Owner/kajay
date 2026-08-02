@@ -60,6 +60,11 @@
           "type": "boolean",
           "default": false
         },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
         "requiredIf": {
           "type": "string",
           "default": "",
@@ -188,6 +193,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
         },
         "requiredIf": {
           "type": "string",
@@ -352,6 +362,11 @@
           "type": "boolean",
           "default": false
         },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
         "requiredIf": {
           "type": "string",
           "default": "",
@@ -504,6 +519,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
         },
         "requiredIf": {
           "type": "string",
@@ -671,6 +691,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
         },
         "requiredIf": {
           "type": "string",
@@ -912,6 +937,11 @@
           "type": "boolean",
           "default": false
         },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
         "requiredIf": {
           "type": "string",
           "default": "",
@@ -1138,6 +1168,11 @@
           "type": "boolean",
           "default": false
         },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
         "requiredIf": {
           "type": "string",
           "default": "",
@@ -1222,6 +1257,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
         },
         "requiredErrorText": {
           "type": "string",
@@ -1486,6 +1526,11 @@
           "type": "boolean",
           "default": false
         },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
         "requiredIf": {
           "type": "string",
           "default": "",
@@ -1639,6 +1684,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
         },
         "requiredIf": {
           "type": "string",
@@ -1804,6 +1854,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
         },
         "requiredIf": {
           "type": "string",
@@ -2051,6 +2106,11 @@
           "default": "top",
           "description": "Whether a question draws its errors above its input or below it."
         },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The whole survey is for reading rather than answering."
+        },
         "clearInvisibleValues": {
           "type": "string",
           "default": "onComplete",
@@ -2127,6 +2187,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
         },
         "requiredIf": {
           "type": "string",
@@ -2290,6 +2355,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
         },
         "requiredIf": {
           "type": "string",

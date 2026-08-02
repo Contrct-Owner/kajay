@@ -12,8 +12,8 @@ import type { LogicDiagnostics } from '../logic/LogicEngine.js';
 import type { ChoicePageLoader } from './ChoicePageLoader.js';
 import type { ChoiceFetcher } from './ChoiceSourceController.js';
 import type { SurveyOptions } from './SurveyOptions.js';
-import { clearHiddenAnswers, toClearPolicy } from './clearInvisibleAnswers.js';
-import type { ClearInvisibleValues } from './clearInvisibleAnswers.js';
+import { clearHiddenAnswers } from './clearInvisibleAnswers.js';
+import { SurveyProperties } from './SurveyProperties.js';
 import { readProgress, restoreProgress } from './SurveyProgress.js';
 import type { SurveyProgress } from './SurveyProgress.js';
 import { SurveyStatus } from './SurveyStatus.js';
@@ -27,7 +27,7 @@ import { toQuestionsOnPageMode } from './PageLayout.js';
 import { SurveyPages } from './SurveyPages.js';
 import type { Question } from './Question.js';
 import { SurveyChildren } from './SurveyChildren.js';
-import { SurveyElement } from './SurveyElement.js';
+import type { SurveyElement } from './SurveyElement.js';
 import { SurveyValidation } from './SurveyValidation.js';
 import type { AdvanceOutcome } from './SurveyValidation.js';
 import { createValidationHost, createValidationWiring } from './surveyValidationWiring.js';
@@ -35,7 +35,7 @@ import type { Trigger } from './Trigger.js';
 import type { ValueHost } from './ValueHost.js';
 
 /** Root of the model, and the value host every question writes through. */
-export class Survey extends SurveyElement implements ValueHost {
+export class Survey extends SurveyProperties implements ValueHost {
   readonly #children: SurveyChildren = new SurveyChildren();
   readonly #answers: SurveyAnswers = new SurveyAnswers();
   readonly #logic: SurveyLogicHost;
@@ -136,34 +136,10 @@ export class Survey extends SurveyElement implements ValueHost {
     return 'survey';
   }
 
-  get title(): string {
-    return this.getStringProperty('title');
-  }
-
-  set title(value: string) {
-    this.setPropertyValue('title', value);
-  }
-
-  get description(): string {
-    return this.getStringProperty('description');
-  }
-
-  set description(value: string) {
-    this.setPropertyValue('description', value);
-  }
-
-  /** What happens to an answer the respondent can no longer reach. */
-  get clearInvisibleValues(): ClearInvisibleValues {
-    return toClearPolicy(this.getStringProperty('clearInvisibleValues'));
-  }
-
-  /** How the authored pages are presented: standard, singlePage or questionPerPage. */
-  get questionsOnPageMode(): string {
-    return this.getStringProperty('questionsOnPageMode');
-  }
-
-  set questionsOnPageMode(value: string) {
-    this.setPropertyValue('questionsOnPageMode', value);
+  /** Flips the whole survey between answering and reading, and says so. */
+  setReadOnly(isReadOnly: boolean): void {
+    this.setPropertyValue('readOnly', isReadOnly);
+    this.#logic.announceReadOnly(this);
   }
 
   /**

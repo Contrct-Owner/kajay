@@ -1,7 +1,9 @@
 import { MultiSelectQuestion, SelectQuestion } from '@kajay/core';
-import type { ChangeEvent, ReactElement } from 'react';
+import type { ItemValue } from '@kajay/core';
+import type { ReactElement } from 'react';
 import { ChoiceFilterField } from './ChoiceFilterField.js';
 import { MoreChoices } from './MoreChoices.js';
+import { readOnlyGroup } from './readOnly.js';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
@@ -11,6 +13,55 @@ function currentSelection(question: SelectQuestion): string | string[] {
   return question instanceof MultiSelectQuestion
     ? question.selectedValues.map(String)
     : String(question.value ?? '');
+}
+
+interface ChoiceOptionsProps {
+  readonly question: SelectQuestion;
+  readonly inputId: string;
+  readonly errorId: string;
+}
+
+/** The list itself. Its own component so the renderer around it stays readable. */
+function ChoiceOptions({ question, inputId, errorId }: ChoiceOptionsProps): ReactElement {
+  const isMultiple = question instanceof MultiSelectQuestion;
+  return (
+    <select
+      id={inputId}
+      className="kajay-question__select"
+      multiple={isMultiple}
+      disabled={!question.isEnabled}
+      required={question.isRequired}
+      aria-required={question.isRequired}
+      aria-invalid={question.hasErrors || undefined}
+      aria-describedby={question.hasErrors ? errorId : undefined}
+      value={currentSelection(question)}
+      onChange={(event) => {
+        applySelection(question, event.target);
+      }}
+      {...readOnlyGroup(question.isReadOnly)}
+    >
+      {isMultiple || question.isReadOnly ? null : (
+        <option value="">{question.placeholder}</option>
+      )}
+      {/* Read-only offers only what was chosen. A native `<select>` has no readonly
+          state to set, and a list with one entry is genuinely unchangeable rather than
+          merely refusing — while staying focusable and announced, which `disabled`
+          would not. */}
+      {optionsFor(question).map((choice) => (
+        <option key={String(choice.value)} value={String(choice.value)}>
+          {choice.text}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+/** Every choice while answering; only the chosen ones while reading. */
+function optionsFor(question: SelectQuestion): readonly ItemValue[] {
+  if (!question.isReadOnly) {
+    return question.visibleChoices;
+  }
+  return question.visibleChoices.filter((choice) => question.isSelected(choice.value));
 }
 
 function applySelection(question: SelectQuestion, target: HTMLSelectElement): void {
@@ -47,12 +98,8 @@ export function CollapsedSelectRenderer({
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const isMultiple = question instanceof MultiSelectQuestion;
   const inputId = `kajay-question-${question.name}`;
   const errorId = `${inputId}-errors`;
-  const handleChange = (event: ChangeEvent<HTMLSelectElement>): void => {
-    applySelection(question, event.target);
-  };
 
   return (
     <div className="kajay-question" data-question-name={question.name}>
@@ -61,25 +108,7 @@ export function CollapsedSelectRenderer({
       </label>
       <QuestionErrors survey={survey} question={question} at="top" id={errorId} />
       {question.isPaged ? <ChoiceFilterField question={question} id={`${inputId}-filter`} /> : null}
-      <select
-        id={inputId}
-        className="kajay-question__select"
-        multiple={isMultiple}
-        disabled={!question.isEnabled}
-        required={question.isRequired}
-        aria-required={question.isRequired}
-        aria-invalid={question.hasErrors || undefined}
-        aria-describedby={question.hasErrors ? errorId : undefined}
-        value={currentSelection(question)}
-        onChange={handleChange}
-      >
-        {isMultiple ? null : <option value="">{question.placeholder}</option>}
-        {question.visibleChoices.map((choice) => (
-          <option key={String(choice.value)} value={String(choice.value)}>
-            {choice.text}
-          </option>
-        ))}
-      </select>
+      <ChoiceOptions question={question} inputId={inputId} errorId={errorId} />
       <MoreChoices question={question} />
       <QuestionErrors survey={survey} question={question} at="bottom" id={errorId} />
     </div>

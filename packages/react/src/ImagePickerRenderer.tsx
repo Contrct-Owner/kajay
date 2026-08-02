@@ -4,6 +4,7 @@ import type { CSSProperties, ReactElement } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
+import { readOnlyGroup, whenEditable } from './readOnly.js';
 import { useSurveyValue } from './useSurveyState.js';
 
 function tileStyle(question: ImagePickerQuestion): CSSProperties {
@@ -68,10 +69,11 @@ function ChoiceTile({
         checked={question.isSelected(choice.value)}
         disabled={!question.isEnabled}
         // `onClick`, not only `onChange`: picking the chosen tile again is how a
-        // single-select respondent takes it back, and a radio fires no change.
-        onClick={() => {
+        // single-select respondent takes it back, and a radio fires no change. Reading
+        // cancels that same click, so the tiles stay focusable and unchangeable.
+        onClick={whenEditable(question.isReadOnly, () => {
           question.select(choice.value);
-        }}
+        })}
         onChange={() => {
           /* handled by onClick, which also covers re-selecting the same tile */
         }}
@@ -113,6 +115,7 @@ export function ImagePickerRenderer({ survey, question }: QuestionRendererProps)
       aria-required={question.isRequired}
       aria-invalid={question.hasErrors || undefined}
       aria-describedby={question.hasErrors ? errorId : undefined}
+      {...readOnlyGroup(question.isReadOnly)}
     >
       <legend className="kajay-question__title">
         <QuestionTitleContent question={question} />

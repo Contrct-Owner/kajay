@@ -1,5 +1,7 @@
 import { toClearPolicy } from './clearInvisibleAnswers.js';
 import type { ClearInvisibleValues } from './clearInvisibleAnswers.js';
+import { toPreviewMode } from './previewQuestions.js';
+import type { PreviewMode } from './previewQuestions.js';
 import { SurveyElement } from './SurveyElement.js';
 
 /**
@@ -51,6 +53,11 @@ export abstract class SurveyProperties extends SurveyElement {
    */
   get isReadOnly(): boolean {
     return this.getBooleanProperty('readOnly');
+  }
+
+  /** Whether the respondent sees their answers before submitting, and which of them. */
+  get showPreviewBeforeComplete(): PreviewMode {
+    return toPreviewMode(this.getStringProperty('showPreviewBeforeComplete'));
   }
 
   /** What happens to an answer the respondent can no longer reach. */

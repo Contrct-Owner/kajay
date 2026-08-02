@@ -23,6 +23,8 @@ export { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
 export type { QuestionRenderer } from './QuestionRendererRegistry.js';
 export { Survey } from './Survey.js';
 export { SurveyNavigation } from './SurveyNavigation.js';
+export { SurveyPreview } from './SurveyPreview.js';
+export type { SurveyPreviewProps } from './SurveyPreview.js';
 export { SurveyStatusPage } from './SurveyStatusPage.js';
 export type { SurveyStatusPageProps, SurveyStatusState } from './SurveyStatusPage.js';
 export type { SurveyNavigationProps } from './SurveyNavigation.js';

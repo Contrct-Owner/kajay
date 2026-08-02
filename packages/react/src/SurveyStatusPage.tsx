@@ -2,8 +2,13 @@ import type { Survey as SurveyModel, SurveyState } from '@kajay/core';
 import type { ReactElement } from 'react';
 import { useHtmlSanitizer } from './HtmlSanitizerContext.js';
 
-/** Every state that replaces the form rather than being one. */
-export type SurveyStatusState = Exclude<SurveyState, 'running'>;
+/**
+ * The states that replace the form with a message.
+ *
+ * Preview is not one of them: it replaces the form with the *answers*, which is a page
+ * of its own rather than a sentence.
+ */
+export type SurveyStatusState = Exclude<SurveyState, 'running' | 'preview'>;
 
 /** What each state says when the author has written nothing of their own. */
 const FALLBACKS: Readonly<Record<SurveyStatusState, string>> = {

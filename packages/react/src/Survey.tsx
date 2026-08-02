@@ -6,6 +6,7 @@ import type { HtmlSanitizer } from './HtmlSanitizerContext.js';
 import type { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
 import { SurveyNavigation } from './SurveyNavigation.js';
 import { SurveyPage } from './SurveyPage.js';
+import { SurveyPreview } from './SurveyPreview.js';
 import { SurveyStatusPage } from './SurveyStatusPage.js';
 import { useErrorFocus } from './useErrorFocus.js';
 import {
@@ -61,11 +62,15 @@ export function Survey({
   const { formRef, requestFocus } = useErrorFocus(model);
 
   if (state !== 'running') {
-    // The status page needs the sanitizer as much as an `html` element does — the
-    // completed markup is author-supplied and rendered as markup.
+    // Everything that is not the form still needs the sanitizer: the completed markup
+    // is author-supplied, and a preview draws real questions.
     return (
       <HtmlSanitizerProvider sanitize={sanitizeHtml}>
-        <SurveyStatusPage survey={model} state={state} />
+        {state === 'preview' ? (
+          <SurveyPreview survey={model} renderers={renderers} />
+        ) : (
+          <SurveyStatusPage survey={model} state={state} />
+        )}
       </HtmlSanitizerProvider>
     );
   }

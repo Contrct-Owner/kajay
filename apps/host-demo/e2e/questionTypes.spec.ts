@@ -47,8 +47,10 @@ test('parity/C1-text-bounds', async ({ page }) => {
 
   await page.getByLabel(/When would you like to start\?/u).fill('2026-06-01');
   await page.getByRole('button', { name: 'Complete' }).click();
-  // In bounds, so the survey ends. The wording is the demo's own — E5 made the ending
-  // authorable, so asserting a library default here would be asserting nothing.
+  // In bounds, so the gate lets them through — to the preview, and then to the end.
+  // The wording is the demo's own: E5 made the ending authorable, so asserting a
+  // library default here would be asserting nothing.
+  await page.getByRole('button', { name: 'Complete' }).click();
   await expect(page.getByRole('status')).toContainText('You answered');
 });
 
@@ -139,6 +141,7 @@ test('parity/C11-multipletext-per-item-validation', async ({ page }) => {
 
   await workplace.getByLabel('Street').fill('12 Long Road');
   await workplace.getByLabel('Postcode').fill('12345');
+  await page.getByRole('button', { name: 'Complete' }).click();
   await page.getByRole('button', { name: 'Complete' }).click();
   await expect(page.getByRole('status')).toContainText('You answered');
 });

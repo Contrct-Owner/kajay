@@ -13,6 +13,7 @@ import type { ChoicePageLoader } from './ChoicePageLoader.js';
 import type { ChoiceFetcher } from './ChoiceSourceController.js';
 import type { SurveyOptions } from './SurveyOptions.js';
 import { clearHiddenAnswers } from './clearInvisibleAnswers.js';
+import { collectPreviewQuestions } from './previewQuestions.js';
 import { SurveyProperties } from './SurveyProperties.js';
 import { readProgress, restoreProgress } from './SurveyProgress.js';
 import type { SurveyProgress } from './SurveyProgress.js';
@@ -293,10 +294,33 @@ export class Survey extends SurveyProperties implements ValueHost {
     return 'advanced';
   }
 
+  /**
+   * Whether the whole survey is for reading rather than answering.
+   *
+   * True while previewing, whatever the definition says: a preview the respondent could
+   * type into is not a preview, and making that a fact about the survey means no
+   * renderer has to be told — every question already reports itself read-only.
+   */
+  override get isReadOnly(): boolean {
+    return super.isReadOnly || this.#status.isPreviewing;
+  }
+
+  /** The questions shown before submitting: all of them, or only the answered ones. */
+  get previewQuestions(): readonly Question[] {
+    return collectPreviewQuestions(this);
+  }
+
   #advance(): void {
-    if (!this.#pages.nextPage()) {
-      this.complete();
+    if (this.#pages.nextPage()) {
+      return;
     }
+    // The end of the last page is where a preview belongs — after the gate that checks
+    // it, so a respondent never reviews answers the survey is about to refuse.
+    if (this.showPreviewBeforeComplete === 'noPreview' || this.#status.isPreviewing) {
+      this.complete();
+      return;
+    }
+    this.#status.enterPreview();
   }
 
   /** Navigates to a page by name, or to the page owning the named question. */

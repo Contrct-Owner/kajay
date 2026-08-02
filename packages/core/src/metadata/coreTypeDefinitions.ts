@@ -47,6 +47,12 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         description: 'The whole survey is for reading rather than answering.',
       },
       {
+        name: 'showPreviewBeforeComplete',
+        type: 'string',
+        defaultValue: 'noPreview',
+        description: 'noPreview, showAllQuestions or showAnsweredQuestions.',
+      },
+      {
         name: 'clearInvisibleValues',
         type: 'string',
         defaultValue: 'onComplete',

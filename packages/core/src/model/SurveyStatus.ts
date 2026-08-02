@@ -32,6 +32,7 @@ export class SurveyStatus {
   readonly #host: SurveyStatusHost;
   #isLoading = false;
   #isCompleted = false;
+  #isPreviewing = false;
 
   constructor(host: SurveyStatusHost) {
     this.#host = host;
@@ -60,6 +61,34 @@ export class SurveyStatus {
   }
 
   /**
+   * True while the respondent is looking at their answers instead of giving them.
+   *
+   * The survey reads this to report itself read-only, which is what makes a preview
+   * unanswerable without any renderer being told to make it so.
+   */
+  get isPreviewing(): boolean {
+    return this.#isPreviewing;
+  }
+
+  /** Shows the respondent what they are about to submit. */
+  enterPreview(): void {
+    if (this.#isPreviewing || this.#isCompleted) {
+      return;
+    }
+    this.#isPreviewing = true;
+    this.#host.announce(this.state);
+  }
+
+  /** Back to the pages, with everything answerable again. */
+  cancelPreview(): void {
+    if (!this.#isPreviewing) {
+      return;
+    }
+    this.#isPreviewing = false;
+    this.#host.announce(this.state);
+  }
+
+  /**
    * Ends the survey. Repeating it is not an event.
    *
    * The clearing policy runs *before* anyone is told, so the answers a host receives
@@ -73,6 +102,7 @@ export class SurveyStatus {
     }
     this.#host.clearAnswers();
     this.#isCompleted = true;
+    this.#isPreviewing = false;
     this.#host.announceComplete();
     this.#host.announce(this.state);
   }
@@ -82,6 +112,7 @@ export class SurveyStatus {
     return resolveSurveyState({
       isLoading: this.#isLoading,
       isCompleted: this.#isCompleted,
+      isPreviewing: this.#isPreviewing,
       hasVisiblePages: this.#host.hasVisiblePages(),
     });
   }

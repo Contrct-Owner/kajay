@@ -712,3 +712,19 @@
   color: var(--kajay-color-muted);
   font-size: 0.8125em;
 }
+
+/* --- Preview (E4) ---------------------------------------------------------- */
+
+.kajay-survey__preview-title {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+/* A read-only page is for reading, so the controls recede and the answers do not. */
+.kajay-survey--preview .kajay-question__input[readonly],
+.kajay-survey--preview .kajay-question__textarea[readonly] {
+  border-color: transparent;
+  background: none;
+  padding-inline: 0;
+  font-weight: 600;
+}

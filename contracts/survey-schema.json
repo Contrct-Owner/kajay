@@ -2111,6 +2111,11 @@
           "default": false,
           "description": "The whole survey is for reading rather than answering."
         },
+        "showPreviewBeforeComplete": {
+          "type": "string",
+          "default": "noPreview",
+          "description": "noPreview, showAllQuestions or showAnsweredQuestions."
+        },
         "clearInvisibleValues": {
           "type": "string",
           "default": "onComplete",

@@ -19,6 +19,10 @@ test('parity/E5-completion-flow', async ({ page }) => {
   // Complete only exists on the last page: the primary button is one control that
   // changes label, so it never moves out from under the cursor.
   await page.getByRole('button', { name: 'Complete' }).click();
+  // And it leads to the answers rather than the end, because the demo asks for a last
+  // look first (E4).
+  await expect(page.getByRole('heading', { name: 'Check your answers' })).toBeVisible();
+  await page.getByRole('button', { name: 'Complete' }).click();
 
   const ending = page.getByRole('status');
   // The author's markup, rendered as markup — the heading is an element rather than
@@ -166,6 +170,7 @@ test('parity/E6-save-and-resume: a finished survey does not resume', async ({ pa
   await page.getByLabel(/What is your name\?/u).fill('Ada');
   await gotoQuestionTypes(page);
   await page.getByRole('button', { name: 'Complete' }).click();
+  await page.getByRole('button', { name: 'Complete' }).click();
   await expect(page.getByRole('status')).toContainText('You answered');
 
   await page.reload();
@@ -174,4 +179,27 @@ test('parity/E6-save-and-resume: a finished survey does not resume', async ({ pa
   // submitted would invite a second submission of the same answers.
   await expect(page.getByRole('heading', { name: 'About you' })).toBeVisible();
   await expect(page.getByLabel(/What is your name\?/u)).toHaveValue('');
+});
+
+test('parity/E4-preview', async ({ page }) => {
+  await page.getByLabel(/What is your name\?/u).fill('Ada');
+  await gotoQuestionTypes(page);
+  await page.getByLabel(/How many people on your team\?/u).fill('12');
+  await page.getByRole('button', { name: 'Complete' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Check your answers' })).toBeVisible();
+  // The answers, in the controls they were given in, and refusing to change: the
+  // survey reports itself read-only while previewing, so every question already is.
+  const teamSize = page.getByLabel(/How many people on your team\?/u);
+  await expect(teamSize).toHaveValue('12');
+  await expect(teamSize).toHaveAttribute('readonly');
+  // `showAnsweredQuestions`, so what nobody touched is not on the list.
+  await expect(page.getByLabel(/Anything else we should know\?/u)).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Edit answers' }).click();
+  // Back on the page they left, answerable again — not at the beginning.
+  await expect(page.getByRole('heading', { name: 'Question types' })).toBeVisible();
+  await expect(page.getByLabel(/How many people on your team\?/u)).not.toHaveAttribute(
+    'readonly',
+  );
 });

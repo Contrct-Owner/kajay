@@ -9,6 +9,7 @@
 import { readFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { checkCorePackageRules } from './lib/coreRules.mjs';
 import { readJsonc } from './lib/readJsonc.mjs';
 import {
   importSpecifiers,
@@ -43,19 +44,6 @@ const ALLOWED_EXPORT_KEYS = {
   default: new Set(['.', './package.json']),
   '@kajay/themes': new Set(['.', './package.json', './styles.css', './themes/*.css']),
 };
-
-// `EventTarget` earns its place here: a lint rule actively recommends it over our own
-// emitter, and taking that advice would drag the DOM lib into a core package. See
-// ADR-0013.
-const DOM_GLOBALS = [
-  'document',
-  'window',
-  'navigator',
-  'localStorage',
-  'HTMLElement',
-  'EventTarget',
-  'customElements',
-];
 
 const violations = [];
 
@@ -226,56 +214,6 @@ function checkDeclaredDependencies(source, location, manifest, allowRootDevDepen
   }
 }
 
-/**
- * Rule: layers inside `@kajay/core` point one way.
- *
- * The expression language, the dependency graph and the logic engine are the reusable
- * kernel; the model sits on top of them. A rule factory reaching back into the model
- * looks harmless — it only wanted `ItemValue` — but it makes the kernel untestable
- * without constructing a survey, and it is how a cycle starts. Both carry-forward and
- * URL choices were written that way and have since been inverted.
- *
- * Listed inner-first: each layer names what it may not reach for.
- */
-const CORE_LAYERS = [
-  { dir: 'expressions', mayNotImport: ['dependencies', 'logic', 'model', 'serialization'] },
-  { dir: 'dependencies', mayNotImport: ['logic', 'model', 'serialization'] },
-  { dir: 'metadata', mayNotImport: ['logic', 'serialization'] },
-  { dir: 'logic', mayNotImport: ['model', 'serialization'] },
-];
-
-function checkCoreLayering(source, location, packageName) {
-  if (packageName !== '@kajay/core') {
-    return;
-  }
-  const layer = CORE_LAYERS.find(({ dir }) => location.includes(`src/${dir}/`));
-  if (layer === undefined) {
-    return;
-  }
-  for (const specifier of importSpecifiers(source)) {
-    const target = /^\.\.\/([^/]+)\//u.exec(specifier)?.[1];
-    if (target !== undefined && layer.mayNotImport.includes(target)) {
-      fail(
-        'core-layering',
-        location,
-        `"${layer.dir}" imports from "${target}", which sits above it. Invert it: let the caller pass in what the rule needs.`,
-      );
-    }
-  }
-}
-
-function checkDomFree(source, location, packageName) {
-  for (const domGlobal of DOM_GLOBALS) {
-    if (new RegExp(String.raw`\b${domGlobal}\b`, 'u').test(source)) {
-      fail(
-        'core-dom-free',
-        location,
-        `Core package "${packageName}" references DOM global "${domGlobal}".`,
-      );
-    }
-  }
-}
-
 // Tests and the host app are held to the deep-import rule too — a convenience import
 // is most tempting exactly where nobody is watching.
 for (const [name, { dir, manifest }] of packagesByName) {
@@ -288,8 +226,7 @@ for (const [name, { dir, manifest }] of packagesByName) {
       // also use the workspace's own devDependencies — those never reach a consumer.
       checkDeclaredDependencies(source, location, manifest, subdir !== 'src');
       if (subdir === 'src' && CORE_PACKAGES.has(name)) {
-        checkDomFree(source, location, name);
-        checkCoreLayering(source, location, name);
+        checkCorePackageRules(source, location, name, fail);
       }
     }
   }

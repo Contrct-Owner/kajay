@@ -14,14 +14,33 @@ export {
   removeElementFrom,
 } from './elementEdits.js';
 export { freshenFragment, renameThroughout, takenNames } from './fragments.js';
-export { editorKindFor, humanizePropertyName, parseEditorText, propertyRowsFor } from './propertyGrid.js';
+export {
+  DEFAULT_LOCALE_KEY,
+  editorKindFor,
+  humanizePropertyName,
+  localesOf,
+  localizedTextIn,
+  parseEditorText,
+  propertyRowsFor,
+} from './propertyGrid.js';
 export type {
   PropertyCommit,
   PropertyEditorKind,
   PropertyGridCategory,
   PropertyRow,
 } from './propertyGrid.js';
-export { renameIn, setPropertyOn } from './propertyEdits.js';
+export { renameIn, setLocalizedOn, setPropertyOn } from './propertyEdits.js';
+export {
+  applySuggestion,
+  expressionSuggestions,
+  matchingSuggestions,
+  tokenAt,
+} from './expressionSuggestions.js';
+export type {
+  ExpressionSuggestion,
+  SuggestionKind,
+  SuggestionToken,
+} from './expressionSuggestions.js';
 export { childLabel, collectionRowsFor } from './collectionGrid.js';
 export type { CollectionRow } from './collectionGrid.js';
 export {

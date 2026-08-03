@@ -55,3 +55,17 @@ export function restoreProgress(survey: Survey, progress: SurveyProgress): void 
     survey.goTo(progress.pageName);
   }
 }
+
+/**
+ * Applies a whole set of answers, one write at a time.
+ *
+ * Beside {@link restoreProgress} because it is the same act with less of it: each value
+ * goes through the survey's own `setValue`, so logic settles and events fire exactly as
+ * they would have if a respondent had typed them. A bulk write that bypassed that would
+ * leave every conditional rule holding an answer nobody had recomputed against.
+ */
+export function applyData(survey: Survey, next: Readonly<Record<string, unknown>>): void {
+  for (const [name, value] of Object.entries(next)) {
+    survey.setValue(name, value);
+  }
+}

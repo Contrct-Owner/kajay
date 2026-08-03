@@ -18,6 +18,10 @@ export { CollectionEditor } from './CollectionEditor.js';
 export type { CollectionEditorProps } from './CollectionEditor.js';
 export { PropertySection } from './PropertyFields.js';
 export type { PropertySectionProps } from './PropertyFields.js';
+export { ExpressionField } from './ExpressionField.js';
+export type { ExpressionFieldProps } from './ExpressionField.js';
+export { TranslationsField } from './TranslationsField.js';
+export type { TranslationsFieldProps } from './TranslationsField.js';
 export { ToolboxPanel } from './ToolboxPanel.js';
 export { useDesignerPlacement } from './useDesignerPlacement.js';
 export type {

@@ -19,7 +19,7 @@ import { createSurveyLogic } from './createSurveyLogic.js';
 import { shouldAdvanceAutomatically } from './autoAdvance.js';
 import { collectPreviewQuestions } from './previewQuestions.js';
 import { SurveyProperties } from './SurveyProperties.js';
-import { readProgress, restoreProgress } from './SurveyProgress.js';
+import { applyData, readProgress, restoreProgress } from './SurveyProgress.js';
 import type { SurveyProgress } from './SurveyProgress.js';
 import { SurveyStatus } from './SurveyStatus.js';
 import type { SurveyTimer } from './SurveyTimer.js';
@@ -166,6 +166,17 @@ export class Survey extends SurveyProperties implements ValueHost {
 
   getQuestionByName(name: string): Question | undefined {
     return this.#children.findQuestion(name);
+  }
+
+  /**
+   * The expression functions this survey may call — checklist L2's autocomplete.
+   *
+   * Public for the same reason `PropertyDescriptor.isExpression` is declared rather than
+   * inferred: more than one thing needs to know what an expression may contain, and the
+   * Creator asking a *list kept elsewhere* would be wrong the day a host registered one.
+   */
+  get functionNames(): readonly string[] {
+    return this.#logic.functionNames;
   }
 
   get calculatedValues(): readonly CalculatedValue[] {
@@ -339,9 +350,7 @@ export class Survey extends SurveyProperties implements ValueHost {
   }
 
   setData(next: Readonly<Record<string, unknown>>): void {
-    for (const [name, value] of Object.entries(next)) {
-      this.setValue(name, value);
-    }
+    applyData(this, next);
   }
 
   /** A snapshot to store, so a respondent can pick the survey up where they left it. */

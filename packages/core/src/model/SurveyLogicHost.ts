@@ -98,6 +98,11 @@ export class SurveyLogicHost {
     return this.#states.version;
   }
 
+  /** The expression functions this survey may call — checklist L2. */
+  get functionNames(): readonly string[] {
+    return this.#engine.functionNames;
+  }
+
   /** What the most recent logic run reported: cycles, and malformed expressions. */
   get diagnostics(): LogicDiagnostics {
     return this.#settle.diagnostics;

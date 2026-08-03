@@ -2,6 +2,7 @@ import { isLocalizedText } from '@kajay/core';
 import type { MetadataRegistry, PropertyValue, SurveyElement } from '@kajay/core';
 import type { DesignSurface } from './DesignSurface.js';
 import { renameThroughout, takenNames } from './fragments.js';
+import { DEFAULT_LOCALE_KEY } from './propertyGrid.js';
 
 /**
  * Writing a property from the grid — checklist L1.
@@ -12,9 +13,6 @@ import { renameThroughout, takenNames } from './fragments.js';
  * response data all refer to — so changing it is a *structural* edit through `applyEdit`,
  * with the references rewritten to follow.
  */
-
-/** The one place a localized property is written, so the key it lands under is decided once. */
-const DEFAULT_LOCALE_KEY = 'default';
 
 /**
  * Sets a declared property. Says whether it took.
@@ -84,6 +82,69 @@ function merged(
   }
   const locale = surface.survey.locale;
   return { ...current, [locale.length > 0 ? locale : DEFAULT_LOCALE_KEY]: value };
+}
+
+/**
+ * Writes one language of a localizable property — checklist L2.
+ *
+ * The grid's main field edits whichever language the survey is being read in;
+ * this is what a translations panel calls to edit any of them, which is the whole of the
+ * "localizable-string editor" the row asks for. Refused for a property the registry does
+ * not call localizable, because storing `{ default: … }` in one that is not would produce
+ * a shape every reader of it treats as an object rather than as words.
+ *
+ * **Clearing the last translation gives the plain string back.** `{ default: 'Name' }` and
+ * `'Name'` mean the same thing, and leaving the object behind would make a survey that had
+ * once been translated permanently different from one that never was — a diff nobody made
+ * and a shape nobody wrote.
+ */
+export function setLocalizedOn(
+  surface: DesignSurface,
+  element: SurveyElement,
+  name: string,
+  locale: string,
+  text: string,
+  registry: MetadataRegistry,
+): boolean {
+  const descriptor = registry
+    .getProperties(element.type)
+    .find((property) => property.name === name);
+  if (descriptor === undefined || !descriptor.isLocalizable || locale.length === 0) {
+    return false;
+  }
+  const written = withLocale(element.getPropertyValue(name), locale, text);
+  surface.change(() => {
+    element.setPropertyValue(name, written);
+  }, `${undoKeyFor(element, name)}:${locale}`);
+  return true;
+}
+
+function withLocale(current: PropertyValue | undefined, locale: string, text: string): PropertyValue {
+  const entries: Record<string, string | undefined> = isLocalizedText(current)
+    ? { ...current }
+    : plainEntries(current);
+  if (text.length === 0) {
+    delete entries[locale];
+  } else {
+    entries[locale] = text;
+  }
+  const keys = Object.keys(entries);
+  if (keys.length === 0) {
+    // The registered default for a string, which canonical form elides — so a property
+    // whose every translation was removed serializes as absent rather than as `{}`.
+    return '';
+  }
+  const only = keys[0];
+  return keys.length === 1 && only === DEFAULT_LOCALE_KEY
+    ? (entries[only] ?? '')
+    : (entries as PropertyValue);
+}
+
+/** A plain string is the `default` language, which is what every reader falls back to. */
+function plainEntries(current: PropertyValue | undefined): Record<string, string | undefined> {
+  return typeof current === 'string' && current.length > 0
+    ? { [DEFAULT_LOCALE_KEY]: current }
+    : {};
 }
 
 /**

@@ -34,7 +34,7 @@ import {
 } from './collectionEdits.js';
 import { propertyRowsFor } from './propertyGrid.js';
 import type { PropertyGridCategory } from './propertyGrid.js';
-import { renameIn, setPropertyOn } from './propertyEdits.js';
+import { renameIn, setLocalizedOn, setPropertyOn } from './propertyEdits.js';
 
 /** What an edit wants restored once its definition has been parsed. */
 export interface EditOptions {
@@ -186,6 +186,17 @@ export class DesignSurface {
    */
   setProperty(element: SurveyElement, name: string, value: PropertyValue): boolean {
     return setPropertyOn(this, element, name, value, this.#document.registry);
+  }
+
+  /**
+   * Writes one language of a localizable property — checklist L2.
+   *
+   * {@link setProperty} edits whichever language the survey is being read in; this edits
+   * any of them, which is what a translations panel needs and the whole of the
+   * localizable-string editor.
+   */
+  setLocalized(element: SurveyElement, name: string, locale: string, text: string): boolean {
+    return setLocalizedOn(this, element, name, locale, text, this.#document.registry);
   }
 
   /** Renames an element or page and every reference to it — checklist L1. */

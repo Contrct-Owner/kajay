@@ -56,7 +56,24 @@ export interface CreatorInputProps {
   /** Points at the hint under a property-grid row — L1. */
   readonly 'aria-describedby'?: string | undefined;
   readonly 'aria-invalid'?: boolean | undefined;
-  readonly 'data-testid'?: string;
+  readonly 'data-testid'?: string | undefined;
+  /**
+   * The combobox attributes, because L2's expression field is one.
+   *
+   * **A substituted primitive must forward these**, exactly as it must forward the drag
+   * handlers above — and for a sharper reason: the *behaviour* is ours (the token model,
+   * the keyboard grammar, the live list), and all the primitive is asked to do is put six
+   * attributes and one handler on the element it renders. A host whose Input spreads its
+   * props onto an `<input>` gets that for free; one that does not leaves a designer with a
+   * suggestion list no screen reader can see.
+   */
+  readonly role?: 'combobox';
+  readonly 'aria-expanded'?: boolean | undefined;
+  readonly 'aria-controls'?: string | undefined;
+  readonly 'aria-activedescendant'?: string | undefined;
+  readonly 'aria-autocomplete'?: 'list' | undefined;
+  readonly autoComplete?: 'off';
+  readonly onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
   /** L1's `name` row commits on blur; see `PropertyCommit`. */
   readonly onBlur?: () => void;
 }

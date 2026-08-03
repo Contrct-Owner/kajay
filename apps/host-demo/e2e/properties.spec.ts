@@ -142,6 +142,35 @@ test('parity/L2-collections: a validator is added and edited by the same grid', 
   await expect(page.getByTestId('surface-json')).toContainText('"minLength": 3');
 });
 
+test('parity/L2-expression: the survey’s own questions are suggested', async ({ page }) => {
+  await page.getByTestId('select-draftTier').click();
+  const shown = grid(page).getByTestId('property-draftTier-visibleIf');
+
+  await shown.fill('{draftN');
+
+  await expect(grid(page).getByRole('option', { name: 'draftName' })).toBeVisible();
+  await shown.press('Enter');
+  await expect(shown).toHaveValue('{draftName}');
+
+  // The reference reaches the definition a host would save, so a rule typed with help is
+  // the same rule as one typed without.
+  await shown.fill('{draftName} notempty');
+  await expect(page.getByTestId('surface-json')).toContainText('"{draftName} notempty"');
+});
+
+test('parity/L2-translations: a second language is added and kept', async ({ page }) => {
+  await page.getByTestId('select-draftName').click();
+  await grid(page).getByTestId('translations-title').click();
+
+  await grid(page).getByTestId('add-locale-title').fill('fr');
+  await grid(page).getByTestId('add-locale-button-title').click();
+  await grid(page).getByTestId('translation-title-fr').fill('Nom du candidat');
+
+  // The English is still there: a localized value is edited in place, never replaced.
+  await expect(page.getByTestId('surface-json')).toContainText('"default": "Draft: applicant name"');
+  await expect(page.getByTestId('surface-json')).toContainText('"fr": "Nom du candidat"');
+});
+
 test('parity/L1-grid: no accessibility violations', async ({ page }) => {
   await page.getByTestId('select-draftName').click();
 

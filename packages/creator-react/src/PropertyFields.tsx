@@ -4,6 +4,8 @@ import type { SurveyElement } from '@kajay/core';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
+import { ExpressionField } from './ExpressionField.js';
+import { TranslationsField } from './TranslationsField.js';
 
 /**
  * The fields a property grid is drawn out of — checklists L1 and L2.
@@ -68,6 +70,10 @@ interface FieldProps {
  */
 function PropertyField({ surface, element, row, scope }: FieldProps): ReactElement {
   const id = `kajay-prop-${scope}-${row.name}`;
+  // Scoped like the id, and for the same reason: a question's `visibleIf` and the
+  // `visibleIf` of the third choice inside it are two fields, and an unscoped hook found
+  // three of them the moment a select question was selected.
+  const testId = `property-${scope}-${row.name}`;
   const hintId = `${id}-hint`;
   const describedBy = row.description === undefined ? undefined : hintId;
 
@@ -77,15 +83,32 @@ function PropertyField({ surface, element, row, scope }: FieldProps): ReactEleme
         {row.title}
       </label>
       {row.editor === 'boolean' ? (
-        <BooleanField surface={surface} element={element} row={row} id={id} hint={describedBy} />
+        <BooleanField
+          surface={surface}
+          element={element}
+          row={row}
+          id={id}
+          hint={describedBy}
+          testId={testId}
+        />
       ) : (
-        <TextualField surface={surface} element={element} row={row} id={id} hint={describedBy} />
+        <TextualField
+          surface={surface}
+          element={element}
+          row={row}
+          id={id}
+          hint={describedBy}
+          testId={testId}
+        />
       )}
       {row.description === undefined ? null : (
         <p className="kajay-properties__hint" id={hintId}>
           {row.description}
         </p>
       )}
+      {row.isLocalizable ? (
+        <TranslationsField surface={surface} element={element} row={row} id={id} />
+      ) : null}
     </div>
   );
 }
@@ -96,16 +119,17 @@ interface EditorProps {
   readonly row: PropertyRow;
   readonly id: string;
   readonly hint: string | undefined;
+  readonly testId: string;
 }
 
-function BooleanField({ surface, element, row, id, hint }: EditorProps): ReactElement {
+function BooleanField({ surface, element, row, id, hint, testId }: EditorProps): ReactElement {
   const { Checkbox } = useCreatorComponents();
 
   return (
     <Checkbox
       className="kajay-properties__checkbox"
       id={id}
-      data-testid={`property-${row.name}`}
+      data-testid={testId}
       aria-describedby={hint}
       checked={row.value === true}
       onCheckedChange={(checked) => {
@@ -134,8 +158,7 @@ function BooleanField({ surface, element, row, id, hint }: EditorProps): ReactEl
  * input reports an empty string for anything it considers invalid, which is precisely the
  * half-typed states this exists to keep.
  */
-function TextualField({ surface, element, row, id, hint }: EditorProps): ReactElement {
-  const { Input } = useCreatorComponents();
+function TextualField({ surface, element, row, id, hint, testId }: EditorProps): ReactElement {
   const [state, setState] = useState({ draft: row.text, shown: row.text });
   if (state.shown !== row.text) {
     setState({ draft: row.text, shown: row.text });
@@ -147,36 +170,81 @@ function TextualField({ surface, element, row, id, hint }: EditorProps): ReactEl
       surface.setProperty(element, row.name, value);
     }
   };
+  const change = (text: string): void => {
+    setState({ draft: text, shown: row.text });
+    if (row.commit === 'change') {
+      commit(text);
+    }
+  };
+  const blur = (): void => {
+    if (row.commit === 'blur') {
+      commit(state.draft);
+      // Re-seeded from the model rather than from the draft, so a refused rename — a
+      // blank name, or one already taken — puts the old name back in the field instead
+      // of leaving a name on screen that the survey does not have.
+      setState({ draft: row.text, shown: row.text });
+    }
+  };
+
+  // An expression field is the same draft over a different control: what it adds is a
+  // suggestion list, and what it must not lose is L1's rule that a value changing
+  // underneath the field re-seeds it.
+  return row.isExpression ? (
+    <ExpressionField
+      surface={surface}
+      owner={String(element.getPropertyValue('name') ?? '')}
+      id={id}
+      hint={hint}
+      data-testid={testId}
+      value={state.draft}
+      onValueChange={change}
+    />
+  ) : (
+    <PlainField
+      row={row}
+      id={id}
+      hint={hint}
+      testId={testId}
+      draft={state.draft}
+      onChange={change}
+      onCommit={blur}
+    />
+  );
+}
+
+function PlainField({
+  row,
+  id,
+  hint,
+  testId,
+  draft,
+  onChange,
+  onCommit,
+}: {
+  readonly row: PropertyRow;
+  readonly id: string;
+  readonly hint: string | undefined;
+  readonly testId: string;
+  readonly draft: string;
+  readonly onChange: (text: string) => void;
+  readonly onCommit: () => void;
+}): ReactElement {
+  const { Input } = useCreatorComponents();
 
   return (
     <Input
       className="kajay-properties__input"
       id={id}
-      data-testid={`property-${row.name}`}
+      data-testid={testId}
       aria-describedby={hint}
       // Only where a designer can genuinely be wrong. An empty number field is somebody
       // mid-retype, not a mistake, and flagging it would cry wolf on every edit.
       aria-invalid={
-        row.editor === 'json' && parseEditorText(row.editor, state.draft) === undefined
-          ? true
-          : undefined
+        row.editor === 'json' && parseEditorText(row.editor, draft) === undefined ? true : undefined
       }
-      value={state.draft}
-      onValueChange={(text) => {
-        setState({ draft: text, shown: row.text });
-        if (row.commit === 'change') {
-          commit(text);
-        }
-      }}
-      onBlur={() => {
-        if (row.commit === 'blur') {
-          commit(state.draft);
-          // Re-seeded from the model rather than from the draft, so a refused rename —
-          // a blank name, or one already taken — puts the old name back in the field
-          // instead of leaving a name on screen that the survey does not have.
-          setState({ draft: row.text, shown: row.text });
-        }
-      }}
+      value={draft}
+      onValueChange={onChange}
+      onBlur={onCommit}
     />
   );
 }

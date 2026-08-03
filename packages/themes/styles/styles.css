@@ -995,6 +995,73 @@
   flex-wrap: wrap;
 }
 
+/* --- expression suggestions and translations (L2) ------------------------ */
+
+.kajay-suggestions {
+  grid-column: 2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: var(--kajay-radius);
+  overflow: hidden;
+}
+
+/* No options, no box: an empty bordered strip under every expression field would be
+   four pieces of furniture on a question that has none. */
+.kajay-suggestions:not(:empty) {
+  border: 1px solid var(--kajay-color-border);
+  background: var(--kajay-color-surface);
+}
+
+.kajay-suggestions__option {
+  padding: calc(var(--kajay-spacing) / 5) calc(var(--kajay-spacing) / 3);
+  cursor: pointer;
+}
+
+.kajay-suggestions__option[aria-selected='true'] {
+  background: var(--kajay-color-accent);
+  color: var(--kajay-color-on-accent, #fff);
+}
+
+/* A function reads differently from a reference, so it looks different. */
+.kajay-suggestions__option[data-kind='function'] {
+  font-style: italic;
+}
+
+.kajay-translations {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: calc(var(--kajay-spacing) / 4);
+}
+
+.kajay-translations__summary {
+  color: var(--kajay-color-muted);
+  font-size: 0.85em;
+  cursor: pointer;
+}
+
+.kajay-translations__add {
+  display: grid;
+  grid-template-columns: minmax(8rem, 1fr) minmax(0, 2fr) auto;
+  gap: calc(var(--kajay-spacing) / 4);
+  align-items: center;
+}
+
+.kajay-translations__add-button {
+  padding: 0 calc(var(--kajay-spacing) / 3);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kajay-translations__add-button:disabled {
+  color: var(--kajay-color-muted);
+  cursor: default;
+}
+
 /* --- multipletext -------------------------------------------------------- */
 
 .kajay-question--multipletext {

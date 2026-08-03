@@ -68,7 +68,18 @@ export interface PropertyRow {
   readonly value: PropertyValue | undefined;
   readonly text: string;
   readonly isRequired: boolean;
+  /** Whether the value is an expression — what earns the row an autocomplete (L2). */
+  readonly isExpression: boolean;
   readonly isLocalizable: boolean;
+  /**
+   * The languages a localizable value should offer — checklist L2.
+   *
+   * The ones it already has, plus `default`, plus whichever the survey is being read in.
+   * Computed here rather than in the view so that "which languages are there" is a
+   * question with one answer and a test, and empty for a property that is not localizable
+   * at all — which is how a view knows to draw no translations at all.
+   */
+  readonly locales: readonly string[];
 }
 
 /** Rows that belong together, in the order they are drawn. */
@@ -133,8 +144,54 @@ function rowFor(element: SurveyElement, descriptor: PropertyDescriptor): Propert
     value,
     text: editorText(value, descriptor, element.localeScope.locale),
     isRequired: descriptor.isRequired,
+    isExpression: descriptor.isExpression,
     isLocalizable: descriptor.isLocalizable,
+    locales: descriptor.isLocalizable ? localesOf(value, element.localeScope.locale) : [],
   };
+}
+
+/**
+ * Which languages a localizable value is offered in.
+ *
+ * `default` always, because it is the one every reader falls back to and a survey with no
+ * translations still has to have somewhere to put its words. The survey's own locale
+ * always, because that is the language being authored and offering every language *except*
+ * the one on screen would be absurd. And everything already written, so a translation
+ * nobody is currently reading is still reachable.
+ */
+export function localesOf(value: PropertyValue | undefined, locale: string): readonly string[] {
+  // Not seeded with `default`: the return prepends it unconditionally and filters it out
+  // of the tail, so adding it here would be a line that could never change the answer.
+  const found = new Set<string>();
+  if (isLocalizedText(value)) {
+    for (const key of Object.keys(value)) {
+      found.add(key);
+    }
+  }
+  if (locale.length > 0) {
+    found.add(locale);
+  }
+  // `default` first and the rest alphabetical: a stable order, and the one a reader
+  // starts from.
+  return [DEFAULT_LOCALE_KEY, ...[...found].filter((key) => key !== DEFAULT_LOCALE_KEY).toSorted()];
+}
+
+/** The language every reader falls back to. Named once, here and in `propertyEdits`. */
+export const DEFAULT_LOCALE_KEY = 'default';
+
+/**
+ * One language of a localizable value, as a translations editor shows it.
+ *
+ * A value that was never translated is a plain string, and that string *is* the default
+ * language — so it appears under `default` rather than nowhere, which is what makes
+ * adding a second language a matter of typing in the field beside it.
+ */
+export function localizedTextIn(value: PropertyValue | undefined, locale: string): string {
+  if (isLocalizedText(value)) {
+    const found = (value as Readonly<Record<string, unknown>>)[locale];
+    return typeof found === 'string' ? found : '';
+  }
+  return typeof value === 'string' && locale === DEFAULT_LOCALE_KEY ? value : '';
 }
 
 /** The editor a declared property type is drawn with. */

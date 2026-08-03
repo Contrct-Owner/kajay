@@ -80,6 +80,17 @@ export class LogicEngine {
   }
 
   /**
+   * The names an expression may call — checklist L2's autocomplete.
+   *
+   * Read from the registry in force rather than from the built-in list, so a host's own
+   * `isServed(...)` is offered to a designer for the same reason it evaluates: this is the
+   * one place that knows which registry was installed.
+   */
+  get functionNames(): readonly string[] {
+    return this.#functions.getNames();
+  }
+
+  /**
    * Installs the host's clock, for the same reason `setFunctions` exists.
    *
    * Until E8 needed a clock the survey could be *told*, a `now` passed to `parseSurvey`

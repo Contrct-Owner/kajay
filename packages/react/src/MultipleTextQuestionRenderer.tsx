@@ -2,6 +2,7 @@ import { MultipleTextQuestion } from '@kajay/core';
 import type { MultipleTextItem, SurveyError } from '@kajay/core';
 import type { ReactElement } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
+import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
 
@@ -81,6 +82,9 @@ export function MultipleTextQuestionRenderer({
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
+  const errorId = `kajay-question-${question.name}-errors`;
+  const own = question.errors.filter((error) => error.path === undefined);
+
   return (
     <fieldset
       className="kajay-question kajay-question--multipletext"
@@ -91,6 +95,10 @@ export function MultipleTextQuestionRenderer({
       <legend className="kajay-question__title">
         <QuestionTitleContent question={question} />
       </legend>
+      {/* What the question earned as a whole — a required multipletext nobody filled in.
+          Each item's own messages sit beside their field; without this slot a
+          question-level error had nowhere to appear at all. */}
+      <QuestionErrors survey={survey} question={question} at="top" id={errorId} errors={own} />
       <div
         className="kajay-multipletext"
         style={{ gridTemplateColumns: `repeat(${String(question.colCount)}, minmax(0, 1fr))` }}
@@ -104,6 +112,7 @@ export function MultipleTextQuestionRenderer({
           />
         ))}
       </div>
+      <QuestionErrors survey={survey} question={question} at="bottom" id={errorId} errors={own} />
     </fieldset>
   );
 }

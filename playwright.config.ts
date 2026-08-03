@@ -9,9 +9,17 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env['CI']),
   retries: 0,
+  // Fewer than Playwright's default (half the cores), and it costs nothing: measured at
+  // 68 scenarios, the suite takes ~33s either way, because the limit is each page's own
+  // timers rather than how many pages run at once. At the default the machine is
+  // oversubscribed and those timers starve — the same starvation the expect timeout
+  // below records, and at that width individual scenarios stretched from ~1s to 17-31s
+  // and began exceeding the *test* timeout rather than any one assertion's. At two,
+  // nothing in the suite exceeds 2.2s.
+  workers: 2,
   expect: {
-    // Longer than the 5s default, because the whole suite runs three browsers and a
-    // build on one machine and the page's own timers get starved by it. Measured, not
+    // Longer than the 5s default, because the whole suite runs alongside a build on one
+    // machine and the page's own timers get starved by it. Measured, not
     // guessed: the demo's check timeline recorded a 60ms timer and a 300ms timer both
     // firing at +6.7s under full load, with everything downstream of them correct.
     // The library was never slow; the machine was busy. See the notes on the

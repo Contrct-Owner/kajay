@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { gotoLogicShowcase, gotoQuestionTypes } from './support/navigate.js';
+import {
+  answerRequiredQuestionTypes,
+  gotoLogicShowcase,
+  gotoQuestionTypes,
+} from './support/navigate.js';
 
 /**
  * Navigation, panels and completion — checklist §E.
@@ -16,6 +20,7 @@ test.beforeEach(async ({ page }) => {
 test('parity/E5-completion-flow', async ({ page }) => {
   await page.getByLabel(/What is your name\?/u).fill('Ada');
   await gotoQuestionTypes(page);
+  await answerRequiredQuestionTypes(page);
   // Complete only exists on the last page: the primary button is one control that
   // changes label, so it never moves out from under the cursor.
   await page.getByRole('button', { name: 'Complete' }).click();
@@ -169,6 +174,7 @@ test('parity/E6-save-and-resume', async ({ page }) => {
 test('parity/E6-save-and-resume: a finished survey does not resume', async ({ page }) => {
   await page.getByLabel(/What is your name\?/u).fill('Ada');
   await gotoQuestionTypes(page);
+  await answerRequiredQuestionTypes(page);
   await page.getByRole('button', { name: 'Complete' }).click();
   await page.getByRole('button', { name: 'Complete' }).click();
   await expect(page.getByRole('status')).toContainText('You answered');
@@ -184,6 +190,7 @@ test('parity/E6-save-and-resume: a finished survey does not resume', async ({ pa
 test('parity/E4-preview', async ({ page }) => {
   await page.getByLabel(/What is your name\?/u).fill('Ada');
   await gotoQuestionTypes(page);
+  await answerRequiredQuestionTypes(page);
   await page.getByLabel(/How many people on your team\?/u).fill('12');
   await page.getByRole('button', { name: 'Complete' }).click();
 

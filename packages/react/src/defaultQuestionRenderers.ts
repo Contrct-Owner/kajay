@@ -3,6 +3,7 @@ import { CollapsedSelectRenderer } from './CollapsedSelectRenderer.js';
 import { CommentQuestionRenderer } from './CommentQuestionRenderer.js';
 import { ExpressionQuestionRenderer } from './ExpressionQuestionRenderer.js';
 import { ImagePickerRenderer } from './ImagePickerRenderer.js';
+import { MatrixQuestionRenderer } from './MatrixQuestionRenderer.js';
 import { MultipleTextQuestionRenderer } from './MultipleTextQuestionRenderer.js';
 import { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
 import { RankingQuestionRenderer } from './RankingQuestionRenderer.js';
@@ -24,6 +25,7 @@ function createDefaultRenderers(): QuestionRendererRegistry {
   registry.register('tagbox', CollapsedSelectRenderer);
   registry.register('imagepicker', ImagePickerRenderer);
   registry.register('ranking', RankingQuestionRenderer);
+  registry.register('matrix', MatrixQuestionRenderer);
   return registry;
 }
 

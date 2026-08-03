@@ -27,7 +27,17 @@ export function collectAnswerErrors(
   evaluate: ExpressionEvaluator,
 ): readonly SurveyError[] {
   const value = question.value;
+  const context = { value, evaluate };
   if (isEmptyValue(value)) {
+    // A composite question is not one omission but several, each with its own place on
+    // screen — a matrix row, a multipletext field. Those win over the question-level
+    // message when there are any: the respondent is told where to act rather than
+    // merely that something is missing, and an untouched question with required parts
+    // would otherwise report nothing at all.
+    const parts = question.checksEmptyAnswer ? question.checkValue(context) : [];
+    if (parts.length > 0) {
+      return parts;
+    }
     if (!question.isRequired) {
       return [];
     }
@@ -37,7 +47,6 @@ export function collectAnswerErrors(
 
   // The question's own constraints first: a `min` the author wrote as a property is
   // the same statement as a validator, made earlier, and it reads first for that reason.
-  const context = { value, evaluate };
   return [
     ...question.checkValue(context),
     ...question.validators.flatMap((validator) => {

@@ -168,6 +168,27 @@ export const questionTypes: PageDefinition = {
       ],
     },
     {
+      // One question asked of three subjects. Rows and columns are both `itemvalue`
+      // collections — a matrix row is a choice in every respect that matters — and
+      // `eachRowUnique` turns the grid into a ranking: each place may be used once.
+      // Nothing here is required, so an untouched page still completes.
+      type: 'matrix',
+      name: 'comparison',
+      title: 'Put these in order, one place each',
+      eachRowUnique: true,
+      alternateRows: true,
+      columns: [
+        { value: 1, text: 'First' },
+        { value: 2, text: 'Second' },
+        { value: 3, text: 'Third' },
+      ],
+      rows: [
+        { value: 'docs', text: 'Documentation' },
+        { value: 'support', text: 'Support' },
+        { value: 'price', text: 'Price' },
+      ],
+    },
+    {
       type: 'rating',
       name: 'satisfaction',
       title: 'How is it going so far?',

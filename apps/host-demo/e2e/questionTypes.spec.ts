@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { gotoQuestionTypes } from './support/navigate.js';
+import { answerRequiredQuestionTypes, gotoQuestionTypes } from './support/navigate.js';
 
 /**
  * The question types themselves — checklist §C — on the demo's third page.
@@ -38,6 +38,7 @@ test('parity/C1-numeric-answers-are-numbers', async ({ page }) => {
 });
 
 test('parity/C1-text-bounds', async ({ page }) => {
+  await answerRequiredQuestionTypes(page);
   await page.getByLabel(/When would you like to start\?/u).fill('2025-06-01');
   await page.getByRole('button', { name: 'Complete' }).click();
 
@@ -125,6 +126,17 @@ test('parity/C11-multipletext', async ({ page }) => {
   // One answer, one object — not three top-level keys with a shared prefix.
   await expect(page.getByTestId('survey-data')).toContainText('"street": "12 Long Road"');
   await expect(page.getByTestId('survey-data')).toContainText('"workplace"');
+});
+
+test('parity/D1-required-part-of-an-untouched-question', async ({ page }) => {
+  // Nothing typed anywhere. The whole answer is empty, so the question-level check
+  // would ordinarily stop there and the required field inside it would go unmentioned
+  // — a required field that says nothing until some *other* field is filled in.
+  await page.getByRole('button', { name: 'Complete' }).click();
+
+  const workplace = page.getByRole('group', { name: /Where do you work\?/u });
+  await expect(workplace.getByLabel('Street')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByRole('heading', { name: 'Check your answers' })).toHaveCount(0);
 });
 
 test('parity/C11-multipletext-per-item-validation', async ({ page }) => {

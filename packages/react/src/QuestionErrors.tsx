@@ -1,4 +1,9 @@
-import type { Question, QuestionErrorLocation, Survey as SurveyModel } from '@kajay/core';
+import type {
+  Question,
+  QuestionErrorLocation,
+  Survey as SurveyModel,
+  SurveyError,
+} from '@kajay/core';
 import type { ReactElement } from 'react';
 
 export interface QuestionErrorsProps {
@@ -7,6 +12,14 @@ export interface QuestionErrorsProps {
   /** Where this slot sits. It draws only when the survey asks for errors here. */
   readonly at: QuestionErrorLocation;
   readonly id: string;
+  /**
+   * Which errors this slot owns. Every one of the question's by default.
+   *
+   * A composite question splits them: what a matrix reported against a row belongs
+   * beside that row, and only what it reported against the question as a whole belongs
+   * here. Without the split the row messages would appear twice.
+   */
+  readonly errors?: readonly SurveyError[];
 }
 
 /**
@@ -25,13 +38,15 @@ export function QuestionErrors({
   question,
   at,
   id,
+  errors,
 }: QuestionErrorsProps): ReactElement | null {
-  if (survey.validation.errorLocation !== at || !question.hasErrors) {
+  const shown = errors ?? question.errors;
+  if (survey.validation.errorLocation !== at || shown.length === 0) {
     return null;
   }
   return (
     <div className="kajay-question__errors" id={id} role="alert">
-      {question.errors.map((error) => (
+      {shown.map((error) => (
         <p key={`${error.kind}:${error.text}`} className="kajay-question__error">
           {error.text}
         </p>

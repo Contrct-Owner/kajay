@@ -255,17 +255,18 @@ function registerValueRule(question: Question, owner: string, host: RuleHost): v
 }
 
 /**
- * Individual choices carry their own `visibleIf`.
+ * A question's own items carry conditions too: a choice, a matrix row, a matrix column.
  *
- * Choices are keyed by index rather than by value, because two choices may legitimately
- * share a value and a rule key has to be unique.
+ * Which collections those are is the question type's answer, not this function's, so a
+ * new type gains the behaviour by declaring it. Items are keyed by index rather than by
+ * value, because two of them may legitimately share a value and a rule key has to be
+ * unique.
  */
-function registerChoiceConditions(question: Question, owner: string, host: RuleHost): void {
-  if (!(question instanceof SelectQuestion)) {
-    return;
-  }
-  for (const [index, choice] of question.choices.entries()) {
-    registerConditions(choice, `${owner}:choice:${index}`, host);
+function registerItemConditions(question: Question, owner: string, host: RuleHost): void {
+  for (const group of question.conditionalItems) {
+    for (const [index, item] of group.items.entries()) {
+      registerConditions(item, `${owner}:${group.key}:${index}`, host);
+    }
   }
 }
 
@@ -314,7 +315,7 @@ function registerElements(elements: readonly PageElement[], host: RuleHost): voi
     registerConditions(element, owner, host);
     registerValueRule(element, owner, host);
     registerExpressionValue(element, owner, host);
-    registerChoiceConditions(element, owner, host);
+    registerItemConditions(element, owner, host);
     registerChoiceSource(element, owner, host);
   }
 }

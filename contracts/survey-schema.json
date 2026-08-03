@@ -1138,6 +1138,110 @@
       ],
       "additionalProperties": true
     },
+    "matrix": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "matrix"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "isAllRowRequired": {
+          "type": "boolean",
+          "default": false,
+          "description": "Every visible row demands an answer, not just the question as a whole."
+        },
+        "eachRowUnique": {
+          "type": "boolean",
+          "default": false,
+          "description": "No two rows may be answered with the same column."
+        },
+        "alternateRows": {
+          "type": "boolean",
+          "default": false,
+          "description": "Shade alternate rows. Presentation only."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/itemvalue"
+          }
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/itemvalue"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
     "multipletext": {
       "type": "object",
       "properties": {
@@ -1385,6 +1489,9 @@
           "$ref": "#/$defs/imagepicker"
         },
         {
+          "$ref": "#/$defs/matrix"
+        },
+        {
           "$ref": "#/$defs/multipletext"
         },
         {
@@ -1475,6 +1582,9 @@
         },
         {
           "$ref": "#/$defs/imagepicker"
+        },
+        {
+          "$ref": "#/$defs/matrix"
         },
         {
           "$ref": "#/$defs/multipletext"

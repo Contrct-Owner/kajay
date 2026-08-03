@@ -120,6 +120,8 @@ export { MultiSelectQuestion } from './model/MultiSelectQuestion.js';
 export { SingleSelectQuestion } from './model/SingleSelectQuestion.js';
 export { TagboxQuestion } from './model/TagboxQuestion.js';
 export { ItemValue } from './model/ItemValue.js';
+// --- Matrix family (§F) ----------------------------------------------------
+export { MatrixQuestion, matrixRowKey } from './model/MatrixQuestion.js';
 export { RadiogroupQuestion } from './model/RadiogroupQuestion.js';
 export { RankingQuestion } from './model/RankingQuestion.js';
 export type { RankAreasLayout } from './model/RankingQuestion.js';
@@ -130,6 +132,7 @@ export { PageElement } from './model/PageElement.js';
 export { Panel } from './model/Panel.js';
 export type { PanelState } from './model/Panel.js';
 export { Question } from './model/Question.js';
+export type { ConditionalItemGroup } from './model/Question.js';
 export { Survey } from './model/Survey.js';
 export { HtmlCondition } from './model/HtmlCondition.js';
 export { readProgress, restoreProgress } from './model/SurveyProgress.js';

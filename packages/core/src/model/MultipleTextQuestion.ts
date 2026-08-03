@@ -1,18 +1,12 @@
 import { isEmptyValue } from '../expressions/expressionValues.js';
 import { MultipleTextItem } from './MultipleTextItem.js';
+import { asAnswerRecord, withAnswerEntry } from './objectAnswers.js';
 import { Question } from './Question.js';
 import type { SurveyElement } from './SurveyElement.js';
 import type { SurveyError } from './SurveyError.js';
 import type { ValidationContext } from './Validator.js';
 
 const DEFAULT_REQUIRED_TEXT = 'This question requires an answer.';
-
-/** The answer shape: one entry per item that has been filled in. */
-function asRecord(value: unknown): Readonly<Record<string, unknown>> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {};
-}
 
 /**
  * Several short fields under one label.
@@ -45,22 +39,23 @@ export class MultipleTextQuestion extends Question {
   }
 
   getItemValue(name: string): unknown {
-    return asRecord(this.value)[name];
+    return asAnswerRecord(this.value)[name];
+  }
+
+  /** Records one field's value. Empty fields are dropped rather than stored as `""`. */
+  setItemValue(name: string, value: unknown): void {
+    this.value = withAnswerEntry(this.value, name, value);
   }
 
   /**
-   * Records one field's value.
+   * An untouched question still has required fields to object about.
    *
-   * Empty fields are dropped rather than stored as `""`, and an answer with nothing
-   * left in it becomes `undefined` rather than `{}`. Both matter: `{}` is not empty by
-   * any test the engine applies, so a question-level `isRequired` would be satisfied by
-   * an object full of blanks, and `data` would carry a key for a question nobody
-   * answered.
+   * Without this the whole question is empty, nothing is required at *its* level, and
+   * every one of its required items goes unmentioned — a required field that never
+   * complains until some other field is filled in.
    */
-  setItemValue(name: string, value: unknown): void {
-    const next = { ...asRecord(this.value), [name]: value };
-    const filled = Object.entries(next).filter(([, entry]) => !isEmptyValue(entry));
-    this.value = filled.length > 0 ? Object.fromEntries(filled) : undefined;
+  override get checksEmptyAnswer(): boolean {
+    return this.#items.some((item) => item.isRequired);
   }
 
   /**
@@ -71,7 +66,7 @@ export class MultipleTextQuestion extends Question {
    * already showing.
    */
   override checkValue(context: ValidationContext): readonly SurveyError[] {
-    const record = asRecord(context.value);
+    const record = asAnswerRecord(context.value);
     return this.#items.flatMap((item) => checkItem(item, record[item.name], context));
   }
 

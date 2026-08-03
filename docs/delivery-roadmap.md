@@ -198,6 +198,17 @@ project keeps having to fix. That belongs beside Phase 2's other time-adjacent w
 
 **Goal:** everything a SurveyJS Form Library consumer would miss.
 
+**Progress (2026-08-02).** **F1 is green** and **D1 closed with it** — the single-select
+matrix is the first §F row, and its rows and columns are `itemvalue` collections rather
+than a shape of their own, which cost one generalization: conditions on a question's
+items are now something each question type declares, not a list of select-question
+special cases. Building it surfaced a defect in a row that was already green: a
+composite question whose answer was entirely empty reported none of its required parts,
+so a required multipletext field said nothing until some other field was filled in. That
+is fixed here, with the demo scenario that proves it, because shipping a matrix whose
+per-row requiredness works beside a multipletext whose per-field requiredness does not
+would have been indefensible.
+
 **In scope**
 
 - Matrix family: matrix (single-select), matrixdropdown, matrixdynamic (add/remove

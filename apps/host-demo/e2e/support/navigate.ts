@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 /**
  * Moves to the demo's second page.
@@ -15,8 +15,8 @@ import type { Page } from '@playwright/test';
  * scenario's own setup — "Ada Lovelace", say — intact.
  */
 export async function gotoLogicShowcase(page: Page): Promise<void> {
-  await fillIfEmpty(page, /What is your name\?/u, 'Ada');
-  await fillIfEmpty(page, /What should we call you\?/u, 'Ada');
+  await fillIfEmpty(page.getByLabel(/What is your name\?/u), 'Ada');
+  await fillIfEmpty(page.getByLabel(/What should we call you\?/u), 'Ada');
   await page.getByRole('button', { name: 'Next' }).click();
   await expect(page.getByRole('heading', { name: 'Logic showcase' })).toBeVisible();
 }
@@ -33,8 +33,21 @@ export async function gotoQuestionTypes(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { name: 'Question types' })).toBeVisible();
 }
 
-async function fillIfEmpty(page: Page, label: RegExp, value: string): Promise<void> {
-  const field = page.getByLabel(label);
+/**
+ * Fills what page three demands before it will complete.
+ *
+ * The workplace question has a required field, and a composite question reports its
+ * parts even when nothing at all has been typed into it — which is the point of marking
+ * a field required, and which means an untouched page three refuses to complete. Any
+ * scenario that means to get *past* the gate says so by calling this; the ones about the
+ * gate itself do not.
+ */
+export async function answerRequiredQuestionTypes(page: Page): Promise<void> {
+  const workplace = page.getByRole('group', { name: /Where do you work\?/u });
+  await fillIfEmpty(workplace.getByLabel('Street'), '12 Long Road');
+}
+
+async function fillIfEmpty(field: Locator, value: string): Promise<void> {
   if ((await field.inputValue()) === '') {
     await field.fill(value);
   }

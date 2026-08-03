@@ -11,6 +11,7 @@ export { DisplayElementRenderer } from './DisplayElementRenderer.js';
 export { ExpressionQuestionRenderer } from './ExpressionQuestionRenderer.js';
 export type { HtmlSanitizer } from './HtmlSanitizerContext.js';
 export { ImagePickerRenderer } from './ImagePickerRenderer.js';
+export { MatrixQuestionRenderer } from './MatrixQuestionRenderer.js';
 export { MultipleTextQuestionRenderer } from './MultipleTextQuestionRenderer.js';
 export { RankingQuestionRenderer } from './RankingQuestionRenderer.js';
 export { RatingQuestionRenderer } from './RatingQuestionRenderer.js';

@@ -5,6 +5,19 @@ import { Validator } from './Validator.js';
 import type { ValidationContext } from './Validator.js';
 import type { ValueHost } from './ValueHost.js';
 
+/**
+ * A collection of a question's items that carry conditions of their own.
+ *
+ * `key` names the collection for rule identity only — a choice, a matrix row and a
+ * matrix column all sit under the same question, and two rules cannot share a key.
+ */
+export interface ConditionalItemGroup {
+  readonly key: string;
+  readonly items: readonly SurveyElement[];
+}
+
+const NO_CONDITIONAL_ITEMS: readonly ConditionalItemGroup[] = [];
+
 /** Base for every question type. Answers live in the host, never on the question. */
 export abstract class Question extends PageElement {
   readonly #validators: Validator[] = [];
@@ -98,6 +111,31 @@ export abstract class Question extends PageElement {
    */
   checkValue(_context: ValidationContext): readonly SurveyError[] {
     return [];
+  }
+
+  /**
+   * Whether `checkValue` has something to say about an answer that is empty.
+   *
+   * False for a question holding one answer, where an empty value means one omission and
+   * one message — the reasoning that keeps validators away from an empty answer in the
+   * first place. A composite question is the exception: a matrix row and a multipletext
+   * field carry their own requiredness and their own place on screen, so an untouched
+   * question is several omissions, each with somewhere to be reported.
+   */
+  get checksEmptyAnswer(): boolean {
+    return false;
+  }
+
+  /**
+   * Items of this question that carry their own `visibleIf` and friends.
+   *
+   * Asked of every question at rule registration, so a new type gains conditional items
+   * by answering this rather than by being added to a list somewhere else — the same
+   * reasoning as `answersInOneStep`, and the reason choices are no longer a special case
+   * there.
+   */
+  get conditionalItems(): readonly ConditionalItemGroup[] {
+    return NO_CONDITIONAL_ITEMS;
   }
 
   /**

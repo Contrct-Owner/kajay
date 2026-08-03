@@ -50,6 +50,28 @@ body {
   font-size: 0.8125rem;
 }
 
+/* The matrix. The library ships no stylesheet at all — theming is §I — so these are
+   here to show what the class names are *for*: `alternateRows` puts a hook in the
+   markup and a host decides what it looks like. The model performs no shading. */
+.kajay-matrix {
+  border-collapse: collapse;
+}
+
+.kajay-matrix th,
+.kajay-matrix td {
+  padding: 4px 10px;
+  text-align: center;
+}
+
+.kajay-matrix__row-title {
+  text-align: left;
+  font-weight: 500;
+}
+
+.kajay-matrix--alternate tbody tr:nth-child(even) {
+  background: #f2f4f7;
+}
+
 /* The check timeline: a diagnostic list, readable at a glance in a failure snapshot. */
 .host-demo__timeline {
   margin: 0;

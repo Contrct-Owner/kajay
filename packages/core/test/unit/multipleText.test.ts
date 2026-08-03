@@ -100,6 +100,27 @@ describe('parity/C11-multipletext', () => {
     expect(errorsOf(survey)).toEqual([]);
   });
 
+  test('a required item objects even when nothing at all has been typed', () => {
+    const survey = build();
+
+    // The whole answer is empty, so the question-level check would ordinarily stop
+    // there — and a required field that says nothing until some *other* field is filled
+    // in is a required field that does not work. Found while building the matrix, whose
+    // rows have exactly the same shape.
+    expect(errorsOf(survey)).toEqual(['street: This question requires an answer.']);
+  });
+
+  test('a question required as a whole objects about itself, with no field named', () => {
+    const survey = build({
+      type: 'multipletext',
+      name: 'address',
+      isRequired: true,
+      items: [{ name: 'street', title: 'Street' }],
+    });
+
+    expect(errorsOf(survey)).toEqual(['(question): This question requires an answer.']);
+  });
+
   test('an empty optional item is not validated, exactly as an empty question is not', () => {
     const survey = build();
     address(survey).setItemValue('street', '12 Long Road');

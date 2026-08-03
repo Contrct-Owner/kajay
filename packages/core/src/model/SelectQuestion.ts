@@ -2,6 +2,7 @@ import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
 import type { ChoicePaging } from './ChoicePaging.js';
 import { ItemValue } from './ItemValue.js';
 import { Question } from './Question.js';
+import type { ConditionalItemGroup } from './Question.js';
 import type { SurveyElement } from './SurveyElement.js';
 
 /** Where the special choices sit relative to the authored ones. */
@@ -37,6 +38,16 @@ export abstract class SelectQuestion extends Question {
 
   get hasDynamicChoices(): boolean {
     return this.#choiceProvider !== undefined;
+  }
+
+  /**
+   * Every choice carries its own `visibleIf`.
+   *
+   * `choices` rather than the authored list, so a carried-forward or loaded choice is
+   * governed by whatever rule came with it.
+   */
+  override get conditionalItems(): readonly ConditionalItemGroup[] {
+    return [{ key: 'choice', items: this.choices }];
   }
 
   /**

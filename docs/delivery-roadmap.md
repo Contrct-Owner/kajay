@@ -29,7 +29,7 @@ proven by the host application and the parity checklist. Phase 4 is horizon.
 | --- | --- | --- | --- |
 | **0 — Foundation** | Monorepo + metadata kernel + one question end-to-end | A JSON definition renders in host-demo via public API only, round-trips, and all CI gates are green | **complete (2026-08-02)** |
 | **1 — Runtime core** | Expression engine, core question types, logic, validation, flow | Checklist §A–§E green via host-demo scenarios, less the rows that name later-phase surface | **complete (2026-08-02)** |
-| **2 — Form Library parity** | Matrix family, dynamic panels, quiz, theming, localization, a11y | Checklist §A–§J (all Form Library sections) green | proposed |
+| **2 — Form Library parity** | Matrix family, dynamic panels, quiz, theming, localization, a11y | Checklist §A–§J (all Form Library sections) green | **delivered 2026-08-03**, but for A4/A5 (Phase 3) |
 | **3 — Creator parity** ⭐ | Drag-drop designer, property grid, logic/JSON/translation/theme editors | Checklist §K–§N green; build→render→round-trip proven in host-demo | proposed (overall AC) |
 | **4 — Horizon** | PDF, dashboard, other frameworks/runtimes, SSR | Opportunity-driven | horizon |
 
@@ -122,7 +122,7 @@ closes it, and the exception is exhausted by this list:
 | Row | Closes in | Because |
 | --- | --- | --- |
 | A4, A5 | Phase 3 | Both wait on the Creator's property grid and renderer registration. |
-| A7 | Phase 2 | The upload, dynamic-panel and matrix events cannot exist before their features do. |
+| ~~A7~~ | ~~Phase 2~~ | Closed 2026-08-03, once §F, §G and §H had given those events something to be about. |
 | D1 (matrix half) | Phase 2 | `isRequired` on a matrix row needs matrix rows. |
 | ~~E3 (correct-answer bar)~~ | ~~Phase 2~~ | Closed 2026-08-03 with E8. |
 | ~~E8~~ | ~~Phase 2~~ | Closed 2026-08-03. The clock question is settled below. |
@@ -289,7 +289,21 @@ layout rule.
 checklist (§A–§J) green; host-demo has a demo page per feature area; a11y checks
 (axe) pass in browser-integration tests.
 
-**Out:** all Creator work.
+**Status, 2026-08-03: the exit gate is met**, with one wording correction recorded
+rather than glossed.
+
+§A–§J are green but for **A4 and A5**, which the exception table above assigns to
+Phase 3 because both wait on the Creator's property grid. Every other row is closed
+with named tests at unit, browser and demo level.
+
+The a11y checks landed in the **E2E** suite rather than the browser one, which is a
+deliberate departure from the gate's wording. Contrast is the half of axe most worth
+having and it can only be measured against the stylesheet the library actually ships
+— and the browser suite deliberately loads none, so that its claims are about
+structure rather than pixels. Running axe there would have passed while proving
+nothing about colour. It earned the choice immediately: the sweep found the dark
+preset's primary button at 2.51:1, which a stylesheet-free check could not have
+seen.
 
 ## Phase 3 — Creator parity ⭐ (overall acceptance)
 

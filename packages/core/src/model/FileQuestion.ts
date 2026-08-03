@@ -11,6 +11,12 @@ export interface FileSeams {
   readonly clearFiles?: FileCleaner;
 }
 
+/** Told when the attachments change — checklist A7. Not a seam: nothing is asked of it. */
+export type FilesChangedListener = (
+  files: readonly FileEntry[],
+  change: 'attached' | 'removed',
+) => void;
+
 const TOO_LARGE = 'filetoolarge';
 const WRONG_TYPE = 'filewrongtype';
 const TOO_MANY = 'filetoomany';
@@ -35,6 +41,7 @@ function describeSize(bytes: number): string {
  */
 export class FileQuestion extends Question {
   #seams: FileSeams = {};
+  #onFilesChanged: FilesChangedListener | undefined;
   #isUploading = false;
   #failure: string | undefined;
 
@@ -103,6 +110,17 @@ export class FileQuestion extends Question {
   }
 
   /**
+   * Installs the listener the survey reports attachments on — checklist A7.
+   *
+   * A second argument rather than a fourth field on `FileSeams`, because the two have
+   * different owners: the seams are what the *host* supplies and something is asked of
+   * each, while this is what the *survey* watches and nothing is asked of it at all.
+   */
+  setFilesChangedListener(listener: FilesChangedListener): void {
+    this.#onFilesChanged = listener;
+  }
+
+  /**
    * Asks the host where a stored file can be read from.
    *
    * A stored file may need a URL minted for it — a signed one that expires — so the
@@ -131,6 +149,7 @@ export class FileQuestion extends Question {
     const uploader = this.#seams.uploadFiles;
     if (uploader === undefined) {
       this.value = this.#stored(kept);
+      this.#onFilesChanged?.(entries, 'attached');
       return;
     }
     this.#isUploading = true;
@@ -138,6 +157,9 @@ export class FileQuestion extends Question {
       const uploaded = await uploader({ questionName: this.name, files: entries });
       const existing = this.allowMultiple ? this.files : [];
       this.value = [...existing, ...uploaded];
+      // Inside the `try`, so a failed upload announces nothing: the answer did not
+      // change, and a listener told otherwise would save a file the host never stored.
+      this.#onFilesChanged?.(uploaded, 'attached');
     } catch (cause: unknown) {
       // Reported rather than thrown: an upload that failed is something the respondent
       // can retry, and an exception escaping a change handler is not.
@@ -182,6 +204,7 @@ export class FileQuestion extends Question {
   }
 
   #announceCleared(entries: readonly FileEntry[]): void {
+    this.#onFilesChanged?.(entries, 'removed');
     const clear = this.#seams.clearFiles;
     if (clear === undefined || entries.length === 0) {
       return;

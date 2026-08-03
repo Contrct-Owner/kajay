@@ -141,7 +141,7 @@ export class MatrixDynamicQuestion extends MatrixCellsBase {
     // that object into the answers hands a host the survey it was given to edit.
     rows.push({ ...this.#newRowValue(rows) });
     this.value = rows;
-    this.invalidateCells();
+    this.announceRecords(String(rows.length - 1), 'added');
   }
 
   #newRowValue(rows: readonly Readonly<Record<string, unknown>>[]): Readonly<Record<string, unknown>> {
@@ -177,6 +177,6 @@ export class MatrixDynamicQuestion extends MatrixCellsBase {
     // Back to nothing rather than an empty array, so a matrix emptied to its minimum
     // leaves the response the way an emptied answer does everywhere else.
     this.value = rows.length > 0 ? rows : undefined;
-    this.invalidateCells();
+    this.announceRecords(rowKey, 'removed');
   }
 }

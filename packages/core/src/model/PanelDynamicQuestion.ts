@@ -194,7 +194,7 @@ export class PanelDynamicQuestion extends RepeatingQuestion {
     panels.push({ ...asAnswerRecord(this.getPropertyValue('defaultPanelValue')) });
     this.value = panels;
     this.#currentIndex = panels.length - 1;
-    this.invalidateCells();
+    this.announceRecords(String(panels.length - 1), 'added');
   }
 
   /**
@@ -218,7 +218,7 @@ export class PanelDynamicQuestion extends RepeatingQuestion {
     panels.splice(index, 1);
     this.value = panels.length > 0 ? panels : undefined;
     this.#currentIndex = Math.min(this.#currentIndex, Math.max(panels.length - 1, 0));
-    this.invalidateCells();
+    this.announceRecords(rowKey, 'removed');
   }
 
   override getChildren(property: string): readonly SurveyElement[] {

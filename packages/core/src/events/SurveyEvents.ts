@@ -1,3 +1,4 @@
+import type { FileEntry } from '../model/FileEntry.js';
 import type { Question } from '../model/Question.js';
 import type { SurveyElement } from '../model/SurveyElement.js';
 import type { SurveyState } from '../model/SurveyState.js';
@@ -54,6 +55,45 @@ export interface ValidateQuestionEvent {
 /** Whether a check that left the process is still outstanding. */
 export interface ValidatingChangedEvent {
   readonly isValidating: boolean;
+}
+
+/**
+ * A record appearing in or leaving a repeating question — checklist A7.
+ *
+ * **One event for matrix rows and dynamic-panel instances**, because they are one
+ * thing: §F and §G already share `RepeatingQuestion`, and a host that wanted to react to
+ * both would otherwise write the same listener twice and forget the second one when a
+ * third repeating type arrives. Which kind it is, is a fact about `question`.
+ *
+ * Emitted from the model rather than from a button, so a host hears it however the
+ * change was caused — a respondent, a trigger, a restored response, a host calling
+ * `addRow` itself.
+ */
+export interface RecordsChangedEvent {
+  readonly question: Question;
+  /** The row or panel key: for both types today, its index as a string. */
+  readonly key: string;
+  readonly change: 'added' | 'removed';
+  /** How many records there are now, so a listener need not go and ask. */
+  readonly count: number;
+}
+
+/**
+ * Files attached to or taken off a question — checklist A7.
+ *
+ * **Not the upload seam.** Where a file is *stored* is `SurveyOptions.uploadFiles`,
+ * because only the host knows; this is the notification that the answer changed, which
+ * anything may watch — a partial save, an audit log, a preview elsewhere on the page.
+ * A host that conflated them would find its storage called twice the day something else
+ * wanted to know.
+ *
+ * Reports what moved rather than what remains: "these three arrived" is the fact, and
+ * the question still has the whole list for a listener that wants it.
+ */
+export interface FilesChangedEvent {
+  readonly question: Question;
+  readonly files: readonly FileEntry[];
+  readonly change: 'attached' | 'removed';
 }
 
 /** Which computed aspect of an element changed. */

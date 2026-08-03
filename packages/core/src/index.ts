@@ -67,7 +67,9 @@ export type {
   CurrentPageChangedEvent,
   ElementStateChangedEvent,
   ElementStateKind,
+  FilesChangedEvent,
   LocaleChangedEvent,
+  RecordsChangedEvent,
   SurveyStateChangedEvent,
   ValidateQuestionEvent,
   ValidatingChangedEvent,
@@ -127,7 +129,7 @@ export { RepeatingQuestion } from './model/RepeatingQuestion.js';
 export { PanelDynamicQuestion, toPanelRenderMode } from './model/PanelDynamicQuestion.js';
 // --- Media and upload (§H) -------------------------------------------------
 export { FileQuestion } from './model/FileQuestion.js';
-export type { FileSeams } from './model/FileQuestion.js';
+export type { FilesChangedListener, FileSeams } from './model/FileQuestion.js';
 export { asFileEntries, matchesAcceptedTypes } from './model/FileEntry.js';
 export type {
   FileCleaner,

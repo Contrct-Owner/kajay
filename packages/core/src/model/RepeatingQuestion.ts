@@ -209,6 +209,23 @@ export abstract class RepeatingQuestion extends Question {
     this.invalidateCells();
   }
 
+  /**
+   * Rebuilds, and says that a record came or went — checklist A7.
+   *
+   * The one place both repeating types announce from, which is what §F and §G's shared
+   * base was for: a matrix row and a panel instance are the same event, and a host
+   * reacting to one almost always means both.
+   */
+  protected announceRecords(key: string, change: 'added' | 'removed'): void {
+    this.invalidateCells();
+    this.#attachment?.announceRecords({
+      question: this,
+      key,
+      change,
+      count: this.rowKeys.length,
+    });
+  }
+
   /** Forgets what was built, so the next read builds it for the records there are now. */
   protected invalidateCells(): void {
     this.#instances.clear();

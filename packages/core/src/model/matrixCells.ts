@@ -2,6 +2,7 @@ import type { PathSegment } from '../expressions/ExpressionNode.js';
 import { scopeReferences } from '../expressions/scopeReferences.js';
 import { isEmptyValue } from '../expressions/expressionValues.js';
 import type { MetadataRegistry } from '../metadata/MetadataRegistry.js';
+import type { RecordsChangedEvent } from '../events/SurveyEvents.js';
 import { copyElement } from './copyElement.js';
 import { collectElements, collectQuestions } from './pageElements.js';
 import { PageElement } from './PageElement.js';
@@ -33,6 +34,14 @@ export interface CellAttachment {
    * added after the graph was built would otherwise carry rules nobody registered.
    */
   readonly onRowsChanged: () => void;
+  /**
+   * Called when a record actually appears or disappears — checklist A7.
+   *
+   * Separate from `onRowsChanged`, which also fires for a rebuild that changed no
+   * records at all: a locale switch throws the instances away, and announcing a row
+   * added because somebody switched to French would be a lie a host acts on.
+   */
+  readonly announceRecords: (event: RecordsChangedEvent) => void;
   /**
    * Evaluates an expression with the `row` scope filled in.
    *

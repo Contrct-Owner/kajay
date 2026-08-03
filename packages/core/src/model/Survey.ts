@@ -3,7 +3,9 @@ import type {
   CompleteEvent,
   CurrentPageChangedEvent,
   ElementStateChangedEvent,
+  FilesChangedEvent,
   LocaleChangedEvent,
+  RecordsChangedEvent,
   SurveyStateChangedEvent,
   ValidateQuestionEvent,
   ValidatingChangedEvent,
@@ -78,6 +80,10 @@ export class Survey extends SurveyProperties implements ValueHost {
   readonly onCurrentPageChanged: EventEmitter<CurrentPageChangedEvent> = new EventEmitter();
   /** Raised when the survey switches language — checklist J1. */
   readonly onLocaleChanged: EventEmitter<LocaleChangedEvent> = new EventEmitter();
+  /** Raised when a matrix row or a repeating panel instance comes or goes — A7. */
+  readonly onRecordsChanged: EventEmitter<RecordsChangedEvent> = new EventEmitter();
+  /** Raised when files are attached to or taken off a question — A7. */
+  readonly onFilesChanged: EventEmitter<FilesChangedEvent> = new EventEmitter();
   readonly onElementStateChanged: EventEmitter<ElementStateChangedEvent> = new EventEmitter();
   /** Raised per question as it is checked. Listeners report by calling `addError`. */
   readonly onValidateQuestion: EventEmitter<ValidateQuestionEvent> = new EventEmitter();

@@ -147,6 +147,9 @@ function attachRepeatingCells(survey: Survey, registry: MetadataRegistry): void 
         onRowsChanged: () => {
           survey.refreshLogic();
         },
+        announceRecords: (event) => {
+          survey.onRecordsChanged.emit(event);
+        },
         evaluate: (expression, values) =>
           survey.evaluate(expression, { name: ROW_SCOPE, values }).value,
       });
@@ -164,6 +167,9 @@ function attachFileSeams(survey: Survey, options: SurveyOptions): void {
   for (const question of survey.questions) {
     if (question instanceof FileQuestion) {
       question.attachFileSeams(options);
+      question.setFilesChangedListener((files, change) => {
+        survey.onFilesChanged.emit({ question, files, change });
+      });
     }
   }
 }

@@ -1,7 +1,9 @@
 import { MetadataRegistry, registerBuiltInTypes, serializeSurvey } from '@kajay/core';
 import type { SurveyDefinition } from '@kajay/core';
 import { DesignSurface } from '@kajay/creator-core';
-import type { ToolboxItem } from '@kajay/creator-core';
+import type { DropList, ToolboxItem } from '@kajay/creator-core';
+
+const P1: DropList = { of: 'elements', page: 'p1' };
 import { describe, expect, test } from 'vitest';
 
 const TEXT_ITEM: ToolboxItem = {
@@ -187,7 +189,7 @@ describe('parity/K2-place', () => {
   test('a dropped item becomes a question the survey knows', () => {
     const designed = surface();
 
-    designed.place({ kind: 'new', item: TEXT_ITEM }, { container: 'p1', index: 1 });
+    designed.place({ kind: 'new', item: TEXT_ITEM }, { list: P1, index: 1 });
 
     // Not merely present in an array: named, addressable and wired, because the whole
     // survey went back through `parseSurvey` (ADR-0009 decision 3). Assembling an
@@ -199,7 +201,7 @@ describe('parity/K2-place', () => {
   test('the survey is still on a canvas after a re-parse', () => {
     const designed = surface();
 
-    designed.place({ kind: 'new', item: TEXT_ITEM }, { container: 'p1', index: 0 });
+    designed.place({ kind: 'new', item: TEXT_ITEM }, { list: P1, index: 0 });
 
     // Design mode is runtime state, so it is exactly what a re-parse throws away —
     // and a canvas whose questions started answering after the first drop would be
@@ -212,7 +214,7 @@ describe('parity/K2-place', () => {
     const designed = surface();
     designed.select(designed.survey.getQuestionByName('who')!);
 
-    designed.place({ kind: 'new', item: TEXT_ITEM }, { container: 'p1', index: 0 });
+    designed.place({ kind: 'new', item: TEXT_ITEM }, { list: P1, index: 0 });
 
     // A designer who drops a question wants to name it next. Leaving the selection
     // where it was would send the very next keystroke to the wrong element.
@@ -223,7 +225,7 @@ describe('parity/K2-place', () => {
     const designed = surface();
     designed.select(designed.survey.getQuestionByName('plan')!);
 
-    designed.place({ kind: 'move', element: 'who' }, { container: 'p1', index: 2 });
+    designed.place({ kind: 'move', name: 'who' }, { list: P1, index: 2 });
 
     // Dragging something is a deliberate act on it, so it is what the designer is
     // thinking about when the drag ends. The selection is re-resolved *by name*,
@@ -238,7 +240,7 @@ describe('parity/K2-place', () => {
     const designed = surface();
     designed.setTitle(designed.survey.getQuestionByName('who')!, 'What is your name?');
 
-    designed.place({ kind: 'move', element: 'who' }, { container: 'p1', index: 2 });
+    designed.place({ kind: 'move', name: 'who' }, { list: P1, index: 2 });
 
     // Property edits mutate the model and structural edits re-parse, so a drop has to
     // serialize what is on the canvas rather than the definition it was opened with.
@@ -251,10 +253,10 @@ describe('parity/K2-place', () => {
     const seen: number[] = [];
     designed.onChanged.add((version) => seen.push(version));
 
-    expect(designed.place({ kind: 'move', element: 'who' }, { container: 'p1', index: 2 })).toBe(
+    expect(designed.place({ kind: 'move', name: 'who' }, { list: P1, index: 2 })).toBe(
       true,
     );
-    expect(designed.place({ kind: 'move', element: 'who' }, { container: 'p1', index: 2 })).toBe(
+    expect(designed.place({ kind: 'move', name: 'who' }, { list: P1, index: 2 })).toBe(
       false,
     );
 
@@ -274,7 +276,7 @@ describe('parity/K2-place', () => {
     });
     designed.survey.goTo('p2');
 
-    designed.place({ kind: 'new', item: TEXT_ITEM }, { container: 'p2', index: 0 });
+    designed.place({ kind: 'new', item: TEXT_ITEM }, { list: { of: 'elements', page: 'p2' }, index: 0 });
 
     // A re-parse starts on page one. A drop that scrolled the designer back there
     // would land the edit correctly and lose the canvas its place.
@@ -285,9 +287,9 @@ describe('parity/K2-place', () => {
     const designed = surface();
 
     expect(designed.slots).toEqual([
-      { container: 'p1', index: 0 },
-      { container: 'p1', index: 1 },
-      { container: 'p1', index: 2 },
+      { list: P1, index: 0 },
+      { list: P1, index: 1 },
+      { list: P1, index: 2 },
     ]);
   });
 });

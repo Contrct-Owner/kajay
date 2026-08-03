@@ -20,6 +20,7 @@ export interface CreatorButtonProps {
   readonly className?: string;
   readonly title?: string;
   readonly 'aria-label'?: string;
+  readonly 'aria-current'?: 'page' | undefined;
   readonly 'aria-roledescription'?: string;
   readonly 'data-testid'?: string;
   readonly 'data-grabbed'?: 'true' | undefined;

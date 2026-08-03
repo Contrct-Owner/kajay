@@ -11,31 +11,50 @@ import type { SurveyDefinition } from '@kajay/core';
  * stay standing on one.
  */
 
-/** The definitions under a container's `elements`, or `undefined` if there is no such container. */
-export function elementsOf(
+/**
+ * A list a drop can land in — checklist K2 and K4.
+ *
+ * The survey's pages and a page's elements are two different lists, and naming which
+ * one is meant is what lets **one** reorder serve both. Reordering pages is the same
+ * operation as reordering questions — the same off-by-one moving downwards, the same
+ * pair of slots that mean "where it already is" — and a second implementation of it
+ * would be a second place for that bug to live. It survived a mutant once already.
+ */
+export type DropList =
+  | { readonly of: 'elements'; readonly page: string }
+  | { readonly of: 'pages' };
+
+/** What is in that list, or `undefined` if the definition has no such list. */
+export function listOf(
   definition: SurveyDefinition,
-  container: string,
+  list: DropList,
 ): readonly SurveyDefinition[] | undefined {
-  const page = pages(definition).find((candidate) => candidate['name'] === container);
-  // `undefined` for "no such container" and `[]` for "a container with nothing in it"
-  // are different answers: the second still offers a slot to drop into.
-  return page === undefined ? undefined : elementList(page);
+  if (list.of === 'pages') {
+    return pages(definition);
+  }
+  const page = pages(definition).find((candidate) => candidate['name'] === list.page);
+  // `undefined` for "no such page" and `[]` for "a page with nothing on it" are
+  // different answers: the second still offers a slot to drop into.
+  return page === undefined ? undefined : definitionsUnder(page, 'elements');
 }
 
 /**
- * The same definition with one container's elements replaced.
+ * The same definition with one list replaced.
  *
- * Copies the containers it passes through and shares everything else, so an edit
- * produces a new definition without deep-cloning a survey on every drop.
+ * Copies what it passes through and shares everything else, so an edit produces a new
+ * definition without deep-cloning a survey on every drop.
  */
-export function withElements(
+export function withList(
   definition: SurveyDefinition,
-  container: string,
-  elements: readonly SurveyDefinition[],
+  list: DropList,
+  items: readonly SurveyDefinition[],
 ): SurveyDefinition {
+  if (list.of === 'pages') {
+    return { ...definition, pages: items };
+  }
   const rewritten: SurveyDefinition[] = [];
   for (const page of pages(definition)) {
-    rewritten.push(page['name'] === container ? Object.assign({}, page, { elements }) : page);
+    rewritten.push(page['name'] === list.page ? Object.assign({}, page, { elements: items }) : page);
   }
   return { ...definition, pages: rewritten };
 }
@@ -53,6 +72,32 @@ export function collectNames(definition: SurveyDefinition): ReadonlySet<string> 
   const names = new Set<string>();
   visit(definition, names);
   return names;
+}
+
+/**
+ * `text1`, `text2`, … — the first one nothing has taken.
+ *
+ * Numbered from a stem rather than from a title, because the name is what expressions
+ * refer to and what arrives in the response data. A designer renames it; a title with a
+ * space in it would have to be escaped in every `visibleIf` that mentioned it.
+ *
+ * Uniqueness is checked across the **whole survey**. Two pages holding a question called
+ * `text1` each is exactly the collision that makes `getQuestionByName` return the wrong
+ * one — and a page shares that name space, because `{page1}` in an expression has to
+ * mean one thing.
+ */
+export function uniqueName(stem: string, taken: ReadonlySet<string>): string {
+  for (let suffix = 1; ; suffix += 1) {
+    const candidate = `${stem}${String(suffix)}`;
+    if (!taken.has(candidate)) {
+      return candidate;
+    }
+  }
+}
+
+export function nameOf(definition: SurveyDefinition): string | undefined {
+  const name = definition['name'];
+  return typeof name === 'string' ? name : undefined;
 }
 
 function visit(value: unknown, names: Set<string>): void {
@@ -76,18 +121,19 @@ function visit(value: unknown, names: Set<string>): void {
 /**
  * The survey's pages.
  *
- * A container is looked up among pages only. A panel is a legal container for a drop as
- * far as {@link elementsOf}'s signature is concerned, and extending this to find one is
- * a recursive walk — but the design surface cannot yet offer a slot inside a panel, and
+ * A drop into a *panel* is not offered. Extending {@link listOf} to find one is a
+ * recursive walk, but the design surface cannot yet adorn an element inside a panel, and
  * logic no test can reach is logic nobody has checked.
  */
 function pages(definition: SurveyDefinition): readonly SurveyDefinition[] {
-  const value = definition['pages'];
-  return Array.isArray(value) ? value.filter((entry) => isDefinition(entry)) : [];
+  return definitionsUnder(definition, 'pages');
 }
 
-function elementList(page: SurveyDefinition): readonly SurveyDefinition[] {
-  const value = page['elements'];
+function definitionsUnder(
+  parent: SurveyDefinition,
+  property: string,
+): readonly SurveyDefinition[] {
+  const value = parent[property];
   return Array.isArray(value) ? value.filter((entry) => isDefinition(entry)) : [];
 }
 

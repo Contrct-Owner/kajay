@@ -16,9 +16,20 @@ function surfaceOf(page: Page): Locator {
   return page.getByRole('region', { name: 'Design surface' });
 }
 
+/**
+ * The canvas itself, not the whole panel around it.
+ *
+ * Scoped, because K4 put the page navigator in the same region and its pages carry the
+ * same position marker the canvas elements do — deliberately, since one gesture reorders
+ * both. `[data-element-index="1"]` inside the region therefore means two things.
+ */
+function canvasOf(page: Page): Locator {
+  return surfaceOf(page).locator('.kajay-designer');
+}
+
 /** The order of the elements on the canvas, read off the adorners. */
 async function orderOn(page: Page): Promise<readonly string[]> {
-  const labels = await surfaceOf(page)
+  const labels = await canvasOf(page)
     .locator('[data-element-index] .kajay-designer__select')
     .evaluateAll((nodes) =>
       nodes.map((node) => node.getAttribute('aria-label')?.replace('Select ', '') ?? ''),
@@ -63,12 +74,10 @@ async function pointIn(locator: Locator, at = 0.5): Promise<{ x: number; y: numb
 }
 
 test('parity/K2-drag: an item from the toolbox lands where it was dropped', async ({ page }) => {
-  const surface = surfaceOf(page);
-
   await dragOnto(
     page,
     page.getByTestId('toolbox-comment'),
-    surface.locator('[data-element-index="0"]'),
+    canvasOf(page).locator('[data-element-index="0"]'),
   );
 
   // A real question, wired: it went through `parseSurvey` like every other one, so it
@@ -86,7 +95,7 @@ test('parity/K2-drag: an element is moved by its handle', async ({ page }) => {
   await dragOnto(
     page,
     surface.getByRole('button', { name: 'Move draftName' }),
-    surface.locator('[data-element-index="2"]'),
+    canvasOf(page).locator('[data-element-index="2"]'),
     0.9,
   );
 
@@ -99,7 +108,7 @@ test('parity/K2-drag: an element is moved by its handle', async ({ page }) => {
 
 test('parity/K2-drag: a two-column canvas is aimed left and right', async ({ page }) => {
   const surface = surfaceOf(page);
-  const target = surface.locator('[data-element-index="1"]');
+  const target = canvasOf(page).locator('[data-element-index="1"]');
 
   const start = await pointIn(surface.getByRole('button', { name: 'Move draftName' }));
   await page.mouse.move(start.x, start.y);
@@ -140,7 +149,7 @@ test('parity/K2-drag: pressing a handle without moving is not a drag', async ({ 
 test('parity/K2-drag: the drop indicator shows where it would land', async ({ page }) => {
   const surface = surfaceOf(page);
   const handle = surface.getByRole('button', { name: 'Move draftName' });
-  const target = surface.locator('[data-element-index="2"]');
+  const target = canvasOf(page).locator('[data-element-index="2"]');
 
   const start = await pointIn(handle);
   await page.mouse.move(start.x, start.y);
@@ -152,13 +161,35 @@ test('parity/K2-drag: the drop indicator shows where it would land', async ({ pa
   // Mid-drag: an indicator, and nothing moved. A Creator drag previews and commits once
   // (ADR-0009 decision 4), because applying each step would re-parse the survey and
   // rebuild the canvas under the pointer.
-  await expect(surface.locator('[data-drop-before="true"]')).toHaveCount(1);
+  await expect(canvasOf(page).locator('[data-drop-before="true"]')).toHaveCount(1);
   expect(await orderOn(page)).toEqual(['draftName', 'draftTier', 'draftScore']);
 
   // Dropped on the middle of the last element, so it lands *before* it — the indicator
   // was showing exactly where it went.
   await page.mouse.up();
   expect(await orderOn(page)).toEqual(['draftTier', 'draftName', 'draftScore']);
+});
+
+test('parity/K2-indicator: nothing is promised where nothing would happen', async ({ page }) => {
+  const handle = surfaceOf(page).getByRole('button', { name: 'Move draftName' });
+  const own = canvasOf(page).locator('[data-element-index="0"]');
+
+  const start = await pointIn(handle);
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(start.x + 4, start.y + 4);
+  const end = await pointIn(own);
+  await page.mouse.move(end.x, end.y, { steps: 8 });
+
+  // Hovering the position it already occupies. The model would refuse this drop, so
+  // drawing a line there would be the interaction promising a move it is about to
+  // decline. The keyboard never reaches this state — the arrows step over it — so a
+  // pointer is the only thing that can find it.
+  await expect(canvasOf(page).locator('[data-drop-before]')).toHaveCount(0);
+  await expect(page.getByTestId('drop-at-end')).toBeHidden();
+
+  await page.mouse.up();
+  expect(await orderOn(page)).toEqual(['draftName', 'draftTier', 'draftScore']);
 });
 
 test('parity/K2-toolbox: clicking an item is the whole interaction', async ({ page }) => {

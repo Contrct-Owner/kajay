@@ -632,6 +632,115 @@
   color: var(--kajay-color-muted);
 }
 
+/* --- the page navigator (K4) --------------------------------------------- */
+
+.kajay-pages {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.kajay-pages__list {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 2);
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  flex-wrap: wrap;
+}
+
+.kajay-pages__item {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 4);
+  align-items: center;
+  padding: calc(var(--kajay-spacing) / 4);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+}
+
+.kajay-pages__item[data-current='true'] {
+  /* Not colour alone — `aria-current` says it too, and the border is the second cue. */
+  border-color: var(--kajay-color-accent);
+  outline: 1px solid var(--kajay-color-accent);
+}
+
+.kajay-pages__item[data-drop-before='true'] {
+  box-shadow: inset 3px 0 0 -1px var(--kajay-color-accent);
+}
+
+.kajay-pages__drop-end {
+  width: 3px;
+  align-self: stretch;
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-accent);
+}
+
+.kajay-pages__go,
+.kajay-pages__remove,
+.kajay-pages__add {
+  padding: 0 calc(var(--kajay-spacing) / 3);
+  border: 1px solid transparent;
+  border-radius: var(--kajay-radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kajay-pages__add {
+  border-color: var(--kajay-color-border);
+  background: var(--kajay-color-surface);
+}
+
+.kajay-pages__handle {
+  padding: 0 calc(var(--kajay-spacing) / 4);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: var(--kajay-color-muted);
+  font: inherit;
+  cursor: grab;
+  touch-action: none;
+}
+
+.kajay-pages__handle[data-grabbed='true'] {
+  cursor: grabbing;
+  border-color: var(--kajay-color-accent);
+}
+
+/* The page's own header on the canvas. Spans every column, because it heads them all. */
+.kajay-designer__page {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 2);
+  align-items: center;
+  padding-bottom: calc(var(--kajay-spacing) / 2);
+  border-bottom: 1px solid var(--kajay-color-border);
+}
+
+.kajay-designer__page-select {
+  padding: 0 calc(var(--kajay-spacing) / 3);
+  border: 1px solid transparent;
+  border-radius: var(--kajay-radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.kajay-designer__page[data-selected='true'] .kajay-designer__page-select {
+  border-color: var(--kajay-color-accent);
+}
+
+.kajay-designer__page[data-untitled='true'] .kajay-designer__page-select {
+  color: var(--kajay-color-muted);
+  font-weight: 400;
+  font-style: italic;
+}
+
 .kajay-designer__handle {
   padding: 0 calc(var(--kajay-spacing) / 3);
   border: 1px solid var(--kajay-color-border);

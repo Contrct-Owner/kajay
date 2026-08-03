@@ -67,6 +67,13 @@ function boundary(slot: number, intent: PlacementIntent, delta: number, count: n
   }
 }
 
-function isNoOp(slot: number, origin: number | undefined): boolean {
+/**
+ * Whether a slot is one the item is already in.
+ *
+ * Exported because two things need it and they must agree: the arrow keys skip these
+ * slots, and the drop indicator refuses to draw on one. An indicator that lit up where
+ * nothing would happen is the interaction promising a move it is about to refuse.
+ */
+export function isNoOp(slot: number, origin: number | undefined): boolean {
   return origin !== undefined && (slot === origin || slot === origin + 1);
 }

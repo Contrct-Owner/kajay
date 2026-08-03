@@ -1,13 +1,19 @@
-import type { DesignSurface, PlacementSource, ToolboxItem } from '@kajay/creator-core';
+import type {
+  DesignSurface,
+  DropList,
+  DropSlot,
+  PlacementSource,
+  ToolboxItem,
+} from '@kajay/creator-core';
 import type { KeyboardEvent, PointerEvent } from 'react';
 import { useCallback, useRef, useState } from 'react';
 import { IDLE, placementActions } from './placementActions.js';
 import type { PlacementActions, PlacementState } from './placementActions.js';
 import { slotAtPoint } from './placementGeometry.js';
-import { placementIntent, stepSlot } from './placementKeys.js';
+import { isNoOp, placementIntent, stepSlot } from './placementKeys.js';
 import type { PlacementIntent } from './placementKeys.js';
 
-/** Pointer handlers for anything draggable: a toolbox item, or an element's handle. */
+/** Pointer handlers for anything draggable: a toolbox item, an element, a page. */
 export interface PlacementDragProps {
   readonly onPointerDown: (event: PointerEvent<HTMLElement>) => void;
   readonly onPointerMove: (event: PointerEvent<HTMLElement>) => void;
@@ -28,7 +34,7 @@ export interface PlacementItemProps extends PlacementDragProps {
   readonly onClick: () => void;
 }
 
-/** Everything the drag handle on a designed element needs. */
+/** Everything a drag handle needs: on an element on the canvas, or on a page. */
 export interface PlacementHandleProps extends PlacementDragProps {
   readonly 'aria-roledescription': string;
   readonly 'data-grabbed': 'true' | undefined;
@@ -36,17 +42,28 @@ export interface PlacementHandleProps extends PlacementDragProps {
 }
 
 export interface DesignerPlacement {
-  /** Goes on the canvas. What a pointer position is measured against. */
+  /** Goes on the canvas. What a pointer dragging an element is measured against. */
   readonly surfaceRef: (element: HTMLElement | null) => void;
+  /** Goes on the page list. What a pointer dragging a page is measured against. */
+  readonly pageListRef: (element: HTMLElement | null) => void;
   readonly source: PlacementSource | undefined;
-  /** The slot a drop would land in, or `undefined` when nothing is being placed. */
-  readonly activeSlot: number | undefined;
+  /**
+   * Where a drop would land, or `undefined` when it would land nowhere.
+   *
+   * Nowhere covers two cases: nothing is being placed, and the pointer is over the
+   * position the item already occupies. The second is why this is not simply "the slot
+   * being aimed at" — an indicator drawn on a slot the model refuses would be promising
+   * a move that is about to be declined.
+   */
+  readonly activeSlot: DropSlot | undefined;
   /** What just happened, for the caller to put in a live region. */
   readonly announcement: string;
   /** For a toolbox item: dragging it to a position, and clicking it to append. */
   readonly getItemProps: (item: ToolboxItem) => PlacementItemProps;
   /** For an element already on the canvas: a drag, and the keyboard equivalent. */
   readonly getHandleProps: (elementName: string, index: number) => PlacementHandleProps;
+  /** The same for a page in the page list — checklist K4. */
+  readonly getPageHandleProps: (pageName: string, index: number) => PlacementHandleProps;
 }
 
 /** A press in progress, and whether it has turned into a drag. */
@@ -55,15 +72,18 @@ interface Gesture {
   dragged: boolean;
 }
 
+type ElementRef = { current: HTMLElement | null };
+
 interface PlacementContext {
-  readonly canvas: { current: HTMLElement | null };
+  /** What a pointer position is measured against, for *this* list. */
+  readonly measure: ElementRef;
   readonly gesture: { current: Gesture };
   readonly actions: PlacementActions;
   readonly state: PlacementState;
 }
 
 /**
- * Dragging things onto the canvas and around it — checklist K2.
+ * Dragging things onto the canvas, around it, and reordering pages — K2 and K4.
  *
  * The input adapter and nothing else
  * ([ADR-0009](../../../docs/adr/0009-creator-drag-and-drop.md) constraint 1): what a
@@ -72,18 +92,19 @@ interface PlacementContext {
  * whether a pointer or a keyboard reached it — which is what stops the canvas becoming
  * draggable but not keyboard-operable.
  *
+ * **Reordering pages is the same gesture as reordering questions**, because a slot names
+ * its list (K4). Two lists, one interaction, one off-by-one — and that off-by-one had
+ * already survived a mutant once, which is reason enough not to keep a second copy.
+ *
  * **A drag previews and commits once**, the opposite of what C9's ranking does, and
  * deliberately. A structural edit re-parses the survey, so applying every intermediate
  * move would rebuild the whole canvas underneath the designer's pointer and destroy
  * focus on every keystroke of a keyboard drag. Escape therefore has nothing to undo: it
  * abandons a pending placement rather than reversing applied ones.
- *
- * The keyboard grammar is the ranking question's, down to the sentences — space grabs,
- * arrows move, space drops, Escape puts it back. Somebody who has used one already
- * knows this one.
  */
 export function useDesignerPlacement(surface: DesignSurface): DesignerPlacement {
   const canvas = useRef<HTMLElement | null>(null);
+  const pageList = useRef<HTMLElement | null>(null);
   // Refs rather than state: a gesture changes on every click and nothing renders
   // differently for it.
   const gesture = useRef<Gesture>({ pending: false, dragged: false });
@@ -91,22 +112,32 @@ export function useDesignerPlacement(surface: DesignSurface): DesignerPlacement 
   const surfaceRef = useCallback((element: HTMLElement | null): void => {
     canvas.current = element;
   }, []);
+  const pageListRef = useCallback((element: HTMLElement | null): void => {
+    pageList.current = element;
+  }, []);
 
-  const count = surface.page?.elements.length ?? 0;
-  const context: PlacementContext = {
-    canvas,
+  const elements = surface.page?.elements.length ?? 0;
+  const pages = surface.pages.length;
+  const elementList: DropList = { of: 'elements', page: surface.page?.name ?? '' };
+  const contextFor = (list: DropList, count: number, measure: ElementRef): PlacementContext => ({
+    measure,
     gesture,
-    actions: placementActions(surface, state, setState),
+    actions: placementActions(surface, list, count, state, setState),
     state,
-  };
+  });
 
   return {
     surfaceRef,
+    pageListRef,
     source: state.source,
-    activeSlot: state.source === undefined ? undefined : state.slot,
+    activeSlot: isNoOp(state.slot?.index ?? -1, state.origin) ? undefined : state.slot,
     announcement: state.announcement,
-    getItemProps: (item) => itemProps(context, surface, item, count),
-    getHandleProps: (elementName, index) => handleProps(context, elementName, index, count),
+    getItemProps: (item) =>
+      itemProps(contextFor(elementList, elements, canvas), surface, item, elements),
+    getHandleProps: (name, index) =>
+      handleProps(contextFor(elementList, elements, canvas), name, index, elements),
+    getPageHandleProps: (name, index) =>
+      handleProps(contextFor({ of: 'pages' }, pages, pageList), name, index, pages),
   };
 }
 
@@ -123,7 +154,10 @@ function itemProps(
       // The click that ends a drag is not a second instruction. Appending here as well
       // is how one gesture puts two questions on the page.
       if (!context.gesture.current.dragged && page !== undefined) {
-        surface.place({ kind: 'new', item }, { container: page.name, index: count });
+        surface.place(
+          { kind: 'new', item },
+          { list: { of: 'elements', page: page.name }, index: count },
+        );
       }
     },
   };
@@ -131,18 +165,19 @@ function itemProps(
 
 function handleProps(
   context: PlacementContext,
-  elementName: string,
+  name: string,
   index: number,
   count: number,
 ): PlacementHandleProps {
-  const source: PlacementSource = { kind: 'move', element: elementName };
+  const source: PlacementSource = { kind: 'move', name };
   const { state } = context;
   return {
     ...dragProps(context, source, index),
     // Replaces "button" when the handle is announced. Calling it a button invites a
     // designer to press it and wait for something to happen.
     'aria-roledescription': 'Sortable item',
-    'data-grabbed': state.origin === index && state.source !== undefined ? 'true' : undefined,
+    'data-grabbed':
+      state.source?.kind === 'move' && state.source.name === name ? 'true' : undefined,
     onKeyDown: (event) => {
       const intent = placementIntent(event.key);
       if (intent === undefined) {
@@ -169,7 +204,7 @@ function dragProps(
   source: PlacementSource,
   origin?: number,
 ): PlacementDragProps {
-  const { canvas, gesture, actions, state } = context;
+  const { measure, gesture, actions, state } = context;
   return {
     onPointerDown: (event) => {
       // Captured on the element the drag started from, so a pointer that leaves it —
@@ -179,15 +214,15 @@ function dragProps(
       gesture.current = { pending: true, dragged: false };
     },
     onPointerMove: (event) => {
-      if (!gesture.current.pending || canvas.current === null) {
+      if (!gesture.current.pending || measure.current === null) {
         return;
       }
       gesture.current.dragged = true;
-      const slot = slotAtPoint(canvas.current, { x: event.clientX, y: event.clientY });
+      const index = slotAtPoint(measure.current, { x: event.clientX, y: event.clientY });
       if (state.source === undefined) {
-        actions.begin(source, origin, slot);
+        actions.begin(source, origin, index);
       } else {
-        actions.aim(slot);
+        actions.aim(index);
       }
     },
     onPointerUp: () => {
@@ -221,7 +256,7 @@ function applyIntent(
     }
     return;
   }
-  if (state.source !== undefined) {
-    actions.aim(stepSlot(state.slot, intent, state.origin, count));
+  if (state.slot !== undefined) {
+    actions.aim(stepSlot(state.slot.index, intent, state.origin, count));
   }
 }

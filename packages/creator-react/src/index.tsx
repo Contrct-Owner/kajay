@@ -6,6 +6,8 @@
 
 export { DesignSurfacePanel } from './DesignSurfacePanel.js';
 export type { DesignSurfacePanelProps } from './DesignSurfacePanel.js';
+export { PageNavigatorPanel } from './PageNavigatorPanel.js';
+export type { PageNavigatorPanelProps } from './PageNavigatorPanel.js';
 export { ToolboxPanel } from './ToolboxPanel.js';
 export { useDesignerPlacement } from './useDesignerPlacement.js';
 export type {

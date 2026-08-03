@@ -3,12 +3,14 @@ import { serializeSurvey } from '@kajay/core';
 import { DesignSurfacePanel } from '@kajay/creator-react';
 import type { DesignerPlacement } from '@kajay/creator-react';
 import { useSyncExternalStore } from 'react';
-import type { CSSProperties, ReactElement } from 'react';
+import type { CSSProperties, ReactElement, ReactNode } from 'react';
 
 export interface DesignerSurfaceProps {
   readonly theme: Readonly<Record<string, string>>;
   readonly surface: DesignSurface;
   readonly placement: DesignerPlacement;
+  /** The page navigator, put here by the host rather than by the canvas — K4. */
+  readonly children?: ReactNode;
 }
 
 /**
@@ -23,6 +25,7 @@ export function DesignerSurface({
   theme,
   surface,
   placement,
+  children,
 }: DesignerSurfaceProps): ReactElement {
   const version = useSyncExternalStore(
     (onStoreChange) => surface.onChanged.add(onStoreChange),
@@ -36,6 +39,7 @@ export function DesignerSurface({
       style={theme as CSSProperties}
     >
       <h2>Design surface</h2>
+      {children}
       <DesignSurfacePanel surface={surface} placement={placement} />
       <p data-testid="surface-selected">
         {surface.selected === undefined

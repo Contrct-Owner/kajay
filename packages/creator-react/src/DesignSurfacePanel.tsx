@@ -1,20 +1,11 @@
 import type { DesignSurface } from '@kajay/creator-core';
 import { defaultPageElementRenderers, PageElementSlot } from '@kajay/react';
 import type { PageElementRendererRegistry } from '@kajay/react';
-import { useCallback, useSyncExternalStore } from 'react';
 import type { ReactElement } from 'react';
 import { DesignedElement } from './DesignedElement.js';
+import { PageAdorner } from './PageAdorner.js';
+import { useSurfaceVersion } from './useSurfaceVersion.js';
 import type { DesignerPlacement } from './useDesignerPlacement.js';
-
-/** Re-renders when the surface changes: the selection, a title, the tree. */
-function useSurfaceVersion(surface: DesignSurface): number {
-  const subscribe = useCallback(
-    (onStoreChange: () => void): (() => void) => surface.onChanged.add(onStoreChange),
-    [surface],
-  );
-  const getSnapshot = useCallback((): number => surface.version, [surface]);
-  return useSyncExternalStore(subscribe, getSnapshot);
-}
 
 export interface DesignSurfacePanelProps {
   readonly surface: DesignSurface;
@@ -64,7 +55,11 @@ export function DesignSurfacePanel({
 }: DesignSurfacePanelProps): ReactElement {
   useSurfaceVersion(surface);
   const page = surface.page;
-  const activeSlot = placement?.activeSlot;
+  // Only a drop aimed at *this* page's elements draws a line here. A page being
+  // dragged in the navigator is aiming at a different list entirely, and an indicator
+  // that ignored which would light up the canvas while somebody reordered pages.
+  const slot = placement?.activeSlot;
+  const activeSlot = slot?.list.of === 'elements' ? slot.index : undefined;
 
   return (
     <div
@@ -81,24 +76,12 @@ export function DesignSurfacePanel({
         }
       }}
     >
-      {page === undefined ? (
-        <p className="kajay-designer__empty" role="status">
-          This survey has no pages yet.
-        </p>
-      ) : (
-        page.elements.map((element, index) => (
-          <PageElementSlot key={element.name} element={element}>
-            <DesignedElement
-              surface={surface}
-              element={element}
-              index={index}
-              renderers={renderers}
-              placement={placement}
-              isDropTarget={activeSlot === index}
-            />
-          </PageElementSlot>
-        ))
-      )}
+      <CanvasBody
+        surface={surface}
+        renderers={renderers}
+        placement={placement}
+        activeSlot={activeSlot}
+      />
       {activeSlot !== undefined && activeSlot === (page?.elements.length ?? 0) ? (
         // The end of the list has no element to draw a line above, so it gets its own
         // marker. Without it the last position would be the one place a drop could not
@@ -122,4 +105,50 @@ export function DesignSurfacePanel({
 
 function joinClasses(base: string, extra: string | undefined): string {
   return extra === undefined || extra.length === 0 ? base : `${base} ${extra}`;
+}
+
+/**
+ * The page's header and the elements on it.
+ *
+ * Its own component only so the panel above stays about the *canvas* — the click that
+ * clears a selection, the ref a pointer is measured against, the live region — rather
+ * than about what happens to be drawn inside it.
+ */
+function CanvasBody({
+  surface,
+  renderers,
+  placement,
+  activeSlot,
+}: {
+  readonly surface: DesignSurface;
+  readonly renderers: PageElementRendererRegistry;
+  readonly placement: DesignerPlacement | undefined;
+  readonly activeSlot: number | undefined;
+}): ReactElement {
+  const page = surface.page;
+  if (page === undefined) {
+    return (
+      <p className="kajay-designer__empty" role="status">
+        This survey has no pages yet.
+      </p>
+    );
+  }
+
+  return (
+    <>
+      <PageAdorner surface={surface} page={page} />
+      {page.elements.map((element, index) => (
+        <PageElementSlot key={element.name} element={element}>
+          <DesignedElement
+            surface={surface}
+            element={element}
+            index={index}
+            renderers={renderers}
+            placement={placement}
+            isDropTarget={activeSlot === index}
+          />
+        </PageElementSlot>
+      ))}
+    </>
+  );
 }

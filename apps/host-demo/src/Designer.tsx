@@ -1,5 +1,5 @@
 import { DesignSurface, Toolbox } from '@kajay/creator-core';
-import { useDesignerPlacement } from '@kajay/creator-react';
+import { PageNavigatorPanel, useDesignerPlacement } from '@kajay/creator-react';
 import { useMemo } from 'react';
 import type { ReactElement } from 'react';
 import { DesignerSurface } from './DesignerSurface.js';
@@ -11,6 +11,7 @@ const DESIGNED = {
   pages: [
     {
       name: 'p1',
+      title: 'Draft: the first page',
       colCount: 2,
       elements: [
         // Deliberately sharing no name, title or choice with the survey the demo asks
@@ -32,6 +33,7 @@ const DESIGNED = {
         },
       ],
     },
+    { name: 'p2', elements: [{ type: 'comment', name: 'draftNotes', title: 'Draft: notes' }] },
   ],
 };
 
@@ -65,7 +67,9 @@ export function Designer({ theme }: DesignerProps): ReactElement {
         toolbox={toolbox}
         getItemProps={placement.getItemProps}
       />
-      <DesignerSurface theme={theme} surface={surface} placement={placement} />
+      <DesignerSurface theme={theme} surface={surface} placement={placement}>
+        <PageNavigatorPanel surface={surface} placement={placement} />
+      </DesignerSurface>
     </>
   );
 }

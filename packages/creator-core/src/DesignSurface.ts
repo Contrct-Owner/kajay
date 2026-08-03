@@ -8,7 +8,8 @@ import type {
   SurveyDefinition,
   SurveyElement,
 } from '@kajay/core';
-import { elementsOf } from './definitionTree.js';
+import { listOf, nameOf } from './definitionTree.js';
+import { addPage, pageAfterRemoving, removePage } from './pageEdits.js';
 import { applyPlacement, canPlace, dropSlotsFor } from './placement.js';
 import type { DropSlot, PlacementSource } from './placement.js';
 
@@ -82,7 +83,7 @@ export class DesignSurface {
     return this.#version;
   }
 
-  /** The page a designer is looking at. K4 adds the means to change it. */
+  /** The page a designer is looking at. {@link goToPage} changes it. */
   get page(): Page | undefined {
     return this.#survey.currentPage;
   }
@@ -150,7 +151,72 @@ export class DesignSurface {
   /** Every position a drop could land in on the page being designed — checklist K2. */
   get slots(): readonly DropSlot[] {
     const page = this.page;
-    return page === undefined ? [] : dropSlotsFor(page.name, page.elements.length);
+    return page === undefined
+      ? []
+      : dropSlotsFor({ of: 'elements', page: page.name }, page.elements.length);
+  }
+
+  /** Every position a page could be dragged to — checklist K4. */
+  get pageSlots(): readonly DropSlot[] {
+    return dropSlotsFor({ of: 'pages' }, this.#survey.pages.length);
+  }
+
+  /** The pages a designer can switch between. */
+  get pages(): readonly Page[] {
+    return this.#survey.pages;
+  }
+
+  /**
+   * Looks at another page — checklist K4.
+   *
+   * Announced, because which page is on the canvas is the largest thing a view draws and
+   * nothing else would tell it. It goes through the survey's own `goTo` rather than a
+   * second notion of "current", so the page a designer is editing and the page the model
+   * thinks it is on cannot come apart.
+   */
+  goToPage(name: string): void {
+    if (this.page?.name === name) {
+      return;
+    }
+    this.#survey.goTo(name);
+    this.#selected = undefined;
+    this.#announce();
+  }
+
+  /**
+   * Adds an empty page at the end and moves to it — checklist K4.
+   *
+   * Moving to it is the whole point of the button: a designer adds a page in order to put
+   * something on it, and one that appeared somewhere off-screen would need finding first.
+   */
+  addPage(): void {
+    const after = addPage(this.definition);
+    const created = after['pages'];
+    const name = Array.isArray(created) ? nameOf(created.at(-1)) : undefined;
+    this.#reparse(after, undefined, name);
+  }
+
+  /**
+   * Removes a page and everything on it — checklist K4.
+   *
+   * Returns whether anything happened. The canvas lands on the page that took its place,
+   * or the one before it when the last page went — never on nothing while a page remains.
+   */
+  removePage(name: string): boolean {
+    const before = this.definition;
+    const after = removePage(before, name);
+    if (after === before) {
+      return false;
+    }
+    if (this.page?.name === name) {
+      this.#reparse(after, undefined, pageAfterRemoving(before, name));
+      return true;
+    }
+    // Deleting a page the designer is not looking at moves them nowhere. Relocating
+    // unconditionally sent them off the page they were working on because a *different*
+    // one had been tidied up.
+    this.#reparse(after, undefined, this.page?.name);
+    return true;
   }
 
   /** Whether this placement would change anything. What a drop indicator is drawn from. */
@@ -175,7 +241,7 @@ export class DesignSurface {
     if (after === before) {
       return false;
     }
-    this.#reparse(after, placedName(source, after, slot));
+    this.#reparse(after, placedName(source, after, slot), this.page?.name);
     return true;
   }
 
@@ -188,16 +254,36 @@ export class DesignSurface {
    * the designer back to page one with nothing selected — the edit landing correctly
    * and the canvas losing its place.
    */
-  #reparse(definition: SurveyDefinition, selectedName: string | undefined): void {
-    const pageName = this.page?.name;
+  #reparse(
+    definition: SurveyDefinition,
+    selectedName: string | undefined,
+    goToPage: string | undefined,
+  ): void {
     const parsed = this.#parse(definition);
     this.#survey = parsed.survey;
     this.#diagnostics = parsed.diagnostics;
-    if (pageName !== undefined) {
-      this.#survey.goTo(pageName);
+    if (goToPage !== undefined) {
+      this.#survey.goTo(goToPage);
     }
-    this.#selected = this.page?.elements.find((element) => element.name === selectedName);
+    this.#selected = this.#resolve(selectedName);
     this.#announce();
+  }
+
+  /**
+   * Finds what was selected in the survey that has just replaced the old one.
+   *
+   * Pages as well as elements, because a page is a selectable thing in its own right
+   * (K4) — and a page dragged into a new order should still be the one selected when it
+   * lands, exactly as a question is.
+   */
+  #resolve(name: string | undefined): SurveyElement | undefined {
+    if (name === undefined) {
+      return undefined;
+    }
+    return (
+      this.page?.elements.find((element) => element.name === name) ??
+      this.#survey.pages.find((page) => page.name === name)
+    );
   }
 
   /**
@@ -234,10 +320,8 @@ function placedName(
   slot: DropSlot,
 ): string | undefined {
   if (source.kind === 'move') {
-    return source.element;
+    return source.name;
   }
-  const placed = elementsOf(after, slot.container)?.[slot.index];
-  const name = placed?.['name'];
-  return typeof name === 'string' ? name : undefined;
+  return nameOf(listOf(after, slot.list)?.[slot.index] ?? {});
 }
 

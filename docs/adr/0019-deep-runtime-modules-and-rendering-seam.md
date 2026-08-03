@@ -42,9 +42,10 @@ Runtime modules are deepened around observable responsibilities:
 - React uses `PageElementRendererRegistry` for questions, panels, HTML, images, and custom
   page elements. Registered renderers are mounted as React component types so hooks retain
   stable scope as page visibility changes.
-- Package entries expose consumer operations and intentional extension seams, not internal
-  algorithms or presentational building blocks. Internal proofs import package-local source
-  modules directly.
+- Package entries expose consumer operations and intentional extension seams — including
+  the reusable reorder primitives reserved for Creator — not internal algorithms or
+  presentational building blocks. Internal unit proofs may import package-local source
+  modules directly; cross-package, browser, E2E, and host consumers use package entries.
 
 ## Consequences
 

@@ -187,8 +187,9 @@ const rootDevDependencies = new Set(Object.keys(rootManifest.devDependencies ?? 
  */
 function checkDeclaredDependencies(source, location, manifest, allowRootDevDependencies) {
   const declared = new Set([
-    // A package's own tests import it by name rather than by relative path — that is
-    // the required "through the public API" pattern, not a phantom dependency.
+    // Public-surface tests may import their own package by name without declaring a
+    // dependency on themselves. Package-local unit tests may instead use relative
+    // imports to exercise an internal module; those are skipped below.
     manifest.name,
     ...Object.keys(manifest.dependencies ?? {}),
     ...Object.keys(manifest.peerDependencies ?? {}),
@@ -214,8 +215,8 @@ function checkDeclaredDependencies(source, location, manifest, allowRootDevDepen
   }
 }
 
-// Tests and the host app are held to the deep-import rule too — a convenience import
-// is most tempting exactly where nobody is watching.
+// Tests and the host app are held to the cross-package deep-import rule too — a
+// convenience package-subpath import is most tempting exactly where nobody is watching.
 for (const [name, { dir, manifest }] of packagesByName) {
   for (const subdir of ['src', 'test', 'e2e']) {
     for (const file of listSourceFiles(join(dir, subdir))) {

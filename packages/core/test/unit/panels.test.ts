@@ -183,6 +183,40 @@ describe('parity/E1-panel-visibility', () => {
     expect(page?.visibleElements.map((element) => element.name)).toEqual(['gate', 'extras']);
   });
 
+  test('same-named element types keep distinct conditional rules', () => {
+    const survey = build({
+      pages: [
+        {
+          name: 'p1',
+          elements: [
+            { type: 'boolean', name: 'showPanel' },
+            { type: 'boolean', name: 'showHtml' },
+            {
+              type: 'panel',
+              name: 'shared',
+              visibleIf: '{showPanel} = true',
+              elements: [],
+            },
+            {
+              type: 'html',
+              name: 'shared',
+              visibleIf: '{showHtml} = true',
+              html: '<p>Shared name, separate rule.</p>',
+            },
+          ],
+        },
+      ],
+    });
+    const visibleTypes = (): readonly string[] =>
+      survey.pages[0]?.visibleElements.map((element) => element.type) ?? [];
+
+    expect(visibleTypes()).toEqual(['boolean', 'boolean']);
+    survey.setValue('showPanel', true);
+    expect(visibleTypes()).toEqual(['boolean', 'boolean', 'panel']);
+    survey.setValue('showHtml', true);
+    expect(visibleTypes()).toEqual(['boolean', 'boolean', 'panel', 'html']);
+  });
+
   test('a hidden panel takes its questions out of reach without hiding them one by one', () => {
     const survey = build(conditional);
 

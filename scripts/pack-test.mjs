@@ -153,6 +153,7 @@ try {
     join(scratch, 'smoke.ts'),
     `import {
   CURRENT_SCHEMA_VERSION,
+  moveWithin,
   parseSurvey,
   serializeSurvey,
   globalRegistry,
@@ -160,7 +161,12 @@ try {
 } from '@kajay/core';
 import { listToolboxItems } from '@kajay/creator-core';
 import { lightTheme } from '@kajay/themes';
-import { defaultPageElementRenderers } from '@kajay/react';
+import {
+  defaultPageElementRenderers,
+  reorderAnnouncement,
+  useReorder,
+  type ReorderOptions,
+} from '@kajay/react';
 
 const definition: SurveyDefinition = {
   title: 'Pack smoke',
@@ -188,6 +194,20 @@ if (listToolboxItems().length === 0) {
 }
 if (!defaultPageElementRenderers.has('text')) {
   throw new Error('Default renderers are missing the text question.');
+}
+if (JSON.stringify(moveWithin(['a', 'b', 'c'], 0, 2)) !== JSON.stringify(['b', 'c', 'a'])) {
+  throw new Error('The reusable core reorder primitive is not working.');
+}
+if (typeof useReorder !== 'function') {
+  throw new Error('The reusable React reorder interaction is not exported.');
+}
+const reorderOptions: ReorderOptions = {
+  itemCount: 1,
+  onMove: () => false,
+  describe: () => 'Only item',
+};
+if (reorderOptions.itemCount !== 1 || reorderAnnouncement('moved', 'Only item', 0, 1) !== 'Only item, position 1 of 1.') {
+  throw new Error('The reusable React reorder contract is not working.');
 }
 if (lightTheme.name !== 'light') {
   throw new Error('Theme preset did not load.');

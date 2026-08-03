@@ -1,8 +1,7 @@
-import { RankingQuestion, parseSurvey } from '@kajay/core';
+import { RankingQuestion, moveWithin, parseSurvey } from '@kajay/core';
 import type { Survey } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
 import { createTestRegistry } from '../support/createTestRegistry.js';
-import { moveWithin } from '../../src/model/moveWithin.js';
 
 function ranking(extra: Readonly<Record<string, unknown>> = {}): RankingQuestion {
   const survey: Survey = parseSurvey(

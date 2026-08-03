@@ -209,7 +209,7 @@ function registerElements(elements: readonly PageElement[], host: SurveyLogicHos
       // A display element holds no answer and no choices, so none of the rules below
       // apply — but it is on the page, and `visibleIf` has to mean the same thing for
       // a paragraph of text as for the question beside it.
-      registerConditions(element, `element:${element.name}`, host);
+      registerConditions(element, `${element.type}:${element.name}`, host);
     }
     registerElements(getPageElementChildren(element), host);
   }

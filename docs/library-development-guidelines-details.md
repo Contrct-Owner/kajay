@@ -73,6 +73,10 @@ exactly what the headless-core architecture exists to make exhaustively testable
   (fake timers are fine — they make time an explicit input, not a dependency).
 - **No mocks of our own packages.** If a test wants to mock `@kajay/core`, the test
   is at the wrong boundary — test through the real model.
+- A unit test may use a relative import into its own package's `src` tree when it proves
+  an internal module. That creates an internal test seam, not consumer surface. Imports
+  into another package, rendering tests, and host E2E scenarios use published package
+  entries only.
 - jsdom is banned repo-wide, not just in unit tests: DOM behavior is proven in a real
   browser or not at all.
 - Prefer table-driven cases for the expression language and validators; every
@@ -131,7 +135,7 @@ Phase 0 implements these as build-failing checks; until then they are active pol
 via `AGENTS.md`.
 
 - **Architecture checks:** dependency direction between packages; no DOM lib or
-  DOM globals in core packages; no deep imports anywhere; host-demo imports only
+  DOM globals in core packages; no cross-package deep imports; host-demo imports only
   public entry points; zero runtime dependencies in core packages absent an ADR;
   React only as peerDependency in UI packages.
 - **Test-boundary checks:** unit-test projects declare no browser/jsdom/mocking

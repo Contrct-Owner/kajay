@@ -38,6 +38,11 @@ placeholder that never cleared.
 > vocabulary. There is no separate rename pass, because naming properties in this
 > table ahead of the registry would invert the design order ADR-0001 sets. This banner
 > is removed once §A–§N are clean, and its presence is the outstanding-work marker.
+>
+> **Still present at Phase 1 exit, deliberately.** §A–§E are closed, but §F–§N have not
+> been built and their rows still carry SurveyJS's names throughout. Removing the banner
+> now would claim a vocabulary migration that has only happened for the sections that
+> shipped.
 
 ## §A — Schema, serialization & extensibility
 
@@ -71,7 +76,7 @@ placeholder that never cleared.
 
 | ID | Feature | Status | Proof |
 | --- | --- | --- | --- |
-| C1 | text — all inputTypes (text, number, email, date, datetime-local, time, tel, url, color, range, password), min/max, step, maskSettings (numeric, currency, datetime, pattern) | ☐ | Partial: `parity/C1-input-types`, `parity/C1-text-bounds`, `parity/C1-numeric-answers-are-numbers` (unit + demo) cover every input type, `min`/`max`/`step`, and the rule that a numeric input stores a number rather than the string the DOM reported. **`maskSettings` is not built** — input masking is a caret-management problem, not a formatting one, and a half-mask that mangles mid-string editing is worse than none |
+| C1 | text — all inputTypes (text, number, email, date, datetime-local, time, tel, url, color, range, password), min/max, step, ~~maskSettings~~ | ☑ | `parity/C1-input-types`, `parity/C1-text-bounds`, `parity/C1-numeric-answers-are-numbers` (unit + demo) cover every input type, `min`/`max`/`step`, and the rule that a numeric input stores a number rather than the string the DOM reported. **`maskSettings` is dropped from parity scope**, not deferred ([ADR-0018](./adr/0018-input-masking-out-of-scope.md), 2026-08-02): masking is a caret-management problem wearing a formatting problem's clothes, the model already owns the part that matters — what reaches `data` is a typed value either way — and a host that needs one plugs in a library through the renderer seam rather than taking a nearly-right implementation from us. This is the **first named gap against the SurveyJS Form Library**, and it is stated here rather than implied by a row that looks complete |
 | C2 | comment (multi-line, autoGrow, character counter) | ☑ | `parity/C2-comment` (unit + demo), `parity/C2-comment-auto-grow` (demo, measuring real height in Chromium). The budget is enforced by the model, not just displayed: a trigger or a restored `data` payload can exceed a `maxlength` attribute |
 | C3 | radiogroup (choices, otherItem, noneItem, showClearButton, colCount, choicesOrder) | ☑ | `parity/C3-radiogroup` (unit), `parity/C3-C4-select-questions` (host E2E), browser proof for selection. `choicesOrder` supports none/asc/desc; random is deferred as it would make the suite non-deterministic |
 | C4 | checkbox (selectAll, none, other, maxSelectedChoices, colCount) | ☑ | `parity/C4-checkbox` (unit), `parity/C3-C4-select-questions` (host E2E), browser proof for multi-select |

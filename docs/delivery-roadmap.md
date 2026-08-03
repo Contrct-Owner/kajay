@@ -28,7 +28,7 @@ proven by the host application and the parity checklist. Phase 4 is horizon.
 | Phase | Goal | Exit gate | Status |
 | --- | --- | --- | --- |
 | **0 — Foundation** | Monorepo + metadata kernel + one question end-to-end | A JSON definition renders in host-demo via public API only, round-trips, and all CI gates are green | **complete (2026-08-02)** |
-| **1 — Runtime core** | Expression engine, core question types, logic, validation, flow | Checklist §A–§E green via host-demo scenarios, less the rows that name later-phase surface | proposed |
+| **1 — Runtime core** | Expression engine, core question types, logic, validation, flow | Checklist §A–§E green via host-demo scenarios, less the rows that name later-phase surface | **complete (2026-08-02)** |
 | **2 — Form Library parity** | Matrix family, dynamic panels, quiz, theming, localization, a11y | Checklist §A–§J (all Form Library sections) green | proposed |
 | **3 — Creator parity** ⭐ | Drag-drop designer, property grid, logic/JSON/translation/theme editors | Checklist §K–§N green; build→render→round-trip proven in host-demo | proposed (overall AC) |
 | **4 — Horizon** | PDF, dashboard, other frameworks, SSR | Opportunity-driven | horizon |
@@ -126,7 +126,6 @@ closes it, and the exception is exhausted by this list:
 | D1 (matrix half) | Phase 2 | `isRequired` on a matrix row needs matrix rows. |
 | E3 (correct-answer bar) | Phase 2 | It counts `correctAnswer`, which is quiz scoring. |
 | E8 | Phase 2 | Quiz mode entire — see the decision below. |
-| C1 (`maskSettings`) | **undecided** | Not built and not scheduled. Input masking is a caret-management problem rather than a formatting one, and a half-mask that mangles mid-string editing is worse than none — so it was deliberately left out, but "deliberately left out" is not the same as *placed*. **Phase 1 cannot be declared met until this is either scheduled or dropped.** |
 
 A row on this list is green for Phase 1's purposes when everything *not* naming later
 surface is proven and the row states the remainder. Anything else is not.
@@ -150,12 +149,42 @@ progress bar and contents list, autofocus and automatic advance are all proven b
 tests. Preview, TOC and read-only were listed as Phase 2 work and landed here instead,
 because E4 needed E7 and both were cheaper than deferring them.
 
-**Every §A–§E row is now either green or on the exception list above.** The one that
-blocks declaring the phase met is C1's `maskSettings`, which is on that list only as an
-open question: it needs scheduling or dropping, and neither is a call this document can
-make for itself.
+**Every §A–§E row is green or on the exception list above.** C1 was the last open
+question and is now answered: input masking is **dropped from parity scope**
+([ADR-0018](./adr/0018-input-masking-out-of-scope.md)) rather than deferred, so C1 is
+green with a named gap on its face.
 
-**Out:** matrix family, dynamic panels, file/signature, quiz mode, theme JSON.
+**Out:** matrix family, dynamic panels, file/signature, quiz mode, theme JSON, and
+input masking — which is out of *parity* scope entirely rather than out of this phase
+([ADR-0018](./adr/0018-input-masking-out-of-scope.md)).
+
+**Exit gate met on 2026-08-02.** `pnpm run verify` runs all eight gates green: lint
+(oxlint, warnings as errors), typecheck under TypeScript 7 **and** 6, architecture
+checks, **674 unit tests**, **59 rendering-integration tests** in real Chromium, contract
+drift, **63 host E2E parity scenarios**, and the pack test (tarballs installed in a
+scratch project outside the workspace, compiled under TypeScript 5.5, 6.0 and 7.0, smoke
+scenario run).
+
+Sections **§B, §C, §D and §E are closed**; §A is closed but for A4/A5/A7. Every row that
+is not green names its remainder and the phase that owns it, per the table above, and the
+one open question left at the end — C1's `maskSettings` — was answered by dropping it
+from parity scope rather than by leaving the gate ambiguous
+([ADR-0018](./adr/0018-input-masking-out-of-scope.md)).
+
+What the phase actually produced, beyond the row list: an expression language with a
+hand-rolled parser and a dependency graph that settles in one pass; sixteen question
+types; validation with six built-in validators, three check modes, custom and
+asynchronous validators and a server seam; navigation with preview, read-only, partial
+save and resume, clear-invisible-value policies, progress and a contents list; and a
+reorder interaction built once, as a primitive, for the Creator to extend in Phase 3.
+
+Three habits are worth carrying forward, because each caught something review did not.
+**Mutation testing against a checked build** found unreachable guards, a redundant
+refocus, and — twice — a test that passed for the wrong reason. **The host-demo as the
+proof surface** caught a numeric answer rendering blank, a select with no accessible
+name, and an `enableIf` chain I had assumed was a visibility chain. **Instrumenting a
+flake rather than retrying it** turned a month-old intermittent failure into a measured
+fact in one run.
 
 **Quiz mode (§E8) is Phase 2, decided 2026-08-02.** It was in both lists at once: named
 under *Out* here and demanded by an exit gate that asks for §E green. Phase 2 already

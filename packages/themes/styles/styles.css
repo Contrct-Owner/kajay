@@ -804,6 +804,37 @@
   font-size: 0.8125em;
 }
 
+/* The timer panel — checklist E8. */
+.kajay-timer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--kajay-spacing);
+  padding: calc(var(--kajay-spacing) / 2) var(--kajay-spacing);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+}
+
+.kajay-timer__clock {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 3);
+  align-items: baseline;
+  margin: 0;
+}
+
+.kajay-timer__label {
+  color: var(--kajay-color-muted);
+  font-size: 0.8125em;
+}
+
+.kajay-timer__value {
+  /* Tabular figures so the digits stop jittering as the seconds tick over — the panel
+     is on screen for the whole survey, and a number that shifts sideways every second
+     is genuinely hard to sit beside. */
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
 .kajay-toc__list {
   display: flex;
   flex-wrap: wrap;

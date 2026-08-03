@@ -1015,6 +1015,14 @@
           "description": null
         },
         {
+          "name": "maxTimeToFinish",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "isExpression": false,
+          "description": "Seconds allowed for this page. 0 falls back to the survey's default."
+        },
+        {
           "name": "visibleIf",
           "type": "string",
           "defaultValue": "",
@@ -1319,6 +1327,14 @@
           "isRequired": false,
           "isExpression": true,
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        {
+          "name": "correctAnswer",
+          "type": "json",
+          "defaultValue": "",
+          "isRequired": false,
+          "isExpression": false,
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         }
       ],
       "declaredChildCollections": [
@@ -1825,6 +1841,38 @@
           "isRequired": false,
           "isExpression": false,
           "description": "noPreview, showAllQuestions or showAnsweredQuestions."
+        },
+        {
+          "name": "maxTimeToFinish",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "isExpression": false,
+          "description": "Seconds allowed for the whole survey. 0 means untimed."
+        },
+        {
+          "name": "maxTimeToFinishPage",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "isExpression": false,
+          "description": "Seconds allowed for a page that does not state its own. 0 means untimed."
+        },
+        {
+          "name": "showTimerPanel",
+          "type": "string",
+          "defaultValue": "none",
+          "isRequired": false,
+          "isExpression": false,
+          "description": "none, top or bottom."
+        },
+        {
+          "name": "showTimerPanelMode",
+          "type": "string",
+          "defaultValue": "all",
+          "isRequired": false,
+          "isExpression": false,
+          "description": "page, survey or all. Which clocks the panel shows."
         },
         {
           "name": "clearInvisibleValues",

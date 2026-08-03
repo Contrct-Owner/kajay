@@ -76,6 +76,106 @@
       "definition": {},
       "initialState": "empty",
       "actions": []
+    },
+    {
+      "id": "survey-timer-completes",
+      "clock": "2026-01-01T00:00:00.000Z",
+      "definition": {
+        "maxTimeToFinish": 45,
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [{ "type": "text", "name": "q1" }]
+          },
+          {
+            "name": "p2",
+            "elements": [{ "type": "text", "name": "q2", "isRequired": true }]
+          }
+        ]
+      },
+      "initialState": "running",
+      "actions": [
+        {
+          "kind": "set-value",
+          "name": "q1",
+          "value": "Ada",
+          "state": "running",
+          "events": [
+            {
+              "type": "value-changed",
+              "name": "q1",
+              "previousValue": { "kind": "undefined" },
+              "value": { "kind": "json", "value": "Ada" }
+            }
+          ]
+        },
+        {
+          "kind": "start-timer",
+          "state": "running",
+          "events": []
+        },
+        {
+          "kind": "advance-clock",
+          "seconds": 44,
+          "state": "running",
+          "events": []
+        },
+        {
+          "kind": "advance-clock",
+          "seconds": 1,
+          "state": "completed",
+          "events": [
+            { "type": "complete", "data": { "q1": "Ada" } },
+            { "type": "state-changed", "state": "completed" }
+          ]
+        },
+        {
+          "kind": "advance-clock",
+          "seconds": 60,
+          "state": "completed",
+          "events": []
+        }
+      ]
+    },
+    {
+      "id": "page-timer-turns-then-completes",
+      "clock": "2026-01-01T00:00:00.000Z",
+      "definition": {
+        "maxTimeToFinishPage": 30,
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [{ "type": "text", "name": "q1" }]
+          },
+          {
+            "name": "p2",
+            "elements": [{ "type": "text", "name": "q2" }]
+          }
+        ]
+      },
+      "initialState": "running",
+      "actions": [
+        {
+          "kind": "start-timer",
+          "state": "running",
+          "events": []
+        },
+        {
+          "kind": "advance-clock",
+          "seconds": 30,
+          "state": "running",
+          "events": []
+        },
+        {
+          "kind": "advance-clock",
+          "seconds": 30,
+          "state": "completed",
+          "events": [
+            { "type": "complete", "data": {} },
+            { "type": "state-changed", "state": "completed" }
+          ]
+        }
+      ]
     }
   ]
 }

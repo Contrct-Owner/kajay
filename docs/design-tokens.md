@@ -74,6 +74,15 @@ The backdrop is its own layer under the content, so the opacity applies to the p
 and **not** to the text in front of it — the reason it is not simply the survey's
 `background-image`.
 
+## Classes without tokens
+
+Two parts are styled but have nothing a theme should set: `.kajay-timer` (E8's timer
+panel) frames itself with the panel border and spacing tokens above, and
+`.kajay-timer__value` sets `font-variant-numeric: tabular-nums` so a countdown does not
+jitter sideways as the seconds tick over. Neither is a decision a theme takes — the
+first is already the panel's, and the second is wrong in every theme if it is wrong at
+all. A host that disagrees overrides the class.
+
 ## Adding a token
 
 A new token is a change to this document, to `styles.css`, and — if a theme should be

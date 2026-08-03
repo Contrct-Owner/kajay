@@ -39,6 +39,13 @@ test('parity/H1-file: the rules are the model own, not the picker hints', async 
     mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     buffer: Buffer.from('nope'),
   });
+  // Wait for it to actually be attached before pressing the gate. Reading a file and
+  // storing it are asynchronous, so clicking straight after `setInputFiles` raced the
+  // attachment: the gate ran against an empty answer, found nothing wrong with the
+  // *file*, and `checkErrorsMode: 'onNextPage'` correctly declined to re-check it when
+  // the entry landed a moment later. The scenario was flaky; what it is about was not.
+  await expect(page.getByRole('button', { name: 'Remove notes.docx' })).toBeVisible();
+
   await page.getByRole('button', { name: 'Complete' }).click();
 
   await expect(

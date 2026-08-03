@@ -119,6 +119,18 @@
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
         },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
         "labelTrue": {
           "type": "string",
           "default": "Yes"
@@ -277,6 +289,18 @@
           "type": "string",
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
         "choicesOrder": {
           "type": "string",
@@ -471,6 +495,18 @@
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
         },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
         "placeholder": {
           "type": "string",
           "default": ""
@@ -653,6 +689,18 @@
           "type": "string",
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
         "choicesOrder": {
           "type": "string",
@@ -851,6 +899,18 @@
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
         },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
         "expression": {
           "type": "string",
           "default": "",
@@ -1000,6 +1060,18 @@
           "type": "string",
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
         "allowMultiple": {
           "type": "boolean",
@@ -1296,6 +1368,18 @@
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
         },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
         "choicesOrder": {
           "type": "string",
           "default": "",
@@ -1552,6 +1636,18 @@
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
         },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
         "isAllRowRequired": {
           "type": "boolean",
           "default": false,
@@ -1685,6 +1781,18 @@
           "type": "string",
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
         "detailPanelMode": {
           "type": "string",
@@ -1821,6 +1929,18 @@
           "type": "string",
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
         "minRowCount": {
           "type": "number",
@@ -2046,6 +2166,18 @@
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
         },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
         "itemSize": {
           "type": "number",
           "default": 0,
@@ -2193,6 +2325,11 @@
         "title": {
           "type": "string",
           "default": ""
+        },
+        "maxTimeToFinish": {
+          "type": "number",
+          "default": 0,
+          "description": "Seconds allowed for this page. 0 falls back to the survey's default."
         },
         "visibleIf": {
           "type": "string",
@@ -2441,6 +2578,18 @@
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
         },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
         "minPanelCount": {
           "type": "number",
           "default": 1,
@@ -2665,6 +2814,18 @@
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
         },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
         "choicesOrder": {
           "type": "string",
           "default": "",
@@ -2848,6 +3009,18 @@
           "type": "string",
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
         "choicesOrder": {
           "type": "string",
@@ -3043,6 +3216,18 @@
           "type": "string",
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
         "rateMin": {
           "type": "number",
@@ -3287,6 +3472,18 @@
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
         },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
         "penColor": {
           "type": "string",
           "default": "#1d2939"
@@ -3419,6 +3616,26 @@
           "type": "string",
           "default": "noPreview",
           "description": "noPreview, showAllQuestions or showAnsweredQuestions."
+        },
+        "maxTimeToFinish": {
+          "type": "number",
+          "default": 0,
+          "description": "Seconds allowed for the whole survey. 0 means untimed."
+        },
+        "maxTimeToFinishPage": {
+          "type": "number",
+          "default": 0,
+          "description": "Seconds allowed for a page that does not state its own. 0 means untimed."
+        },
+        "showTimerPanel": {
+          "type": "string",
+          "default": "none",
+          "description": "none, top or bottom."
+        },
+        "showTimerPanelMode": {
+          "type": "string",
+          "default": "all",
+          "description": "page, survey or all. Which clocks the panel shows."
         },
         "clearInvisibleValues": {
           "type": "string",
@@ -3555,6 +3772,18 @@
           "type": "string",
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
         "choicesOrder": {
           "type": "string",
@@ -3748,6 +3977,18 @@
           "type": "string",
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "correctAnswer": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
         "inputType": {
           "type": "string",

@@ -59,6 +59,12 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
         isExpression: true,
         description: 'Expression; while truthy the answer is cleared. Wins over the others.',
       },
+      {
+        name: 'correctAnswer',
+        type: 'json',
+        description:
+          'The answer that scores. A question without one is not part of the quiz. Never shown.',
+      },
     ],
     childCollections: [{ property: 'validators', elementBaseType: 'validator' }],
   },

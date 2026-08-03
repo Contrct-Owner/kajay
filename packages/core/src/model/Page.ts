@@ -43,6 +43,15 @@ export class Page extends SurveyElement {
     return columns > 0 ? columns : 1;
   }
 
+  /**
+   * Seconds allowed for this page — checklist E8.
+   *
+   * 0 means the page states nothing, and the survey's `maxTimeToFinishPage` applies.
+   */
+  get maxTimeToFinish(): number {
+    return this.getNumberProperty('maxTimeToFinish');
+  }
+
   /** Elements a respondent can currently see. What the renderer draws. */
   get visibleElements(): readonly PageElement[] {
     return this.#elements.filter((element) => element.isVisible);

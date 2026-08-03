@@ -124,8 +124,8 @@ closes it, and the exception is exhausted by this list:
 | A4, A5 | Phase 3 | Both wait on the Creator's property grid and renderer registration. |
 | A7 | Phase 2 | The upload, dynamic-panel and matrix events cannot exist before their features do. |
 | D1 (matrix half) | Phase 2 | `isRequired` on a matrix row needs matrix rows. |
-| E3 (correct-answer bar) | Phase 2 | It counts `correctAnswer`, which is quiz scoring. |
-| E8 | Phase 2 | Quiz mode entire — see the decision below. |
+| ~~E3 (correct-answer bar)~~ | ~~Phase 2~~ | Closed 2026-08-03 with E8. |
+| ~~E8~~ | ~~Phase 2~~ | Closed 2026-08-03. The clock question is settled below. |
 
 A row on this list is green for Phase 1's purposes when everything *not* naming later
 surface is proven and the row states the remainder. Anything else is not.
@@ -265,10 +265,16 @@ layout rule.
   rows, per-cell question types, totals, detail panels).
 - paneldynamic (repeating groups, templates, navigation modes).
 - File upload, signature pad, choices-by-URL, carry-forward choices.
-- **Quiz mode: timers, correct answers, scoring, instant feedback (§E8), and the
-  correct-answer progress bar (§E3's remaining half), moved here from Phase 1 on
-  2026-08-02.** Needs an injected clock: core is I/O-free by rule, and a model that
-  reaches for `Date.now()` makes every timed test a race.
+- ~~**Quiz mode: timers, correct answers, scoring, instant feedback (§E8), and the
+  correct-answer progress bar (§E3's remaining half)**~~ — **landed 2026-08-03.** The
+  clock question the move was made to settle turned out to be half-answered already:
+  `LogicEngineOptions.now` existed for the expression engine, and E8 only had to make it
+  installable after construction — until then a `now` handed to `parseSurvey` reached
+  nothing, so `today()` in a parsed definition always read the machine's real time
+  however carefully a test had injected one. The rest of the answer is that **core owns
+  no interval**: the model computes what the clocks read and acts when one runs out, and
+  the host says when to look. That is what makes a timed survey expressible as
+  conformance data rather than as a wait.
 - ~~Preview mode, TOC, single-page and question-per-page modes, read-only/display
   mode~~ — all landed in Phase 1 (§E2, §E3, §E4, §E7). E4's preview needed E7's
   read-only, and building both there was cheaper than deferring either.

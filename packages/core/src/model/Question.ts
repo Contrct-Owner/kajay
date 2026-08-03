@@ -1,3 +1,5 @@
+import { scoreSingleAnswer } from './answerScore.js';
+import type { AnswerScore } from './answerScore.js';
 import { PageElement } from './PageElement.js';
 import type { SurveyElement } from './SurveyElement.js';
 import type { SurveyError } from './SurveyError.js';
@@ -210,6 +212,35 @@ export abstract class Question extends PageElement {
   get valueKey(): string {
     const authored = this.getStringProperty('valueName');
     return authored.length > 0 ? authored : this.name;
+  }
+
+  /** The answer that scores, or `undefined` when the question is not part of the quiz. */
+  get correctAnswer(): unknown {
+    return this.getPropertyValue('correctAnswer');
+  }
+
+  /**
+   * Whether this question is graded at all — checklist E8.
+   *
+   * **Authored, not "non-empty".** `correctAnswer: false` and `correctAnswer: 0` are
+   * real expected answers, and testing the value's truthiness would quietly drop a
+   * true/false question out of the total — scoring every respondent out of a smaller
+   * denominator than the paper they sat.
+   */
+  get isQuizQuestion(): boolean {
+    return this.hasPropertyValue('correctAnswer');
+  }
+
+  /**
+   * The marks this answer earns, out of the marks it could.
+   *
+   * Virtual because what "right" means belongs to the question type: one value compared
+   * to one value here, and a choice-by-choice reckoning where an answer is a set. A
+   * scorer that lived outside the model would have to grow a case per type, which is
+   * exactly the shape this project keeps refusing.
+   */
+  scoreAnswer(): AnswerScore {
+    return scoreSingleAnswer(this.value, this.correctAnswer);
   }
 
   get value(): unknown {

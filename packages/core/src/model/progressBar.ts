@@ -1,5 +1,6 @@
 import { collectVisibleQuestions } from './pageElements.js';
 import type { Question } from './Question.js';
+import { scoreQuiz } from './quizScore.js';
 import type { Survey } from './Survey.js';
 
 /**
@@ -10,15 +11,23 @@ import type { Survey } from './Survey.js';
  * page where pages would say nothing, `requiredQuestions` for a form whose optional
  * questions would otherwise make it look further from done than it is.
  *
- * The correct-answer variant belongs with quiz scoring, and is not here until that is.
+ * `correctQuestions` is the quiz variant (E8): what the respondent has got right rather
+ * than how much they have done, which is the only one of the four that can go *down*.
  */
-export type ProgressBarType = 'pages' | 'questions' | 'requiredQuestions';
+export type ProgressBarType = 'pages' | 'questions' | 'requiredQuestions' | 'correctQuestions';
 
 /** Where the bar is drawn, if at all. */
 export type ProgressBarLocation = 'off' | 'top' | 'bottom' | 'both';
 
+const PROGRESS_BAR_TYPES: readonly ProgressBarType[] = [
+  'pages',
+  'questions',
+  'requiredQuestions',
+  'correctQuestions',
+];
+
 export function toProgressBarType(declared: string): ProgressBarType {
-  return declared === 'questions' || declared === 'requiredQuestions' ? declared : 'pages';
+  return PROGRESS_BAR_TYPES.find((candidate) => candidate === declared) ?? 'pages';
 }
 
 export function toProgressBarLocation(declared: string): ProgressBarLocation {
@@ -54,6 +63,17 @@ export interface ProgressCount {
 export function measureProgress(survey: Survey): ProgressCount {
   if (survey.progressBarType === 'pages') {
     return count(survey.currentPageNo, survey.pageCount, 'page');
+  }
+  if (survey.progressBarType === 'correctQuestions') {
+    const score = scoreQuiz(survey);
+    return {
+      done: score.correct,
+      total: score.total,
+      ratio: score.ratio,
+      // Not "completed": these marks are earned, and a respondent who reads "3 of 8
+      // questions completed" on a quiz bar will believe five are still in front of them.
+      label: `${String(score.correct)} of ${String(score.total)} correct`,
+    };
   }
   const questions = reachableQuestions(survey);
   const counted =

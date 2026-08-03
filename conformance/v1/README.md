@@ -59,6 +59,35 @@ and repeated no-op actions emit nothing. Adapter object identities are intention
 absent from the corpus; cross-language consumers depend on names, values, states, and
 event order instead.
 
+## Time in a lifecycle scenario
+
+A scenario may name a `clock` — an ISO-8601 instant — and move it with `advance-clock`,
+which advances by whole seconds and then asks the runtime to look. `start-timer` begins
+the survey's clocks; nothing is timed until it does, because a survey parsed to score a
+stored response is not being sat by anybody.
+
+Advancing and looking are **one action** deliberately. A runtime that scheduled its own
+callbacks would have nothing for the corpus to call, and one that computes has nothing
+to report until something asks — so the corpus fixes the second arrangement and a
+runtime built on the first cannot pass it by accident.
+
+Expiry emits no event of its own. A survey that runs out of time emits exactly what
+manual completion emits, in the same order, and a page that runs out of time turns
+silently — so the timed scenarios discriminate by *what they complete after* rather
+than by a timer event that would have to be invented for them.
+
+## What is not here yet
+
+**Quiz scoring.** `correctAnswer` canonicalizes in `definitions.json`, but what a given
+set of answers *scores* has no case, because scoring is a pure query and v1 has four
+adapter operations, none of which can ask one. Adding a fifth is not the additive change
+it looks like: every adapter that passes v1 today would stop passing it, which is the
+thing versioning exists to prevent. The rules for it belong in an ADR and probably in
+`conformance/v2`, and are better settled when a second runtime exists to be constrained
+by them than guessed at now. Until then scoring is specified by the TypeScript suite
+alone, which is exactly the situation ADR-0020 was written to end — recorded here rather
+than left to be discovered.
+
 Changing existing v1 expectations is a contract change and requires an ADR. Additive
 cases may be appended when they clarify behavior already intended. An incompatible
 change creates `conformance/v2` and keeps v1 available for older SDK trains.

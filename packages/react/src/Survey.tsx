@@ -13,6 +13,8 @@ import { SurveyNavigation } from './SurveyNavigation.js';
 import { SurveyPage } from './SurveyPage.js';
 import { SurveyPreview } from './SurveyPreview.js';
 import { SurveyProgressBar } from './SurveyProgressBar.js';
+import { SurveyTimerPanel } from './SurveyTimerPanel.js';
+import { useSurveyTimer } from './useSurveyTimer.js';
 import { SurveyToc } from './SurveyToc.js';
 import { SurveyStatusPage } from './SurveyStatusPage.js';
 import { useAutoFocus } from './useAutoFocus.js';
@@ -199,6 +201,9 @@ interface SurveyFormProps {
  */
 function SurveyForm({ model, renderers, onErrors, formRef }: SurveyFormProps): ReactElement {
   const surveyClass = useCssClass('survey', 'kajay-survey');
+  // Held here rather than by the panel: a timed survey with no panel on it is still
+  // timed, and a deadline that only arrives when somebody is watching is not one.
+  useSurveyTimer(model);
   // Submitting means "advance", which on the last page means complete. Keeping that
   // decision in the model stops each adapter reinventing "am I at the end".
   //
@@ -218,6 +223,7 @@ function SurveyForm({ model, renderers, onErrors, formRef }: SurveyFormProps): R
   return (
     <form className={surveyClass} ref={formRef} onSubmit={handleSubmit} noValidate>
       <SurveyHeader survey={model} />
+      <SurveyTimerPanel survey={model} at="top" />
       <SurveyProgressBar survey={model} at="top" />
       <SurveyToc survey={model} />
 
@@ -226,6 +232,7 @@ function SurveyForm({ model, renderers, onErrors, formRef }: SurveyFormProps): R
       )}
 
       <SurveyProgressBar survey={model} at="bottom" />
+      <SurveyTimerPanel survey={model} at="bottom" />
       <SurveyNavigation survey={model} />
     </form>
   );

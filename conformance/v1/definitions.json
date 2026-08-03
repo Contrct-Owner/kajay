@@ -148,6 +148,56 @@
         ]
       },
       "diagnostics": []
+    },
+    {
+      "id": "quiz-properties-round-trip",
+      "input": {
+        "maxTimeToFinish": 600,
+        "maxTimeToFinishPage": 60,
+        "showTimerPanel": "top",
+        "showTimerPanelMode": "all",
+        "progressBarType": "correctQuestions",
+        "pages": [
+          {
+            "name": "p1",
+            "maxTimeToFinish": 90,
+            "elements": [
+              { "type": "text", "name": "q1", "correctAnswer": "Paris" },
+              { "type": "boolean", "name": "q2", "correctAnswer": false },
+              {
+                "type": "checkbox",
+                "name": "q3",
+                "choices": ["a", "b", "c"],
+                "correctAnswer": ["a", "c"]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": {
+        "schemaVersion": 1,
+        "maxTimeToFinish": 600,
+        "maxTimeToFinishPage": 60,
+        "showTimerPanel": "top",
+        "progressBarType": "correctQuestions",
+        "pages": [
+          {
+            "name": "p1",
+            "maxTimeToFinish": 90,
+            "elements": [
+              { "type": "text", "name": "q1", "correctAnswer": "Paris" },
+              { "type": "boolean", "name": "q2", "correctAnswer": false },
+              {
+                "type": "checkbox",
+                "name": "q3",
+                "choices": [{ "value": "a" }, { "value": "b" }, { "value": "c" }],
+                "correctAnswer": ["a", "c"]
+              }
+            ]
+          }
+        ]
+      },
+      "diagnostics": []
     }
   ]
 }

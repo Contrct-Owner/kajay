@@ -1,6 +1,7 @@
 import { measureProgress } from '@kajay/core';
 import type { ProgressBarLocation, Survey as SurveyModel } from '@kajay/core';
 import type { ReactElement } from 'react';
+import { useSurveyAnswerChanges } from './useSurveyState.js';
 
 export interface SurveyProgressBarProps {
   readonly survey: SurveyModel;
@@ -25,6 +26,10 @@ function isDrawnAt(location: ProgressBarLocation, at: 'top' | 'bottom'): boolean
  * completed" is the fact, and it is the only version that survives being read aloud.
  */
 export function SurveyProgressBar({ survey, at }: SurveyProgressBarProps): ReactElement | null {
+  // Before the early return, because hooks are unconditional — and because everything
+  // this bar can measure except the page number moves when an answer does.
+  useSurveyAnswerChanges(survey);
+
   if (!isDrawnAt(survey.showProgressBar, at)) {
     return null;
   }

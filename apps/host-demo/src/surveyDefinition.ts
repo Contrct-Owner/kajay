@@ -68,11 +68,18 @@ export const surveyDefinition: Readonly<Record<string, unknown>> = {
   showProgressBar: 'top',
   progressBarType: 'pages',
   showTOC: true,
+  // Only the page clock, because only one page has a deadline — checklist E8. A survey
+  // clock counting up beside it would be measuring nothing.
+  showTimerPanel: 'bottom',
+  showTimerPanelMode: 'page',
   // The ending is authored, and reads back what the respondent told us. `{fullName}` is
   // an answer and `{answeredCount}` is a calculated value — the completed page makes no
   // distinction, which is the half of B6 that had nowhere to be proven.
+  // `{correctAnswers}` and `{quizQuestionCount}` are the quiz's own placeholders (E8),
+  // beside an answer and a calculated value in the same template — the completed page
+  // makes no distinction between the three.
   completedHtml:
-    '<h2>Thanks, {fullName}.</h2><p>You answered {answeredCount} of the first three questions.</p>',
+    '<h2>Thanks, {fullName}.</h2><p>You answered {answeredCount} of the first three questions.</p><p data-testid="quiz-score">You scored {correctAnswers} of {quizQuestionCount} on the quiz.</p>',
   completedHtmlOnCondition: [
     {
       // Reaching the end early is a different ending, not the same one with a caveat.

@@ -5,6 +5,8 @@ import type { PreviewMode } from './previewQuestions.js';
 import { toProgressBarLocation, toProgressBarType } from './progressBar.js';
 import type { ProgressBarLocation, ProgressBarType } from './progressBar.js';
 import { SurveyElement } from './SurveyElement.js';
+import { toTimerPanelLocation, toTimerPanelMode } from './SurveyTimer.js';
+import type { TimerPanelLocation, TimerPanelMode } from './SurveyTimer.js';
 
 /**
  * The survey's own authored properties, typed.
@@ -95,5 +97,30 @@ export abstract class SurveyProperties extends SurveyElement {
   /** What happens to an answer the respondent can no longer reach. */
   get clearInvisibleValues(): ClearInvisibleValues {
     return toClearPolicy(this.getStringProperty('clearInvisibleValues'));
+  }
+
+  /** Seconds allowed for the whole survey. 0 — the default — means untimed. */
+  get maxTimeToFinish(): number {
+    return this.getNumberProperty('maxTimeToFinish');
+  }
+
+  /**
+   * Seconds allowed for a page that does not state its own.
+   *
+   * A default rather than the limit itself, so a survey can put a clock on every page
+   * and still let one long page have longer.
+   */
+  get maxTimeToFinishPage(): number {
+    return this.getNumberProperty('maxTimeToFinishPage');
+  }
+
+  /** Where the timer panel is drawn, if at all. */
+  get showTimerPanel(): TimerPanelLocation {
+    return toTimerPanelLocation(this.getStringProperty('showTimerPanel'));
+  }
+
+  /** Which clocks the panel shows: this page's, the whole survey's, or both. */
+  get showTimerPanelMode(): TimerPanelMode {
+    return toTimerPanelMode(this.getStringProperty('showTimerPanelMode'));
   }
 }

@@ -1,5 +1,7 @@
 import { valuesAreEqual } from '../expressions/expressionValues.js';
 import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
+import { scoreSelection } from './answerScore.js';
+import type { AnswerScore } from './answerScore.js';
 import { NONE_VALUE, SelectQuestion } from './SelectQuestion.js';
 
 /** Select questions answered by any number of choices. The answer is an array. */
@@ -23,6 +25,19 @@ export abstract class MultiSelectQuestion extends SelectQuestion {
 
   override isSelected(choiceValue: PropertyValue): boolean {
     return this.selectedValues.some((selected) => valuesAreEqual(selected, choiceValue));
+  }
+
+  /**
+   * Scored choice by choice — checklist E8.
+   *
+   * A lone expected value is read as a list of one rather than falling through to the
+   * base comparison, which would measure the *answer* — an array — against a scalar and
+   * mark every respondent wrong. "Tick exactly this one" is then one mark, and ticking
+   * it along with three others still earns nothing.
+   */
+  override scoreAnswer(): AnswerScore {
+    const expected = this.correctAnswer;
+    return scoreSelection(this.selectedValues, Array.isArray(expected) ? expected : [expected]);
   }
 
   get isAllSelected(): boolean {

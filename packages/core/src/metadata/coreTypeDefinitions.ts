@@ -80,6 +80,28 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         description: 'noPreview, showAllQuestions or showAnsweredQuestions.',
       },
       {
+        name: 'maxTimeToFinish',
+        type: 'number',
+        description: 'Seconds allowed for the whole survey. 0 means untimed.',
+      },
+      {
+        name: 'maxTimeToFinishPage',
+        type: 'number',
+        description: 'Seconds allowed for a page that does not state its own. 0 means untimed.',
+      },
+      {
+        name: 'showTimerPanel',
+        type: 'string',
+        defaultValue: 'none',
+        description: 'none, top or bottom.',
+      },
+      {
+        name: 'showTimerPanelMode',
+        type: 'string',
+        defaultValue: 'all',
+        description: 'page, survey or all. Which clocks the panel shows.',
+      },
+      {
         name: 'clearInvisibleValues',
         type: 'string',
         defaultValue: 'onComplete',
@@ -194,6 +216,11 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         description: 'How many columns the elements flow into.',
       },
       { name: 'title', type: 'string' },
+      {
+        name: 'maxTimeToFinish',
+        type: 'number',
+        description: "Seconds allowed for this page. 0 falls back to the survey's default.",
+      },
       {
         ...VISIBLE_IF,
         description: 'Expression; the page is shown only while it evaluates truthy.',

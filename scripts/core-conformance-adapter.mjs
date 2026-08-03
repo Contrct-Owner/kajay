@@ -1,3 +1,5 @@
+import { ScenarioClock } from './scenario-clock.mjs';
+
 /**
  * The TypeScript runtime adapter for the language-neutral conformance interface.
  *
@@ -52,7 +54,12 @@ export class CoreConformanceAdapter {
   }
 
   runLifecycleScenario(scenario) {
-    const survey = this.#core.parseSurvey(scenario.definition).survey;
+    // A scenario that names a clock gets one it controls. Without this a timed scenario
+    // would read the machine's time and never repeat.
+    const clock = new ScenarioClock(scenario.clock);
+    const survey = this.#core.parseSurvey(scenario.definition, undefined, {
+      now: () => clock.now(),
+    }).survey;
     const initialState = survey.status.state;
     const events = [];
     survey.onValueChanged.add(({ name, previousValue, value }) => {
@@ -72,7 +79,7 @@ export class CoreConformanceAdapter {
 
     const steps = scenario.actions.map((action) => {
       events.length = 0;
-      applyLifecycleAction(survey, action);
+      applyLifecycleAction(survey, action, clock);
       return { state: survey.status.state, events: [...events] };
     });
     return { initialState, steps };
@@ -107,8 +114,18 @@ function encodeValue(value) {
   return { kind: 'json', value };
 }
 
-function applyLifecycleAction(survey, action) {
+function applyLifecycleAction(survey, action, clock) {
   switch (action.kind) {
+    case 'start-timer':
+      survey.timer.start();
+      return;
+    case 'advance-clock':
+      // Moving time and looking at it are one action in the corpus: a runtime that
+      // scheduled its own callbacks would have nothing to call here, and one that
+      // computes has nothing to report until something asks.
+      clock.advance(action.seconds);
+      survey.timer.tick();
+      return;
     case 'set-loading':
       survey.status.setLoading(action.value);
       return;

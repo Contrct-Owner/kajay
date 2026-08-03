@@ -17,6 +17,8 @@ import { SurveyProperties } from './SurveyProperties.js';
 import { readProgress, restoreProgress } from './SurveyProgress.js';
 import type { SurveyProgress } from './SurveyProgress.js';
 import { SurveyStatus } from './SurveyStatus.js';
+import type { SurveyTimer } from './SurveyTimer.js';
+import { createSurveyTimer } from './surveyTimerHost.js';
 import type { HtmlCondition } from './HtmlCondition.js';
 import type { CalculatedValue } from './CalculatedValue.js';
 import { SurveyAnswers } from './SurveyAnswers.js';
@@ -43,10 +45,16 @@ export class Survey extends SurveyProperties implements ValueHost {
     () => this.#children.pages,
     () => toQuestionsOnPageMode(this.questionsOnPageMode),
     (event) => {
+      // A fresh page gets its own full allowance, however the respondent arrived on it.
+      this.#timer.restartPage();
       this.onCurrentPageChanged.emit(event);
     },
   );
   readonly #validation: SurveyValidation = new SurveyValidation(this, () => this.#logic);
+
+  readonly #timer: SurveyTimer = createSurveyTimer(this, () => this.#logic.now(), () => {
+    this.#advance();
+  });
 
   readonly #status: SurveyStatus = new SurveyStatus(
     this,
@@ -395,6 +403,19 @@ export class Survey extends SurveyProperties implements ValueHost {
   /** Ends the survey: applies the clearing policy, then announces it. */
   complete(): void {
     this.#status.complete();
+    // Nothing left to run out of. Stopping here rather than in `SurveyStatus` keeps the
+    // status object unaware that time exists.
+    this.#timer.stop();
+  }
+
+  /**
+   * The survey's clocks — checklist E8.
+   *
+   * The host starts it and the host ticks it; the model only computes. See
+   * [`SurveyTimer`](./SurveyTimer.ts) for why core owns no interval.
+   */
+  get timer(): SurveyTimer {
+    return this.#timer;
   }
 
   /** Loading, empty, running or completed — and the markup that goes with each. */

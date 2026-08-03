@@ -1,5 +1,6 @@
 import { clearAnswersOnComplete } from './clearInvisibleAnswers.js';
 import { interpolateHtml } from './interpolate.js';
+import { quizPlaceholder } from './quizScore.js';
 import type { Survey } from './Survey.js';
 import type { SurveyAnswers } from './SurveyAnswers.js';
 import type { SurveyLogicHost } from './SurveyLogicHost.js';
@@ -150,7 +151,21 @@ export class SurveyStatus {
 
   /** Substitutes `{name}` placeholders, escaping whatever they resolve to. */
   #fill(template: string): string {
-    return interpolateHtml(template, (name) => this.#answers.resolve(name));
+    return interpolateHtml(template, (name) => this.#resolve(name));
+  }
+
+  /**
+   * An answer, or — failing that — the quiz result.
+   *
+   * **Answers first**, so a survey that happens to contain a question named
+   * `correctAnswers` keeps reading its own data. The alternative silently replaces a
+   * respondent's answer with a number on a completed page the author has already
+   * proof-read, and a placeholder resolving to something other than the answer of that
+   * name is the surprise that is hardest to diagnose.
+   */
+  #resolve(name: string): unknown {
+    const answer = this.#answers.resolve(name);
+    return answer === undefined ? quizPlaceholder(this.#survey, name) : answer;
   }
 
   #readProperty(name: string): string {

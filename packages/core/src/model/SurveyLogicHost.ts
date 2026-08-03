@@ -118,6 +118,9 @@ export class SurveyLogicHost {
     if (options.functions !== undefined) {
       this.#engine.setFunctions(options.functions);
     }
+    if (options.now !== undefined) {
+      this.#engine.setClock(options.now);
+    }
     this.#choiceSources.setFetcher(options.fetchJson);
     this.#choiceSources.setEndpoints(options.endpoints ?? {});
     this.#choiceSources.setPageLoader(options.loadChoicePage);
@@ -169,6 +172,11 @@ export class SurveyLogicHost {
   }
 
   /** Internal rule-registration access to the expression graph. */
+  /** The host's clock. Everything time-dependent in the model reads it through here. */
+  now(): Date {
+    return this.#engine.now();
+  }
+
   get logic(): LogicEngine {
     return this.#engine;
   }

@@ -1,5 +1,5 @@
 import type { Question, Survey, SurveyState } from '@kajay/core';
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useReducer, useSyncExternalStore } from 'react';
 
 /**
  * Subscribes to one question's answer.
@@ -38,6 +38,27 @@ export function useQuestionValue(survey: Survey, question: Question): unknown {
   );
   const getSnapshot = useCallback((): unknown => question.value, [question]);
   return useSyncExternalStore(subscribe, getSnapshot);
+}
+
+/**
+ * Re-renders on any answer change, without caring which.
+ *
+ * For the things that *measure* answers rather than showing one — the progress bar, and
+ * the quiz score it can report. Until E8 needed a bar that counts correct answers,
+ * nothing subscribed to this at all, and the question-counting bars silently held their
+ * value until something else forced a render: `0 of 4 questions completed` for a page
+ * the respondent had just filled in.
+ *
+ * Deliberately not `useSyncExternalStore`. That hook compares snapshots by identity and
+ * the model has no answer *version* to hand it — `survey.data` builds a fresh object on
+ * every read, which would re-render forever.
+ *
+ * Subscribed by the bar rather than by the form on purpose: the form would re-render
+ * every question on the page on every keystroke to keep one number up to date.
+ */
+export function useSurveyAnswerChanges(survey: Survey): void {
+  const [, bump] = useReducer((count: number): number => count + 1, 0);
+  useEffect(() => survey.onValueChanged.add(bump), [survey, bump]);
 }
 
 /**

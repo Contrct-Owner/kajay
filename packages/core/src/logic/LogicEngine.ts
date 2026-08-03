@@ -51,7 +51,7 @@ export class LogicEngine {
   readonly #cache: ExpressionCache = new ExpressionCache();
   readonly #rules: Map<string, LogicRule> = new Map();
   #functions: FunctionRegistry;
-  readonly #now: () => Date;
+  #now: () => Date;
   readonly #asyncValues: AsyncFunctionCache;
   #onAsyncSettled: (() => void) | undefined;
 
@@ -77,6 +77,23 @@ export class LogicEngine {
    */
   setFunctions(functions: FunctionRegistry): void {
     this.#functions = functions;
+  }
+
+  /**
+   * Installs the host's clock, for the same reason `setFunctions` exists.
+   *
+   * Until E8 needed a clock the survey could be *told*, a `now` passed to `parseSurvey`
+   * reached nothing: the registry builds a survey through a no-argument factory, so
+   * `today()` in a parsed definition always read the machine's real time however
+   * carefully a test had injected one.
+   */
+  setClock(now: () => Date): void {
+    this.#now = now;
+  }
+
+  /** The current time, as the host defines it. Never `Date.now()` past this point. */
+  now(): Date {
+    return this.#now();
   }
 
   get ruleKeys(): readonly string[] {

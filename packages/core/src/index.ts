@@ -166,6 +166,15 @@ export type {
   ProgressBarType,
   ProgressCount,
 } from './model/progressBar.js';
+export { SurveyTimer } from './model/SurveyTimer.js';
+export type {
+  TimerPanelLocation,
+  TimerPanelMode,
+  TimerReading,
+} from './model/SurveyTimer.js';
+export { scoreQuiz } from './model/quizScore.js';
+export type { QuestionScore, QuizScore } from './model/quizScore.js';
+export type { AnswerScore } from './model/answerScore.js';
 export type { PreviewMode } from './model/previewQuestions.js';
 export type { SurveyProgress } from './model/SurveyProgress.js';
 export type { ClearInvisibleValues } from './model/clearInvisibleAnswers.js';

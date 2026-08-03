@@ -1,4 +1,5 @@
 import type { PageDefinition } from '../pageDefinition.js';
+import { quizPanel } from './quizPanel.js';
 
 /** A flat colour rectangle, so the demo needs no image host. */
 function swatch(hex: string): string {
@@ -14,6 +15,9 @@ function swatch(hex: string): string {
 export const questionTypes: PageDefinition = {
   name: 'page3',
   title: 'Question types',
+  // The only timed page — checklist E8. The panel appears on arriving here and goes
+  // again on leaving, because nothing else in the demo has a deadline.
+  maxTimeToFinish: 600,
   elements: [
     {
       // Markup, rendered as markup. The demo supplies no sanitizer because it
@@ -338,5 +342,6 @@ export const questionTypes: PageDefinition = {
       imageWidth: 120,
       imageHeight: 40,
     },
+    quizPanel,
   ],
 };

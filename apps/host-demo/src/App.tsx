@@ -2,6 +2,7 @@ import { Survey } from '@kajay/react';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { CheckTimeline } from './CheckTimeline.js';
+import { renderEmphasis } from './renderEmphasis.js';
 import { ThemePicker, variablesFor } from './ThemePicker.js';
 import { useDemoSurvey } from './useDemoSurvey.js';
 import { useSurveyData } from './useSurveyData.js';
@@ -20,7 +21,17 @@ export function App(): ReactElement {
     <main className="host-demo" data-theme={theme}>
       <ThemePicker selected={theme} onSelect={setTheme} />
 
-      <Survey model={model} theme={variablesFor(theme)} />
+      <Survey
+        model={model}
+        theme={variablesFor(theme)}
+        // The host's own classes, added to the library's — checklist I4.
+        css={{ survey: 'host-demo__survey' }}
+        // The markdown seam — checklist I6. Deliberately the smallest thing that could
+        // be called markdown: *emphasis*, rendered by the host as a real element. A
+        // library that shipped a markdown parser would be shipping its escaping rules
+        // and its vulnerabilities too.
+        renderText={renderEmphasis}
+      />
 
       <ValidationControls model={model} />
 

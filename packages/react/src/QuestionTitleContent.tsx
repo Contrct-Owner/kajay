@@ -1,5 +1,6 @@
 import type { Question } from '@kajay/core';
 import type { ReactElement } from 'react';
+import { useTextRenderer } from './TextRendererContext.js';
 
 /**
  * Title text plus the required marker.
@@ -12,9 +13,10 @@ export function QuestionTitleContent({
 }: {
   readonly question: Question;
 }): ReactElement {
+  const renderText = useTextRenderer();
   return (
     <>
-      {question.title}
+      {renderText(question.title, 'title')}
       {question.isRequired ? (
         <span className="kajay-question__required" aria-hidden="true">
           {' *'}

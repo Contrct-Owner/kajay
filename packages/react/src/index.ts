@@ -19,6 +19,8 @@ export type {
 export { reorderAnnouncement } from './reorderAnnouncement.js';
 export type { ReorderEventKind } from './reorderAnnouncement.js';
 export { Survey } from './Survey.js';
+export type { SurveyCss } from './SurveyCssContext.js';
+export type { TextRenderer } from './TextRendererContext.js';
 export type { SurveyProps } from './Survey.js';
 export { useReorder } from './useReorder.js';
 export type { Reorder, ReorderItemProps } from './useReorder.js';

@@ -160,6 +160,19 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         isExpression: true,
         description: 'Expression; the element is editable only while it evaluates truthy.',
       },
+      {
+        name: 'startWithNewLine',
+        type: 'boolean',
+        description: 'Break onto a fresh row rather than flowing into the columns beside it.',
+      },
+      { name: 'width', type: 'string', description: 'CSS length. Empty fills its column.' },
+      { name: 'minWidth', type: 'string', description: 'CSS length.' },
+      {
+        name: 'titleLocation',
+        type: 'string',
+        defaultValue: 'default',
+        description: 'default, top, left or hidden. Hidden is visual only; it is still announced.',
+      },
     ],
   },
   /**
@@ -174,6 +187,12 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
     name: 'page',
     properties: [
       { name: 'name', type: 'string', isRequired: true, description: 'Unique page identifier.' },
+      {
+        name: 'colCount',
+        type: 'number',
+        defaultValue: 1,
+        description: 'How many columns the elements flow into.',
+      },
       { name: 'title', type: 'string' },
       {
         ...VISIBLE_IF,
@@ -192,6 +211,12 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         type: 'string',
         defaultValue: 'default',
         description: 'default, expanded or collapsed. Collapsed panels start closed.',
+      },
+      {
+        name: 'colCount',
+        type: 'number',
+        defaultValue: 1,
+        description: 'How many columns the elements inside flow into.',
       },
     ],
     childCollections: [{ property: 'elements', elementBaseType: 'pageelement' }],

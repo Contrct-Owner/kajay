@@ -39,6 +39,38 @@ export abstract class PageElement extends SurveyElement {
   }
 
   /**
+   * Whether this element breaks onto a fresh row — checklist I5.
+   *
+   * False by default, so elements *flow* into whatever columns their container has. A
+   * deliberate departure from SurveyJS, where the same property defaults to true and a
+   * `colCount` therefore does nothing until every question is edited: the layout an
+   * author asked for should be the one they get.
+   */
+  get startWithNewLine(): boolean {
+    return this.getBooleanProperty('startWithNewLine');
+  }
+
+  /** A CSS length, or empty to fill the column it is in. */
+  get width(): string {
+    return this.getStringProperty('width');
+  }
+
+  get minWidth(): string {
+    return this.getStringProperty('minWidth');
+  }
+
+  /**
+   * Where the title goes: `default`, `top`, `left`, or `hidden`.
+   *
+   * `hidden` is **visual only** — the title is still the element's accessible name, and
+   * a control without one is unanswerable to anyone who cannot see the column header or
+   * the sentence above it.
+   */
+  get titleLocation(): string {
+    return this.getStringProperty('titleLocation');
+  }
+
+  /**
    * Connects this element tree to the survey that owns its answers.
    *
    * Composite page elements use the conventional `elements` child collection. The

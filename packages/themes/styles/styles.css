@@ -23,6 +23,10 @@
   --kajay-panel-padding: var(--kajay-spacing);
   --kajay-backdrop-image: none;
   --kajay-backdrop-opacity: 1;
+  /* One column unless a page or panel asks for more. The renderer sets it per
+   * container, because an author may ask for any number and a stylesheet cannot
+   * enumerate them. */
+  --kajay-col-count: 1;
 }
 
 /* Positioned so the backdrop below has something to be absolute against. */
@@ -76,10 +80,31 @@
   color: var(--kajay-color-muted);
 }
 
-.kajay-page {
-  display: flex;
-  flex-direction: column;
+/*
+ * Elements flow into however many columns the page asked for — checklist I5.
+ *
+ * A grid rather than floats or a flex wrap, because `startWithNewLine` is then a grid
+ * *start* — one property on the element that wants the break — rather than a break
+ * element in the tree that means nothing to a screen reader and has to be skipped by
+ * every traversal.
+ */
+.kajay-page,
+.kajay-panel__content {
+  display: grid;
+  grid-template-columns: repeat(var(--kajay-col-count), minmax(0, 1fr));
   gap: var(--kajay-spacing);
+  align-items: start;
+}
+
+/* The page title is prose about the page, not one of its columns. */
+.kajay-page__title {
+  grid-column: 1 / -1;
+}
+
+.kajay-element {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
 }
 
 .kajay-page__title {
@@ -428,11 +453,7 @@
   color: var(--kajay-color-muted);
 }
 
-.kajay-panel__content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--kajay-spacing);
-}
+
 
 .kajay-navigation {
   display: flex;
@@ -1082,4 +1103,38 @@
   color: inherit;
   font: inherit;
   cursor: pointer;
+}
+
+/* --- Title placement (I5) --------------------------------------------------- */
+
+/*
+ * `left` puts the label beside the control rather than above it. Below the narrow
+ * breakpoint it goes back on top: a label and a field side by side in 375 pixels leaves
+ * room for neither.
+ */
+@media (min-width: 40rem) {
+  .kajay-element[data-title-location='left'] > .kajay-question {
+    display: grid;
+    grid-template-columns: minmax(6rem, 12rem) 1fr;
+    gap: calc(var(--kajay-spacing) / 2);
+    align-items: baseline;
+  }
+
+  .kajay-element[data-title-location='left'] > .kajay-question > .kajay-question__title {
+    grid-column: 1;
+  }
+}
+
+/*
+ * `hidden` is **visual only**. The title is still the control's accessible name, and an
+ * input without one is unanswerable to anyone who cannot see the column header or the
+ * sentence above it — so it is clipped, never removed and never `display: none`.
+ */
+.kajay-element[data-title-location='hidden'] .kajay-question__title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

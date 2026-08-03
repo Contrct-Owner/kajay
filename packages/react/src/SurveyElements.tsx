@@ -1,5 +1,6 @@
 import type { PageElement, Survey as SurveyModel } from '@kajay/core';
 import type { ReactElement } from 'react';
+import { PageElementSlot } from './PageElementSlot.js';
 import type { PageElementRendererRegistry } from './PageElementRendererRegistry.js';
 
 export interface SurveyElementsProps {
@@ -19,12 +20,10 @@ export function SurveyElements({
   return (
     <>
       {elements.map((element) => (
-        <ElementSlot key={element.name}>{renderers.render(survey, element)}</ElementSlot>
+        <PageElementSlot key={element.name} element={element}>
+          {renderers.render(survey, element)}
+        </PageElementSlot>
       ))}
     </>
   );
-}
-
-function ElementSlot({ children }: { readonly children: ReactElement }): ReactElement {
-  return children;
 }

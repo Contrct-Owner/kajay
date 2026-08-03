@@ -50,6 +50,11 @@ body {
   font-size: 0.8125rem;
 }
 
+/* The host's own class, added to the library's through the `css` map — checklist I4. */
+.host-demo__survey {
+  box-shadow: 0 1px 3px rgb(16 24 40 / 10%);
+}
+
 /* The check timeline: a diagnostic list, readable at a glance in a failure snapshot. */
 .host-demo__timeline {
   margin: 0;

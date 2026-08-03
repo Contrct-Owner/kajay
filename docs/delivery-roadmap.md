@@ -251,6 +251,14 @@ is a name, a type, a size and where the content is, the adapter reads the real o
 the host decides where it goes. Accepted types and size limits are model rules rather
 than picker hints, because a respondent can drag a file straight past `accept`.
 
+**§I is closed (2026-08-03).** Theming is one mechanism seen three ways: a stylesheet of
+CSS custom properties, a preset that sets them, and a theme object that computes them at
+runtime. `@kajay/react` never imports `@kajay/themes` — the architecture check forbids the
+direction and it turns out not to need it, which is what lets two surveys on one page be
+themed differently. The layout properties and the host's class overrides both land in a
+single wrapper around each element, so none of the twenty-odd renderers had to learn a
+layout rule.
+
 **In scope**
 
 - Matrix family: matrix (single-select), matrixdropdown, matrixdynamic (add/remove

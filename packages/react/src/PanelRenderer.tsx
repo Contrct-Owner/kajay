@@ -1,6 +1,9 @@
 import { Panel } from '@kajay/core';
 import type { ReactElement } from 'react';
+import type { CSSProperties } from 'react';
+import { PageElementSlot } from './PageElementSlot.js';
 import type { PageElementRendererProps } from './PageElementRendererRegistry.js';
+import { useCssClass } from './SurveyCssContext.js';
 
 export function PanelRenderer({
   survey,
@@ -12,10 +15,12 @@ export function PanelRenderer({
   }
   const contentId = `kajay-panel-${element.name}-content`;
   const isCollapsed = element.state !== 'default' && element.isCollapsed;
+  const panelClass = useCssClass('panel', 'kajay-panel');
+  const columns = { '--kajay-col-count': String(element.colCount) } as CSSProperties;
 
   return (
     <fieldset
-      className="kajay-panel"
+      className={panelClass}
       data-panel-name={element.name}
       data-collapsed={isCollapsed ? 'true' : undefined}
       disabled={!element.isEnabled}
@@ -25,18 +30,16 @@ export function PanelRenderer({
         <p className="kajay-panel__description">{element.description}</p>
       ) : null}
       {isCollapsed ? null : (
-        <div className="kajay-panel__content" id={contentId}>
+        <div className="kajay-panel__content" id={contentId} style={columns}>
           {element.visibleElements.map((child) => (
-            <ElementSlot key={child.name}>{renderers.render(survey, child)}</ElementSlot>
+            <PageElementSlot key={child.name} element={child}>
+              {renderers.render(survey, child)}
+            </PageElementSlot>
           ))}
         </div>
       )}
     </fieldset>
   );
-}
-
-function ElementSlot({ children }: { readonly children: ReactElement }): ReactElement {
-  return children;
 }
 
 interface PanelLegendProps {

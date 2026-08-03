@@ -65,6 +65,12 @@ export class Panel extends PageElement {
     this.#announceCollapsed = announce;
   }
 
+  /** How many columns the elements inside flow into — checklist I5. */
+  get colCount(): number {
+    const columns = this.getNumberProperty('colCount');
+    return columns > 0 ? columns : 1;
+  }
+
   get elements(): readonly PageElement[] {
     return this.#elements;
   }

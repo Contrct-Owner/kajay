@@ -4,6 +4,10 @@ import { defaultPageElementRenderers } from './defaultPageElementRenderers.js';
 import { HtmlSanitizerProvider } from './HtmlSanitizerContext.js';
 import type { HtmlSanitizer } from './HtmlSanitizerContext.js';
 import { QuestionRenderersProvider } from './QuestionRenderersContext.js';
+import { SurveyCssProvider, useCssClass } from './SurveyCssContext.js';
+import type { SurveyCss } from './SurveyCssContext.js';
+import { TextRendererProvider } from './TextRendererContext.js';
+import type { TextRenderer } from './TextRendererContext.js';
 import type { PageElementRendererRegistry } from './PageElementRendererRegistry.js';
 import { SurveyNavigation } from './SurveyNavigation.js';
 import { SurveyPage } from './SurveyPage.js';
@@ -41,6 +45,59 @@ export interface SurveyProps {
    * All three are the same mechanism.
    */
   readonly theme?: Readonly<Record<string, string>>;
+  /**
+   * Extra class names for the parts of this survey — checklist I4.
+   *
+   * Added to the built-in names, never substituted for them, and supplied per instance
+   * rather than in the definition: a class name is a fact about one host's stylesheet.
+   */
+  readonly css?: SurveyCss;
+  /**
+   * Turns authored prose into what is drawn — checklist I6.
+   *
+   * Where markdown goes, if a host wants markdown. It returns a node rather than an HTML
+   * string, so a host that renders markup does it with their own sanitizer and the
+   * library never inserts markup it did not build.
+   */
+  readonly renderText?: TextRenderer;
+}
+
+interface SurroundingsProps {
+  readonly theme: Readonly<Record<string, string>> | undefined;
+  readonly css: SurveyCss | undefined;
+  readonly sanitizeHtml: HtmlSanitizer | undefined;
+  readonly renderText: TextRenderer | undefined;
+  readonly renderers: PageElementRendererRegistry;
+  readonly children: ReactNode;
+}
+
+/**
+ * Everything a survey is drawn *inside*: its theme, its classes, its text handling and
+ * its renderers.
+ *
+ * One component because they are one decision — how this host wants surveys to look and
+ * behave — and because every state below needs all four. Four nested providers repeated
+ * per state was four chances to forget one.
+ */
+function Surroundings({
+  theme,
+  css,
+  sanitizeHtml,
+  renderText,
+  renderers,
+  children,
+}: SurroundingsProps): ReactElement {
+  return (
+    <ThemeScope theme={theme}>
+      <SurveyCssProvider css={css}>
+        <TextRendererProvider renderText={renderText}>
+          <HtmlSanitizerProvider sanitize={sanitizeHtml}>
+            <QuestionRenderersProvider renderers={renderers}>{children}</QuestionRenderersProvider>
+          </HtmlSanitizerProvider>
+        </TextRendererProvider>
+      </SurveyCssProvider>
+    </ThemeScope>
+  );
 }
 
 /**
@@ -91,6 +148,8 @@ export function Survey({
   renderers = defaultPageElementRenderers,
   sanitizeHtml,
   theme,
+  css,
+  renderText,
 }: SurveyProps): ReactElement {
   const state = useSurveyStatus(model);
   // Subscribed for the re-render: conditional logic can add, remove or disable
@@ -101,37 +160,26 @@ export function Survey({
   const { formRef, requestFocus } = useErrorFocus(model);
   useAutoFocus(model, formRef, currentPageNo);
 
+  const surroundings = { theme, css, sanitizeHtml, renderText, renderers };
+
   if (state !== 'running') {
     // Everything that is not the form still needs the sanitizer: the completed markup
     // is author-supplied, and a preview draws real questions.
     return (
-      <ThemeScope theme={theme}>
-        <HtmlSanitizerProvider sanitize={sanitizeHtml}>
-          <QuestionRenderersProvider renderers={renderers}>
-            {state === 'preview' ? (
-              <SurveyPreview survey={model} renderers={renderers} />
-            ) : (
-              <SurveyStatusPage survey={model} state={state} />
-            )}
-          </QuestionRenderersProvider>
-        </HtmlSanitizerProvider>
-      </ThemeScope>
+      <Surroundings {...surroundings}>
+        {state === 'preview' ? (
+          <SurveyPreview survey={model} renderers={renderers} />
+        ) : (
+          <SurveyStatusPage survey={model} state={state} />
+        )}
+      </Surroundings>
     );
   }
 
   return (
-    <ThemeScope theme={theme}>
-      <HtmlSanitizerProvider sanitize={sanitizeHtml}>
-        <QuestionRenderersProvider renderers={renderers}>
-          <SurveyForm
-            model={model}
-            renderers={renderers}
-            onErrors={requestFocus}
-            formRef={formRef}
-          />
-        </QuestionRenderersProvider>
-      </HtmlSanitizerProvider>
-    </ThemeScope>
+    <Surroundings {...surroundings}>
+      <SurveyForm model={model} renderers={renderers} onErrors={requestFocus} formRef={formRef} />
+    </Surroundings>
   );
 }
 
@@ -150,6 +198,7 @@ interface SurveyFormProps {
  * form, and reading either was getting harder for the other being there.
  */
 function SurveyForm({ model, renderers, onErrors, formRef }: SurveyFormProps): ReactElement {
+  const surveyClass = useCssClass('survey', 'kajay-survey');
   // Submitting means "advance", which on the last page means complete. Keeping that
   // decision in the model stops each adapter reinventing "am I at the end".
   //
@@ -167,7 +216,7 @@ function SurveyForm({ model, renderers, onErrors, formRef }: SurveyFormProps): R
   const currentPage = model.currentPage;
 
   return (
-    <form className="kajay-survey" ref={formRef} onSubmit={handleSubmit} noValidate>
+    <form className={surveyClass} ref={formRef} onSubmit={handleSubmit} noValidate>
       <SurveyHeader survey={model} />
       <SurveyProgressBar survey={model} at="top" />
       <SurveyToc survey={model} />

@@ -37,6 +37,12 @@ export class Page extends SurveyElement {
     return this.#elements;
   }
 
+  /** How many columns the elements flow into — checklist I5. */
+  get colCount(): number {
+    const columns = this.getNumberProperty('colCount');
+    return columns > 0 ? columns : 1;
+  }
+
   /** Elements a respondent can currently see. What the renderer draws. */
   get visibleElements(): readonly PageElement[] {
     return this.#elements.filter((element) => element.isVisible);

@@ -56,6 +56,26 @@
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
         },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
+        },
         "isRequired": {
           "type": "boolean",
           "default": false
@@ -194,6 +214,26 @@
           "type": "string",
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
         },
         "isRequired": {
           "type": "boolean",
@@ -368,6 +408,26 @@
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
         },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
+        },
         "isRequired": {
           "type": "boolean",
           "default": false
@@ -530,6 +590,26 @@
           "type": "string",
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
         },
         "isRequired": {
           "type": "boolean",
@@ -708,6 +788,26 @@
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
         },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
+        },
         "isRequired": {
           "type": "boolean",
           "default": false
@@ -838,6 +938,26 @@
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
         },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
+        },
         "isRequired": {
           "type": "boolean",
           "default": false
@@ -953,6 +1073,26 @@
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
         },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
+        },
         "html": {
           "type": "string",
           "default": "",
@@ -1011,6 +1151,26 @@
           "type": "string",
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
         },
         "imageLink": {
           "type": "string",
@@ -1072,6 +1232,26 @@
           "type": "string",
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
         },
         "isRequired": {
           "type": "boolean",
@@ -1309,6 +1489,26 @@
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
         },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
+        },
         "isRequired": {
           "type": "boolean",
           "default": false
@@ -1422,6 +1622,26 @@
           "type": "string",
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
         },
         "isRequired": {
           "type": "boolean",
@@ -1538,6 +1758,26 @@
           "type": "string",
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
         },
         "isRequired": {
           "type": "boolean",
@@ -1743,6 +1983,26 @@
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
         },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
+        },
         "isRequired": {
           "type": "boolean",
           "default": false
@@ -1925,6 +2185,11 @@
           "default": "",
           "description": "Unique page identifier."
         },
+        "colCount": {
+          "type": "number",
+          "default": 1,
+          "description": "How many columns the elements flow into."
+        },
         "title": {
           "type": "string",
           "default": ""
@@ -2040,6 +2305,26 @@
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
         },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
+        },
         "description": {
           "type": "string",
           "default": ""
@@ -2048,6 +2333,11 @@
           "type": "string",
           "default": "default",
           "description": "default, expanded or collapsed. Collapsed panels start closed."
+        },
+        "colCount": {
+          "type": "number",
+          "default": 1,
+          "description": "How many columns the elements inside flow into."
         },
         "elements": {
           "type": "array",
@@ -2087,6 +2377,26 @@
           "type": "string",
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
         },
         "isRequired": {
           "type": "boolean",
@@ -2292,6 +2602,26 @@
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
         },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
+        },
         "isRequired": {
           "type": "boolean",
           "default": false
@@ -2455,6 +2785,26 @@
           "type": "string",
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
         },
         "isRequired": {
           "type": "boolean",
@@ -2630,6 +2980,26 @@
           "type": "string",
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
         },
         "isRequired": {
           "type": "boolean",
@@ -2853,6 +3223,26 @@
           "type": "string",
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
         },
         "isRequired": {
           "type": "boolean",
@@ -3103,6 +3493,26 @@
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
         },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
+        },
         "isRequired": {
           "type": "boolean",
           "default": false
@@ -3275,6 +3685,26 @@
           "type": "string",
           "default": "",
           "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "startWithNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Break onto a fresh row rather than flowing into the columns beside it."
+        },
+        "width": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length. Empty fills its column."
+        },
+        "minWidth": {
+          "type": "string",
+          "default": "",
+          "description": "CSS length."
+        },
+        "titleLocation": {
+          "type": "string",
+          "default": "default",
+          "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
         },
         "isRequired": {
           "type": "boolean",

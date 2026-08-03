@@ -48,6 +48,36 @@ test('parity/I3-presets: panelless takes the frames away', async ({ page }) => {
   await expect(panel).toHaveCSS('padding-top', '0px');
 });
 
+test('parity/I4-css-overrides', async ({ page }) => {
+  // The host's class and the library's, on the same element. The demo's stylesheet
+  // styles the first; the shipped one styles the second.
+  const survey = page.locator('form.kajay-survey');
+  await expect(survey).toHaveClass('kajay-survey host-demo__survey');
+  await expect(survey).toHaveCSS('box-shadow', 'rgba(16, 24, 40, 0.1) 0px 1px 3px 0px');
+});
+
+test('parity/I5-layout', async ({ page }) => {
+  const first = page.locator('[data-element-slot="fullName"]');
+  const email = page.locator('[data-element-slot="email"]');
+
+  // Two columns, and the answers that fit side by side do. Measured rather than
+  // asserted from a class: the grid is the claim.
+  const firstBox = await first.boundingBox();
+  const emailBox = await email.boundingBox();
+  if (firstBox === null || emailBox === null) {
+    throw new Error('expected both elements to be laid out');
+  }
+  // `fullName` asked for a row of its own; `email` sits in the second column beside the
+  // element before it.
+  expect(emailBox.x).toBeGreaterThan(firstBox.x);
+  expect(emailBox.y).toBeLessThan(firstBox.y + firstBox.height + emailBox.height);
+});
+
+test('parity/I6-text-seam', async ({ page }) => {
+  // The host turned `*…*` into a real element. Nothing in the library parsed anything.
+  await expect(page.locator('.kajay-question__title em').first()).toBeVisible();
+});
+
 test('parity/I2-theme: the theme is scoped to the survey, not the page', async ({ page }) => {
   await page.getByLabel('Theme').selectOption('dark');
 

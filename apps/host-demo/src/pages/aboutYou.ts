@@ -9,11 +9,15 @@ import type { PageDefinition } from '../pageDefinition.js';
 export const aboutYou: PageDefinition = {
   name: 'page1',
   title: 'About you',
+  // Two columns, so the short answers sit beside each other — checklist I5. Anything
+  // that wants a row to itself asks for it with `startWithNewLine`.
+  colCount: 2,
   elements: [
     {
       type: 'text',
       name: 'fullName',
       title: 'What is your name?',
+      startWithNewLine: true,
       isRequired: true,
       requiredErrorText: 'We need a name to address you by.',
       placeholder: 'Ada Lovelace',
@@ -83,7 +87,8 @@ export const aboutYou: PageDefinition = {
     {
       type: 'radiogroup',
       name: 'seniority',
-      title: 'How senior are you?',
+      // The host's text seam turns `*…*` into an element — checklist I6.
+      title: 'How *senior* are you?',
       choices: [
         { value: 0, text: 'Individual contributor' },
         { value: 1, text: 'Manager' },

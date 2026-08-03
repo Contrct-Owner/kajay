@@ -1,4 +1,5 @@
 import type { ExpressionError } from './ExpressionError.js';
+import type { ExpressionErrorCode } from './ExpressionErrorCode.js';
 import type { BinaryOperator, ExpressionNode, SourceSpan, UnaryOperator } from './ExpressionNode.js';
 import {
   BINARY_PRECEDENCE,
@@ -51,7 +52,7 @@ class Parser {
     return token;
   }
 
-  #fail(code: string, message: string, at: SourceSpan): ExpressionNode {
+  #fail(code: ExpressionErrorCode, message: string, at: SourceSpan): ExpressionNode {
     this.#errors.push({ code, message, span: at });
     return { kind: 'error', span: at, message };
   }

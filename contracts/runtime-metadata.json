@@ -1,0 +1,1320 @@
+{
+  "contractVersion": 1,
+  "definitionSchemaId": "urn:kajay:survey-definition:1",
+  "definitionSchemaVersion": 1,
+  "propertyTypes": [
+    "string",
+    "number",
+    "boolean",
+    "value"
+  ],
+  "classes": [
+    {
+      "name": "answercountvalidator",
+      "parent": "validator",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "minCount",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "maxCount",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "description": null
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "boolean",
+      "parent": "question",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "labelTrue",
+          "type": "string",
+          "defaultValue": "Yes",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "labelFalse",
+          "type": "string",
+          "defaultValue": "No",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "valueTrue",
+          "type": "value",
+          "defaultValue": true,
+          "isRequired": false,
+          "description": "What is stored for yes. Anything the host backend expects."
+        },
+        {
+          "name": "valueFalse",
+          "type": "value",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "renderAs",
+          "type": "string",
+          "defaultValue": "switch",
+          "isRequired": false,
+          "description": "switch or radio."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "calculatedvalue",
+      "parent": null,
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "name",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": "The name this value is referenced by in expressions."
+        },
+        {
+          "name": "expression",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": null
+        },
+        {
+          "name": "includeIntoResult",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": "Whether the computed value joins the survey answers."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "checkbox",
+      "parent": "multiselectbase",
+      "isAbstract": false,
+      "declaredProperties": [],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "comment",
+      "parent": "question",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "placeholder",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "rows",
+          "type": "number",
+          "defaultValue": 4,
+          "isRequired": false,
+          "description": "Visible height, in lines."
+        },
+        {
+          "name": "autoGrow",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": "Grow to fit the answer rather than scrolling."
+        },
+        {
+          "name": "allowResize",
+          "type": "boolean",
+          "defaultValue": true,
+          "isRequired": false,
+          "description": "Whether the respondent may drag the field taller."
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "description": "Length budget. 0 means none, which also hides the counter."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "complete",
+      "parent": "trigger",
+      "isAbstract": false,
+      "declaredProperties": [],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "copyvalue",
+      "parent": "trigger",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "setToName",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": null
+        },
+        {
+          "name": "fromName",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": null
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "displayelement",
+      "parent": "pageelement",
+      "isAbstract": true,
+      "declaredProperties": [],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "dropdown",
+      "parent": "selectbase",
+      "isAbstract": false,
+      "declaredProperties": [],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "emailvalidator",
+      "parent": "validator",
+      "isAbstract": false,
+      "declaredProperties": [],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "expression",
+      "parent": "question",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "expression",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": "Computed from the answers. The respondent does not supply it."
+        },
+        {
+          "name": "displayStyle",
+          "type": "string",
+          "defaultValue": "none",
+          "isRequired": false,
+          "description": "none, decimal, currency, percent or date."
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "defaultValue": "USD",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "maximumFractionDigits",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "description": "0 leaves it to the style."
+        },
+        {
+          "name": "format",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Template around the result, with {0} standing for it."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "expressionvalidator",
+      "parent": "validator",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "expression",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": "The answer is acceptable while this evaluates truthy."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "html",
+      "parent": "displayelement",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "html",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Markup, rendered as markup. See HtmlElement on the trust boundary."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "htmlcondition",
+      "parent": null,
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "expression",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": null
+        },
+        {
+          "name": "html",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": null
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "image",
+      "parent": "displayelement",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "imageLink",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "altText",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Falls back to the title, then to empty — a decorative image."
+        },
+        {
+          "name": "imageFit",
+          "type": "string",
+          "defaultValue": "contain",
+          "isRequired": false,
+          "description": "none, contain, cover or fill. Mirrors CSS object-fit."
+        },
+        {
+          "name": "contentMode",
+          "type": "string",
+          "defaultValue": "image",
+          "isRequired": false,
+          "description": "image or video."
+        },
+        {
+          "name": "imageWidth",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "description": "CSS pixels. 0 lets layout decide."
+        },
+        {
+          "name": "imageHeight",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "description": null
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "imagepicker",
+      "parent": "multiselectbase",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "multiSelect",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": "The one select type whose arity is a property rather than its type."
+        },
+        {
+          "name": "imageFit",
+          "type": "string",
+          "defaultValue": "contain",
+          "isRequired": false,
+          "description": "none, contain, cover or fill. Mirrors CSS object-fit."
+        },
+        {
+          "name": "contentMode",
+          "type": "string",
+          "defaultValue": "image",
+          "isRequired": false,
+          "description": "image or video."
+        },
+        {
+          "name": "imageWidth",
+          "type": "number",
+          "defaultValue": 200,
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "imageHeight",
+          "type": "number",
+          "defaultValue": 150,
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "showLabel",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": "Whether the choice text is shown. It is the tile name either way."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "itemvalue",
+      "parent": null,
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "value",
+          "type": "value",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": null
+        },
+        {
+          "name": "text",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Display text; falls back to the value."
+        },
+        {
+          "name": "imageLink",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Picture or video for this choice. Only an imagepicker draws it."
+        },
+        {
+          "name": "visibleIf",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Expression; the choice is offered only while truthy."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "multipletext",
+      "parent": "question",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "itemSize",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "description": "Default field width in characters. An item size wins."
+        },
+        {
+          "name": "colCount",
+          "type": "number",
+          "defaultValue": 1,
+          "isRequired": false,
+          "description": null
+        }
+      ],
+      "declaredChildCollections": [
+        {
+          "property": "items",
+          "elementBaseType": "multipletextitem",
+          "shorthandProperty": null
+        }
+      ]
+    },
+    {
+      "name": "multipletextitem",
+      "parent": null,
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "name",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": "Key this field is stored under inside the question answer."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Display label; falls back to name."
+        },
+        {
+          "name": "inputType",
+          "type": "string",
+          "defaultValue": "text",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "isRequired",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        {
+          "name": "requiredErrorText",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "description": "Width in characters. 0 uses itemSize."
+        }
+      ],
+      "declaredChildCollections": [
+        {
+          "property": "validators",
+          "elementBaseType": "validator",
+          "shorthandProperty": null
+        }
+      ]
+    },
+    {
+      "name": "multiselectbase",
+      "parent": "selectbase",
+      "isAbstract": true,
+      "declaredProperties": [
+        {
+          "name": "showSelectAllItem",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "selectAllText",
+          "type": "string",
+          "defaultValue": "Select all",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "maxSelectedChoices",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "description": "0 means no limit."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "numericvalidator",
+      "parent": "validator",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "minValue",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "description": "Omit for no lower bound."
+        },
+        {
+          "name": "maxValue",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "description": "Omit for no upper bound."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "page",
+      "parent": null,
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "name",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": "Unique page identifier."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "visibleIf",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Expression; the page is shown only while it evaluates truthy."
+        }
+      ],
+      "declaredChildCollections": [
+        {
+          "property": "elements",
+          "elementBaseType": "pageelement",
+          "shorthandProperty": null
+        }
+      ]
+    },
+    {
+      "name": "pageelement",
+      "parent": null,
+      "isAbstract": true,
+      "declaredProperties": [
+        {
+          "name": "name",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Display title; falls back to name."
+        },
+        {
+          "name": "visibleIf",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        {
+          "name": "enableIf",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "panel",
+      "parent": "pageelement",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "description",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "state",
+          "type": "string",
+          "defaultValue": "default",
+          "isRequired": false,
+          "description": "default, expanded or collapsed. Collapsed panels start closed."
+        }
+      ],
+      "declaredChildCollections": [
+        {
+          "property": "elements",
+          "elementBaseType": "pageelement",
+          "shorthandProperty": null
+        }
+      ]
+    },
+    {
+      "name": "question",
+      "parent": "pageelement",
+      "isAbstract": true,
+      "declaredProperties": [
+        {
+          "name": "isRequired",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        {
+          "name": "requiredIf",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Expression; when present it overrides isRequired."
+        },
+        {
+          "name": "requiredErrorText",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        {
+          "name": "defaultValueExpression",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        {
+          "name": "setValueIf",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        {
+          "name": "setValueExpression",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "resetValueIf",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        }
+      ],
+      "declaredChildCollections": [
+        {
+          "property": "validators",
+          "elementBaseType": "validator",
+          "shorthandProperty": null
+        }
+      ]
+    },
+    {
+      "name": "radiogroup",
+      "parent": "selectbase",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "showClearButton",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": null
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "ranking",
+      "parent": "selectbase",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "selectToRankEnabled",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": "Choices start in a pool and are ranked only once placed."
+        },
+        {
+          "name": "selectToRankAreasLayout",
+          "type": "string",
+          "defaultValue": "vertical",
+          "isRequired": false,
+          "description": "horizontal or vertical. Where the pool sits relative to the ranking."
+        },
+        {
+          "name": "maxSelectedChoices",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "description": "0 means no limit."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "rating",
+      "parent": "question",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "rateMin",
+          "type": "number",
+          "defaultValue": 1,
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "rateMax",
+          "type": "number",
+          "defaultValue": 5,
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "rateStep",
+          "type": "number",
+          "defaultValue": 1,
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "rateType",
+          "type": "string",
+          "defaultValue": "labels",
+          "isRequired": false,
+          "description": "labels, stars or smileys."
+        },
+        {
+          "name": "displayMode",
+          "type": "string",
+          "defaultValue": "auto",
+          "isRequired": false,
+          "description": "auto, buttons or dropdown. auto collapses a long scale."
+        },
+        {
+          "name": "minRateDescription",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "maxRateDescription",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": null
+        }
+      ],
+      "declaredChildCollections": [
+        {
+          "property": "rateValues",
+          "elementBaseType": "itemvalue",
+          "shorthandProperty": "value"
+        }
+      ]
+    },
+    {
+      "name": "regexvalidator",
+      "parent": "validator",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "regex",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": "Pattern the answer must match. Applied with the unicode flag."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "runexpression",
+      "parent": "trigger",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "setToName",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "runExpression",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": null
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "selectbase",
+      "parent": "question",
+      "isAbstract": true,
+      "declaredProperties": [
+        {
+          "name": "choicesOrder",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "none, asc or desc."
+        },
+        {
+          "name": "colCount",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "showOtherItem",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "otherText",
+          "type": "string",
+          "defaultValue": "Other",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "showNoneItem",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "noneText",
+          "type": "string",
+          "defaultValue": "None",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "searchEnabled",
+          "type": "boolean",
+          "defaultValue": true,
+          "isRequired": false,
+          "description": "Whether a long list may be narrowed by typing."
+        },
+        {
+          "name": "choicesFromQuestion",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Name of a select question whose choices are carried forward."
+        },
+        {
+          "name": "choicesFromQuestionMode",
+          "type": "string",
+          "defaultValue": "all",
+          "isRequired": false,
+          "description": "all, selected or unselected."
+        },
+        {
+          "name": "choicesByUrl",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "URL to load choices from; may interpolate {question} placeholders."
+        },
+        {
+          "name": "choicesPath",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Dotted path to the array inside the response."
+        },
+        {
+          "name": "choicesValueName",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "choicesTitleName",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "choicesLazyLoadEnabled",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": "The list arrives a page at a time from the host loader."
+        },
+        {
+          "name": "choicesLazyLoadPageSize",
+          "type": "number",
+          "defaultValue": 25,
+          "isRequired": false,
+          "description": "How many choices one page asks for."
+        }
+      ],
+      "declaredChildCollections": [
+        {
+          "property": "choices",
+          "elementBaseType": "itemvalue",
+          "shorthandProperty": "value"
+        }
+      ]
+    },
+    {
+      "name": "setvalue",
+      "parent": "trigger",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "setToName",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": null
+        },
+        {
+          "name": "setValue",
+          "type": "value",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Literal written to setToName."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "skip",
+      "parent": "trigger",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "gotoName",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": "Page name, or a question name whose page is navigated to."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "survey",
+      "parent": null,
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "title",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Survey title shown above the first page."
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "questionsOnPageMode",
+          "type": "string",
+          "defaultValue": "standard",
+          "isRequired": false,
+          "description": "standard, singlePage or questionPerPage."
+        },
+        {
+          "name": "validationEnabled",
+          "type": "boolean",
+          "defaultValue": true,
+          "isRequired": false,
+          "description": "Set false to stop validation blocking navigation or completion."
+        },
+        {
+          "name": "checkErrorsMode",
+          "type": "string",
+          "defaultValue": "onNextPage",
+          "isRequired": false,
+          "description": "onNextPage, onValueChanged or onComplete."
+        },
+        {
+          "name": "questionErrorLocation",
+          "type": "string",
+          "defaultValue": "top",
+          "isRequired": false,
+          "description": "Whether a question draws its errors above its input or below it."
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": "The whole survey is for reading rather than answering."
+        },
+        {
+          "name": "goNextPageAutomatic",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": "Turn the page once every question on it has a one-step answer."
+        },
+        {
+          "name": "autoFocusFirstQuestion",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": "Give the first question on each page focus as the page arrives."
+        },
+        {
+          "name": "showProgressBar",
+          "type": "string",
+          "defaultValue": "off",
+          "isRequired": false,
+          "description": "off, top, bottom or both."
+        },
+        {
+          "name": "progressBarType",
+          "type": "string",
+          "defaultValue": "pages",
+          "isRequired": false,
+          "description": "pages, questions or requiredQuestions."
+        },
+        {
+          "name": "showTOC",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "description": "Offer a list of pages the respondent can jump between."
+        },
+        {
+          "name": "showPreviewBeforeComplete",
+          "type": "string",
+          "defaultValue": "noPreview",
+          "isRequired": false,
+          "description": "noPreview, showAllQuestions or showAnsweredQuestions."
+        },
+        {
+          "name": "clearInvisibleValues",
+          "type": "string",
+          "defaultValue": "onComplete",
+          "isRequired": false,
+          "description": "none, onHidden or onComplete. What happens to an unreachable answer."
+        },
+        {
+          "name": "completedHtml",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Markup shown once the survey is finished. {name} resolves to an answer."
+        },
+        {
+          "name": "loadingHtml",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Markup shown while the host reports the survey as loading."
+        },
+        {
+          "name": "emptyHtml",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Markup shown when no page is visible, so there is nothing to answer."
+        }
+      ],
+      "declaredChildCollections": [
+        {
+          "property": "pages",
+          "elementBaseType": "page",
+          "shorthandProperty": null
+        },
+        {
+          "property": "calculatedValues",
+          "elementBaseType": "calculatedvalue",
+          "shorthandProperty": null
+        },
+        {
+          "property": "triggers",
+          "elementBaseType": "trigger",
+          "shorthandProperty": null
+        },
+        {
+          "property": "completedHtmlOnCondition",
+          "elementBaseType": "htmlcondition",
+          "shorthandProperty": null
+        }
+      ]
+    },
+    {
+      "name": "tagbox",
+      "parent": "multiselectbase",
+      "isAbstract": false,
+      "declaredProperties": [],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "text",
+      "parent": "question",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "inputType",
+          "type": "string",
+          "defaultValue": "text",
+          "isRequired": false,
+          "description": "text, number, email, date, datetime-local, time, tel, url, color, range or password."
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "min",
+          "type": "value",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Lower bound. A number for numeric types, an ISO string for date ones."
+        },
+        {
+          "name": "max",
+          "type": "value",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Upper bound, read the same way as min."
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "description": "0 lets the browser choose."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "textvalidator",
+      "parent": "validator",
+      "isAbstract": false,
+      "declaredProperties": [
+        {
+          "name": "minLength",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "description": null
+        },
+        {
+          "name": "allowDigits",
+          "type": "boolean",
+          "defaultValue": true,
+          "isRequired": false,
+          "description": "Set false to reject an answer containing any digit."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "trigger",
+      "parent": null,
+      "isAbstract": true,
+      "declaredProperties": [
+        {
+          "name": "expression",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "description": "The trigger acts when this becomes true, not while it stays true."
+        }
+      ],
+      "declaredChildCollections": []
+    },
+    {
+      "name": "validator",
+      "parent": null,
+      "isAbstract": true,
+      "declaredProperties": [
+        {
+          "name": "text",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "description": "Replaces the built-in message when this check fails."
+        }
+      ],
+      "declaredChildCollections": []
+    }
+  ]
+}

@@ -22,8 +22,11 @@ Before planning, implementing, or reviewing code or tests, read
   the published `.d.ts` that a 5.5 consumer cannot compile; the pack test enforces this
   against real installed compilers. Raising the floor is a breaking change.
 - The JSON survey definition is authoritative. Every feature exists first as
-  metadata-registry registration + schema; `contracts/survey-schema.json` is
-  committed and CI fails on drift — commit the regenerated contract in the same PR.
+  metadata-registry registration + schema. The generated files in `contracts/` are
+  committed and CI fails on drift — commit regenerated contracts in the same PR.
+- Cross-language behavior is versioned under `conformance/v*/`. Changes to definition
+  canonicalization, expression semantics, diagnostics, or lifecycle ordering must add
+  or update adapter-neutral cases and keep `check:conformance` green.
 - Keep unit and browser/E2E tests in separate projects. Unit tests are pure logic:
   no DOM, no jsdom (banned repo-wide), no browser, no network, no mocks of our own
   packages. DOM behavior is proven in real Chromium (Vitest browser mode) or
@@ -57,7 +60,8 @@ pnpm run check:arch   # dependency direction, DOM-free core, no deep imports
 pnpm run test:unit    # Vitest, node environment, pure logic
 pnpm run test:browser # Vitest browser mode, real Chromium
 pnpm run test:e2e     # Playwright against apps/host-demo
-pnpm run check:contract # regenerate contracts/survey-schema.json, fail on drift
+pnpm run check:contract # regenerate the committed contracts, fail on drift
+pnpm run check:conformance # run the TypeScript runtime against the shared corpus
 pnpm run test:pack    # pnpm pack all packages, install tarballs in scratch project,
                       # compile (tsc + tsgo) and run smoke scenario
 ```

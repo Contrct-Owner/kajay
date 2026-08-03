@@ -5,7 +5,9 @@
  * stores `42`, `'yes'` or `true` in the same property, and forcing it to one of them
  * would make the definition lie about what the trigger does.
  */
-export type PropertyType = 'string' | 'number' | 'boolean' | 'value';
+export const PROPERTY_TYPES = ['string', 'number', 'boolean', 'value'] as const;
+
+export type PropertyType = (typeof PROPERTY_TYPES)[number];
 
 /** Every value a declared property can hold. */
 export type PropertyValue = string | number | boolean;

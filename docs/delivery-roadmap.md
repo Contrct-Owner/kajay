@@ -3,7 +3,7 @@
 - Area: Phased delivery plan from foundation to full parity
 - Status: proposed
 - Owner: Jarod
-- Last updated: 2026-08-02
+- Last updated: 2026-08-03
 
 This is the single index that sequences the work into **delivery phases** with explicit
 entry and exit gates, so work has an order and each milestone has a definition of done.
@@ -31,7 +31,7 @@ proven by the host application and the parity checklist. Phase 4 is horizon.
 | **1 — Runtime core** | Expression engine, core question types, logic, validation, flow | Checklist §A–§E green via host-demo scenarios, less the rows that name later-phase surface | **complete (2026-08-02)** |
 | **2 — Form Library parity** | Matrix family, dynamic panels, quiz, theming, localization, a11y | Checklist §A–§J (all Form Library sections) green | proposed |
 | **3 — Creator parity** ⭐ | Drag-drop designer, property grid, logic/JSON/translation/theme editors | Checklist §K–§N green; build→render→round-trip proven in host-demo | proposed (overall AC) |
-| **4 — Horizon** | PDF, dashboard, other frameworks, SSR | Opportunity-driven | horizon |
+| **4 — Horizon** | PDF, dashboard, other frameworks/runtimes, SSR | Opportunity-driven | horizon |
 
 ## Phase 0 — Foundation & scaffolding
 
@@ -249,7 +249,9 @@ verify the definition round-trips and re-loads into the Creator losslessly.**
 
 Opportunity-driven, on evidence of need: PDF export, dashboard/analytics, Vue and
 Angular adapters, SSR/Next integration polish, SurveyJS-JSON import/compat mode,
-rich-text authoring. Each starts with its own ADR and checklist section.
+rich-text authoring, and native runtimes such as .NET. A second runtime begins at the
+versioned contract and conformance seam from ADR-0020 rather than translating the
+TypeScript implementation. Each starts with its own ADR and checklist section.
 
 ## Cross-cutting invariants (every phase)
 
@@ -261,6 +263,8 @@ rich-text authoring. Each starts with its own ADR and checklist section.
   through public APIs; the parity checklist row flips green only via a passing test.
 - Definition round-trip (load → serialize) stays lossless; round-trip tests run on
   every fixture in the corpus.
+- Language-neutral behavior changes update the versioned conformance corpus, and every
+  maintained runtime adapter passes the same cases.
 - Tests stay order-independent and parallel-safe; CI stays a single required
   `survey-checks` gate.
 - Anything out of a phase's scope stays deferred — no pulling horizon work forward.

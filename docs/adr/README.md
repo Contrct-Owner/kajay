@@ -3,7 +3,7 @@
 - Area: Decision record index
 - Status: established
 - Owner: Jarod
-- Last updated: 2026-08-02
+- Last updated: 2026-08-03
 
 Non-trivial decisions get an ADR. An ADR states the context, the decision, and the
 consequences that follow from it — including the costs accepted. Reversals are
@@ -42,6 +42,7 @@ recorded here (status `superseded`) **and** in the
 | [0017](./0017-choices-url-environment-portability.md) | `choicesByUrl` origin belongs to the host, not the definition | accepted | 2026-08-02 |
 | [0018](./0018-input-masking-out-of-scope.md) | Input masking is out of parity scope | accepted | 2026-08-02 |
 | [0019](./0019-deep-runtime-modules-and-rendering-seam.md) | Deep runtime modules and one page-element rendering seam | accepted | 2026-08-02 |
+| [0020](./0020-versioned-cross-language-runtime-contract.md) | Versioned cross-language runtime contract | accepted | 2026-08-03 |
 
 ## Parent and related links
 

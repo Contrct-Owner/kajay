@@ -1,7 +1,12 @@
 import { DesignSurface, Toolbox } from '@kajay/creator-core';
-import { HistoryPanel, PageNavigatorPanel, useDesignerPlacement } from '@kajay/creator-react';
+import {
+  HistoryPanel,
+  PageNavigatorPanel,
+  PropertyGridPanel,
+  useDesignerPlacement,
+} from '@kajay/creator-react';
 import { useMemo } from 'react';
-import type { ReactElement } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
 import { DesignerSurface } from './DesignerSurface.js';
 import { DesignerToolbox } from './DesignerToolbox.js';
 
@@ -30,6 +35,10 @@ const DESIGNED = {
           name: 'draftScore',
           title: 'Draft: how likely to recommend?',
           startWithNewLine: true,
+          // A reference to another question by name, so renaming `draftName` from the
+          // property grid has something to be seen following it — L1's rename claim is
+          // otherwise only provable in a unit test.
+          visibleIf: '{draftName} notempty',
         },
         // A panel, so a drop *into* one is reachable at all — K2's last gap, and the
         // reason the row stayed partial until the canvas could adorn what is inside it.
@@ -81,6 +90,16 @@ export function Designer({ theme }: DesignerProps): ReactElement {
         <HistoryPanel surface={surface} />
         <PageNavigatorPanel surface={surface} placement={placement} />
       </DesignerSurface>
+      {/* Its own section rather than a strip inside the canvas — a property grid is the
+          piece most likely to live somewhere the host already had a sidebar (L1). */}
+      <section
+        className="host-demo__panel"
+        aria-label="Designer properties"
+        style={theme as CSSProperties}
+      >
+        <h2>Properties</h2>
+        <PropertyGridPanel surface={surface} />
+      </section>
     </>
   );
 }

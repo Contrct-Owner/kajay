@@ -1,9 +1,10 @@
-import { EventEmitter, isLocalizedText } from '@kajay/core';
+import { EventEmitter } from '@kajay/core';
 import type {
   Diagnostic,
   MetadataRegistry,
   Page,
   PageElement,
+  PropertyValue,
   Survey,
   SurveyDefinition,
   SurveyElement,
@@ -24,9 +25,9 @@ import {
 } from './elementEdits.js';
 import { canPlace, dropSlotsFor, dropSlotsOn } from './placement.js';
 import type { DropSlot, PlacementSource } from './placement.js';
-
-/** The one place a title is written, so the key it lands under is decided once. */
-const DEFAULT_LOCALE_KEY = 'default';
+import { propertyRowsFor } from './propertyGrid.js';
+import type { PropertyGridCategory } from './propertyGrid.js';
+import { renameIn, setPropertyOn } from './propertyEdits.js';
 
 /** What an edit wants restored once its definition has been parsed. */
 export interface EditOptions {
@@ -136,30 +137,42 @@ export class DesignSurface {
   }
 
   /**
-   * Renames an element — checklist K3's inline title editing.
+   * Retitles an element — checklist K3's inline title editing.
    *
-   * **A localized title is edited in place, not replaced.** A title authored as
-   * `{ default: 'Name', fr: 'Nom' }` is written back with only the current locale's
-   * entry changed; overwriting it with a plain string would drop every other language
-   * the moment somebody fixed a typo, and nothing about typing in a text box suggests
-   * that is what happened. Which entry counts as current is the survey's locale (J1),
-   * or `default` when it names none.
+   * A named shortcut for {@link setProperty}, kept because the title is the one property
+   * with an editor outside the grid and `setTitle(element, text)` reads better there than
+   * a string constant would. Everything it used to do itself — the localized merge, the
+   * coalescing undo key — now happens for *every* property, which is what stops
+   * `description` and `placeholder` behaving differently from `title`.
    */
   setTitle(element: PageElement | Page, title: string): void {
-    const current = element.getPropertyValue('title');
-    // Every keystroke arrives here, and they coalesce into one undo entry (K6): giving
-    // a rename back one letter at a time is not what anybody means by undoing it.
-    const undoKey = `title:${element.name}`;
-    if (isLocalizedText(current)) {
-      const key = this.survey.locale.length > 0 ? this.survey.locale : DEFAULT_LOCALE_KEY;
-      this.change(() => {
-        element.setPropertyValue('title', { ...current, [key]: title });
-      }, undoKey);
-      return;
-    }
-    this.change(() => {
-      element.setPropertyValue('title', title);
-    }, undoKey);
+    this.setProperty(element, 'title', title);
+  }
+
+  /**
+   * Every property of an element, grouped and ordered — checklist L1.
+   *
+   * Asked of the surface rather than of the registry directly, so a view holds one object
+   * and the registry a document was parsed with is the registry its grid is generated
+   * from. The same shape as {@link convertibleTypes}, and for the same reason.
+   */
+  properties(element: SurveyElement): readonly PropertyGridCategory[] {
+    return propertyRowsFor(element, this.#document.registry);
+  }
+
+  /**
+   * Writes a property — checklist L1. Says whether it took.
+   *
+   * `name` goes through {@link rename} and every other property is set in place; see
+   * [`propertyEdits`](./propertyEdits.ts) for why that split is not arbitrary.
+   */
+  setProperty(element: SurveyElement, name: string, value: PropertyValue): boolean {
+    return setPropertyOn(this, element, name, value, this.#document.registry);
+  }
+
+  /** Renames an element or page and every reference to it — checklist L1. */
+  rename(from: string, to: string): boolean {
+    return renameIn(this, from, to);
   }
 
   /** The canonical JSON of what is on the canvas right now — ADR-0002's round trip. */

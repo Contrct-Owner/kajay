@@ -53,6 +53,12 @@ export interface CreatorInputProps {
   readonly id?: string;
   readonly type?: 'text' | 'search';
   readonly 'aria-label'?: string;
+  /** Points at the hint under a property-grid row — L1. */
+  readonly 'aria-describedby'?: string | undefined;
+  readonly 'aria-invalid'?: boolean | undefined;
+  readonly 'data-testid'?: string;
+  /** L1's `name` row commits on blur; see `PropertyCommit`. */
+  readonly onBlur?: () => void;
 }
 
 /** One choice in a {@link CreatorSelectProps}. */
@@ -77,6 +83,31 @@ export interface CreatorSelectProps {
   readonly disabled?: boolean;
   readonly className?: string;
   readonly 'aria-label'?: string;
+  readonly 'aria-describedby'?: string | undefined;
+  readonly 'data-testid'?: string;
+}
+
+/**
+ * A single on/off control.
+ *
+ * The fourth primitive, and it earns its place on ADR-0022's terms exactly as `Select`
+ * did: a property grid generated from the registry is largely booleans — `isRequired`,
+ * `readOnly`, `startWithNewLine`, `autoGrow` — and there is no way to draw a checkbox out
+ * of a button, a text field and a picker. A two-option select would be the alternative,
+ * and it is worse for a pointer and worse again for a screen reader, which would announce
+ * a yes/no question where the control is a switch.
+ *
+ * `checked`/`onCheckedChange` rather than `value`, because that is the shape shadcn/ui,
+ * Radix and ReUI already use and an adapter should stay a re-export.
+ */
+export interface CreatorCheckboxProps {
+  readonly checked: boolean;
+  readonly onCheckedChange: (checked: boolean) => void;
+  readonly disabled?: boolean;
+  readonly className?: string;
+  readonly id?: string;
+  readonly 'aria-label'?: string;
+  readonly 'aria-describedby'?: string | undefined;
   readonly 'data-testid'?: string;
 }
 
@@ -101,6 +132,7 @@ export interface CreatorComponents {
   readonly Button?: ComponentType<CreatorButtonProps> | undefined;
   readonly Input?: ComponentType<CreatorInputProps> | undefined;
   readonly Select?: ComponentType<CreatorSelectProps> | undefined;
+  readonly Checkbox?: ComponentType<CreatorCheckboxProps> | undefined;
 }
 
 /**
@@ -176,7 +208,31 @@ function DefaultSelect({
   );
 }
 
-const DEFAULTS = { Button: DefaultButton, Input: DefaultInput, Select: DefaultSelect };
+function DefaultCheckbox({
+  checked,
+  onCheckedChange,
+  className,
+  ...rest
+}: CreatorCheckboxProps): ReactElement {
+  return (
+    <input
+      type="checkbox"
+      className={className}
+      checked={checked}
+      onChange={(event) => {
+        onCheckedChange(event.target.checked);
+      }}
+      {...rest}
+    />
+  );
+}
+
+const DEFAULTS = {
+  Button: DefaultButton,
+  Input: DefaultInput,
+  Select: DefaultSelect,
+  Checkbox: DefaultCheckbox,
+};
 
 const CreatorComponentsContext = createContext<CreatorComponents>({});
 

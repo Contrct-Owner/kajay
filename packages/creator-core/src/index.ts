@@ -13,7 +13,22 @@ export {
   pasteInto,
   removeElementFrom,
 } from './elementEdits.js';
-export { freshenFragment, takenNames } from './fragments.js';
+export { freshenFragment, renameThroughout, takenNames } from './fragments.js';
+export { editorKindFor, humanizePropertyName, parseEditorText, propertyRowsFor } from './propertyGrid.js';
+export type {
+  PropertyCommit,
+  PropertyEditorKind,
+  PropertyGridCategory,
+  PropertyRow,
+} from './propertyGrid.js';
+export { renameIn, setPropertyOn } from './propertyEdits.js';
+export {
+  GENERAL_CATEGORY,
+  LOGIC_CATEGORY,
+  orderPropertyCategories,
+  PROPERTY_CATEGORIES,
+  PROPERTY_CATEGORY_ORDER,
+} from './propertyCategories.js';
 export { canPlace, applyPlacement, dropSlotsFor, dropSlotsOn } from './placement.js';
 export type { DropSlot, PlacementSource } from './placement.js';
 export { addPage, pageAfterRemoving, removePage } from './pageEdits.js';

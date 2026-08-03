@@ -72,6 +72,26 @@ function nextName(name: string, taken: ReadonlySet<string>): string {
   }
 }
 
+/**
+ * One name changed everywhere it appears — checklist L1's rename.
+ *
+ * The same walk a paste uses, with a map of one. That is the whole reason renaming an
+ * element from the property grid cost nothing: K5 had already established that a name and
+ * the references to it move together, and the only difference here is that the rewrite
+ * covers the survey rather than a fragment cut out of it.
+ *
+ * Over-inclusive in the same direction as {@link takenNames}: a definition that already
+ * has two things called `who` — which nothing the Creator produces can — renames both.
+ * The alternative is renaming one and leaving every reference ambiguous, which is worse.
+ */
+export function renameThroughout(
+  definition: SurveyDefinition,
+  from: string,
+  to: string,
+): SurveyDefinition {
+  return rewrite(definition, new Map([[from, to]])) as SurveyDefinition;
+}
+
 function rewrite(value: unknown, renames: RenameMap): unknown {
   if (typeof value === 'string') {
     return rewriteReferences(value, renames);

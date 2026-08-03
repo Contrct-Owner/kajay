@@ -843,6 +843,79 @@
   white-space: nowrap;
 }
 
+/* --- the property grid (L1) ---------------------------------------------- */
+
+.kajay-properties {
+  display: grid;
+  gap: var(--kajay-spacing);
+}
+
+.kajay-properties__empty {
+  margin: 0;
+  color: var(--kajay-color-muted);
+  font-style: italic;
+}
+
+.kajay-properties__section {
+  margin: 0;
+  padding: calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  display: grid;
+  gap: calc(var(--kajay-spacing) / 2);
+}
+
+.kajay-properties__legend {
+  padding: 0 calc(var(--kajay-spacing) / 3);
+  font-weight: 600;
+}
+
+/* Label, control, hint — a column each on a wide panel and stacked on a narrow one,
+   because a property grid is the piece most likely to live in a host's sidebar. */
+.kajay-properties__row {
+  display: grid;
+  grid-template-columns: minmax(8rem, 1fr) minmax(0, 2fr);
+  gap: calc(var(--kajay-spacing) / 3);
+  align-items: baseline;
+}
+
+.kajay-properties__label {
+  color: var(--kajay-color-muted);
+}
+
+.kajay-properties__input {
+  min-width: 0;
+  padding: calc(var(--kajay-spacing) / 4);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+}
+
+/* JSON that does not parse yet. The value is simply not written while this shows, so
+   the border is saying "not stored", not "you have broken something". */
+.kajay-properties__input[aria-invalid='true'] {
+  border-color: var(--kajay-color-danger);
+}
+
+.kajay-properties__checkbox {
+  justify-self: start;
+}
+
+.kajay-properties__hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--kajay-color-muted);
+  font-size: 0.85em;
+}
+
+@media (max-width: 40rem) {
+  .kajay-properties__row {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* --- multipletext -------------------------------------------------------- */
 
 .kajay-question--multipletext {

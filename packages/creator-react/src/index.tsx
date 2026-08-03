@@ -12,6 +12,8 @@ export { historyShortcut, isTextEntry } from './historyShortcut.js';
 export type { HistoryIntent, HistoryKey } from './historyShortcut.js';
 export { PageNavigatorPanel } from './PageNavigatorPanel.js';
 export type { PageNavigatorPanelProps } from './PageNavigatorPanel.js';
+export { PropertyGridPanel } from './PropertyGridPanel.js';
+export type { PropertyGridPanelProps } from './PropertyGridPanel.js';
 export { ToolboxPanel } from './ToolboxPanel.js';
 export { useDesignerPlacement } from './useDesignerPlacement.js';
 export type {
@@ -24,6 +26,7 @@ export type { ToolboxPanelProps } from './ToolboxPanel.js';
 export { CreatorComponentsProvider, useCreatorComponents } from './CreatorComponents.js';
 export type {
   CreatorButtonProps,
+  CreatorCheckboxProps,
   CreatorComponents,
   CreatorComponentsProviderProps,
   CreatorInputProps,

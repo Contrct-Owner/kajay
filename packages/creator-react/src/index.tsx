@@ -14,6 +14,10 @@ export { PageNavigatorPanel } from './PageNavigatorPanel.js';
 export type { PageNavigatorPanelProps } from './PageNavigatorPanel.js';
 export { PropertyGridPanel } from './PropertyGridPanel.js';
 export type { PropertyGridPanelProps } from './PropertyGridPanel.js';
+export { CollectionEditor } from './CollectionEditor.js';
+export type { CollectionEditorProps } from './CollectionEditor.js';
+export { PropertySection } from './PropertyFields.js';
+export type { PropertySectionProps } from './PropertyFields.js';
 export { ToolboxPanel } from './ToolboxPanel.js';
 export { useDesignerPlacement } from './useDesignerPlacement.js';
 export type {
@@ -32,6 +36,7 @@ export type {
   CreatorInputProps,
   CreatorSelectOption,
   CreatorSelectProps,
+  CreatorTextareaProps,
   ResolvedCreatorComponents,
 } from './CreatorComponents.js';
 export { ElementActions } from './ElementActions.js';

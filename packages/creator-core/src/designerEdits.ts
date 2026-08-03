@@ -1,3 +1,4 @@
+import type { SurveyElement } from '@kajay/core';
 import type { DesignSurface } from './DesignSurface.js';
 import type { DropSlot, PlacementSource } from './placement.js';
 import { addPage, pageAfterRemoving, removePage } from './pageEdits.js';
@@ -72,4 +73,26 @@ function newestPage(definition: Record<string, unknown>): string | undefined {
   const last: unknown = pages.at(-1);
   const name = (last as Record<string, unknown> | undefined)?.['name'];
   return typeof name === 'string' ? name : undefined;
+}
+
+/**
+ * Finds what was selected in the survey that has just replaced the old one.
+ *
+ * Pages as well as elements, because a page is a selectable thing in its own right (K4) —
+ * and a page dragged into a new order should still be the one selected when it lands,
+ * exactly as a question is. A **nested** child is deliberately not resolved: a matrix
+ * column edited from the collection editor is not the selection, and the selection that
+ * was there is what the edit passes back.
+ */
+export function resolveSelection(
+  surface: DesignSurface,
+  name: string | undefined,
+): SurveyElement | undefined {
+  if (name === undefined) {
+    return undefined;
+  }
+  return (
+    surface.page?.elements.find((element) => element.name === name) ??
+    surface.pages.find((page) => page.name === name)
+  );
 }

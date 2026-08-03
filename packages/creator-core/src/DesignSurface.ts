@@ -12,19 +12,26 @@ import type {
 import { countIn, locate, nameOf } from './definitionTree.js';
 import type { DropList } from './definitionTree.js';
 import { SurveyDocument } from './SurveyDocument.js';
-import { UndoHistory } from './UndoHistory.js';
+import { DesignHistory } from './DesignHistory.js';
 import type { HistorySnapshot } from './UndoHistory.js';
-import { addPageTo, placeOn, removePageFrom } from './designerEdits.js';
+import { addPageTo, placeOn, removePageFrom, resolveSelection } from './designerEdits.js';
 import {
   convertibleTypes,
   convertIn,
-  copyFrom,
   duplicateIn,
-  pasteInto,
   removeElementFrom,
 } from './elementEdits.js';
 import { canPlace, dropSlotsFor, dropSlotsOn } from './placement.js';
 import type { DropSlot, PlacementSource } from './placement.js';
+import { DesignClipboard } from './DesignClipboard.js';
+import { collectionRowsFor } from './collectionGrid.js';
+import type { CollectionRow } from './collectionGrid.js';
+import {
+  addChildTo,
+  moveChildIn,
+  removeChildFrom,
+  setFastEntryIn,
+} from './collectionEdits.js';
 import { propertyRowsFor } from './propertyGrid.js';
 import type { PropertyGridCategory } from './propertyGrid.js';
 import { renameIn, setPropertyOn } from './propertyEdits.js';
@@ -67,8 +74,8 @@ export class DesignSurface {
   readonly #document: SurveyDocument;
   #selected: SurveyElement | undefined;
   #version = 0;
-  #clipboard: SurveyDefinition | undefined;
-  readonly #history: UndoHistory = new UndoHistory();
+  readonly #clipboard: DesignClipboard = new DesignClipboard();
+  readonly #history: DesignHistory = new DesignHistory();
 
   readonly onChanged: EventEmitter<number> = new EventEmitter();
 
@@ -103,6 +110,17 @@ export class DesignSurface {
 
   get selected(): SurveyElement | undefined {
     return this.#selected;
+  }
+
+  /**
+   * What is selected, by name — what an edit passes back to `applyEdit` to keep it.
+   *
+   * Its own getter because "the selection survives this edit" is a thing several edits
+   * need to say, and each of them reaching into `selected.getPropertyValue('name')` and
+   * narrowing the result is four chances to write it differently.
+   */
+  get selectedName(): string | undefined {
+    return nameOf({ name: this.#selected?.getPropertyValue('name') });
   }
 
   isSelected(element: SurveyElement): boolean {
@@ -173,6 +191,42 @@ export class DesignSurface {
   /** Renames an element or page and every reference to it — checklist L1. */
   rename(from: string, to: string): boolean {
     return renameIn(this, from, to);
+  }
+
+  /**
+   * The child collections an element holds, ready to edit — checklist L2.
+   *
+   * Choices, validators, matrix columns and rows, multiple-text items — one accessor,
+   * because they are one thing as far as the registry is concerned. What a page holds is
+   * not among them: the canvas owns that.
+   */
+  collections(element: SurveyElement): readonly CollectionRow[] {
+    return collectionRowsFor(element, this.#document.registry);
+  }
+
+  /**
+   * Adds a child to one of an element's collections — checklist L2.
+   *
+   * The owner is the *element*, not its name, and that is the guard as much as the
+   * convenience — see [`collectionEdits`](./collectionEdits.ts).
+   */
+  addChild(owner: SurveyElement, property: string, type: string): boolean {
+    return addChildTo(this, owner, property, type, this.#document.registry);
+  }
+
+  /** Removes the child at an index. Says whether there was one. */
+  removeChild(owner: SurveyElement, property: string, index: number): boolean {
+    return removeChildFrom(this, owner, property, index, this.#document.registry);
+  }
+
+  /** Moves a child within its collection — checklist L2. */
+  moveChild(owner: SurveyElement, property: string, from: number, to: number): boolean {
+    return moveChildIn(this, owner, property, from, to, this.#document.registry);
+  }
+
+  /** Rewrites a whole shorthand collection from text — checklist L2's fast entry. */
+  setFastEntry(owner: SurveyElement, property: string, text: string): boolean {
+    return setFastEntryIn(this, owner, property, text, this.#document.registry);
   }
 
   /** The canonical JSON of what is on the canvas right now — ADR-0002's round trip. */
@@ -282,7 +336,7 @@ export class DesignSurface {
    * and this is only the part that cannot be pure.
    */
   applyEdit(definition: SurveyDefinition, options: EditOptions = {}): void {
-    this.#record(options.from ?? this.definition, options.undoKey);
+    this.#history.record(this, options.from ?? this.definition, options.undoKey);
     this.#reparse(definition, options.select, options.goTo ?? this.page?.name);
   }
 
@@ -299,60 +353,30 @@ export class DesignSurface {
   /**
    * Remembers an element so it can be pasted — checklist K5.
    *
-   * The clipboard holds a *definition fragment*, not an element: nothing survives a
-   * re-parse by identity, and a fragment can be pasted after any number of edits, into
-   * another page, or never.
-   *
-   * Kept in memory rather than written to the system clipboard. That is a `navigator`
-   * call, which a core package may not make and the architecture check enforces — and it
-   * is the right boundary anyway: a host that wants copy between browser tabs can read
-   * {@link clipboard} and write it wherever they like.
+   * Announced but not recorded, and the difference is the point: copying changes what a
+   * view *shows* — whether Paste is available — without changing the survey, so there is
+   * nothing to undo and everything to redraw.
    */
   copy(name: string): boolean {
-    const fragment = copyFrom(this, name);
-    if (fragment === undefined) {
+    if (!this.#clipboard.copy(this, name)) {
       return false;
     }
-    this.#clipboard = fragment;
-    // Announced but not recorded, and the difference is the point: copying changes what
-    // a view *shows* — whether Paste is available — without changing the survey, so
-    // there is nothing to undo and everything to redraw.
     this.#announce();
     return true;
   }
 
-  /** What was copied, if anything. */
+  /** What was copied, if anything — see {@link DesignClipboard}. */
   get clipboard(): SurveyDefinition | undefined {
-    return this.#clipboard;
+    return this.#clipboard.fragment;
   }
 
   get canPaste(): boolean {
-    return this.#clipboard !== undefined && this.page !== undefined;
+    return this.#clipboard.fragment !== undefined && this.page !== undefined;
   }
 
-  /**
-   * Pastes what was copied — checklist K5.
-   *
-   * After the selected element by default, and at the end of the page when nothing is
-   * selected. Pasting "somewhere" is not a useful answer, and the selection is the only
-   * thing on screen that says where a designer is working.
-   */
-  paste(slot: DropSlot | undefined = this.#pasteSlot()): boolean {
-    const fragment = this.#clipboard;
-    if (fragment === undefined || slot === undefined) {
-      return false;
-    }
-    return pasteInto(this, fragment, slot);
-  }
-
-  #pasteSlot(): DropSlot | undefined {
-    const page = this.page;
-    if (page === undefined) {
-      return undefined;
-    }
-    const at = page.elements.findIndex((element) => element === this.#selected);
-    const list: DropList = { of: 'elements', container: page.name };
-    return { list, index: at < 0 ? page.elements.length : at + 1 };
+  /** Pastes what was copied, after the selection — checklist K5. */
+  paste(slot?: DropSlot): boolean {
+    return this.#clipboard.paste(this, slot);
   }
 
   /** Changes a question's type in place, keeping what the new type understands — K5. */
@@ -385,25 +409,8 @@ export class DesignSurface {
     goToPage: string | undefined,
   ): void {
     this.#document.replace(definition, goToPage);
-    this.#selected = this.#resolve(selectedName);
+    this.#selected = resolveSelection(this, selectedName);
     this.#announce();
-  }
-
-  /**
-   * Finds what was selected in the survey that has just replaced the old one.
-   *
-   * Pages as well as elements, because a page is a selectable thing in its own right
-   * (K4) — and a page dragged into a new order should still be the one selected when it
-   * lands, exactly as a question is.
-   */
-  #resolve(name: string | undefined): SurveyElement | undefined {
-    if (name === undefined) {
-      return undefined;
-    }
-    return (
-      this.page?.elements.find((element) => element.name === name) ??
-      this.pages.find((page) => page.name === name)
-    );
   }
 
   get canUndo(): boolean {
@@ -415,20 +422,19 @@ export class DesignSurface {
   }
 
   /**
-   * Takes back the last edit — checklist K6.
+   * Takes back the last edit — checklist K6. Says whether there was one.
    *
-   * Returns whether there was one. Undo is a re-parse of a definition this class kept,
-   * which is the return on [ADR-0009](../../../docs/adr/0009-creator-drag-and-drop.md)
-   * decision 3: no operation has to know how to invert itself, so no future operation
-   * can forget to.
+   * A re-parse of a definition {@link DesignHistory} kept, which is the return on
+   * [ADR-0009](../../../docs/adr/0009-creator-drag-and-drop.md) decision 3: no operation
+   * has to know how to invert itself, so no future operation can forget to.
    */
   undo(): boolean {
-    return this.#travel(this.#history.undo(this.#snapshot()));
+    return this.#travel(this.#history.undo(this));
   }
 
   /** Puts back what {@link undo} took — checklist K6. */
   redo(): boolean {
-    return this.#travel(this.#history.redo(this.#snapshot()));
+    return this.#travel(this.#history.redo(this));
   }
 
   #travel(snapshot: HistorySnapshot | undefined): boolean {
@@ -440,24 +446,6 @@ export class DesignSurface {
   }
 
   /**
-   * Remembers the state an edit is about to change.
-   *
-   * The definition is passed in rather than read, because every caller has just
-   * computed it — serializing a whole survey twice per drop is a real cost for nothing.
-   */
-  #record(definition: SurveyDefinition, undoKey?: string): void {
-    this.#history.record(this.#snapshot(definition), undoKey);
-  }
-
-  #snapshot(definition: SurveyDefinition = this.definition): HistorySnapshot {
-    return {
-      definition,
-      page: this.page?.name,
-      selected: nameOf({ name: this.#selected?.getPropertyValue('name') }),
-    };
-  }
-
-  /**
    * Runs an edit and tells everyone.
    *
    * Public because a host — and, in K5 and K6, the Creator itself — will have edits this
@@ -465,7 +453,7 @@ export class DesignSurface {
    * mutation nobody hears about. What matters is that *every* change comes through here.
    */
   change(edit: () => void, undoKey?: string): void {
-    this.#record(this.definition, undoKey);
+    this.#history.record(this, this.definition, undoKey);
     edit();
     this.#announce();
   }

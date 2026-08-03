@@ -59,7 +59,9 @@ test('parity/L1-grid: the sections and their rows come from the registry', async
   await expect.element(screen.getByLabelText('Input type', { exact: true })).toHaveValue('text');
   await expect.element(screen.getByLabelText('Title', { exact: true })).toHaveValue('Your name');
   await expect.element(screen.getByTestId('properties-Logic')).toBeInTheDocument();
-  expect(screen.container.querySelectorAll('.kajay-properties__section')).toHaveLength(5);
+  expect(
+    screen.container.querySelectorAll('.kajay-properties__section:not(.kajay-collection)'),
+  ).toHaveLength(5);
 });
 
 test('parity/L1-grid: the registry’s description is wired to its field', async () => {

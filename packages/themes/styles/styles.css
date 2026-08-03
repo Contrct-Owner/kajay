@@ -916,6 +916,85 @@
   }
 }
 
+/* --- child collections: choices, validators, columns (L2) ---------------- */
+
+.kajay-collection__fast {
+  display: grid;
+  gap: calc(var(--kajay-spacing) / 4);
+}
+
+.kajay-collection__fast-text {
+  width: 100%;
+  padding: calc(var(--kajay-spacing) / 4);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+
+.kajay-collection__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: calc(var(--kajay-spacing) / 4);
+}
+
+.kajay-collection__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: calc(var(--kajay-spacing) / 4);
+  align-items: start;
+}
+
+.kajay-collection__details {
+  min-width: 0;
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  padding: calc(var(--kajay-spacing) / 4);
+}
+
+.kajay-collection__summary {
+  cursor: pointer;
+}
+
+.kajay-collection__actions {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 4);
+}
+
+.kajay-collection__move,
+.kajay-collection__remove,
+.kajay-collection__add-button,
+.kajay-collection__type {
+  padding: 0 calc(var(--kajay-spacing) / 3);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kajay-collection__remove {
+  color: var(--kajay-color-danger);
+}
+
+/* Genuinely disabled: the first item cannot move up, so there is nothing to reach. */
+.kajay-collection__move:disabled {
+  color: var(--kajay-color-muted);
+  cursor: default;
+}
+
+.kajay-collection__add {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 4);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 /* --- multipletext -------------------------------------------------------- */
 
 .kajay-question--multipletext {

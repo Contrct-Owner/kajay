@@ -93,6 +93,55 @@ test('parity/L1-grid: a page has a grid of its own', async ({ page }) => {
   await expect(field(page, 'Col count')).toHaveValue('2');
 });
 
+test('parity/L2-collections: a choice list is editable, and the canvas follows', async ({
+  page,
+}) => {
+  await page.getByTestId('select-draftTier').click();
+
+  await grid(page).getByTestId('add-choices').click();
+
+  // The canvas is the real renderer, so the new choice is a real radio button on the
+  // question a respondent will answer.
+  const canvas = page.getByRole('region', { name: 'Design surface' });
+  await expect(canvas.getByRole('radio', { name: 'value1' })).toBeVisible();
+  await expect(page.getByTestId('surface-json')).toContainText('value1');
+
+  await grid(page).getByTestId('remove-choices-2').click();
+  await expect(page.getByTestId('surface-json')).not.toContainText('value1');
+});
+
+test('parity/L2-fast-entry: the whole list is retyped at once', async ({ page }) => {
+  await page.getByTestId('select-draftTier').click();
+  const fast = grid(page).getByTestId('fast-choices');
+
+  await expect(fast).toHaveValue('bronze\nsilver');
+  await fast.fill('gold|Gold tier\nsilver');
+  // Commits on blur, so a rewritten list is one edit and one press of undo.
+  await fast.blur();
+
+  const canvas = page.getByRole('region', { name: 'Design surface' });
+  await expect(canvas.getByRole('radio', { name: 'Gold tier' })).toBeVisible();
+
+  await page.getByTestId('undo').click();
+  await expect(canvas.getByRole('radio', { name: 'bronze' })).toBeVisible();
+});
+
+test('parity/L2-collections: a validator is added and edited by the same grid', async ({
+  page,
+}) => {
+  await page.getByTestId('select-draftName').click();
+
+  await grid(page).getByTestId('add-type-validators').selectOption('textvalidator');
+  await grid(page).getByTestId('add-validators').click();
+  await grid(page).getByTestId('open-validators-0').click();
+  await grid(page).getByLabel('Min length', { exact: true }).fill('3');
+
+  // A validator's own properties are registered ones, so L1's fields edit them and
+  // nothing here was written for validators.
+  await expect(page.getByTestId('surface-json')).toContainText('"type": "textvalidator"');
+  await expect(page.getByTestId('surface-json')).toContainText('"minLength": 3');
+});
+
 test('parity/L1-grid: no accessibility violations', async ({ page }) => {
   await page.getByTestId('select-draftName').click();
 

@@ -111,8 +111,13 @@ export function renameIn(surface: DesignSurface, from: string, to: string): bool
     return false;
   }
   const page = surface.page?.name;
+  const selected = surface.selectedName;
   surface.applyEdit(renameThroughout(before, from, trimmed), {
-    select: trimmed,
+    // The renamed thing keeps the selection when it *was* the selection. Renaming a
+    // matrix column from the collection editor is not a request to select the column —
+    // and always selecting the renamed element would empty the grid the designer is
+    // typing in, because a nested child is not something the selection can resolve to.
+    select: selected === from ? trimmed : selected,
     // Renaming the page a designer is looking at must not navigate away from it. The
     // default — stay on the page of that name — is the one thing that cannot work here.
     goTo: page === from ? trimmed : page,

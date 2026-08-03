@@ -1,0 +1,316 @@
+import { moveWithin } from '@kajay/core';
+import type {
+  ChildCollectionDescriptor,
+  MetadataRegistry,
+  SurveyDefinition,
+  SurveyElement,
+} from '@kajay/core';
+import type { DesignSurface } from './DesignSurface.js';
+import { uniqueName } from './definitionTree.js';
+import { fastEntryItems } from './fastEntry.js';
+import { takenNames } from './fragments.js';
+
+/**
+ * Adding, removing, reordering and bulk-editing a child collection — checklist L2.
+ *
+ * **Structural edits, so they go through `applyEdit`** and are undoable without a line
+ * about undo — [ADR-0009](../../../docs/adr/0009-creator-drag-and-drop.md) decision 3
+ * paying out for the fourth time. It matters more here than it looked: a validator is not
+ * a bag of properties, it is a rule the parser registers with the logic engine, and a
+ * version of this that pushed one into the model's array would produce a validator that
+ * serialized correctly and never ran.
+ *
+ * The owner is the **element**, and that is a guard as much as a convenience: only the
+ * element says which registered class declares the collection, and without asking, adding
+ * `choices` to a text question would write a key the type does not have — an unknown
+ * property that round-trips forever and edits nothing. What is passed *down* from here is
+ * the name, because nothing survives the re-parse by identity and names are unique across
+ * a survey, which is what makes one deep walk enough to find a choice list on a matrix
+ * column three levels down.
+ */
+
+/** The collection an element declares under this property, if it declares one. */
+function declared(
+  owner: SurveyElement,
+  property: string,
+  registry: MetadataRegistry,
+): ChildCollectionDescriptor | undefined {
+  return registry.getChildCollection(owner.type, property);
+}
+
+function nameOf(owner: SurveyElement): string {
+  const name = owner.getPropertyValue('name');
+  return typeof name === 'string' ? name : '';
+}
+
+/** Adds a child of `type` at the end. Says whether the collection was there. */
+export function addChildTo(
+  surface: DesignSurface,
+  owner: SurveyElement,
+  property: string,
+  type: string,
+  registry: MetadataRegistry,
+): boolean {
+  const collection = declared(owner, property, registry);
+  const before = surface.definition;
+  const children = childrenIn(before, nameOf(owner), property);
+  if (collection === undefined || children === undefined) {
+    return false;
+  }
+  const child = freshChild(
+    type,
+    collection.shorthandProperty,
+    children,
+    registry,
+    takenNames(before),
+  );
+  return apply(surface, before, nameOf(owner), property, [...children, child]);
+}
+
+export function removeChildFrom(
+  surface: DesignSurface,
+  owner: SurveyElement,
+  property: string,
+  index: number,
+  registry: MetadataRegistry,
+): boolean {
+  const before = surface.definition;
+  const children = childrenIn(before, nameOf(owner), property);
+  const declares = declared(owner, property, registry) !== undefined;
+  if (!declares || children === undefined || index < 0 || index >= children.length) {
+    return false;
+  }
+  return apply(
+    surface,
+    before,
+    nameOf(owner),
+    property,
+    children.filter((_unused, at) => at !== index),
+  );
+}
+
+/**
+ * Moves a child within its collection.
+ *
+ * `moveWithin` is C9's own list arithmetic, reused rather than rewritten — the third place
+ * in this codebase that needs "take that one out and put it here", and the first two
+ * already proved how easy the off-by-one is to get wrong.
+ */
+export function moveChildIn(
+  surface: DesignSurface,
+  owner: SurveyElement,
+  property: string,
+  from: number,
+  to: number,
+  registry: MetadataRegistry,
+): boolean {
+  const before = surface.definition;
+  const children = childrenIn(before, nameOf(owner), property);
+  if (declared(owner, property, registry) === undefined || children === undefined) {
+    return false;
+  }
+  const moved = moveWithin(children, from, to);
+  return moved === children
+    ? false
+    : apply(surface, before, nameOf(owner), property, moved);
+}
+
+/**
+ * Replaces a whole collection from fast-entry text — checklist L2.
+ *
+ * One edit rather than one per line, so a rewritten choice list is one press of undo.
+ */
+export function setFastEntryIn(
+  surface: DesignSurface,
+  owner: SurveyElement,
+  property: string,
+  text: string,
+  registry: MetadataRegistry,
+): boolean {
+  // No shorthand, nothing a line of text can be: a validator has no scalar form.
+  const shorthand = declared(owner, property, registry)?.shorthandProperty;
+  const before = surface.definition;
+  const children = childrenIn(before, nameOf(owner), property);
+  if (shorthand === undefined || children === undefined) {
+    return false;
+  }
+  const items = fastEntryItems(text, shorthand, children, surface.survey.locale);
+  const name = nameOf(owner);
+  return apply(surface, before, name, property, items, `collection:${name}:${property}`);
+}
+
+function apply(
+  surface: DesignSurface,
+  before: SurveyDefinition,
+  owner: string,
+  property: string,
+  items: readonly SurveyDefinition[],
+  undoKey?: string,
+): boolean {
+  const after = withChildren(before, owner, property, items);
+  // The selection is left where it was on purpose: editing a question's choices is
+  // working on that question, and moving the grid off it under the designer would take
+  // away the panel they are typing in.
+  surface.applyEdit(after, {
+    select: surface.selectedName,
+    from: before,
+    ...(undoKey === undefined ? {} : { undoKey }),
+  });
+  return true;
+}
+
+/**
+ * A child nothing has seen before.
+ *
+ * Two things may need filling in, and which they are is asked of the registry rather than
+ * of the collection's name. A type that **requires a name** gets one from the survey-wide
+ * pool, stemmed on the type — `text1`, exactly what the toolbox produces, because a matrix
+ * column that is a text question is the same kind of thing arriving by a different door. A
+ * collection with a **shorthand** gets that property filled from a pool of its own, stemmed
+ * on the property, because a choice's value is unique within its list and means nothing
+ * outside it.
+ *
+ * Everything else is left absent, so the parser supplies the registered defaults — the
+ * same path a question dropped from the toolbox takes.
+ */
+function freshChild(
+  type: string,
+  shorthand: string | undefined,
+  children: readonly SurveyDefinition[],
+  registry: MetadataRegistry,
+  taken: ReadonlySet<string>,
+): SurveyDefinition {
+  const child: SurveyDefinition = { type };
+  for (const descriptor of registry.getProperties(type)) {
+    if (!descriptor.isRequired) {
+      continue;
+    }
+    if (descriptor.name === 'name') {
+      child['name'] = uniqueName(type, taken);
+    } else if (descriptor.name === shorthand) {
+      child[descriptor.name] = uniqueName(descriptor.name, valuesIn(children, descriptor.name));
+    }
+  }
+  return child;
+}
+
+function valuesIn(children: readonly SurveyDefinition[], property: string): ReadonlySet<string> {
+  const used = new Set<string>();
+  for (const child of children) {
+    const value = child[property];
+    if (typeof value === 'string' || typeof value === 'number') {
+      used.add(String(value));
+    }
+  }
+  return used;
+}
+
+/** The definitions in one element's collection, or `undefined` if there is no such list. */
+export function childrenIn(
+  definition: SurveyDefinition,
+  owner: string,
+  property: string,
+): readonly SurveyDefinition[] | undefined {
+  const found = findNamed(definition, owner);
+  if (found === undefined) {
+    return undefined;
+  }
+  const value = found[property];
+  // `[]` for a collection with nothing in it and `undefined` for no such collection are
+  // different answers, and canonical form elides the first — so an absent key on an
+  // element that exists means an empty list, not a missing one.
+  return Array.isArray(value) ? value.filter((entry) => isDefinition(entry)) : [];
+}
+
+/** The same definition with one element's collection replaced. */
+export function withChildren(
+  definition: SurveyDefinition,
+  owner: string,
+  property: string,
+  items: readonly SurveyDefinition[],
+): SurveyDefinition {
+  return rewriteNamed(definition, owner, (found) => ({ ...found, [property]: items }));
+}
+
+/**
+ * The first object in the tree answering to a name.
+ *
+ * A deep walk rather than pages-then-elements, because the thing being edited may be a
+ * matrix column, a multiple-text item, or a question inside a detail panel. Names are
+ * unique across a survey — `collectNames` and `uniqueName` are what make that true — so
+ * "the first" is "the only".
+ */
+function findNamed(value: unknown, owner: string): SurveyDefinition | undefined {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = findNamed(item, owner);
+      if (found !== undefined) {
+        return found;
+      }
+    }
+    return undefined;
+  }
+  if (!isDefinition(value)) {
+    return undefined;
+  }
+  if (value['name'] === owner) {
+    return value;
+  }
+  for (const child of Object.values(value)) {
+    const found = findNamed(child, owner);
+    if (found !== undefined) {
+      return found;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * The same tree with one named object replaced.
+ *
+ * Returns the **same reference** wherever nothing underneath changed, so editing a choice
+ * list does not rebuild the questions around it — the sharing `withList` established for
+ * the canvas, generalized to any element with a name.
+ */
+function rewriteNamed(
+  value: unknown,
+  owner: string,
+  change: (found: SurveyDefinition) => SurveyDefinition,
+): SurveyDefinition {
+  return rewrite(value, owner, change) as SurveyDefinition;
+}
+
+function rewrite(
+  value: unknown,
+  owner: string,
+  change: (found: SurveyDefinition) => SurveyDefinition,
+): unknown {
+  if (Array.isArray(value)) {
+    let touched = false;
+    const items = value.map((item) => {
+      const next = rewrite(item, owner, change);
+      touched ||= next !== item;
+      return next;
+    });
+    return touched ? items : value;
+  }
+  if (!isDefinition(value)) {
+    return value;
+  }
+  if (value['name'] === owner) {
+    return change(value);
+  }
+  let output: SurveyDefinition | undefined;
+  for (const [key, child] of Object.entries(value)) {
+    const next = rewrite(child, owner, change);
+    if (next !== child) {
+      output ??= { ...value };
+      output[key] = next;
+    }
+  }
+  return output ?? value;
+}
+
+function isDefinition(value: unknown): value is SurveyDefinition {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}

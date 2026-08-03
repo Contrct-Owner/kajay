@@ -61,6 +61,28 @@ export interface CreatorInputProps {
   readonly onBlur?: () => void;
 }
 
+/**
+ * A multi-line text field.
+ *
+ * The fifth primitive. L2's fast entry is the case that needs it — a choice list edited as
+ * one item per line is not something a single-line field can be — and §M's JSON and theme
+ * tabs are the next two. `value`/`onValueChange`, mirroring the input, so the two are one
+ * thing to adapt rather than two.
+ */
+export interface CreatorTextareaProps {
+  readonly value: string;
+  readonly onValueChange: (value: string) => void;
+  readonly rows?: number;
+  readonly disabled?: boolean;
+  readonly className?: string;
+  readonly id?: string;
+  readonly 'aria-label'?: string;
+  readonly 'aria-describedby'?: string | undefined;
+  readonly 'aria-invalid'?: boolean | undefined;
+  readonly 'data-testid'?: string;
+  readonly onBlur?: () => void;
+}
+
 /** One choice in a {@link CreatorSelectProps}. */
 export interface CreatorSelectOption {
   readonly value: string;
@@ -133,6 +155,7 @@ export interface CreatorComponents {
   readonly Input?: ComponentType<CreatorInputProps> | undefined;
   readonly Select?: ComponentType<CreatorSelectProps> | undefined;
   readonly Checkbox?: ComponentType<CreatorCheckboxProps> | undefined;
+  readonly Textarea?: ComponentType<CreatorTextareaProps> | undefined;
 }
 
 /**
@@ -227,11 +250,30 @@ function DefaultCheckbox({
   );
 }
 
+function DefaultTextarea({
+  value,
+  onValueChange,
+  className,
+  ...rest
+}: CreatorTextareaProps): ReactElement {
+  return (
+    <textarea
+      className={className}
+      value={value}
+      onChange={(event) => {
+        onValueChange(event.target.value);
+      }}
+      {...rest}
+    />
+  );
+}
+
 const DEFAULTS = {
   Button: DefaultButton,
   Input: DefaultInput,
   Select: DefaultSelect,
   Checkbox: DefaultCheckbox,
+  Textarea: DefaultTextarea,
 };
 
 const CreatorComponentsContext = createContext<CreatorComponents>({});

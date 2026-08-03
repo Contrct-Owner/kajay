@@ -3,7 +3,7 @@
 
 export { DesignSurface } from './DesignSurface.js';
 export type { DesignSurfaceOptions, EditOptions } from './DesignSurface.js';
-export { addPageTo, placeOn, removePageFrom } from './designerEdits.js';
+export { addPageTo, placeOn, removePageFrom, resolveSelection } from './designerEdits.js';
 export {
   canConvert,
   convertibleTypes,
@@ -22,6 +22,17 @@ export type {
   PropertyRow,
 } from './propertyGrid.js';
 export { renameIn, setPropertyOn } from './propertyEdits.js';
+export { childLabel, collectionRowsFor } from './collectionGrid.js';
+export type { CollectionRow } from './collectionGrid.js';
+export {
+  addChildTo,
+  childrenIn,
+  moveChildIn,
+  removeChildFrom,
+  setFastEntryIn,
+  withChildren,
+} from './collectionEdits.js';
+export { fastEntryItems, fastEntryText } from './fastEntry.js';
 export {
   GENERAL_CATEGORY,
   LOGIC_CATEGORY,

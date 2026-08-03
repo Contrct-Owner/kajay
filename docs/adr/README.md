@@ -43,6 +43,8 @@ recorded here (status `superseded`) **and** in the
 | [0018](./0018-input-masking-out-of-scope.md) | Input masking is out of parity scope | accepted | 2026-08-02 |
 | [0019](./0019-deep-runtime-modules-and-rendering-seam.md) | Deep runtime modules and one page-element rendering seam | accepted | 2026-08-02 |
 | [0020](./0020-versioned-cross-language-runtime-contract.md) | Versioned cross-language runtime contract | accepted | 2026-08-03 |
+| [0021](./0021-creator-composition.md) | Creator composition: pieces, with a default assembly on top | accepted | 2026-08-03 |
+| [0022](./0022-design-system-primitives.md) | The host's design system draws the chrome | accepted | 2026-08-03 |
 
 ## Parent and related links
 

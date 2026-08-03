@@ -305,6 +305,15 @@ The host app exists to make embeddability falsifiable:
       [ADR-0008](./adr/0008-no-surveyjs-theme-import.md).
 - [x] **Creator drag-and-drop deferred** to Phase 3 with three binding constraints —
       [ADR-0009](./adr/0009-creator-drag-and-drop.md).
+- [x] **The Creator is pieces with a default assembly on top**, not one component —
+      [ADR-0021](./adr/0021-creator-composition.md). The assembly is built from nothing
+      but the public exports, which is what keeps the pieces genuinely usable alone.
+- [x] **The host's design system draws the chrome.** Both React packages draw through a
+      small, closed, partial map of primitives a host may replace with their own
+      shadcn/ui, ReUI or Tailwind components; working defaults ship, and the library
+      depends on none of them — [ADR-0022](./adr/0022-design-system-primitives.md).
+      `creator-react` is built on it from the start; `@kajay/react` adopts it as its own
+      scheduled row rather than as a side effect.
 
 ### Resolved (2026-08-02, second pass)
 

@@ -1,6 +1,8 @@
 import { Survey } from '@kajay/react';
+import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { CheckTimeline } from './CheckTimeline.js';
+import { ThemePicker, variablesFor } from './ThemePicker.js';
 import { useDemoSurvey } from './useDemoSurvey.js';
 import { useSurveyData } from './useSurveyData.js';
 import { ValidationControls } from './ValidationControls.js';
@@ -12,10 +14,13 @@ function stableStringify(value: unknown): string {
 export function App(): ReactElement {
   const { model, diagnostics, canonical, isFixedPoint } = useDemoSurvey();
   const data = useSurveyData(model);
+  const [theme, setTheme] = useState('light');
 
   return (
-    <main className="host-demo">
-      <Survey model={model} />
+    <main className="host-demo" data-theme={theme}>
+      <ThemePicker selected={theme} onSelect={setTheme} />
+
+      <Survey model={model} theme={variablesFor(theme)} />
 
       <ValidationControls model={model} />
 

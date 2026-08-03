@@ -13,12 +13,21 @@
   --kajay-color-accent: #2f6feb;
   --kajay-color-border: #d0d5dd;
   --kajay-color-danger: #b42318;
+  --kajay-color-background: #f6f8fb;
   --kajay-radius: 8px;
   --kajay-spacing: 16px;
   --kajay-font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Panel mode as two lengths rather than a flag: `panelless` is the *absence* of the
+   * frame, so no rule anywhere has to branch on a mode it was told about. */
+  --kajay-panel-border-width: 1px;
+  --kajay-panel-padding: var(--kajay-spacing);
+  --kajay-backdrop-image: none;
+  --kajay-backdrop-opacity: 1;
 }
 
+/* Positioned so the backdrop below has something to be absolute against. */
 .kajay-survey {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--kajay-spacing);
@@ -29,6 +38,32 @@
   background: var(--kajay-color-surface);
   color: var(--kajay-color-text);
   font-family: var(--kajay-font-family);
+}
+
+/*
+ * A picture behind the survey — checklist I2.
+ *
+ * Its own layer rather than the survey's `background-image`, because the opacity has to
+ * apply to the picture and *not* to the text in front of it. The children are lifted a
+ * step so they stay in front of it; that is the price of one pseudo-element and it is
+ * cheaper than every renderer knowing about a backdrop.
+ */
+.kajay-survey::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background-image: var(--kajay-backdrop-image);
+  background-position: center;
+  background-size: cover;
+  opacity: var(--kajay-backdrop-opacity);
+  pointer-events: none;
+}
+
+.kajay-survey > * {
+  position: relative;
+  z-index: 1;
 }
 
 .kajay-survey__title {
@@ -347,8 +382,8 @@
   flex-direction: column;
   gap: var(--kajay-spacing);
   margin: 0;
-  padding: var(--kajay-spacing);
-  border: 1px solid var(--kajay-color-border);
+  padding: var(--kajay-panel-padding);
+  border: var(--kajay-panel-border-width) solid var(--kajay-color-border);
   border-radius: var(--kajay-radius);
 }
 
@@ -771,4 +806,280 @@
 .kajay-toc__page[aria-current] {
   border-color: var(--kajay-color-accent);
   font-weight: 600;
+}
+
+/* --- Matrix family (§F) ---------------------------------------------------- */
+
+.kajay-question--matrix,
+.kajay-question--matrix-cells,
+.kajay-question--matrix-dynamic,
+.kajay-question--paneldynamic {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.kajay-matrix {
+  border-collapse: collapse;
+  /* A table is the one thing here that cannot reflow, so it scrolls rather than
+   * overflowing the page. `mobileMode` is the real answer; this is the fallback for
+   * a table that is wide even on a desktop. */
+  display: block;
+  overflow-x: auto;
+}
+
+.kajay-matrix th,
+.kajay-matrix td {
+  padding: calc(var(--kajay-spacing) / 3) calc(var(--kajay-spacing) / 2);
+  text-align: center;
+}
+
+.kajay-matrix__column-title,
+.kajay-matrix__row-title {
+  color: var(--kajay-color-muted);
+  font-size: 0.875em;
+  font-weight: 600;
+}
+
+.kajay-matrix__row-title {
+  text-align: left;
+}
+
+.kajay-matrix--alternate tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--kajay-color-border) 25%, transparent);
+}
+
+/*
+ * A cell's title names its row *and* its column — "Documentation Rating" — because
+ * every renderer builds its label out of the title and an unnamed input is an
+ * unanswerable question. On screen the two headers already say it, so the label is
+ * hidden *visually* and stays where a screen reader can read it. `clip-path`, never
+ * `display: none`, which would take it out of the accessibility tree as well.
+ */
+.kajay-matrix--cells .kajay-question__title,
+.kajay-matrix--dynamic .kajay-question__title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.kajay-matrix__total {
+  font-weight: 600;
+}
+
+.kajay-matrix__detail {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 2);
+  padding: calc(var(--kajay-spacing) / 2);
+  text-align: left;
+}
+
+.kajay-matrix__detail-toggle {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.kajay-matrix__detail-toggle::before {
+  content: '▾ ';
+}
+
+.kajay-matrix__detail-toggle[aria-expanded='false']::before {
+  content: '▸ ';
+}
+
+/* The narrow-screen layout: each row its own group, with the labels back on show. */
+.kajay-matrix-list {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 2);
+}
+
+.kajay-matrix-list__row {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 3);
+  margin: 0;
+  padding: calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+}
+
+.kajay-matrix-list__row-title {
+  font-weight: 600;
+}
+
+.kajay-matrix__add,
+.kajay-matrix__remove,
+.kajay-matrix__remove-confirm,
+.kajay-matrix__remove-cancel {
+  padding: calc(var(--kajay-spacing) / 4) calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kajay-matrix__remove-confirm {
+  border-color: var(--kajay-color-danger);
+  color: var(--kajay-color-danger);
+}
+
+/* --- Repeating panels (§G) ------------------------------------------------- */
+
+.kajay-paneldynamic {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kajay-spacing);
+}
+
+.kajay-paneldynamic__panel {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 2);
+  margin: 0;
+  padding: var(--kajay-panel-padding);
+  border: var(--kajay-panel-border-width) solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+}
+
+.kajay-paneldynamic__panel-title {
+  padding: 0 calc(var(--kajay-spacing) / 2);
+  font-weight: 600;
+}
+
+.kajay-paneldynamic__tabs,
+.kajay-paneldynamic__progress {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 3);
+  align-items: center;
+}
+
+.kajay-paneldynamic__position {
+  color: var(--kajay-color-muted);
+  font-size: 0.875em;
+}
+
+.kajay-paneldynamic__add,
+.kajay-paneldynamic__remove,
+.kajay-paneldynamic__remove-confirm,
+.kajay-paneldynamic__remove-cancel,
+.kajay-paneldynamic__tab,
+.kajay-paneldynamic__previous,
+.kajay-paneldynamic__next {
+  padding: calc(var(--kajay-spacing) / 4) calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kajay-paneldynamic__add {
+  align-self: flex-start;
+}
+
+/* Selected, and said out loud by `aria-selected` — the border is the echo. */
+.kajay-paneldynamic__tab[aria-selected='true'] {
+  border-color: var(--kajay-color-accent);
+  font-weight: 600;
+}
+
+.kajay-paneldynamic__remove-confirm {
+  border-color: var(--kajay-color-danger);
+  color: var(--kajay-color-danger);
+}
+
+/* --- Files and signatures (§H) --------------------------------------------- */
+
+.kajay-file__drop {
+  padding: calc(var(--kajay-spacing) / 2);
+  border: 1px dashed var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+}
+
+/* The only cue that a drop will land here. Colour *and* a thicker edge, because
+ * colour alone is not a cue everyone receives. */
+.kajay-file__drop--over {
+  border-style: solid;
+  border-color: var(--kajay-color-accent);
+  background: color-mix(in srgb, var(--kajay-color-accent) 8%, transparent);
+}
+
+.kajay-file__list {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kajay-file__item {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 2);
+  align-items: center;
+}
+
+.kajay-file__preview {
+  max-height: 2.5rem;
+  border-radius: calc(var(--kajay-radius) / 2);
+}
+
+.kajay-file__size {
+  color: var(--kajay-color-muted);
+  font-size: 0.8125em;
+}
+
+.kajay-file__remove {
+  padding: 0 calc(var(--kajay-spacing) / 3);
+  border: none;
+  background: none;
+  color: var(--kajay-color-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.kajay-file__uploading,
+.kajay-file__failure {
+  margin: 0;
+  font-size: 0.875em;
+}
+
+.kajay-file__uploading {
+  color: var(--kajay-color-muted);
+}
+
+.kajay-file__failure {
+  color: var(--kajay-color-danger);
+}
+
+.kajay-signature {
+  align-self: flex-start;
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  /* Or a drawn stroke scrolls the page instead of leaving ink. */
+  touch-action: none;
+}
+
+.kajay-signature__clear {
+  align-self: flex-start;
+  padding: calc(var(--kajay-spacing) / 4) calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
 }

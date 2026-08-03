@@ -1,5 +1,5 @@
 import type { Survey as SurveyModel } from '@kajay/core';
-import type { FormEvent, ReactElement, RefObject } from 'react';
+import type { CSSProperties, FormEvent, ReactElement, ReactNode, RefObject } from 'react';
 import { defaultPageElementRenderers } from './defaultPageElementRenderers.js';
 import { HtmlSanitizerProvider } from './HtmlSanitizerContext.js';
 import type { HtmlSanitizer } from './HtmlSanitizerContext.js';
@@ -31,6 +31,40 @@ export interface SurveyProps {
    * more dangerous than none, so plug in one that is somebody's full-time job.
    */
   readonly sanitizeHtml?: HtmlSanitizer;
+  /**
+   * CSS custom properties to apply to this survey — checklist I2.
+   *
+   * A plain map, not a theme object: `@kajay/react` may not depend on `@kajay/themes`
+   * (the architecture check enforces the direction), and it does not need to. A host
+   * calls `themeVariables(darkTheme)` and hands over the result, or writes the same
+   * map by hand, or ignores this entirely and overrides the variables in a stylesheet.
+   * All three are the same mechanism.
+   */
+  readonly theme?: Readonly<Record<string, string>>;
+}
+
+/**
+ * Scopes a theme to one survey.
+ *
+ * A wrapper rather than the survey element itself, so the variables reach every state —
+ * the form, the preview, the completed page — from one place, and so a page with two
+ * surveys on it can theme them differently. Custom properties inherit, which is the
+ * whole reason this is one element and not a prop threaded through twenty.
+ */
+function ThemeScope({
+  theme,
+  children,
+}: {
+  readonly theme: Readonly<Record<string, string>> | undefined;
+  readonly children: ReactNode;
+}): ReactElement {
+  // React types `style` as known CSS properties; custom ones are legal at runtime and
+  // this is the documented way to pass them.
+  return (
+    <div className="kajay-theme" style={theme as CSSProperties | undefined}>
+      {children}
+    </div>
+  );
 }
 
 /** The survey's own title and description, above the first page. */
@@ -56,6 +90,7 @@ export function Survey({
   model,
   renderers = defaultPageElementRenderers,
   sanitizeHtml,
+  theme,
 }: SurveyProps): ReactElement {
   const state = useSurveyStatus(model);
   // Subscribed for the re-render: conditional logic can add, remove or disable
@@ -70,24 +105,33 @@ export function Survey({
     // Everything that is not the form still needs the sanitizer: the completed markup
     // is author-supplied, and a preview draws real questions.
     return (
-      <HtmlSanitizerProvider sanitize={sanitizeHtml}>
-        <QuestionRenderersProvider renderers={renderers}>
-          {state === 'preview' ? (
-            <SurveyPreview survey={model} renderers={renderers} />
-          ) : (
-            <SurveyStatusPage survey={model} state={state} />
-          )}
-        </QuestionRenderersProvider>
-      </HtmlSanitizerProvider>
+      <ThemeScope theme={theme}>
+        <HtmlSanitizerProvider sanitize={sanitizeHtml}>
+          <QuestionRenderersProvider renderers={renderers}>
+            {state === 'preview' ? (
+              <SurveyPreview survey={model} renderers={renderers} />
+            ) : (
+              <SurveyStatusPage survey={model} state={state} />
+            )}
+          </QuestionRenderersProvider>
+        </HtmlSanitizerProvider>
+      </ThemeScope>
     );
   }
 
   return (
-    <HtmlSanitizerProvider sanitize={sanitizeHtml}>
-      <QuestionRenderersProvider renderers={renderers}>
-        <SurveyForm model={model} renderers={renderers} onErrors={requestFocus} formRef={formRef} />
-      </QuestionRenderersProvider>
-    </HtmlSanitizerProvider>
+    <ThemeScope theme={theme}>
+      <HtmlSanitizerProvider sanitize={sanitizeHtml}>
+        <QuestionRenderersProvider renderers={renderers}>
+          <SurveyForm
+            model={model}
+            renderers={renderers}
+            onErrors={requestFocus}
+            formRef={formRef}
+          />
+        </QuestionRenderersProvider>
+      </HtmlSanitizerProvider>
+    </ThemeScope>
   );
 }
 

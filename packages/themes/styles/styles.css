@@ -632,6 +632,51 @@
   color: var(--kajay-color-muted);
 }
 
+.kajay-designer__handle {
+  padding: 0 calc(var(--kajay-spacing) / 3);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: var(--kajay-color-muted);
+  font: inherit;
+  cursor: grab;
+  /* Or a drag on a touch screen scrolls the canvas instead of moving the question.
+     The pointer events are ours from the first move; this stops the browser claiming
+     them first. */
+  touch-action: none;
+}
+
+.kajay-designer__handle[data-grabbed='true'] {
+  cursor: grabbing;
+  border-color: var(--kajay-color-accent);
+}
+
+/* Where a drop would land. Drawn on the element it would go *before*, and on its own
+   marker for the end of the list — which has no element to sit above. */
+.kajay-designer__element[data-drop-before='true'] {
+  box-shadow: inset 0 3px 0 -1px var(--kajay-color-accent);
+}
+
+.kajay-designer__drop-end {
+  grid-column: 1 / -1;
+  height: 3px;
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-accent);
+}
+
+/* The live region carries the whole interaction for anyone who cannot see the line.
+   Positioned rather than hidden: `display: none` is not read out. */
+.kajay-designer__announcement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* --- multipletext -------------------------------------------------------- */
 
 .kajay-question--multipletext {

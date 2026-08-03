@@ -1,7 +1,7 @@
-import { Toolbox } from '@kajay/creator-core';
-import type { ToolboxItem } from '@kajay/creator-core';
+import type { Toolbox, ToolboxItem } from '@kajay/creator-core';
 import { ToolboxPanel } from '@kajay/creator-react';
-import { useMemo, useState } from 'react';
+import type { PlacementItemProps } from '@kajay/creator-react';
+import { useState } from 'react';
 import type { CSSProperties, ReactElement } from 'react';
 
 /**
@@ -12,7 +12,10 @@ import type { CSSProperties, ReactElement } from 'react';
  * [ADR-0021](../../../docs/adr/0021-creator-composition.md) exists to make possible:
  * this could be a sidebar in an application that already has one.
  *
- * The picked item is only reported here. Putting it on a page is K2 and K3.
+ * The model and the placement are supplied by `Designer`, the host's own assembly: a
+ * drag that starts here ends on the canvas, so both pieces have to be handed the same
+ * gesture. Picking still only *reports* — what a pick does with a survey is the
+ * assembly's decision, and K2's answer is to append.
  *
  * The theme variables are put on this section by the *host*, not by the panel. That is
  * the seam working as designed rather than a gap: `<Survey theme={…}>` scopes them to
@@ -23,12 +26,15 @@ import type { CSSProperties, ReactElement } from 'react';
  */
 export interface DesignerToolboxProps {
   readonly theme: Readonly<Record<string, string>>;
+  readonly toolbox: Toolbox;
+  readonly getItemProps: (item: ToolboxItem) => PlacementItemProps;
 }
 
-export function DesignerToolbox({ theme }: DesignerToolboxProps): ReactElement {
-  // Built once: it holds the search term, and rebuilding it per render would clear
-  // what the designer typed on every keystroke.
-  const toolbox = useMemo(() => new Toolbox(), []);
+export function DesignerToolbox({
+  theme,
+  toolbox,
+  getItemProps,
+}: DesignerToolboxProps): ReactElement {
   const [picked, setPicked] = useState<ToolboxItem>();
 
   return (
@@ -40,6 +46,7 @@ export function DesignerToolbox({ theme }: DesignerToolboxProps): ReactElement {
       <h2>Toolbox</h2>
       <ToolboxPanel
         toolbox={toolbox}
+        getItemProps={getItemProps}
         onPick={(item) => {
           setPicked(item);
         }}

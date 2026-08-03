@@ -1,10 +1,10 @@
 import type { DesignSurface } from '@kajay/creator-core';
-import type { PageElement } from '@kajay/core';
 import { defaultPageElementRenderers, PageElementSlot } from '@kajay/react';
 import type { PageElementRendererRegistry } from '@kajay/react';
 import { useCallback, useSyncExternalStore } from 'react';
 import type { ReactElement } from 'react';
-import { useCreatorComponents } from './CreatorComponents.js';
+import { DesignedElement } from './DesignedElement.js';
+import type { DesignerPlacement } from './useDesignerPlacement.js';
 
 /** Re-renders when the surface changes: the selection, a title, the tree. */
 function useSurfaceVersion(surface: DesignSurface): number {
@@ -16,78 +16,24 @@ function useSurfaceVersion(surface: DesignSurface): number {
   return useSyncExternalStore(subscribe, getSnapshot);
 }
 
-interface DesignedElementProps {
-  readonly surface: DesignSurface;
-  readonly element: PageElement;
-  readonly renderers: PageElementRendererRegistry;
-}
-
-/**
- * One element on the surface: what it is, what it is called, and what it looks like.
- *
- * The rendered question is the **real one**, drawn by the same renderer a respondent
- * gets. That is what makes this WYSIWYG rather than a drawing of it, and it is why a
- * question type the Creator has never heard of needs no code here.
- *
- * Selection has two paths on purpose. Clicking anywhere on the element selects it —
- * that is what a designer expects, and the click is captured so it does not also toggle
- * the control underneath. But a click is not reachable from a keyboard, so the header
- * carries a real `<button>` as well: it is what tab order and a screen reader find, and
- * without it the surface would be selectable only with a pointer.
- */
-function DesignedElement({ surface, element, renderers }: DesignedElementProps): ReactElement {
-  const { Button, Input } = useCreatorComponents();
-  const isSelected = surface.isSelected(element);
-
-  return (
-    <div
-      className="kajay-designer__element"
-      data-selected={isSelected ? 'true' : undefined}
-      data-element-type={element.type}
-      onClickCapture={() => {
-        // A click anywhere on the element selects it. Nothing has to stop the control
-        // underneath from answering, because the survey is in design mode and every
-        // question already refuses (E7) — a `preventDefault` here looked like it was
-        // doing that job and was measurably doing nothing at all.
-        surface.select(element);
-      }}
-    >
-      <div className="kajay-designer__adorner">
-        <Button
-          className="kajay-designer__select"
-          aria-label={`Select ${element.name}`}
-          data-testid={`select-${element.name}`}
-          onClick={() => {
-            surface.select(element);
-          }}
-        >
-          {element.type}
-        </Button>
-        {isSelected ? (
-          <Input
-            className="kajay-designer__title"
-            value={element.title}
-            onValueChange={(value) => {
-              surface.setTitle(element, value);
-            }}
-            aria-label={`Title of ${element.name}`}
-          />
-        ) : null}
-      </div>
-      {renderers.render(surface.survey, element)}
-    </div>
-  );
-}
-
 export interface DesignSurfacePanelProps {
   readonly surface: DesignSurface;
   /** Defaults to the built-in renderers; pass a clone to draw a custom type. */
   readonly renderers?: PageElementRendererRegistry;
+  /**
+   * Drag and drop, from {@link useDesignerPlacement} — checklist K2.
+   *
+   * Optional, and passed in rather than created here, because the same object has to
+   * reach the toolbox: a drag that begins on a toolbox item and ends on the canvas is
+   * one gesture crossing two pieces (ADR-0021), and each holding its own copy would
+   * make it two.
+   */
+  readonly placement?: DesignerPlacement | undefined;
   readonly className?: string;
 }
 
 /**
- * The page being designed — checklist K3.
+ * The page being designed — checklist K3, and where a drop lands for K2.
  *
  * A piece ([ADR-0021](../../../docs/adr/0021-creator-composition.md)): it takes the
  * surface and holds nothing, so a host can put it wherever their layout wants it.
@@ -104,18 +50,26 @@ export interface DesignSurfacePanelProps {
  * is a departure from editing the label in place, and the better trade: an editor drawn
  * *over* the rendered title would have to guess at its position, and one that suppressed
  * it would make the layout on screen a lie.
+ *
+ * **The drop indicator is drawn from the model, not from the pointer.** Which slot is
+ * active is a number the placement already tracks, so the line between two elements is
+ * rendered from state — assertable in a test, and identical whether a pointer or the
+ * arrow keys put it there.
  */
 export function DesignSurfacePanel({
   surface,
   renderers = defaultPageElementRenderers,
+  placement,
   className,
 }: DesignSurfacePanelProps): ReactElement {
   useSurfaceVersion(surface);
   const page = surface.page;
+  const activeSlot = placement?.activeSlot;
 
   return (
     <div
       className={joinClasses('kajay-designer', className)}
+      ref={placement?.surfaceRef}
       // Clicking the *background* clears the selection — the only way out of one
       // without picking something else. Guarded on the target being this element
       // rather than a descendant: a click on an element selects it in the capture
@@ -132,11 +86,35 @@ export function DesignSurfacePanel({
           This survey has no pages yet.
         </p>
       ) : (
-        page.elements.map((element) => (
+        page.elements.map((element, index) => (
           <PageElementSlot key={element.name} element={element}>
-            <DesignedElement surface={surface} element={element} renderers={renderers} />
+            <DesignedElement
+              surface={surface}
+              element={element}
+              index={index}
+              renderers={renderers}
+              placement={placement}
+              isDropTarget={activeSlot === index}
+            />
           </PageElementSlot>
         ))
+      )}
+      {activeSlot !== undefined && activeSlot === (page?.elements.length ?? 0) ? (
+        // The end of the list has no element to draw a line above, so it gets its own
+        // marker. Without it the last position would be the one place a drop could not
+        // be aimed at, which is also the most common place to add a question.
+        <div className="kajay-designer__drop-end" data-testid="drop-at-end" />
+      ) : null}
+      {placement === undefined ? null : (
+        // `aria-live` on its own, not `role="status"`. The ranking question's live
+        // region is the same shape, and for a reason that shows up immediately: a
+        // status role is a *landmark-ish* thing a page-wide `getByRole('status')`
+        // finds, and adding a second one to the demo broke seven scenarios that had
+        // nothing to do with the Creator. A live region needs `aria-live`; the role
+        // adds only a name for something nobody looks up by name.
+        <p className="kajay-designer__announcement" aria-live="polite" aria-atomic="true">
+          {placement.announcement}
+        </p>
       )}
     </div>
   );

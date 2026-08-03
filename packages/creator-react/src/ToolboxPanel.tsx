@@ -2,6 +2,7 @@ import type { Toolbox, ToolboxItem } from '@kajay/creator-core';
 import { useCallback, useSyncExternalStore } from 'react';
 import type { ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
+import type { PlacementItemProps } from './useDesignerPlacement.js';
 
 /**
  * Re-renders when the toolbox changes.
@@ -24,6 +25,16 @@ export interface ToolboxPanelProps {
   readonly toolbox: Toolbox;
   /** Told what to add. The panel never touches a survey itself. */
   readonly onPick?: (item: ToolboxItem) => void;
+  /**
+   * Makes an item draggable onto the canvas — checklist K2.
+   *
+   * Handed in as opaque props rather than as a design surface, so the toolbox still
+   * knows nothing about where a drop lands. It supplies the *source* of a gesture and
+   * has no opinion about its destination — including what a plain click means, which
+   * comes back in the same object because only the gesture knows whether the click that
+   * just arrived was the end of a drag.
+   */
+  readonly getItemProps?: ((item: ToolboxItem) => PlacementItemProps) | undefined;
   readonly className?: string;
 }
 
@@ -43,9 +54,20 @@ export interface ToolboxPanelProps {
  * Picking is reported, never performed. Where a picked item lands — a page, a selection,
  * an insertion index — is K2 and K3's business, and a toolbox that reached into a survey
  * would be the second thing deciding it.
+ *
+ * **Clicking an item is the whole interaction on its own.** A click reports the pick and
+ * the host adds it; dragging only chooses *where*. That is what keeps K2 keyboard-
+ * complete without inventing an aim-then-confirm mode nobody would find: everything a
+ * drag can do is a click followed by the element's own grab-and-move, which a keyboard
+ * user needs anyway.
  */
-export function ToolboxPanel({ toolbox, onPick, className }: ToolboxPanelProps): ReactElement {
-  const { Button, Input } = useCreatorComponents();
+export function ToolboxPanel({
+  toolbox,
+  onPick,
+  getItemProps,
+  className,
+}: ToolboxPanelProps): ReactElement {
+  const { Input } = useCreatorComponents();
   useToolboxVersion(toolbox);
   const categories = toolbox.categories;
 
@@ -76,22 +98,53 @@ export function ToolboxPanel({ toolbox, onPick, className }: ToolboxPanelProps):
           <h3 className="kajay-toolbox__category-title">{category.name}</h3>
           <ul className="kajay-toolbox__list">
             {category.items.map((item) => (
-              <li className="kajay-toolbox__item" key={item.name}>
-                <Button
-                  className="kajay-toolbox__button"
-                  data-testid={`toolbox-${item.name}`}
-                  onClick={() => {
-                    onPick?.(item);
-                  }}
-                >
-                  {item.title}
-                </Button>
-              </li>
+              <ToolboxEntry
+                key={item.name}
+                item={item}
+                onPick={onPick}
+                getItemProps={getItemProps}
+              />
             ))}
           </ul>
         </section>
       ))}
     </div>
+  );
+}
+
+/**
+ * One item.
+ *
+ * Its own component so the placement props are resolved once and the click can be
+ * *composed* rather than overwritten: spreading them and then writing `onClick` would
+ * silently drop the one that knows a drag just happened.
+ */
+function ToolboxEntry({
+  item,
+  onPick,
+  getItemProps,
+}: {
+  readonly item: ToolboxItem;
+  readonly onPick: ((item: ToolboxItem) => void) | undefined;
+  readonly getItemProps: ((item: ToolboxItem) => PlacementItemProps) | undefined;
+}): ReactElement {
+  const { Button } = useCreatorComponents();
+  const placement = getItemProps?.(item);
+
+  return (
+    <li className="kajay-toolbox__item">
+      <Button
+        className="kajay-toolbox__button"
+        data-testid={`toolbox-${item.name}`}
+        {...placement}
+        onClick={() => {
+          placement?.onClick();
+          onPick?.(item);
+        }}
+      >
+        {item.title}
+      </Button>
+    </li>
   );
 }
 

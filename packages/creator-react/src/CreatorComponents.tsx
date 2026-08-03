@@ -1,5 +1,11 @@
 import { createContext, useContext } from 'react';
-import type { ComponentType, ReactElement, ReactNode } from 'react';
+import type {
+  ComponentType,
+  KeyboardEvent,
+  PointerEvent,
+  ReactElement,
+  ReactNode,
+} from 'react';
 
 /**
  * A button. Anything a designer presses.
@@ -14,8 +20,25 @@ export interface CreatorButtonProps {
   readonly className?: string;
   readonly title?: string;
   readonly 'aria-label'?: string;
+  readonly 'aria-roledescription'?: string;
   readonly 'data-testid'?: string;
+  readonly 'data-grabbed'?: 'true' | undefined;
   readonly onClick?: () => void;
+  /**
+   * Pointer and key handlers, because K2's drag handle is a button.
+   *
+   * **A substituted primitive must forward these.** The default does, and a host whose
+   * Button spreads its props onto a `<button>` — which is what a design-system button
+   * is — gets them for free. One that does not silently breaks dragging, and *silently*
+   * is the word: a spread bypasses excess-property checking, so the first version of
+   * this interface dropped every one of these handlers and the compiler said nothing.
+   * That is the whole reason they are named here rather than left to a wider type.
+   */
+  readonly onPointerDown?: (event: PointerEvent<HTMLElement>) => void;
+  readonly onPointerMove?: (event: PointerEvent<HTMLElement>) => void;
+  readonly onPointerUp?: (event: PointerEvent<HTMLElement>) => void;
+  readonly onPointerCancel?: (event: PointerEvent<HTMLElement>) => void;
+  readonly onKeyDown?: (event: KeyboardEvent<HTMLElement>) => void;
   readonly children?: ReactNode;
 }
 

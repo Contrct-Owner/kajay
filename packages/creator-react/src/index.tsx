@@ -7,6 +7,13 @@
 export { DesignSurfacePanel } from './DesignSurfacePanel.js';
 export type { DesignSurfacePanelProps } from './DesignSurfacePanel.js';
 export { ToolboxPanel } from './ToolboxPanel.js';
+export { useDesignerPlacement } from './useDesignerPlacement.js';
+export type {
+  DesignerPlacement,
+  PlacementDragProps,
+  PlacementHandleProps,
+  PlacementItemProps,
+} from './useDesignerPlacement.js';
 export type { ToolboxPanelProps } from './ToolboxPanel.js';
 export { CreatorComponentsProvider, useCreatorComponents } from './CreatorComponents.js';
 export type {

@@ -1,7 +1,17 @@
 import { MetadataRegistry, registerBuiltInTypes, serializeSurvey } from '@kajay/core';
 import type { SurveyDefinition } from '@kajay/core';
 import { DesignSurface } from '@kajay/creator-core';
+import type { ToolboxItem } from '@kajay/creator-core';
 import { describe, expect, test } from 'vitest';
+
+const TEXT_ITEM: ToolboxItem = {
+  name: 'text',
+  type: 'text',
+  title: 'Single-line input',
+  category: 'Text',
+  keywords: [],
+  defaults: {},
+};
 
 /** The design surface model — checklist K3. */
 function registry(): MetadataRegistry {
@@ -166,5 +176,118 @@ describe('parity/K3-design-surface', () => {
     // would be the one nobody remembers to add to the command stack.
     expect(seen).toHaveLength(1);
     expect(designed.survey.title).toBe('Renamed');
+  });
+});
+
+function elementNames(designed: DesignSurface): readonly string[] {
+  return (designed.page?.elements ?? []).map((element) => element.name);
+}
+
+describe('parity/K2-place', () => {
+  test('a dropped item becomes a question the survey knows', () => {
+    const designed = surface();
+
+    designed.place({ kind: 'new', item: TEXT_ITEM }, { container: 'p1', index: 1 });
+
+    // Not merely present in an array: named, addressable and wired, because the whole
+    // survey went back through `parseSurvey` (ADR-0009 decision 3). Assembling an
+    // element by hand against the live model is what this avoids.
+    expect(elementNames(designed)).toEqual(['who', 'text1', 'plan']);
+    expect(designed.survey.getQuestionByName('text1')?.type).toBe('text');
+  });
+
+  test('the survey is still on a canvas after a re-parse', () => {
+    const designed = surface();
+
+    designed.place({ kind: 'new', item: TEXT_ITEM }, { container: 'p1', index: 0 });
+
+    // Design mode is runtime state, so it is exactly what a re-parse throws away —
+    // and a canvas whose questions started answering after the first drop would be
+    // K3 quietly undone by K2.
+    expect(designed.survey.isDesignMode).toBe(true);
+    expect(designed.survey.getQuestionByName('plan')?.isReadOnly).toBe(true);
+  });
+
+  test('what was placed is what is selected', () => {
+    const designed = surface();
+    designed.select(designed.survey.getQuestionByName('who')!);
+
+    designed.place({ kind: 'new', item: TEXT_ITEM }, { container: 'p1', index: 0 });
+
+    // A designer who drops a question wants to name it next. Leaving the selection
+    // where it was would send the very next keystroke to the wrong element.
+    expect(designed.selected?.getPropertyValue('name')).toBe('text1');
+  });
+
+  test('a drag selects what was dragged, whatever was selected before', () => {
+    const designed = surface();
+    designed.select(designed.survey.getQuestionByName('plan')!);
+
+    designed.place({ kind: 'move', element: 'who' }, { container: 'p1', index: 2 });
+
+    // Dragging something is a deliberate act on it, so it is what the designer is
+    // thinking about when the drag ends. The selection is re-resolved *by name*,
+    // because nothing survives a re-parse by identity — the object is a different
+    // one and `isSelected` still has to agree it is the same question.
+    expect(designed.selected?.getPropertyValue('name')).toBe('who');
+    expect(designed.isSelected(designed.survey.getQuestionByName('who')!)).toBe(true);
+    expect(designed.isSelected(designed.survey.getQuestionByName('plan')!)).toBe(false);
+  });
+
+  test('an edit made before the drop is still there after it', () => {
+    const designed = surface();
+    designed.setTitle(designed.survey.getQuestionByName('who')!, 'What is your name?');
+
+    designed.place({ kind: 'move', element: 'who' }, { container: 'p1', index: 2 });
+
+    // Property edits mutate the model and structural edits re-parse, so a drop has to
+    // serialize what is on the canvas rather than the definition it was opened with.
+    // Every drop is therefore a round trip through ADR-0002's fixed point.
+    expect(designed.survey.getQuestionByName('who')?.title).toBe('What is your name?');
+  });
+
+  test('a drop announces once, and a refused one not at all', () => {
+    const designed = surface();
+    const seen: number[] = [];
+    designed.onChanged.add((version) => seen.push(version));
+
+    expect(designed.place({ kind: 'move', element: 'who' }, { container: 'p1', index: 2 })).toBe(
+      true,
+    );
+    expect(designed.place({ kind: 'move', element: 'who' }, { container: 'p1', index: 2 })).toBe(
+      false,
+    );
+
+    expect(seen).toHaveLength(1);
+    expect(elementNames(designed)).toEqual(['plan', 'who']);
+  });
+
+  test('the page being looked at is the page still being looked at', () => {
+    const designed = new DesignSurface({
+      definition: {
+        pages: [
+          { name: 'p1', elements: [{ type: 'text', name: 'first' }] },
+          { name: 'p2', elements: [{ type: 'text', name: 'second' }] },
+        ],
+      },
+      registry: registry(),
+    });
+    designed.survey.goTo('p2');
+
+    designed.place({ kind: 'new', item: TEXT_ITEM }, { container: 'p2', index: 0 });
+
+    // A re-parse starts on page one. A drop that scrolled the designer back there
+    // would land the edit correctly and lose the canvas its place.
+    expect(designed.page?.name).toBe('p2');
+  });
+
+  test('the slots offered are the ones the page has', () => {
+    const designed = surface();
+
+    expect(designed.slots).toEqual([
+      { container: 'p1', index: 0 },
+      { container: 'p1', index: 1 },
+      { container: 'p1', index: 2 },
+    ]);
   });
 });

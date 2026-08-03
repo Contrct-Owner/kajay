@@ -2,6 +2,7 @@ import type { LogicEngineOptions } from '../logic/LogicEngine.js';
 import type { ChoicePageLoader } from './ChoicePageLoader.js';
 import type { Endpoints } from './endpoints.js';
 import type { ChoiceFetcher } from './ChoiceSourceController.js';
+import type { FileCleaner, FileDownloader, FileUploader } from './FileEntry.js';
 
 /**
  * Everything a survey may be given at construction.
@@ -24,4 +25,17 @@ export interface SurveyOptions extends LogicEngineOptions {
    * fetches from.
    */
   readonly endpoints?: Endpoints;
+  /**
+   * Where attached files go — checklist H1 and H3.
+   *
+   * Injected for the same reason `fetchJson` is: core cannot reach for `fetch`, and
+   * where a file is stored is a decision only the host can take. Without one the content
+   * stays in the response if the definition says `storeDataAsText`, and otherwise only
+   * the file's description does — never a reference to something nobody stored.
+   */
+  readonly uploadFiles?: FileUploader;
+  /** Mints a URL for a stored file, when one has to be asked for rather than kept. */
+  readonly downloadFile?: FileDownloader;
+  /** Told when files leave an answer, so a host can delete what it stored. */
+  readonly clearFiles?: FileCleaner;
 }

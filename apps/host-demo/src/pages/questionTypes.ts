@@ -281,6 +281,25 @@ export const questionTypes: PageDefinition = {
       ],
     },
     {
+      // The host stores it: `uploadFiles` is wired in `useDemoSurvey`, so the response
+      // carries a reference rather than a megabyte of base64. Accepted types and the
+      // size limit are rules the model enforces, not just hints to the picker.
+      type: 'file',
+      name: 'evidence',
+      title: 'Attach your receipts',
+      allowMultiple: true,
+      acceptedTypes: 'image/*,.pdf,.txt',
+      maxSize: 1048576,
+      maxFileCount: 3,
+    },
+    {
+      type: 'signaturepad',
+      name: 'signature',
+      title: 'Sign to confirm the expenses are yours',
+      penColor: '#2f6feb',
+      signatureHeight: 120,
+    },
+    {
       type: 'rating',
       name: 'satisfaction',
       title: 'How is it going so far?',

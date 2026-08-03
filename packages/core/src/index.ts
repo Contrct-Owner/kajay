@@ -126,6 +126,19 @@ export { MatrixCellsBase } from './model/MatrixCellsBase.js';
 export { RepeatingQuestion } from './model/RepeatingQuestion.js';
 // --- Dynamic panels (§G) ---------------------------------------------------
 export { PanelDynamicQuestion, toPanelRenderMode } from './model/PanelDynamicQuestion.js';
+// --- Media and upload (§H) -------------------------------------------------
+export { FileQuestion } from './model/FileQuestion.js';
+export type { FileSeams } from './model/FileQuestion.js';
+export { asFileEntries, matchesAcceptedTypes } from './model/FileEntry.js';
+export type {
+  FileCleaner,
+  FileDownloader,
+  FileEntry,
+  FileUploadRequest,
+  FileUploader,
+} from './model/FileEntry.js';
+export { SignatureQuestion, toSignatureFormat } from './model/SignatureQuestion.js';
+export type { SignatureFormat } from './model/SignatureQuestion.js';
 export type { PanelRenderMode } from './model/PanelDynamicQuestion.js';
 export { MatrixCellsQuestion } from './model/MatrixCellsQuestion.js';
 export { MatrixDynamicQuestion } from './model/MatrixDynamicQuestion.js';

@@ -3,6 +3,7 @@ import type { Diagnostic, Survey, SurveyDefinition } from '@kajay/core';
 import { useEffect, useMemo } from 'react';
 import { loadChoicePage } from './choiceDirectory.js';
 import { fetchJson } from './fetchJson.js';
+import { clearFiles, uploadFiles } from './hostFiles.js';
 import { createHostFunctions } from './hostFunctions.js';
 import { validateOnServer } from './hostValidators.js';
 import { clearProgress, readSavedProgress, saveProgress } from './savedProgress.js';
@@ -32,6 +33,10 @@ export function useDemoSurvey(): DemoSurvey {
       fetchJson,
       loadChoicePage,
       functions: createHostFunctions(),
+      // Where attached files go, and what to forget when one is detached. The library
+      // never touches storage; this is the host's whole half of §H.
+      uploadFiles,
+      clearFiles,
     });
     first.survey.validation.setServerValidator(validateOnServer);
     const saved = readSavedProgress();

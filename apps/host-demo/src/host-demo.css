@@ -126,6 +126,40 @@ body {
   padding: 2px 8px;
 }
 
+/* Files and signatures. As everywhere else, the library ships no stylesheet: these say
+   what the hooks are for and §I will decide what any of it looks like. */
+.kajay-file__drop {
+  padding: 8px;
+  border: 1px dashed #98a2b3;
+  border-radius: 6px;
+}
+
+.kajay-file__drop--over {
+  border-color: #2f6feb;
+  background: #eff4ff;
+}
+
+.kajay-file__list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.kajay-file__item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.kajay-file__preview {
+  max-height: 40px;
+}
+
+.kajay-signature {
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  touch-action: none;
+}
+
 /* The check timeline: a diagnostic list, readable at a glance in a failure snapshot. */
 .host-demo__timeline {
   margin: 0;

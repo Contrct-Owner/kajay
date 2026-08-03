@@ -812,6 +812,121 @@
       ],
       "additionalProperties": true
     },
+    "file": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "file"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "allowMultiple": {
+          "type": "boolean",
+          "default": false
+        },
+        "acceptedTypes": {
+          "type": "string",
+          "default": "",
+          "description": "An `accept` list — image/*, .pdf — offered to the picker and enforced."
+        },
+        "maxSize": {
+          "type": "number",
+          "default": 0,
+          "description": "Bytes. 0 means no limit."
+        },
+        "maxFileCount": {
+          "type": "number",
+          "default": 0,
+          "description": "0 means no limit."
+        },
+        "showPreview": {
+          "type": "boolean",
+          "default": true
+        },
+        "storeDataAsText": {
+          "type": "boolean",
+          "default": false,
+          "description": "The content travels inside the response instead of being uploaded."
+        },
+        "allowCameraCapture": {
+          "type": "boolean",
+          "default": false,
+          "description": "Offer the camera as well as the filesystem, where the platform has one."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
     "html": {
       "type": "object",
       "properties": {
@@ -1850,6 +1965,9 @@
           "$ref": "#/$defs/expression"
         },
         {
+          "$ref": "#/$defs/file"
+        },
+        {
           "$ref": "#/$defs/html"
         },
         {
@@ -1884,6 +2002,9 @@
         },
         {
           "$ref": "#/$defs/rating"
+        },
+        {
+          "$ref": "#/$defs/signaturepad"
         },
         {
           "$ref": "#/$defs/tagbox"
@@ -2105,6 +2226,9 @@
           "$ref": "#/$defs/expression"
         },
         {
+          "$ref": "#/$defs/file"
+        },
+        {
           "$ref": "#/$defs/imagepicker"
         },
         {
@@ -2130,6 +2254,9 @@
         },
         {
           "$ref": "#/$defs/rating"
+        },
+        {
+          "$ref": "#/$defs/signaturepad"
         },
         {
           "$ref": "#/$defs/tagbox"
@@ -2698,6 +2825,110 @@
         "type",
         "expression",
         "setToName"
+      ],
+      "additionalProperties": true
+    },
+    "signaturepad": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "signaturepad"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "penColor": {
+          "type": "string",
+          "default": "#1d2939"
+        },
+        "backgroundColor": {
+          "type": "string",
+          "default": "",
+          "description": "Empty is transparent, which is what a signature on a form usually wants."
+        },
+        "signatureFormat": {
+          "type": "string",
+          "default": "png",
+          "description": "png, jpeg or svg."
+        },
+        "signatureWidth": {
+          "type": "number",
+          "default": 400
+        },
+        "signatureHeight": {
+          "type": "number",
+          "default": 160
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
       ],
       "additionalProperties": true
     },

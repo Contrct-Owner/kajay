@@ -245,6 +245,12 @@ a template admits page elements rather than only questions.
 `valueName` landed with G3 and is survey-wide: a question's answer key, when it should
 differ from its name, so two questions can share an answer while staying two questions.
 
+**§H is closed (2026-08-03).** The file question is the first feature whose whole subject
+is a browser API, and it is where the DOM-free rule earned itself: core's idea of a file
+is a name, a type, a size and where the content is, the adapter reads the real one, and
+the host decides where it goes. Accepted types and size limits are model rules rather
+than picker hints, because a respondent can drag a file straight past `accept`.
+
 **In scope**
 
 - Matrix family: matrix (single-select), matrixdropdown, matrixdynamic (add/remove

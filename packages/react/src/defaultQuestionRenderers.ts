@@ -2,6 +2,7 @@ import { BooleanQuestionRenderer } from './BooleanQuestionRenderer.js';
 import { CollapsedSelectRenderer } from './CollapsedSelectRenderer.js';
 import { CommentQuestionRenderer } from './CommentQuestionRenderer.js';
 import { ExpressionQuestionRenderer } from './ExpressionQuestionRenderer.js';
+import { FileQuestionRenderer } from './FileQuestionRenderer.js';
 import { ImagePickerRenderer } from './ImagePickerRenderer.js';
 import { MatrixCellsRenderer } from './MatrixCellsRenderer.js';
 import { MatrixDynamicRenderer } from './MatrixDynamicRenderer.js';
@@ -12,6 +13,7 @@ import { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
 import { RankingQuestionRenderer } from './RankingQuestionRenderer.js';
 import { RatingQuestionRenderer } from './RatingQuestionRenderer.js';
 import { SelectQuestionRenderer } from './SelectQuestionRenderer.js';
+import { SignatureQuestionRenderer } from './SignatureQuestionRenderer.js';
 import { TextQuestionRenderer } from './TextQuestionRenderer.js';
 
 function createDefaultRenderers(): QuestionRendererRegistry {
@@ -32,6 +34,8 @@ function createDefaultRenderers(): QuestionRendererRegistry {
   registry.register('matrixcells', MatrixCellsRenderer);
   registry.register('matrixdynamic', MatrixDynamicRenderer);
   registry.register('paneldynamic', PanelDynamicRenderer);
+  registry.register('file', FileQuestionRenderer);
+  registry.register('signaturepad', SignatureQuestionRenderer);
   return registry;
 }
 

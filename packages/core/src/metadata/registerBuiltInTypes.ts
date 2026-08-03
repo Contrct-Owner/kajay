@@ -2,6 +2,7 @@ import type { MetadataRegistry } from './MetadataRegistry.js';
 import { registerCoreTypes } from './registerCoreTypes.js';
 import { registerDisplayTypes } from './registerDisplayTypes.js';
 import { registerMatrixTypes } from './registerMatrixTypes.js';
+import { registerMediaTypes } from './registerMediaTypes.js';
 import { registerPanelTypes } from './registerPanelTypes.js';
 import { registerQuestionTypes } from './registerQuestionTypes.js';
 import { registerSelectTypes } from './registerSelectTypes.js';
@@ -23,5 +24,6 @@ export function registerBuiltInTypes(registry: MetadataRegistry): void {
   registerSelectTypes(registry);
   registerMatrixTypes(registry);
   registerPanelTypes(registry);
+  registerMediaTypes(registry);
   registerDisplayTypes(registry);
 }

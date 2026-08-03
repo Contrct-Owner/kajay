@@ -1,4 +1,5 @@
 import { collectEndpointDiagnostics } from '../model/endpoints.js';
+import { FileQuestion } from '../model/FileQuestion.js';
 import { RepeatingQuestion } from '../model/RepeatingQuestion.js';
 import { ROW_SCOPE } from '../model/matrixCells.js';
 import { SelectQuestion } from '../model/SelectQuestion.js';
@@ -100,6 +101,7 @@ export function parseSurvey(
   // Before the first logic run, because a cell's conditions are registered as the tree
   // is walked and a matrix with no cells yet would be walked as an empty one.
   attachRepeatingCells(root, registry);
+  attachFileSeams(root, options);
   root.refreshLogic();
   // After the tree exists, because it is a fact about the questions in it rather than
   // about any one property as it is read.
@@ -131,6 +133,20 @@ function attachRepeatingCells(survey: Survey, registry: MetadataRegistry): void 
         evaluate: (expression, values) =>
           survey.evaluate(expression, { name: ROW_SCOPE, values }).value,
       });
+    }
+  }
+}
+
+/**
+ * Gives every file question the host's storage seams.
+ *
+ * Beside the cell attachment and for the same reason: the model cannot reach for
+ * `fetch`, and only the host knows where a file should go.
+ */
+function attachFileSeams(survey: Survey, options: SurveyOptions): void {
+  for (const question of survey.questions) {
+    if (question instanceof FileQuestion) {
+      question.attachFileSeams(options);
     }
   }
 }

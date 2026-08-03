@@ -55,6 +55,31 @@ export interface CreatorInputProps {
   readonly 'aria-label'?: string;
 }
 
+/** One choice in a {@link CreatorSelectProps}. */
+export interface CreatorSelectOption {
+  readonly value: string;
+  readonly label: string;
+}
+
+/**
+ * A picker with a fixed set of choices. `value`/`onValueChange`, like the input.
+ *
+ * The third primitive, and it earned its place the way ADR-0022 asks: K5 has to let a
+ * designer change a question's type, and there is no way to draw that out of a button
+ * and a text field. `{ value, label }` rather than bare strings because a select is
+ * exactly the control where the two come apart — `radiogroup` is a type name, not
+ * something to show somebody.
+ */
+export interface CreatorSelectProps {
+  readonly value: string;
+  readonly options: readonly CreatorSelectOption[];
+  readonly onValueChange: (value: string) => void;
+  readonly disabled?: boolean;
+  readonly className?: string;
+  readonly 'aria-label'?: string;
+  readonly 'data-testid'?: string;
+}
+
 /**
  * The primitives the Creator draws itself out of — [ADR-0022](../../../docs/adr/0022-design-system-primitives.md).
  *
@@ -75,6 +100,7 @@ export interface CreatorComponents {
   // defensive code is worse than none.
   readonly Button?: ComponentType<CreatorButtonProps> | undefined;
   readonly Input?: ComponentType<CreatorInputProps> | undefined;
+  readonly Select?: ComponentType<CreatorSelectProps> | undefined;
 }
 
 /**
@@ -125,7 +151,32 @@ function DefaultInput({
   );
 }
 
-const DEFAULTS = { Button: DefaultButton, Input: DefaultInput };
+function DefaultSelect({
+  value,
+  options,
+  onValueChange,
+  className,
+  ...rest
+}: CreatorSelectProps): ReactElement {
+  return (
+    <select
+      className={className}
+      value={value}
+      onChange={(event) => {
+        onValueChange(event.target.value);
+      }}
+      {...rest}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+const DEFAULTS = { Button: DefaultButton, Input: DefaultInput, Select: DefaultSelect };
 
 const CreatorComponentsContext = createContext<CreatorComponents>({});
 

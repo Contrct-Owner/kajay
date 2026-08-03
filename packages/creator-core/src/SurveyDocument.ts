@@ -1,4 +1,4 @@
-import { parseSurvey, serializeSurvey } from '@kajay/core';
+import { globalRegistry, parseSurvey, serializeSurvey } from '@kajay/core';
 import type {
   Diagnostic,
   MetadataRegistry,
@@ -34,6 +34,17 @@ export class SurveyDocument {
 
   get survey(): Survey {
     return this.#survey;
+  }
+
+  /**
+   * The registry this document was parsed with.
+   *
+   * Resolved rather than reported as `undefined`, because a caller asking what types
+   * exist (K5's conversion) wants the answer this document would actually give — and
+   * `parseSurvey` has already fallen back to the global one.
+   */
+  get registry(): MetadataRegistry {
+    return this.#registry ?? globalRegistry;
   }
 
   /** What was wrong with the definition it was given. Never thrown away silently. */

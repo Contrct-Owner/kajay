@@ -27,5 +27,9 @@ export type {
   CreatorComponents,
   CreatorComponentsProviderProps,
   CreatorInputProps,
+  CreatorSelectOption,
+  CreatorSelectProps,
   ResolvedCreatorComponents,
 } from './CreatorComponents.js';
+export { ElementActions } from './ElementActions.js';
+export type { ElementActionsProps } from './ElementActions.js';

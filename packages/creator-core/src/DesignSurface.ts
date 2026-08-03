@@ -9,10 +9,12 @@ import type {
   SurveyElement,
 } from '@kajay/core';
 import { nameOf } from './definitionTree.js';
+import type { DropList } from './definitionTree.js';
 import { SurveyDocument } from './SurveyDocument.js';
 import { UndoHistory } from './UndoHistory.js';
 import type { HistorySnapshot } from './UndoHistory.js';
 import { addPageTo, placeOn, removePageFrom } from './designerEdits.js';
+import { convertibleTypes, convertIn, copyFrom, duplicateIn, pasteInto } from './elementEdits.js';
 import { canPlace, dropSlotsFor } from './placement.js';
 import type { DropSlot, PlacementSource } from './placement.js';
 
@@ -57,6 +59,7 @@ export class DesignSurface {
   readonly #document: SurveyDocument;
   #selected: SurveyElement | undefined;
   #version = 0;
+  #clipboard: SurveyDefinition | undefined;
   readonly #history: UndoHistory = new UndoHistory();
 
   readonly onChanged: EventEmitter<number> = new EventEmitter();
@@ -225,6 +228,80 @@ export class DesignSurface {
   applyEdit(definition: SurveyDefinition, options: EditOptions = {}): void {
     this.#record(options.from ?? this.definition, options.undoKey);
     this.#reparse(definition, options.select, options.goTo ?? this.page?.name);
+  }
+
+  /** Puts a copy of an element straight after it — checklist K5. */
+  duplicate(name: string): boolean {
+    return duplicateIn(this, name);
+  }
+
+  /**
+   * Remembers an element so it can be pasted — checklist K5.
+   *
+   * The clipboard holds a *definition fragment*, not an element: nothing survives a
+   * re-parse by identity, and a fragment can be pasted after any number of edits, into
+   * another page, or never.
+   *
+   * Kept in memory rather than written to the system clipboard. That is a `navigator`
+   * call, which a core package may not make and the architecture check enforces — and it
+   * is the right boundary anyway: a host that wants copy between browser tabs can read
+   * {@link clipboard} and write it wherever they like.
+   */
+  copy(name: string): boolean {
+    const fragment = copyFrom(this, name);
+    if (fragment === undefined) {
+      return false;
+    }
+    this.#clipboard = fragment;
+    // Announced but not recorded, and the difference is the point: copying changes what
+    // a view *shows* — whether Paste is available — without changing the survey, so
+    // there is nothing to undo and everything to redraw.
+    this.#announce();
+    return true;
+  }
+
+  /** What was copied, if anything. */
+  get clipboard(): SurveyDefinition | undefined {
+    return this.#clipboard;
+  }
+
+  get canPaste(): boolean {
+    return this.#clipboard !== undefined && this.page !== undefined;
+  }
+
+  /**
+   * Pastes what was copied — checklist K5.
+   *
+   * After the selected element by default, and at the end of the page when nothing is
+   * selected. Pasting "somewhere" is not a useful answer, and the selection is the only
+   * thing on screen that says where a designer is working.
+   */
+  paste(slot: DropSlot | undefined = this.#pasteSlot()): boolean {
+    const fragment = this.#clipboard;
+    if (fragment === undefined || slot === undefined) {
+      return false;
+    }
+    return pasteInto(this, fragment, slot);
+  }
+
+  #pasteSlot(): DropSlot | undefined {
+    const page = this.page;
+    if (page === undefined) {
+      return undefined;
+    }
+    const at = page.elements.findIndex((element) => element === this.#selected);
+    const list: DropList = { of: 'elements', page: page.name };
+    return { list, index: at < 0 ? page.elements.length : at + 1 };
+  }
+
+  /** Changes a question's type in place, keeping what the new type understands — K5. */
+  convert(name: string, type: string): boolean {
+    return convertIn(this, name, type, this.#document.registry);
+  }
+
+  /** The types a question can be turned into. */
+  get convertibleTypes(): readonly string[] {
+    return convertibleTypes(this.#document.registry);
   }
 
   /** Whether this placement would change anything. What a drop indicator is drawn from. */

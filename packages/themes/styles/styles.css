@@ -632,6 +632,30 @@
   color: var(--kajay-color-muted);
 }
 
+/* --- element actions (K5) ------------------------------------------------ */
+
+.kajay-designer__actions {
+  display: inline-flex;
+  gap: calc(var(--kajay-spacing) / 4);
+  align-items: center;
+}
+
+.kajay-designer__action,
+.kajay-designer__type {
+  padding: 0 calc(var(--kajay-spacing) / 3);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kajay-designer__action:disabled {
+  color: var(--kajay-color-muted);
+  cursor: default;
+}
+
 /* --- undo and redo (K6) -------------------------------------------------- */
 
 .kajay-history {

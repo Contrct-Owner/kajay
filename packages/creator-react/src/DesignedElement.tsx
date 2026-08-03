@@ -3,6 +3,7 @@ import type { PageElement } from '@kajay/core';
 import type { PageElementRendererRegistry } from '@kajay/react';
 import type { ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
+import { ElementActions } from './ElementActions.js';
 import { ELEMENT_INDEX_ATTRIBUTE } from './placementGeometry.js';
 import type { DesignerPlacement } from './useDesignerPlacement.js';
 
@@ -104,14 +105,17 @@ function Adorner({
         </Button>
       )}
       {surface.isSelected(element) ? (
-        <Input
-          className="kajay-designer__title"
-          value={element.title}
-          onValueChange={(value) => {
-            surface.setTitle(element, value);
-          }}
-          aria-label={`Title of ${element.name}`}
-        />
+        <>
+          <Input
+            className="kajay-designer__title"
+            value={element.title}
+            onValueChange={(value) => {
+              surface.setTitle(element, value);
+            }}
+            aria-label={`Title of ${element.name}`}
+          />
+          <ElementActions surface={surface} element={element} />
+        </>
       ) : null}
     </div>
   );

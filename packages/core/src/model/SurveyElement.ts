@@ -1,4 +1,5 @@
 import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
+import { getPropertyDefault } from '../metadata/PropertyDefaults.js';
 
 /**
  * Base of every model object. Holds declared property values and — separately —
@@ -10,6 +11,8 @@ import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
 export abstract class SurveyElement {
   readonly #values: Map<string, PropertyValue> = new Map();
   readonly #unknownProperties: Map<string, unknown> = new Map();
+  #isVisible = true;
+  #isEnabled = true;
 
   /** Registered class name. Drives every registry lookup for this element. */
   abstract get type(): string;
@@ -35,20 +38,73 @@ export abstract class SurveyElement {
     this.#unknownProperties.set(name, value);
   }
 
-  getChildren(): readonly SurveyElement[] {
+  /**
+   * Computed visibility.
+   *
+   * Not a stored property: it is derived from `visibleIf` by the logic engine, and is
+   * deliberately absent from serialization — the definition records the *rule*, never
+   * the rule's current answer.
+   */
+  get isVisible(): boolean {
+    return this.#isVisible;
+  }
+
+  /** Set by the logic engine. Authors change visibility through `visibleIf`. */
+  setVisibility(isVisible: boolean): void {
+    this.#isVisible = isVisible;
+  }
+
+  /**
+   * Computed enabled state, derived from `enableIf`. Like visibility, never
+   * serialized: the definition holds the rule, not the rule's current answer.
+   */
+  get isEnabled(): boolean {
+    return this.#isEnabled;
+  }
+
+  /** Set by the logic engine. Authors change this through `enableIf`. */
+  setEnabled(isEnabled: boolean): void {
+    this.#isEnabled = isEnabled;
+  }
+
+  /**
+   * Children stored under a declared child collection.
+   *
+   * Keyed by the collection's JSON property because one element can hold several —
+   * a survey has both `pages` and `calculatedValues`.
+   */
+  getChildren(_property: string): readonly SurveyElement[] {
     return [];
   }
 
-  addChild(_child: SurveyElement): void {
-    throw new Error(`"${this.type}" does not accept child elements.`);
+  addChild(property: string, _child: SurveyElement): void {
+    throw new Error(`"${this.type}" does not accept children under "${property}".`);
+  }
+
+  /**
+   * A declared property's current value, falling back to its registered default.
+   *
+   * Public because reading a property *by name* is what a generic consumer needs — the
+   * property grid the Creator generates from the registry has no typed accessor to
+   * call. The typed getters below are the same lookup, narrowed.
+   */
+  getResolvedProperty(name: string): PropertyValue | undefined {
+    return this.#values.has(name)
+      ? this.#values.get(name)
+      : getPropertyDefault(this, this.type, name);
   }
 
   protected getStringProperty(name: string): string {
-    const value = this.#values.get(name);
+    const value = this.getResolvedProperty(name);
     return typeof value === 'string' ? value : '';
   }
 
   protected getBooleanProperty(name: string): boolean {
-    return this.#values.get(name) === true;
+    return this.getResolvedProperty(name) === true;
+  }
+
+  protected getNumberProperty(name: string): number {
+    const value = this.getResolvedProperty(name);
+    return typeof value === 'number' ? value : 0;
   }
 }

@@ -47,6 +47,37 @@ const fixtures: Readonly<Record<string, SurveyDefinition>> = {
       { name: 'p2', elements: [{ type: 'text', name: 'q2' }] },
     ],
   },
+  // A second child collection on a question, which is what `validators` introduced.
+  // Nothing else in the corpus proves a question can hold two kinds of child and write
+  // both back in the order the registry declares them.
+  withValidators: {
+    validationEnabled: false,
+    checkErrorsMode: 'onValueChanged',
+    questionErrorLocation: 'bottom',
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          {
+            type: 'text',
+            name: 'q1',
+            isRequired: true,
+            requiredErrorText: 'We need this.',
+            validators: [
+              { type: 'textvalidator', minLength: 2, maxLength: 8, allowDigits: false },
+              { type: 'regexvalidator', regex: '^[A-Z]', text: 'Start with a capital.' },
+            ],
+          },
+          {
+            type: 'checkbox',
+            name: 'q2',
+            choices: ['a', 'b'],
+            validators: [{ type: 'answercountvalidator', minCount: 1 }],
+          },
+        ],
+      },
+    ],
+  },
 };
 
 function pagesOf(definition: SurveyDefinition): SurveyDefinition[] {

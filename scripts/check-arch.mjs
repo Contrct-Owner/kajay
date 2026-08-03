@@ -6,10 +6,17 @@
  * Each violation reports the rule and the file or package responsible, so the response
  * is to correct the design rather than to suppress the failure.
  */
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { checkCorePackageRules } from './lib/coreRules.mjs';
 import { readJsonc } from './lib/readJsonc.mjs';
+import {
+  importSpecifiers,
+  listSourceFiles,
+  listWorkspaceDirs,
+  packageNameOf,
+} from './lib/workspace.mjs';
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
@@ -38,80 +45,13 @@ const ALLOWED_EXPORT_KEYS = {
   '@kajay/themes': new Set(['.', './package.json', './styles.css', './themes/*.css']),
 };
 
-// `EventTarget` earns its place here: a lint rule actively recommends it over our own
-// emitter, and taking that advice would drag the DOM lib into a core package. See
-// ADR-0013.
-const DOM_GLOBALS = [
-  'document',
-  'window',
-  'navigator',
-  'localStorage',
-  'HTMLElement',
-  'EventTarget',
-  'customElements',
-];
-
 const violations = [];
 
 function fail(rule, location, detail) {
   violations.push({ rule, location, detail });
 }
 
-function listWorkspaceDirs() {
-  const dirs = [];
-  for (const group of ['packages', 'apps']) {
-    const base = join(repoRoot, group);
-    let entries;
-    try {
-      entries = readdirSync(base);
-    } catch {
-      continue;
-    }
-    for (const entry of entries) {
-      const dir = join(base, entry);
-      if (statSync(dir).isDirectory()) {
-        dirs.push(dir);
-      }
-    }
-  }
-  return dirs;
-}
-
-function listSourceFiles(dir) {
-  const files = [];
-  const walk = (current) => {
-    let entries;
-    try {
-      entries = readdirSync(current, { withFileTypes: true });
-    } catch {
-      return;
-    }
-    for (const entry of entries) {
-      const full = join(current, entry.name);
-      if (entry.isDirectory()) {
-        if (entry.name !== 'node_modules' && entry.name !== 'dist') {
-          walk(full);
-        }
-      } else if (/\.(?:ts|tsx|mts)$/u.test(entry.name) && !entry.name.endsWith('.d.ts')) {
-        files.push(full);
-      }
-    }
-  };
-  walk(dir);
-  return files;
-}
-
-function importSpecifiers(source) {
-  const specifiers = [];
-  const pattern = /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)['"]([^'"]+)['"]/gu;
-  let match;
-  while ((match = pattern.exec(source)) !== null) {
-    specifiers.push(match[1]);
-  }
-  return specifiers;
-}
-
-const workspaceDirs = listWorkspaceDirs();
+const workspaceDirs = listWorkspaceDirs(repoRoot);
 const packagesByName = new Map();
 
 for (const dir of workspaceDirs) {
@@ -230,28 +170,63 @@ function checkDeepImports(source, location) {
   }
 }
 
-function checkDomFree(source, location, packageName) {
-  for (const domGlobal of DOM_GLOBALS) {
-    if (new RegExp(String.raw`\b${domGlobal}\b`, 'u').test(source)) {
-      fail(
-        'core-dom-free',
-        location,
-        `Core package "${packageName}" references DOM global "${domGlobal}".`,
-      );
+const rootManifest = JSON.parse(readFileSync(join(repoRoot, 'package.json'), 'utf8'));
+const rootDevDependencies = new Set(Object.keys(rootManifest.devDependencies ?? {}));
+
+/**
+ * Rule: a package may only import what it declares.
+ *
+ * npm hoists dependencies into a flat node_modules, so an undeclared import resolves
+ * anyway — it compiles, it passes every other check, and it even survives the pack
+ * test when the consumer happens to have the package installed. That is a phantom
+ * dependency, and for a core package it silently breaks the zero-dependency rule.
+ *
+ * pnpm's strict layout would prevent this at resolution time. Checking it here keeps
+ * the guarantee independent of which package manager is in use, and reports the
+ * violated rule instead of a resolution failure.
+ */
+function checkDeclaredDependencies(source, location, manifest, allowRootDevDependencies) {
+  const declared = new Set([
+    // A package's own tests import it by name rather than by relative path — that is
+    // the required "through the public API" pattern, not a phantom dependency.
+    manifest.name,
+    ...Object.keys(manifest.dependencies ?? {}),
+    ...Object.keys(manifest.peerDependencies ?? {}),
+    ...Object.keys(manifest.optionalDependencies ?? {}),
+  ]);
+
+  for (const specifier of importSpecifiers(source)) {
+    if (specifier.startsWith('.') || specifier.startsWith('node:')) {
+      continue;
     }
+    const name = packageNameOf(specifier);
+    if (declared.has(name)) {
+      continue;
+    }
+    if (allowRootDevDependencies && rootDevDependencies.has(name)) {
+      continue;
+    }
+    fail(
+      'undeclared-dependency',
+      location,
+      `Imports "${name}", which "${manifest.name}" does not declare. Hoisting resolves it anyway — declare it, or remove the import.`,
+    );
   }
 }
 
 // Tests and the host app are held to the deep-import rule too — a convenience import
 // is most tempting exactly where nobody is watching.
-for (const [name, { dir }] of packagesByName) {
+for (const [name, { dir, manifest }] of packagesByName) {
   for (const subdir of ['src', 'test', 'e2e']) {
     for (const file of listSourceFiles(join(dir, subdir))) {
       const source = readFileSync(file, 'utf8');
       const location = relative(repoRoot, file);
       checkDeepImports(source, location);
+      // Shipped code may only use what the package declares. Test and e2e code may
+      // also use the workspace's own devDependencies — those never reach a consumer.
+      checkDeclaredDependencies(source, location, manifest, subdir !== 'src');
       if (subdir === 'src' && CORE_PACKAGES.has(name)) {
-        checkDomFree(source, location, name);
+        checkCorePackageRules(source, location, name, fail);
       }
     }
   }

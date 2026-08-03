@@ -33,7 +33,9 @@ describe('parity/A1-unknown-properties-surfaced', () => {
   test('reports an unregistered element type', () => {
     const registry = createTestRegistry();
     const { diagnostics } = parseSurvey(
-      { pages: [{ name: 'p1', elements: [{ type: 'rating', name: 'q1' }] }] },
+      // A name no built-in will ever claim. `rating` used to stand here and became a
+      // real type, which turned this into a test of nothing.
+      { pages: [{ name: 'p1', elements: [{ type: 'acmegauge', name: 'q1' }] }] },
       registry,
     );
     expect(diagnostics.map((diagnostic) => diagnostic.code)).toContain('unknown-element-type');

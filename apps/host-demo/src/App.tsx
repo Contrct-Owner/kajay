@@ -1,33 +1,27 @@
-import { parseSurvey, serializeSurvey } from '@kajay/core';
 import { Survey } from '@kajay/react';
 import type { ReactElement } from 'react';
-import { useMemo } from 'react';
-import { surveyDefinition } from './surveyDefinition.js';
+import { CheckTimeline } from './CheckTimeline.js';
+import { useDemoSurvey } from './useDemoSurvey.js';
 import { useSurveyData } from './useSurveyData.js';
+import { ValidationControls } from './ValidationControls.js';
 
 function stableStringify(value: unknown): string {
   return JSON.stringify(value, null, 2);
 }
 
 export function App(): ReactElement {
-  const { model, diagnostics, canonical, isFixedPoint } = useMemo(() => {
-    const first = parseSurvey(surveyDefinition);
-    const firstCanonical = serializeSurvey(first.survey);
-    // ADR-0002: the first pass may canonicalise; the second must not change a byte.
-    const secondCanonical = serializeSurvey(parseSurvey(firstCanonical).survey);
-    return {
-      model: first.survey,
-      diagnostics: first.diagnostics,
-      canonical: firstCanonical,
-      isFixedPoint: stableStringify(firstCanonical) === stableStringify(secondCanonical),
-    };
-  }, []);
-
+  const { model, diagnostics, canonical, isFixedPoint } = useDemoSurvey();
   const data = useSurveyData(model);
 
   return (
     <main className="host-demo">
       <Survey model={model} />
+
+      <ValidationControls model={model} />
+
+      {/* Diagnostic scaffolding for an intermittent stuck check, not a demo feature.
+          Remove it once that is understood. */}
+      <CheckTimeline model={model} />
 
       <section className="host-demo__panel" aria-label="Live answers">
         <h2>Answers</h2>

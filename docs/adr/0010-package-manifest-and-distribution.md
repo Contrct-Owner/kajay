@@ -33,6 +33,14 @@ No `packageManager` field and no reliance on corepack — use the npm that ships
 Node and let `engines` express the floor. This is the boring, solo-operable option
 ([North Star principle 6](../NORTH_STAR.md)) and removes a moving part from CI.
 
+> **Superseded by [ADR-0015](./0015-pnpm-workspace.md) (2026-08-02).** The workspace
+> now uses pnpm, pinned via `packageManager` and supplied by corepack. The reasoning
+> above held only while npm was the sole requirement; once pnpm is needed, something
+> must supply it, and corepack is the mechanism that pins the version in-repo. The
+> **published manifest** decisions in this ADR — Node floor, ESM-only, single root
+> export entry, host-imported CSS — are unaffected, as is `engines.npm` on published
+> packages, which constrains consumers rather than this workspace.
+
 ### `exports`: a single root entry per package
 
 ```jsonc

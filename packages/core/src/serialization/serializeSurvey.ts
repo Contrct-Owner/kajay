@@ -52,12 +52,12 @@ function serializeElement(
     output[descriptor.name] = value;
   }
 
-  const childCollection = registry.getChildCollection(element.type);
-  if (childCollection !== undefined) {
-    const children = element.getChildren();
+  // Collections serialize in declaration order, and an empty one is omitted entirely.
+  for (const collection of registry.getChildCollections(element.type)) {
+    const children = element.getChildren(collection.property);
     if (children.length > 0) {
-      output[childCollection.property] = children.map((child) =>
-        serializeElement(child, registry, childCollection.elementBaseType),
+      output[collection.property] = children.map((child) =>
+        serializeElement(child, registry, collection.elementBaseType),
       );
     }
   }

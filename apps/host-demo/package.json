@@ -10,10 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@kajay/core": "0.0.0",
-    "@kajay/react": "0.0.0",
-    "@kajay/themes": "0.0.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "@kajay/core": "workspace:*",
+    "@kajay/react": "workspace:*",
+    "@kajay/themes": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:"
   }
 }

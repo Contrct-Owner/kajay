@@ -1,12 +1,40 @@
-import { MetadataRegistry, globalRegistry } from '@kajay/core';
+import {
+  DropdownQuestion,
+  MetadataRegistry,
+  SurveyElement,
+  TagboxQuestion,
+  TextQuestion,
+  globalRegistry,
+} from '@kajay/core';
 import { describe, expect, test } from 'vitest';
 import { createTestRegistry } from '../support/createTestRegistry.js';
+
+class DefaultedElement extends SurveyElement {
+  override get type(): string {
+    return 'defaulted';
+  }
+
+  get label(): string {
+    return this.getStringProperty('label');
+  }
+}
 
 describe('parity/A3-metadata-registry', () => {
   test('resolves inherited properties ancestors-first in declaration order', () => {
     const registry = createTestRegistry();
+    const inherited = registry.getProperties('question').map((property) => property.name);
     const names = registry.getProperties('text').map((property) => property.name);
-    expect(names).toEqual(['name', 'title', 'isRequired', 'inputType', 'placeholder']);
+
+    // Stated as the invariant rather than a literal list: every property added to the
+    // base would otherwise break this test without telling us anything new.
+    expect(names.slice(0, inherited.length)).toEqual(inherited);
+    expect(names.slice(inherited.length)).toEqual([
+      'inputType',
+      'placeholder',
+      'min',
+      'max',
+      'step',
+    ]);
   });
 
   test('a subclass redeclaring an inherited property replaces it in place', () => {
@@ -18,9 +46,13 @@ describe('parity/A3-metadata-registry', () => {
       create: () => registry.createInstance('text'),
     });
 
+    const inherited = registry.getProperties('question').map((property) => property.name);
     const properties = registry.getProperties('test-override');
-    expect(properties.map((property) => property.name)).toEqual(['name', 'title', 'isRequired']);
-    expect(properties[1]?.defaultValue).toBe('overridden');
+
+    // Same names in the same order: redeclaring adds nothing and moves nothing.
+    expect(properties.map((property) => property.name)).toEqual(inherited);
+    // And `title` keeps its inherited position rather than moving to the end.
+    expect(properties[inherited.indexOf('title')]?.defaultValue).toBe('overridden');
   });
 
   test('normalizes omitted defaults per declared type', () => {
@@ -38,6 +70,56 @@ describe('parity/A3-metadata-registry', () => {
       0,
       false,
     ]);
+  });
+
+  test('model access resolves the default owned by its metadata descriptor', () => {
+    const registry = new MetadataRegistry();
+    registry.addClass({
+      name: 'defaulted',
+      properties: [{ name: 'label', type: 'string', defaultValue: 'From metadata' }],
+      create: () => new DefaultedElement(),
+    });
+
+    const element = registry.createInstance('defaulted') as DefaultedElement;
+
+    expect(element.getPropertyValue('label')).toBeUndefined();
+    expect(element.label).toBe('From metadata');
+  });
+
+  test('public constructors resolve defaults from the built-in metadata', () => {
+    const text = new TextQuestion();
+    const dropdown = new DropdownQuestion();
+    const tagbox = new TagboxQuestion();
+
+    expect(text.inputType).toBe('text');
+    expect(dropdown.searchEnabled).toBe(true);
+    expect([dropdown.otherText, dropdown.noneText]).toEqual(['Other', 'None']);
+    expect(dropdown.choicesFromQuestionMode).toBe('all');
+    expect(tagbox.selectAllText).toBe('Select all');
+
+    // ADR-0016's distinction: an explicitly empty value is not an unset one, so it
+    // must not fall back to the descriptor default.
+    //
+    // Read through `getResolvedProperty` — the same lookup the typed accessors use —
+    // because `inputType` narrows an unknown value to `text` at the accessor. That set
+    // is closed because the renderer hands it straight to the DOM; the raw property
+    // still records the empty string, which is what the round-trip reads.
+    dropdown.setPropertyValue('otherText', '');
+    expect(dropdown.otherText).toBe('');
+    text.setPropertyValue('inputType', '');
+    expect(text.getResolvedProperty('inputType')).toBe('');
+  });
+
+  test('a creating registry overrides the built-in fallback for the same class name', () => {
+    const registry = new MetadataRegistry();
+    registry.addClass({
+      name: 'text',
+      properties: [{ name: 'inputType', type: 'string', defaultValue: 'email' }],
+      create: () => new TextQuestion(),
+    });
+
+    const text = registry.createInstance('text') as TextQuestion;
+    expect(text.inputType).toBe('email');
   });
 
   test('addProperty injects into an existing class', () => {
@@ -61,7 +143,13 @@ describe('parity/A3-metadata-registry', () => {
 
   test('getConcreteSubclasses omits abstract classes', () => {
     const registry = createTestRegistry();
-    expect(registry.getConcreteSubclasses('question')).toEqual(['text']);
+    const concrete = registry.getConcreteSubclasses('question');
+
+    expect(concrete).toContain('text');
+    // The point of the rule, stated directly: bases are excluded however many
+    // concrete types get added beneath them.
+    expect(concrete).not.toContain('question');
+    expect(concrete).not.toContain('selectbase');
   });
 
   test('refuses to instantiate an abstract class', () => {

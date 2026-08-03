@@ -21,7 +21,7 @@
     "dist"
   ],
   "dependencies": {
-    "@kajay/core": "0.0.0"
+    "@kajay/core": "workspace:*"
   },
   "peerDependencies": {
     "react": "^19"

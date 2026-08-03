@@ -1,9 +1,16 @@
-import { Question } from './Question.js';
+import { PageElement } from './PageElement.js';
+import { attachHostToElement } from './Panel.js';
 import { SurveyElement } from './SurveyElement.js';
 import type { ValueHost } from './ValueHost.js';
 
+/**
+ * One page of a survey.
+ *
+ * Not a `PageElement`, which is the thing a page *contains*: were it one, a page would
+ * be a legal child of a page. It repeats `name` and `title` for that reason.
+ */
 export class Page extends SurveyElement {
-  readonly #elements: Question[] = [];
+  readonly #elements: PageElement[] = [];
   #valueHost: ValueHost | undefined;
 
   override get type(): string {
@@ -18,6 +25,7 @@ export class Page extends SurveyElement {
     this.setPropertyValue('name', value);
   }
 
+  /** Raw, with no fallback to the name: a page with no title renders without one. */
   get title(): string {
     return this.getStringProperty('title');
   }
@@ -26,21 +34,29 @@ export class Page extends SurveyElement {
     this.setPropertyValue('title', value);
   }
 
-  get elements(): readonly Question[] {
+  get elements(): readonly PageElement[] {
     return this.#elements;
   }
 
-  override getChildren(): readonly SurveyElement[] {
-    return this.#elements;
+  /** Elements a respondent can currently see. What the renderer draws. */
+  get visibleElements(): readonly PageElement[] {
+    return this.#elements.filter((element) => element.isVisible);
   }
 
-  override addChild(child: SurveyElement): void {
-    if (!(child instanceof Question)) {
-      throw new Error(`A page accepts questions; received "${child.type}".`);
+  override getChildren(property: string): readonly SurveyElement[] {
+    return property === 'elements' ? this.#elements : [];
+  }
+
+  override addChild(property: string, child: SurveyElement): void {
+    if (property !== 'elements') {
+      throw new Error(`A page does not accept children under "${property}".`);
+    }
+    if (!(child instanceof PageElement)) {
+      throw new Error(`A page accepts questions and panels; received "${child.type}".`);
     }
     this.#elements.push(child);
     if (this.#valueHost !== undefined) {
-      child.attachValueHost(this.#valueHost);
+      attachHostToElement(child, this.#valueHost);
     }
   }
 
@@ -48,7 +64,7 @@ export class Page extends SurveyElement {
   attachValueHost(host: ValueHost): void {
     this.#valueHost = host;
     for (const element of this.#elements) {
-      element.attachValueHost(host);
+      attachHostToElement(element, host);
     }
   }
 }

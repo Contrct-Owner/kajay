@@ -22,7 +22,7 @@ packaged artifacts*.
   under `isolatedDeclarations` and `erasableSyntaxOnly` — no `namespace`, no runtime
   `enum`, no parameter properties — so the code is tsgo (TypeScript 7)-clean by
   construction. CI type-checks with both `tsc -b` and `tsgo`.
-- **npm workspaces + project references.** Each package owns exactly one publishable
+- **pnpm workspaces + project references.** Each package owns exactly one publishable
   API, declared in its `package.json` `exports` map. There is no other public
   surface: anything not exported is private, and deep imports
   (`@kajay/core/dist/...`) are architecture-check failures.
@@ -33,6 +33,13 @@ packaged artifacts*.
   grants one.
 - **React is a peer dependency** of UI packages, never a dependency.
 - **Warnings are errors** — tsc, oxlint, and CI all treat them so.
+- **File and function size limits are 300 and 50 lines, and are not counted against
+  comments** (`max-lines` and `max-lines-per-function` both run with `skipComments`).
+  The limits exist to bound
+  how much *code* one unit holds. This repo deliberately carries dense explanatory
+  comments, and a limit that taxed prose would push people to delete the explanation
+  rather than split the module — the opposite of what it is for. Going over is a
+  design signal: split the unit, do not add an exemption.
 - Code outside a package does not reach into that package's internals. Packages
   collaborate through their exported contracts only; the host app is the composition
   root and the standing proof of it.
@@ -85,7 +92,7 @@ real consumer uses.
 - Host E2E scenarios in `apps/host-demo` are the parity ledger's currency: a parity
   checklist item is green **only** when a named scenario proves it. Scenario names
   reference checklist IDs (e.g. `parity/B3-visible-if`).
-- The **pack test** is part of this category: CI runs `npm pack` on every package,
+- The **pack test** is part of this category: CI runs `pnpm pack` on every package,
   installs the tarballs into a scratch project outside the workspace, compiles it
   under tsc and tsgo, and runs a smoke scenario. This catches broken `exports` maps,
   missing files, accidental workspace-symlink reliance, and type-emit errors that

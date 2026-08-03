@@ -12,6 +12,7 @@
   --kajay-color-muted: #667085;
   --kajay-color-accent: #2f6feb;
   --kajay-color-border: #d0d5dd;
+  --kajay-color-danger: #b42318;
   --kajay-radius: 8px;
   --kajay-spacing: 16px;
   --kajay-font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -79,11 +80,349 @@
   outline-offset: 1px;
 }
 
+.kajay-question__textarea {
+  padding: calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+}
+
+.kajay-question__textarea:focus-visible {
+  outline: 2px solid var(--kajay-color-accent);
+  outline-offset: 1px;
+}
+
+.kajay-question__textarea[aria-invalid] {
+  border-color: var(--kajay-color-danger);
+}
+
+.kajay-question__counter {
+  margin: 0;
+  color: var(--kajay-color-muted);
+  font-size: 0.8125em;
+  text-align: right;
+}
+
+/* A range slider has no visible value of its own, so it gets its title and nothing
+ * else unless the host adds one. Full width so the track is worth dragging. */
+.kajay-question__input[type='range'] {
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.kajay-question__input[type='color'] {
+  width: 4rem;
+  padding: 2px;
+}
+
+.kajay-question--select {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.kajay-question--select > .kajay-question__title {
+  padding: 0;
+}
+
+.kajay-choices {
+  display: grid;
+  gap: calc(var(--kajay-spacing) / 3);
+  margin-top: calc(var(--kajay-spacing) / 3);
+}
+
+.kajay-choice {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 3);
+  align-items: center;
+}
+
+.kajay-choice--select-all {
+  font-weight: 600;
+}
+
+.kajay-question__clear {
+  align-self: flex-start;
+  margin-top: calc(var(--kajay-spacing) / 3);
+  padding: calc(var(--kajay-spacing) / 4) calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kajay-question__select {
+  padding: calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+}
+
+.kajay-question__select:focus-visible {
+  outline: 2px solid var(--kajay-color-accent);
+  outline-offset: 1px;
+}
+
+.kajay-question__errors {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 4);
+}
+
+/* Colour is not the only cue: the message itself says what is wrong, and the field is
+ * marked `aria-invalid`. The border below is the visual echo, not the signal. */
+.kajay-question__error {
+  margin: 0;
+  color: var(--kajay-color-danger);
+  font-size: 0.875em;
+}
+
+.kajay-question__input[aria-invalid],
+.kajay-question__select[aria-invalid] {
+  border-color: var(--kajay-color-danger);
+}
+
+/* A failed *check*, not a rejected answer. Kept out of the question list on purpose:
+ * "we could not reach the server" is not something a respondent fixes in a field. */
+.kajay-navigation__check-error {
+  margin: 0;
+  color: var(--kajay-color-danger);
+  font-size: 0.875em;
+}
+
+.kajay-navigation__next[disabled] {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+/* --- boolean ------------------------------------------------------------- */
+
+.kajay-question--boolean {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.kajay-boolean {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 2);
+  align-items: center;
+  cursor: pointer;
+}
+
+.kajay-boolean__switch {
+  width: 2.5em;
+  height: 1.4em;
+  cursor: pointer;
+}
+
+.kajay-boolean__options {
+  display: flex;
+  gap: var(--kajay-spacing);
+}
+
+/* --- rating -------------------------------------------------------------- */
+
+.kajay-question--rating {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.kajay-rating {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--kajay-spacing) / 4);
+}
+
+/* Positioned so the hidden input below stays inside its own step. Absolute positioning
+ * without an anchor would place it against whatever ancestor happened to be positioned,
+ * which is a bug waiting for a layout change. */
+.kajay-rating__step {
+  position: relative;
+  cursor: pointer;
+}
+
+/* The radio is the control; it is moved out of sight rather than removed, so it keeps
+ * its focus ring, its keyboard behaviour and its place in the accessibility tree. The
+ * visible label is what a pointer lands on, and forwards the click. */
+.kajay-rating__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.kajay-rating__label {
+  display: inline-flex;
+  gap: 0.25em;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25em;
+  padding: calc(var(--kajay-spacing) / 4) calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+}
+
+.kajay-rating__input:focus-visible + .kajay-rating__label {
+  outline: 2px solid var(--kajay-color-accent);
+  outline-offset: 1px;
+}
+
+.kajay-rating__input:checked + .kajay-rating__label {
+  border-color: var(--kajay-color-accent);
+  background: var(--kajay-color-accent);
+  color: #ffffff;
+}
+
+/* Behind a glyph the number is the accessible name and nothing more, so it is hidden
+ * the same way the radio is — out of sight, still announced. */
+.kajay-rating[data-rate-type='stars'] .kajay-rating__value,
+.kajay-rating[data-rate-type='smileys'] .kajay-rating__value {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.kajay-rating[data-rate-type='stars'] .kajay-rating__label,
+.kajay-rating[data-rate-type='smileys'] .kajay-rating__label {
+  border: none;
+  background: none;
+  font-size: 1.5em;
+}
+
+.kajay-rating[data-rate-type='stars'] .kajay-rating__input:checked + .kajay-rating__label {
+  background: none;
+  color: inherit;
+}
+
+.kajay-rating__descriptions {
+  display: flex;
+  justify-content: space-between;
+  margin: calc(var(--kajay-spacing) / 4) 0 0;
+  color: var(--kajay-color-muted);
+  font-size: 0.8125em;
+}
+
+/* --- display elements ---------------------------------------------------- */
+
+/* Author-supplied markup gets the surrounding type and nothing else: styling it would
+ * mean guessing at content the theme has never seen. */
+.kajay-html > :first-child {
+  margin-top: 0;
+}
+
+.kajay-html > :last-child {
+  margin-bottom: 0;
+}
+
+.kajay-image {
+  max-width: 100%;
+  border-radius: var(--kajay-radius);
+}
+
+.kajay-question__output {
+  padding: calc(var(--kajay-spacing) / 2) 0;
+  font-weight: 600;
+}
+
 .kajay-question--unsupported {
   color: var(--kajay-color-muted);
   font-style: italic;
 }
 
+.kajay-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kajay-spacing);
+  margin: 0;
+  padding: var(--kajay-spacing);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+}
+
+/* Collapsed, the panel is only its legend. Without this it keeps the padding of the
+   content it is no longer showing, and reads as an empty box. */
+.kajay-panel[data-collapsed] {
+  gap: 0;
+  padding-block: calc(var(--kajay-spacing) / 3);
+}
+
+/* A disabled fieldset already blocks input; this is only so it looks blocked too. */
+.kajay-panel:disabled {
+  opacity: 0.6;
+}
+
+.kajay-panel__title {
+  padding: 0 calc(var(--kajay-spacing) / 2);
+  font-weight: 600;
+}
+
+/* The toggle is a button for behaviour, not for looks: it reads as the heading it is. */
+.kajay-panel__toggle {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.kajay-panel__toggle::before {
+  content: '▾ ';
+}
+
+.kajay-panel__toggle[aria-expanded='false']::before {
+  content: '▸ ';
+}
+
+.kajay-panel__description {
+  margin: 0;
+  color: var(--kajay-color-muted);
+}
+
+.kajay-panel__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kajay-spacing);
+}
+
+.kajay-navigation {
+  display: flex;
+  align-items: center;
+  gap: var(--kajay-spacing);
+}
+
+/* Pushes the primary control to the right, so it stays put as Previous appears. */
+.kajay-navigation__position {
+  margin: 0 auto 0 0;
+  color: var(--kajay-color-muted);
+  font-size: 0.875rem;
+}
+
+.kajay-navigation__previous {
+  padding: calc(var(--kajay-spacing) / 2) var(--kajay-spacing);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kajay-navigation__next,
 .kajay-survey__complete {
   align-self: flex-start;
   padding: calc(var(--kajay-spacing) / 2) var(--kajay-spacing);
@@ -102,4 +441,334 @@
 .kajay-toolbox {
   margin: 0;
   padding-left: var(--kajay-spacing);
+}
+
+/* --- multipletext -------------------------------------------------------- */
+
+.kajay-question--multipletext {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.kajay-multipletext {
+  display: grid;
+  gap: calc(var(--kajay-spacing) / 2);
+}
+
+.kajay-multipletext__item {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 4);
+}
+
+.kajay-multipletext__label {
+  color: var(--kajay-color-muted);
+  font-size: 0.875em;
+}
+
+/* --- imagepicker --------------------------------------------------------- */
+
+.kajay-question--imagepicker {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.kajay-imagepicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--kajay-spacing) / 2);
+}
+
+/* Positioned so the hidden input stays inside its own tile rather than against
+ * whatever ancestor happens to be positioned. */
+.kajay-imagepicker__tile {
+  position: relative;
+  cursor: pointer;
+}
+
+/* The control, out of sight but not out of the accessibility tree — it keeps its focus
+ * ring, its keyboard behaviour and its role. */
+.kajay-imagepicker__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.kajay-imagepicker__body {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 4);
+  align-items: center;
+  padding: calc(var(--kajay-spacing) / 4);
+  border: 2px solid transparent;
+  border-radius: var(--kajay-radius);
+}
+
+.kajay-imagepicker__input:focus-visible + .kajay-imagepicker__body {
+  outline: 2px solid var(--kajay-color-accent);
+  outline-offset: 1px;
+}
+
+.kajay-imagepicker__input:checked + .kajay-imagepicker__body {
+  border-color: var(--kajay-color-accent);
+}
+
+.kajay-imagepicker__media {
+  max-width: 100%;
+  border-radius: var(--kajay-radius);
+}
+
+/* Hidden by default, and *only* visually: the text is every tile's accessible name. */
+.kajay-imagepicker__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.kajay-imagepicker[data-show-label] .kajay-imagepicker__label {
+  position: static;
+  width: auto;
+  height: auto;
+  clip-path: none;
+}
+
+/* --- Ranking (C9) --------------------------------------------------------- */
+
+.kajay-question--ranking {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.kajay-ranking {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kajay-spacing);
+}
+
+/* Side by side only when there are two areas to put side by side, and only when
+ * there is room: a pool squeezed into half a phone screen is worse than a stack. */
+@media (min-width: 40rem) {
+  .kajay-ranking[data-layout='horizontal'] {
+    flex-direction: row;
+  }
+
+  .kajay-ranking[data-layout='horizontal'] > .kajay-ranking__area {
+    flex: 1 1 0;
+  }
+}
+
+.kajay-ranking__heading {
+  margin: 0 0 calc(var(--kajay-spacing) / 3);
+  color: var(--kajay-color-muted);
+  font-size: 0.875em;
+}
+
+/* Present for screen readers, which read it as each row's description; the same
+ * instructions rendered visibly beside every row would be noise. */
+.kajay-ranking__hint {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.kajay-ranking__list {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: calc(var(--kajay-spacing) / 4);
+  align-items: center;
+}
+
+.kajay-ranking__row {
+  display: flex;
+  grid-column: 1;
+  gap: calc(var(--kajay-spacing) / 2);
+  align-items: center;
+  padding: calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  /* Or a touch drag scrolls the page instead of moving the row. */
+  touch-action: none;
+  cursor: grab;
+}
+
+.kajay-ranking__row:focus-visible {
+  outline: 2px solid var(--kajay-color-accent);
+  outline-offset: 1px;
+}
+
+.kajay-ranking__row[data-grabbed],
+.kajay-ranking__row[data-dragged] {
+  border-color: var(--kajay-color-accent);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
+  cursor: grabbing;
+}
+
+.kajay-ranking__rank {
+  min-width: 1.5em;
+  color: var(--kajay-color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.kajay-ranking__unrank {
+  grid-column: 2;
+  padding: 0 calc(var(--kajay-spacing) / 2);
+  border: none;
+  background: none;
+  color: var(--kajay-color-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.kajay-ranking__pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--kajay-spacing) / 4);
+}
+
+.kajay-ranking__pool-choice {
+  padding: calc(var(--kajay-spacing) / 3) calc(var(--kajay-spacing) / 2);
+  border: 1px dashed var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kajay-ranking__empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--kajay-color-muted);
+  font-size: 0.875em;
+}
+
+/* Announcements only. Nothing here is drawn — the list itself is the visual. */
+.kajay-ranking__live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* --- Paged choices (C5, C6) ------------------------------------------------ */
+
+.kajay-choice-filter {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 5);
+}
+
+.kajay-choice-filter__label {
+  color: var(--kajay-color-muted);
+  font-size: 0.875em;
+}
+
+.kajay-choice-filter__input {
+  padding: calc(var(--kajay-spacing) / 3);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+}
+
+.kajay-choice-filter__input:focus-visible {
+  outline: 2px solid var(--kajay-color-accent);
+  outline-offset: 1px;
+}
+
+.kajay-choice-paging__more {
+  padding: calc(var(--kajay-spacing) / 4) calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kajay-choice-paging__more[disabled] {
+  cursor: progress;
+  opacity: 0.65;
+}
+
+.kajay-choice-paging__done {
+  margin: 0;
+  color: var(--kajay-color-muted);
+  font-size: 0.8125em;
+}
+
+/* --- Preview (E4) ---------------------------------------------------------- */
+
+.kajay-survey__preview-title {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+/* A read-only page is for reading, so the controls recede and the answers do not. */
+.kajay-survey--preview .kajay-question__input[readonly],
+.kajay-survey--preview .kajay-question__textarea[readonly] {
+  border-color: transparent;
+  background: none;
+  padding-inline: 0;
+  font-weight: 600;
+}
+
+/* --- Progress and contents (E3) -------------------------------------------- */
+
+.kajay-progress {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 4);
+}
+
+.kajay-progress__bar {
+  width: 100%;
+  height: 0.5rem;
+}
+
+.kajay-progress__label {
+  margin: 0;
+  color: var(--kajay-color-muted);
+  font-size: 0.8125em;
+}
+
+.kajay-toc__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--kajay-spacing) / 4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kajay-toc__page {
+  padding: calc(var(--kajay-spacing) / 4) calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* "You are here" for anyone reading the highlight; `aria-current` says it out loud. */
+.kajay-toc__page[aria-current] {
+  border-color: var(--kajay-color-accent);
+  font-weight: 600;
 }

@@ -5,6 +5,1326 @@
   "description": "Generated from the metadata registry. Do not edit by hand: `npm run check:contract` fails on drift.",
   "$ref": "#/$defs/survey",
   "$defs": {
+    "answercountvalidator": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "answercountvalidator"
+        },
+        "text": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message when this check fails."
+        },
+        "minCount": {
+          "type": "number",
+          "default": 0
+        },
+        "maxCount": {
+          "type": "number",
+          "default": 0
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": true
+    },
+    "boolean": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "boolean"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "labelTrue": {
+          "type": "string",
+          "default": "Yes"
+        },
+        "labelFalse": {
+          "type": "string",
+          "default": "No"
+        },
+        "valueTrue": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "default": true,
+          "description": "What is stored for yes. Anything the host backend expects."
+        },
+        "valueFalse": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "default": false
+        },
+        "renderAs": {
+          "type": "string",
+          "default": "switch",
+          "description": "switch or radio."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "calculatedvalue": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "calculatedvalue"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "The name this value is referenced by in expressions."
+        },
+        "expression": {
+          "type": "string",
+          "default": ""
+        },
+        "includeIntoResult": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether the computed value joins the survey answers."
+        }
+      },
+      "required": [
+        "name",
+        "expression"
+      ],
+      "additionalProperties": true
+    },
+    "checkbox": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "checkbox"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "choicesOrder": {
+          "type": "string",
+          "default": "",
+          "description": "none, asc or desc."
+        },
+        "colCount": {
+          "type": "number",
+          "default": 0
+        },
+        "showOtherItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "otherText": {
+          "type": "string",
+          "default": "Other"
+        },
+        "showNoneItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "noneText": {
+          "type": "string",
+          "default": "None"
+        },
+        "placeholder": {
+          "type": "string",
+          "default": ""
+        },
+        "searchEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether a long list may be narrowed by typing."
+        },
+        "choicesFromQuestion": {
+          "type": "string",
+          "default": "",
+          "description": "Name of a select question whose choices are carried forward."
+        },
+        "choicesFromQuestionMode": {
+          "type": "string",
+          "default": "all",
+          "description": "all, selected or unselected."
+        },
+        "choicesByUrl": {
+          "type": "string",
+          "default": "",
+          "description": "URL to load choices from; may interpolate {question} placeholders."
+        },
+        "choicesPath": {
+          "type": "string",
+          "default": "",
+          "description": "Dotted path to the array inside the response."
+        },
+        "choicesValueName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesTitleName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesLazyLoadEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "The list arrives a page at a time from the host loader."
+        },
+        "choicesLazyLoadPageSize": {
+          "type": "number",
+          "default": 25,
+          "description": "How many choices one page asks for."
+        },
+        "showSelectAllItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "selectAllText": {
+          "type": "string",
+          "default": "Select all"
+        },
+        "maxSelectedChoices": {
+          "type": "number",
+          "default": 0,
+          "description": "0 means no limit."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/itemvalue"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "comment": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "comment"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "placeholder": {
+          "type": "string",
+          "default": ""
+        },
+        "rows": {
+          "type": "number",
+          "default": 4,
+          "description": "Visible height, in lines."
+        },
+        "autoGrow": {
+          "type": "boolean",
+          "default": false,
+          "description": "Grow to fit the answer rather than scrolling."
+        },
+        "allowResize": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether the respondent may drag the field taller."
+        },
+        "maxLength": {
+          "type": "number",
+          "default": 0,
+          "description": "Length budget. 0 means none, which also hides the counter."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "complete": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "complete"
+        },
+        "expression": {
+          "type": "string",
+          "default": "",
+          "description": "The trigger acts when this becomes true, not while it stays true."
+        }
+      },
+      "required": [
+        "type",
+        "expression"
+      ],
+      "additionalProperties": true
+    },
+    "copyvalue": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "copyvalue"
+        },
+        "expression": {
+          "type": "string",
+          "default": "",
+          "description": "The trigger acts when this becomes true, not while it stays true."
+        },
+        "setToName": {
+          "type": "string",
+          "default": ""
+        },
+        "fromName": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "required": [
+        "type",
+        "expression",
+        "setToName",
+        "fromName"
+      ],
+      "additionalProperties": true
+    },
+    "displayelement": {
+      "description": "Any concrete \"displayelement\".",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/html"
+        },
+        {
+          "$ref": "#/$defs/image"
+        }
+      ]
+    },
+    "dropdown": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "dropdown"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "choicesOrder": {
+          "type": "string",
+          "default": "",
+          "description": "none, asc or desc."
+        },
+        "colCount": {
+          "type": "number",
+          "default": 0
+        },
+        "showOtherItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "otherText": {
+          "type": "string",
+          "default": "Other"
+        },
+        "showNoneItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "noneText": {
+          "type": "string",
+          "default": "None"
+        },
+        "placeholder": {
+          "type": "string",
+          "default": ""
+        },
+        "searchEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether a long list may be narrowed by typing."
+        },
+        "choicesFromQuestion": {
+          "type": "string",
+          "default": "",
+          "description": "Name of a select question whose choices are carried forward."
+        },
+        "choicesFromQuestionMode": {
+          "type": "string",
+          "default": "all",
+          "description": "all, selected or unselected."
+        },
+        "choicesByUrl": {
+          "type": "string",
+          "default": "",
+          "description": "URL to load choices from; may interpolate {question} placeholders."
+        },
+        "choicesPath": {
+          "type": "string",
+          "default": "",
+          "description": "Dotted path to the array inside the response."
+        },
+        "choicesValueName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesTitleName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesLazyLoadEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "The list arrives a page at a time from the host loader."
+        },
+        "choicesLazyLoadPageSize": {
+          "type": "number",
+          "default": 25,
+          "description": "How many choices one page asks for."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/itemvalue"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "emailvalidator": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "emailvalidator"
+        },
+        "text": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message when this check fails."
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": true
+    },
+    "expression": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "expression"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "expression": {
+          "type": "string",
+          "default": "",
+          "description": "Computed from the answers. The respondent does not supply it."
+        },
+        "displayStyle": {
+          "type": "string",
+          "default": "none",
+          "description": "none, decimal, currency, percent or date."
+        },
+        "currency": {
+          "type": "string",
+          "default": "USD"
+        },
+        "maximumFractionDigits": {
+          "type": "number",
+          "default": 0,
+          "description": "0 leaves it to the style."
+        },
+        "format": {
+          "type": "string",
+          "default": "",
+          "description": "Template around the result, with {0} standing for it."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name",
+        "expression"
+      ],
+      "additionalProperties": true
+    },
+    "expressionvalidator": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "expressionvalidator"
+        },
+        "text": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message when this check fails."
+        },
+        "expression": {
+          "type": "string",
+          "default": "",
+          "description": "The answer is acceptable while this evaluates truthy."
+        }
+      },
+      "required": [
+        "type",
+        "expression"
+      ],
+      "additionalProperties": true
+    },
+    "html": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "html"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "html": {
+          "type": "string",
+          "default": "",
+          "description": "Markup, rendered as markup. See HtmlElement on the trust boundary."
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "htmlcondition": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "htmlcondition"
+        },
+        "expression": {
+          "type": "string",
+          "default": ""
+        },
+        "html": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "required": [
+        "expression",
+        "html"
+      ],
+      "additionalProperties": true
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "image"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "imageLink": {
+          "type": "string",
+          "default": ""
+        },
+        "altText": {
+          "type": "string",
+          "default": "",
+          "description": "Falls back to the title, then to empty — a decorative image."
+        },
+        "imageFit": {
+          "type": "string",
+          "default": "contain",
+          "description": "none, contain, cover or fill. Mirrors CSS object-fit."
+        },
+        "contentMode": {
+          "type": "string",
+          "default": "image",
+          "description": "image or video."
+        },
+        "imageWidth": {
+          "type": "number",
+          "default": 0,
+          "description": "CSS pixels. 0 lets layout decide."
+        },
+        "imageHeight": {
+          "type": "number",
+          "default": 0
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "imagepicker": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "imagepicker"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "choicesOrder": {
+          "type": "string",
+          "default": "",
+          "description": "none, asc or desc."
+        },
+        "colCount": {
+          "type": "number",
+          "default": 0
+        },
+        "showOtherItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "otherText": {
+          "type": "string",
+          "default": "Other"
+        },
+        "showNoneItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "noneText": {
+          "type": "string",
+          "default": "None"
+        },
+        "placeholder": {
+          "type": "string",
+          "default": ""
+        },
+        "searchEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether a long list may be narrowed by typing."
+        },
+        "choicesFromQuestion": {
+          "type": "string",
+          "default": "",
+          "description": "Name of a select question whose choices are carried forward."
+        },
+        "choicesFromQuestionMode": {
+          "type": "string",
+          "default": "all",
+          "description": "all, selected or unselected."
+        },
+        "choicesByUrl": {
+          "type": "string",
+          "default": "",
+          "description": "URL to load choices from; may interpolate {question} placeholders."
+        },
+        "choicesPath": {
+          "type": "string",
+          "default": "",
+          "description": "Dotted path to the array inside the response."
+        },
+        "choicesValueName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesTitleName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesLazyLoadEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "The list arrives a page at a time from the host loader."
+        },
+        "choicesLazyLoadPageSize": {
+          "type": "number",
+          "default": 25,
+          "description": "How many choices one page asks for."
+        },
+        "showSelectAllItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "selectAllText": {
+          "type": "string",
+          "default": "Select all"
+        },
+        "maxSelectedChoices": {
+          "type": "number",
+          "default": 0,
+          "description": "0 means no limit."
+        },
+        "multiSelect": {
+          "type": "boolean",
+          "default": false,
+          "description": "The one select type whose arity is a property rather than its type."
+        },
+        "imageFit": {
+          "type": "string",
+          "default": "contain",
+          "description": "none, contain, cover or fill. Mirrors CSS object-fit."
+        },
+        "contentMode": {
+          "type": "string",
+          "default": "image",
+          "description": "image or video."
+        },
+        "imageWidth": {
+          "type": "number",
+          "default": 200
+        },
+        "imageHeight": {
+          "type": "number",
+          "default": 150
+        },
+        "showLabel": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether the choice text is shown. It is the tile name either way."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/itemvalue"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "itemvalue": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "itemvalue"
+        },
+        "value": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "default": ""
+        },
+        "text": {
+          "type": "string",
+          "default": "",
+          "description": "Display text; falls back to the value."
+        },
+        "imageLink": {
+          "type": "string",
+          "default": "",
+          "description": "Picture or video for this choice. Only an imagepicker draws it."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the choice is offered only while truthy."
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "additionalProperties": true
+    },
+    "multipletext": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "multipletext"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "itemSize": {
+          "type": "number",
+          "default": 0,
+          "description": "Default field width in characters. An item size wins."
+        },
+        "colCount": {
+          "type": "number",
+          "default": 1
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/multipletextitem"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "multipletextitem": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "multipletextitem"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Key this field is stored under inside the question answer."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display label; falls back to name."
+        },
+        "inputType": {
+          "type": "string",
+          "default": "text"
+        },
+        "placeholder": {
+          "type": "string",
+          "default": ""
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": ""
+        },
+        "size": {
+          "type": "number",
+          "default": 0,
+          "description": "Width in characters. 0 uses itemSize."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "multiselectbase": {
+      "description": "Any concrete \"multiselectbase\".",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/checkbox"
+        },
+        {
+          "$ref": "#/$defs/imagepicker"
+        },
+        {
+          "$ref": "#/$defs/tagbox"
+        }
+      ]
+    },
+    "numericvalidator": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "numericvalidator"
+        },
+        "text": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message when this check fails."
+        },
+        "minValue": {
+          "type": "number",
+          "default": 0,
+          "description": "Omit for no lower bound."
+        },
+        "maxValue": {
+          "type": "number",
+          "default": 0,
+          "description": "Omit for no upper bound."
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": true
+    },
     "page": {
       "type": "object",
       "properties": {
@@ -20,10 +1340,15 @@
           "type": "string",
           "default": ""
         },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the page is shown only while it evaluates truthy."
+        },
         "elements": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/question"
+            "$ref": "#/$defs/pageelement"
           }
         }
       },
@@ -32,13 +1357,715 @@
       ],
       "additionalProperties": true
     },
-    "question": {
-      "description": "Any concrete \"question\".",
+    "pageelement": {
+      "description": "Any concrete \"pageelement\".",
       "oneOf": [
+        {
+          "$ref": "#/$defs/boolean"
+        },
+        {
+          "$ref": "#/$defs/checkbox"
+        },
+        {
+          "$ref": "#/$defs/comment"
+        },
+        {
+          "$ref": "#/$defs/dropdown"
+        },
+        {
+          "$ref": "#/$defs/expression"
+        },
+        {
+          "$ref": "#/$defs/html"
+        },
+        {
+          "$ref": "#/$defs/image"
+        },
+        {
+          "$ref": "#/$defs/imagepicker"
+        },
+        {
+          "$ref": "#/$defs/multipletext"
+        },
+        {
+          "$ref": "#/$defs/panel"
+        },
+        {
+          "$ref": "#/$defs/radiogroup"
+        },
+        {
+          "$ref": "#/$defs/ranking"
+        },
+        {
+          "$ref": "#/$defs/rating"
+        },
+        {
+          "$ref": "#/$defs/tagbox"
+        },
         {
           "$ref": "#/$defs/text"
         }
       ]
+    },
+    "panel": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "panel"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "description": {
+          "type": "string",
+          "default": ""
+        },
+        "state": {
+          "type": "string",
+          "default": "default",
+          "description": "default, expanded or collapsed. Collapsed panels start closed."
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/pageelement"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "question": {
+      "description": "Any concrete \"question\".",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/boolean"
+        },
+        {
+          "$ref": "#/$defs/checkbox"
+        },
+        {
+          "$ref": "#/$defs/comment"
+        },
+        {
+          "$ref": "#/$defs/dropdown"
+        },
+        {
+          "$ref": "#/$defs/expression"
+        },
+        {
+          "$ref": "#/$defs/imagepicker"
+        },
+        {
+          "$ref": "#/$defs/multipletext"
+        },
+        {
+          "$ref": "#/$defs/radiogroup"
+        },
+        {
+          "$ref": "#/$defs/ranking"
+        },
+        {
+          "$ref": "#/$defs/rating"
+        },
+        {
+          "$ref": "#/$defs/tagbox"
+        },
+        {
+          "$ref": "#/$defs/text"
+        }
+      ]
+    },
+    "radiogroup": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "radiogroup"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "choicesOrder": {
+          "type": "string",
+          "default": "",
+          "description": "none, asc or desc."
+        },
+        "colCount": {
+          "type": "number",
+          "default": 0
+        },
+        "showOtherItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "otherText": {
+          "type": "string",
+          "default": "Other"
+        },
+        "showNoneItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "noneText": {
+          "type": "string",
+          "default": "None"
+        },
+        "placeholder": {
+          "type": "string",
+          "default": ""
+        },
+        "searchEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether a long list may be narrowed by typing."
+        },
+        "choicesFromQuestion": {
+          "type": "string",
+          "default": "",
+          "description": "Name of a select question whose choices are carried forward."
+        },
+        "choicesFromQuestionMode": {
+          "type": "string",
+          "default": "all",
+          "description": "all, selected or unselected."
+        },
+        "choicesByUrl": {
+          "type": "string",
+          "default": "",
+          "description": "URL to load choices from; may interpolate {question} placeholders."
+        },
+        "choicesPath": {
+          "type": "string",
+          "default": "",
+          "description": "Dotted path to the array inside the response."
+        },
+        "choicesValueName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesTitleName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesLazyLoadEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "The list arrives a page at a time from the host loader."
+        },
+        "choicesLazyLoadPageSize": {
+          "type": "number",
+          "default": 25,
+          "description": "How many choices one page asks for."
+        },
+        "showClearButton": {
+          "type": "boolean",
+          "default": false
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/itemvalue"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "ranking": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "ranking"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "choicesOrder": {
+          "type": "string",
+          "default": "",
+          "description": "none, asc or desc."
+        },
+        "colCount": {
+          "type": "number",
+          "default": 0
+        },
+        "showOtherItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "otherText": {
+          "type": "string",
+          "default": "Other"
+        },
+        "showNoneItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "noneText": {
+          "type": "string",
+          "default": "None"
+        },
+        "placeholder": {
+          "type": "string",
+          "default": ""
+        },
+        "searchEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether a long list may be narrowed by typing."
+        },
+        "choicesFromQuestion": {
+          "type": "string",
+          "default": "",
+          "description": "Name of a select question whose choices are carried forward."
+        },
+        "choicesFromQuestionMode": {
+          "type": "string",
+          "default": "all",
+          "description": "all, selected or unselected."
+        },
+        "choicesByUrl": {
+          "type": "string",
+          "default": "",
+          "description": "URL to load choices from; may interpolate {question} placeholders."
+        },
+        "choicesPath": {
+          "type": "string",
+          "default": "",
+          "description": "Dotted path to the array inside the response."
+        },
+        "choicesValueName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesTitleName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesLazyLoadEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "The list arrives a page at a time from the host loader."
+        },
+        "choicesLazyLoadPageSize": {
+          "type": "number",
+          "default": 25,
+          "description": "How many choices one page asks for."
+        },
+        "selectToRankEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Choices start in a pool and are ranked only once placed."
+        },
+        "selectToRankAreasLayout": {
+          "type": "string",
+          "default": "vertical",
+          "description": "horizontal or vertical. Where the pool sits relative to the ranking."
+        },
+        "maxSelectedChoices": {
+          "type": "number",
+          "default": 0,
+          "description": "0 means no limit."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/itemvalue"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "rating": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "rating"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "rateMin": {
+          "type": "number",
+          "default": 1
+        },
+        "rateMax": {
+          "type": "number",
+          "default": 5
+        },
+        "rateStep": {
+          "type": "number",
+          "default": 1
+        },
+        "rateType": {
+          "type": "string",
+          "default": "labels",
+          "description": "labels, stars or smileys."
+        },
+        "displayMode": {
+          "type": "string",
+          "default": "auto",
+          "description": "auto, buttons or dropdown. auto collapses a long scale."
+        },
+        "minRateDescription": {
+          "type": "string",
+          "default": ""
+        },
+        "maxRateDescription": {
+          "type": "string",
+          "default": ""
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
+        "rateValues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/itemvalue"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "regexvalidator": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "regexvalidator"
+        },
+        "text": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message when this check fails."
+        },
+        "regex": {
+          "type": "string",
+          "default": "",
+          "description": "Pattern the answer must match. Applied with the unicode flag."
+        }
+      },
+      "required": [
+        "type",
+        "regex"
+      ],
+      "additionalProperties": true
+    },
+    "runexpression": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "runexpression"
+        },
+        "expression": {
+          "type": "string",
+          "default": "",
+          "description": "The trigger acts when this becomes true, not while it stays true."
+        },
+        "setToName": {
+          "type": "string",
+          "default": ""
+        },
+        "runExpression": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "required": [
+        "type",
+        "expression",
+        "runExpression"
+      ],
+      "additionalProperties": true
+    },
+    "selectbase": {
+      "description": "Any concrete \"selectbase\".",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/checkbox"
+        },
+        {
+          "$ref": "#/$defs/dropdown"
+        },
+        {
+          "$ref": "#/$defs/imagepicker"
+        },
+        {
+          "$ref": "#/$defs/radiogroup"
+        },
+        {
+          "$ref": "#/$defs/ranking"
+        },
+        {
+          "$ref": "#/$defs/tagbox"
+        }
+      ]
+    },
+    "setvalue": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "setvalue"
+        },
+        "expression": {
+          "type": "string",
+          "default": "",
+          "description": "The trigger acts when this becomes true, not while it stays true."
+        },
+        "setToName": {
+          "type": "string",
+          "default": ""
+        },
+        "setValue": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "default": "",
+          "description": "Literal written to setToName."
+        }
+      },
+      "required": [
+        "type",
+        "expression",
+        "setToName"
+      ],
+      "additionalProperties": true
+    },
+    "skip": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "skip"
+        },
+        "expression": {
+          "type": "string",
+          "default": "",
+          "description": "The trigger acts when this becomes true, not while it stays true."
+        },
+        "gotoName": {
+          "type": "string",
+          "default": "",
+          "description": "Page name, or a question name whose page is navigated to."
+        }
+      },
+      "required": [
+        "type",
+        "expression",
+        "gotoName"
+      ],
+      "additionalProperties": true
     },
     "survey": {
       "type": "object",
@@ -59,13 +2086,274 @@
           "type": "string",
           "default": ""
         },
+        "questionsOnPageMode": {
+          "type": "string",
+          "default": "standard",
+          "description": "standard, singlePage or questionPerPage."
+        },
+        "validationEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set false to stop validation blocking navigation or completion."
+        },
+        "checkErrorsMode": {
+          "type": "string",
+          "default": "onNextPage",
+          "description": "onNextPage, onValueChanged or onComplete."
+        },
+        "questionErrorLocation": {
+          "type": "string",
+          "default": "top",
+          "description": "Whether a question draws its errors above its input or below it."
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The whole survey is for reading rather than answering."
+        },
+        "goNextPageAutomatic": {
+          "type": "boolean",
+          "default": false,
+          "description": "Turn the page once every question on it has a one-step answer."
+        },
+        "autoFocusFirstQuestion": {
+          "type": "boolean",
+          "default": false,
+          "description": "Give the first question on each page focus as the page arrives."
+        },
+        "showProgressBar": {
+          "type": "string",
+          "default": "off",
+          "description": "off, top, bottom or both."
+        },
+        "progressBarType": {
+          "type": "string",
+          "default": "pages",
+          "description": "pages, questions or requiredQuestions."
+        },
+        "showTOC": {
+          "type": "boolean",
+          "default": false,
+          "description": "Offer a list of pages the respondent can jump between."
+        },
+        "showPreviewBeforeComplete": {
+          "type": "string",
+          "default": "noPreview",
+          "description": "noPreview, showAllQuestions or showAnsweredQuestions."
+        },
+        "clearInvisibleValues": {
+          "type": "string",
+          "default": "onComplete",
+          "description": "none, onHidden or onComplete. What happens to an unreachable answer."
+        },
+        "completedHtml": {
+          "type": "string",
+          "default": "",
+          "description": "Markup shown once the survey is finished. {name} resolves to an answer."
+        },
+        "loadingHtml": {
+          "type": "string",
+          "default": "",
+          "description": "Markup shown while the host reports the survey as loading."
+        },
+        "emptyHtml": {
+          "type": "string",
+          "default": "",
+          "description": "Markup shown when no page is visible, so there is nothing to answer."
+        },
         "pages": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/page"
           }
+        },
+        "calculatedValues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/calculatedvalue"
+          }
+        },
+        "triggers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/trigger"
+          }
+        },
+        "completedHtmlOnCondition": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/htmlcondition"
+          }
         }
       },
+      "additionalProperties": true
+    },
+    "tagbox": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "tagbox"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "choicesOrder": {
+          "type": "string",
+          "default": "",
+          "description": "none, asc or desc."
+        },
+        "colCount": {
+          "type": "number",
+          "default": 0
+        },
+        "showOtherItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "otherText": {
+          "type": "string",
+          "default": "Other"
+        },
+        "showNoneItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "noneText": {
+          "type": "string",
+          "default": "None"
+        },
+        "placeholder": {
+          "type": "string",
+          "default": ""
+        },
+        "searchEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether a long list may be narrowed by typing."
+        },
+        "choicesFromQuestion": {
+          "type": "string",
+          "default": "",
+          "description": "Name of a select question whose choices are carried forward."
+        },
+        "choicesFromQuestionMode": {
+          "type": "string",
+          "default": "all",
+          "description": "all, selected or unselected."
+        },
+        "choicesByUrl": {
+          "type": "string",
+          "default": "",
+          "description": "URL to load choices from; may interpolate {question} placeholders."
+        },
+        "choicesPath": {
+          "type": "string",
+          "default": "",
+          "description": "Dotted path to the array inside the response."
+        },
+        "choicesValueName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesTitleName": {
+          "type": "string",
+          "default": ""
+        },
+        "choicesLazyLoadEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "The list arrives a page at a time from the host loader."
+        },
+        "choicesLazyLoadPageSize": {
+          "type": "number",
+          "default": 25,
+          "description": "How many choices one page asks for."
+        },
+        "showSelectAllItem": {
+          "type": "boolean",
+          "default": false
+        },
+        "selectAllText": {
+          "type": "string",
+          "default": "Select all"
+        },
+        "maxSelectedChoices": {
+          "type": "number",
+          "default": 0,
+          "description": "0 means no limit."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/itemvalue"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
       "additionalProperties": true
     },
     "text": {
@@ -77,24 +2365,98 @@
         "name": {
           "type": "string",
           "default": "",
-          "description": "Unique question identifier, and the key its answer is stored under."
+          "description": "Unique element identifier. For a question, also its answer key."
         },
         "title": {
           "type": "string",
           "default": "",
           "description": "Display title; falls back to name."
         },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
         "isRequired": {
           "type": "boolean",
           "default": false
         },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
         "inputType": {
           "type": "string",
-          "default": "text"
+          "default": "text",
+          "description": "text, number, email, date, datetime-local, time, tel, url, color, range or password."
         },
         "placeholder": {
           "type": "string",
           "default": ""
+        },
+        "min": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "default": "",
+          "description": "Lower bound. A number for numeric types, an ISO string for date ones."
+        },
+        "max": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "default": "",
+          "description": "Upper bound, read the same way as min."
+        },
+        "step": {
+          "type": "number",
+          "default": 0,
+          "description": "0 lets the browser choose."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
         }
       },
       "required": [
@@ -102,6 +2464,79 @@
         "name"
       ],
       "additionalProperties": true
+    },
+    "textvalidator": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "textvalidator"
+        },
+        "text": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message when this check fails."
+        },
+        "minLength": {
+          "type": "number",
+          "default": 0
+        },
+        "maxLength": {
+          "type": "number",
+          "default": 0
+        },
+        "allowDigits": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set false to reject an answer containing any digit."
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": true
+    },
+    "trigger": {
+      "description": "Any concrete \"trigger\".",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/complete"
+        },
+        {
+          "$ref": "#/$defs/copyvalue"
+        },
+        {
+          "$ref": "#/$defs/runexpression"
+        },
+        {
+          "$ref": "#/$defs/setvalue"
+        },
+        {
+          "$ref": "#/$defs/skip"
+        }
+      ]
+    },
+    "validator": {
+      "description": "Any concrete \"validator\".",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/answercountvalidator"
+        },
+        {
+          "$ref": "#/$defs/emailvalidator"
+        },
+        {
+          "$ref": "#/$defs/expressionvalidator"
+        },
+        {
+          "$ref": "#/$defs/numericvalidator"
+        },
+        {
+          "$ref": "#/$defs/regexvalidator"
+        },
+        {
+          "$ref": "#/$defs/textvalidator"
+        }
+      ]
     }
   }
 }

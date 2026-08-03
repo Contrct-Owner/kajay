@@ -1,8 +1,12 @@
+import { collectEndpointDiagnostics } from '../model/endpoints.js';
+import { SelectQuestion } from '../model/SelectQuestion.js';
+import type { ChildCollectionDescriptor } from '../metadata/ClassDescriptor.js';
 import { globalRegistry } from '../metadata/globalRegistry.js';
-import type { MetadataRegistry } from '../metadata/MetadataRegistry.js';
+import { MetadataRegistry } from '../metadata/MetadataRegistry.js';
 import { matchesPropertyType } from '../metadata/PropertyDescriptor.js';
 import type { PropertyDescriptor } from '../metadata/PropertyDescriptor.js';
 import { Survey } from '../model/Survey.js';
+import type { SurveyOptions } from '../model/SurveyOptions.js';
 import type { SurveyElement } from '../model/SurveyElement.js';
 import type { Diagnostic } from './Diagnostic.js';
 import { CURRENT_SCHEMA_VERSION, UnsupportedSchemaVersionError } from './schemaVersion.js';
@@ -46,17 +50,34 @@ function assertSupportedSchemaVersion(definition: Record<string, unknown>): void
 }
 
 /**
+ * What a host supplies alongside the definition.
+ *
+ * The survey's own options: parsing installs them, and a second type listing the same
+ * seams would be two places to add the next one.
+ */
+export type ParseOptions = SurveyOptions;
+
+/**
  * Reads a definition into a model.
  *
  * Structural problems (not an object, an unsupported format version) throw, because
  * there is no useful model to hand back. Everything else — unknown properties, wrong
  * value types — is reported as a diagnostic so the caller sees the whole picture at
  * once instead of one error per attempt.
+ *
+ * The second argument accepts either a registry or the options, because a host that
+ * only wants to pass `fetchJson` should not have to name a registry it does not care
+ * about. The host-demo found this the moment it needed a fetcher.
  */
 export function parseSurvey(
   definition: unknown,
-  registry: MetadataRegistry = globalRegistry,
+  registryOrOptions?: MetadataRegistry | ParseOptions,
+  maybeOptions: ParseOptions = {},
 ): ParseResult {
+  const usedRegistry = registryOrOptions instanceof MetadataRegistry;
+  const registry = usedRegistry ? registryOrOptions : globalRegistry;
+  const options = usedRegistry ? maybeOptions : (registryOrOptions ?? maybeOptions);
+
   if (!isJsonObject(definition)) {
     throw new TypeError(
       `A survey definition must be a JSON object; received ${describeType(definition)}.`,
@@ -69,7 +90,26 @@ export function parseSurvey(
   if (!(root instanceof Survey)) {
     throw new TypeError('The root of a definition must deserialize to a survey.');
   }
+  // Everything the host supplies goes in before logic first runs: a lazily-paged
+  // question asks for its first page as it is registered, and a loader arriving
+  // afterwards would be too late for it. Conditions can only be registered once the
+  // whole tree exists, so this runs here rather than as elements are added.
+  root.configure(options);
+  root.refreshLogic();
+  // After the tree exists, because it is a fact about the questions in it rather than
+  // about any one property as it is read.
+  context.diagnostics.push(
+    ...collectEndpointDiagnostics(urlQuestions(root), options.endpoints ?? {}),
+  );
   return { survey: root, diagnostics: context.diagnostics };
+}
+
+/** Every question that loads its choices from a URL. */
+function urlQuestions(survey: Survey): readonly { name: string; choicesByUrl: string }[] {
+  return survey.questions
+    .filter((question) => question instanceof SelectQuestion)
+    .map((question) => ({ name: question.name, choicesByUrl: question.choicesByUrl }))
+    .filter((question) => question.choicesByUrl.length > 0);
 }
 
 function readElement(
@@ -81,11 +121,11 @@ function readElement(
 ): SurveyElement {
   const element = context.registry.createInstance(className);
   const properties = context.registry.getProperties(className);
-  const childCollection = context.registry.getChildCollection(className);
+  const childCollections = context.registry.getChildCollections(className);
 
   const handledKeys = new Set<string>([TYPE_PROPERTY, ...reservedKeys]);
-  if (childCollection !== undefined) {
-    handledKeys.add(childCollection.property);
+  for (const collection of childCollections) {
+    handledKeys.add(collection.property);
   }
 
   for (const [key, value] of Object.entries(json)) {
@@ -95,8 +135,8 @@ function readElement(
     readProperty(element, { key, value, className, path, properties }, context);
   }
 
-  if (childCollection !== undefined) {
-    readChildren(json, element, className, path, context);
+  for (const collection of childCollections) {
+    readChildren(json, element, collection, className, path, context);
   }
   return element;
 }
@@ -148,14 +188,11 @@ function readProperty(
 function readChildren(
   json: Record<string, unknown>,
   element: SurveyElement,
+  childCollection: ChildCollectionDescriptor,
   className: string,
   path: string,
   context: ReadContext,
 ): void {
-  const childCollection = context.registry.getChildCollection(className);
-  if (childCollection === undefined) {
-    return;
-  }
   const raw = json[childCollection.property];
   if (raw === undefined) {
     return;
@@ -174,25 +211,54 @@ function readChildren(
 
   const allowedTypes = context.registry.getConcreteSubclasses(childCollection.elementBaseType);
   for (const [index, child] of raw.entries()) {
-    const resolved = resolveChild(child, `${collectionPath}/${index}`, allowedTypes, childCollection.elementBaseType, context);
+    const resolved = resolveChild(
+      child,
+      `${collectionPath}/${index}`,
+      allowedTypes,
+      childCollection,
+      context,
+    );
     if (resolved !== undefined) {
-      element.addChild(resolved);
+      element.addChild(childCollection.property, resolved);
     }
   }
 }
 
-function resolveChild(
+/**
+ * Expands a shorthand child into its object form.
+ *
+ * `"a"` inside a collection declaring `shorthandProperty: 'value'` means
+ * `{ value: "a" }`. Returns undefined when the collection has no shorthand, so the
+ * caller can report the entry as malformed instead.
+ */
+function expandShorthand(
   child: unknown,
+  collection: ChildCollectionDescriptor,
+): Record<string, unknown> | undefined {
+  const { shorthandProperty } = collection;
+  if (shorthandProperty === undefined) {
+    return undefined;
+  }
+  if (typeof child === 'string' || typeof child === 'number' || typeof child === 'boolean') {
+    return { [shorthandProperty]: child };
+  }
+  return undefined;
+}
+
+function resolveChild(
+  rawChild: unknown,
   childPath: string,
   allowedTypes: readonly string[],
-  elementBaseType: string,
+  collection: ChildCollectionDescriptor,
   context: ReadContext,
 ): SurveyElement | undefined {
-  if (!isJsonObject(child)) {
+  const elementBaseType = collection.elementBaseType;
+  const child = isJsonObject(rawChild) ? rawChild : expandShorthand(rawChild, collection);
+  if (child === undefined) {
     context.diagnostics.push({
       severity: 'error',
       code: 'invalid-element',
-      message: `Element must be an object; received ${describeType(child)}.`,
+      message: `Element must be an object; received ${describeType(rawChild)}.`,
       path: childPath,
     });
     return undefined;

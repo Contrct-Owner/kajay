@@ -35,10 +35,23 @@ own, or an off-the-shelf signals library providing automatic dependency tracking
   adapters stay possible. A signals library would leak its own reactivity model into
   every adapter.
 
-## Design constraints (resolve during Phase 1)
+## Design constraints (resolved 2026-08-02)
 
-These are the genuinely hard parts. They are named here so the Phase 1 design does
-not discover them late.
+These are the genuinely hard parts. They were named here so the Phase 1 design did not
+discover them late; each is now built and covered by `parity/B8-*` suites.
+
+**How they were resolved.** Pattern edges became a `DependencyPattern` whose index
+segments may be a wildcard, matched prefix-wise in *both* directions — so replacing a
+collection invalidates readers of its elements, and changing an element invalidates
+readers of the whole. Instances materialised at runtime need no new edge registration.
+The transaction model orders by declared writes in a single pass, and only *undeclared*
+writes re-enter, bounded by a cascade limit that names the nodes still churning. Cycle
+errors carry the participating node keys in the order they close the loop, which fell
+out of choosing DFS over Kahn's algorithm: the visiting stack is the cycle.
+
+One thing the tests caught that the design here did not anticipate: a node reading what
+it writes — `total = total + 1` — is a cycle of one, and the obvious "a node is not its
+own predecessor" guard silently let the single most likely authoring mistake through.
 
 - **Pattern edges for dynamic collections.** `{matrix.row.col}` and `{panel[0].q}`
   cannot be static edges — rows and panels are created and destroyed at runtime. The

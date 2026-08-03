@@ -23,9 +23,16 @@ describe('parity/A6-contract-generated-from-registry', () => {
   });
 
   test('projects an abstract class as a union of its concrete subclasses', () => {
-    const contract = generateContract(createTestRegistry());
-    const definitions = contract['$defs'] as Record<string, Record<string, unknown>>;
-    expect(definitions['question']?.['oneOf']).toEqual([{ $ref: '#/$defs/text' }]);
+    const registry = createTestRegistry();
+    const definitions = generateContract(registry)['$defs'] as Record<
+      string,
+      Record<string, unknown>
+    >;
+    // Derived from the registry rather than listed, so adding a question type does not
+    // break this test without telling us anything.
+    expect(definitions['question']?.['oneOf']).toEqual(
+      registry.getConcreteSubclasses('question').map((name) => ({ $ref: `#/$defs/${name}` })),
+    );
   });
 
   test('requires the type discriminator only where an abstract ancestor exists', () => {
@@ -39,7 +46,9 @@ describe('parity/A6-contract-generated-from-registry', () => {
     const contract = generateContract(createTestRegistry());
     const definitions = contract['$defs'] as Record<string, Record<string, unknown>>;
     for (const [name, definition] of Object.entries(definitions)) {
-      if (name === 'question') {
+      // Abstract classes project as a `oneOf` union and carry no properties of their
+      // own. Detected rather than named, so a new abstract base does not break this.
+      if (definition['oneOf'] !== undefined) {
         continue;
       }
       expect(definition['additionalProperties'], `${name} must accept unknown properties`).toBe(
@@ -61,18 +70,20 @@ describe('parity/A6-contract-generated-from-registry', () => {
 
   test('picks up a whole custom question type', () => {
     const registry = createTestRegistry();
+    // A deliberately host-flavoured name. This test used to say `rating`, which stopped
+    // being custom the day §C8 landed — a stand-in for "a type we will never ship" has
+    // to be one we will never ship.
     registry.addClass({
-      name: 'rating',
+      name: 'acmegauge',
       parent: 'question',
-      properties: [{ name: 'rateMax', type: 'number', defaultValue: 5 }],
+      properties: [{ name: 'gaugeMax', type: 'number', defaultValue: 5 }],
       create: () => registry.createInstance('text'),
     });
     const contract = generateContract(registry);
     const definitions = contract['$defs'] as Record<string, Record<string, unknown>>;
-    expect(definitions['rating']).toBeDefined();
-    expect(definitions['question']?.['oneOf']).toEqual([
-      { $ref: '#/$defs/rating' },
-      { $ref: '#/$defs/text' },
-    ]);
+
+    expect(definitions['acmegauge']).toBeDefined();
+    // The custom type joins the union without any further wiring — the point of A4.
+    expect(definitions['question']?.['oneOf']).toContainEqual({ $ref: '#/$defs/acmegauge' });
   });
 });

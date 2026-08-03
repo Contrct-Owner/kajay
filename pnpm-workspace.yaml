@@ -1,0 +1,16 @@
+# Workspace definition. Replaces the `workspaces` field in package.json, which pnpm
+# does not read.
+packages:
+  - 'packages/*'
+  - 'apps/*'
+
+# One place to pin versions shared across the workspace (ADR-0015). This is the
+# concrete reason the swap was worth making: the single version train (ADR-0005) wants
+# every package on the same React, and npm had no equivalent to this.
+#
+# Library *peer* ranges deliberately stay literal in their manifests: a peer range is a
+# consumer-facing statement about breadth (`^19`), not a statement about the version
+# this workspace happens to develop against.
+catalog:
+  react: ^19.2.8
+  react-dom: ^19.2.8

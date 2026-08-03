@@ -51,7 +51,7 @@ placeholder that never cleared.
 | A1 | JSON survey definition parses into a typed model; unknown properties surfaced, not dropped | ☑ | `parity/A1-unknown-properties-surfaced` (unit + host E2E) |
 | A2 | Lossless round-trip: parse → serialize → parse is stable for every fixture | ☑ | `parity/A2-round-trip` (unit, every fixture) + `parity/A2-round-trip-fixed-point` (host E2E) |
 | A3 | Metadata registry: register question class with typed property descriptors, defaults, inheritance | ☑ | `parity/A3-metadata-registry` (unit). The descriptor is the only place a default is written, and the model resolves through it ([ADR-0016](./adr/0016-metadata-owns-property-defaults.md)) — so "unset" and "explicitly empty" are now different states, and a directly constructed `new TextQuestion()` resolves the same defaults `parseSurvey` would give it. Not demo-testable: the registry is machinery with no user-visible surface of its own |
-| A4 | Custom question type registers end-to-end (serializer, schema, toolbox, property grid, renderer) | ☐ | Partial: serializer, schema and toolbox proven; property grid and renderer registration are Phase 3 |
+| A4 | Custom question type registers end-to-end (serializer, schema, toolbox, property grid, renderer) | ☐ | Partial: serializer, schema and toolbox proven; `parity/A4-custom-question-renderer` proves registration through the unified page-element renderer registry in real Chromium. The Phase 3 property grid remains |
 | A5 | Custom property on an existing type (`addProperty` pattern), serialized and editable | ☐ | Partial: `addProperty` serializes and reaches the contract; "editable" needs the Phase 3 property grid |
 | A6 | Committed JSON Schema contract generated from the registry; CI drift check | ☑ | `parity/A6-contract-generated-from-registry` (unit) + `check:contract` CI job. Not demo-testable: the contract is a build artefact, not application behaviour |
 | A7 | Typed event surface: onValueChanged, onComplete, onCurrentPageChanged, onValidate*, onUploadFiles, onDynamicPanelAdded, matrix row events | ☐ | Partial: onValueChanged/onComplete/onCurrentPageChanged proven by `parity/A7-value-changed-event`; onValidateQuestion and onValidatingChanged by `parity/D4-validate-question-event` and `parity/D3-async-validators`; upload, dynamic-panel and matrix events await their features |
@@ -152,7 +152,7 @@ placeholder that never cleared.
 | I3 | Preset themes incl. light/dark in `@kajay/themes` | ☐ | |
 | I4 | Per-instance css class overrides (survey-level css merge) | ☐ | |
 | I5 | Responsive layout: startWithNewLine, colCount, question width/minWidth, title alignment options | ☐ | |
-| I6 | Custom rendering seams: register custom renderer per question type; markdown/HTML in titles via onTextMarkdown | ☐ | |
+| I6 | Custom rendering seams: register custom renderer per question type; markdown/HTML in titles via onTextMarkdown | ☐ | Partial: `parity/A4-custom-question-renderer` proves a host-registered question renderer through the public React seam in real Chromium. Markdown/HTML title transformation remains |
 
 ## §J — Localization & accessibility
 

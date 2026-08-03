@@ -1,24 +1,10 @@
-import type { HtmlCondition } from './HtmlCondition.js';
+import { clearAnswersOnComplete } from './clearInvisibleAnswers.js';
 import { interpolateHtml } from './interpolate.js';
+import type { Survey } from './Survey.js';
+import type { SurveyAnswers } from './SurveyAnswers.js';
+import type { SurveyLogicHost } from './SurveyLogicHost.js';
 import { resolveSurveyState } from './SurveyState.js';
 import type { SurveyState } from './SurveyState.js';
-import type { ExpressionOutcome } from './Validator.js';
-
-/** What the status needs from the survey, without reaching into it. */
-export interface SurveyStatusHost {
-  readonly readProperty: (name: string) => string;
-  readonly hasVisiblePages: () => boolean;
-  /** Applies the `onComplete` clearing policy. Runs before anyone is told. */
-  readonly clearAnswers: () => void;
-  /** Hands the finished answers to the host. */
-  readonly announceComplete: () => void;
-  /** The authored `completedHtmlOnCondition` entries, in order. */
-  readonly conditions: () => readonly HtmlCondition[];
-  readonly evaluate: (expression: string) => ExpressionOutcome;
-  /** An answer or calculated value by name, for a placeholder. */
-  readonly resolve: (name: string) => unknown;
-  readonly announce: (state: SurveyState) => void;
-}
 
 /**
  * What the respondent sees when they are not looking at a page.
@@ -29,13 +15,17 @@ export interface SurveyStatusHost {
  * middle of a container.
  */
 export class SurveyStatus {
-  readonly #host: SurveyStatusHost;
+  readonly #survey: Survey;
+  readonly #logic: () => SurveyLogicHost;
+  readonly #answers: SurveyAnswers;
   #isLoading = false;
   #isCompleted = false;
   #isPreviewing = false;
 
-  constructor(host: SurveyStatusHost) {
-    this.#host = host;
+  constructor(survey: Survey, logic: () => SurveyLogicHost, answers: SurveyAnswers) {
+    this.#survey = survey;
+    this.#logic = logic;
+    this.#answers = answers;
   }
 
   /**
@@ -53,7 +43,7 @@ export class SurveyStatus {
       return;
     }
     this.#isLoading = isLoading;
-    this.#host.announce(this.state);
+    this.#announce();
   }
 
   get isCompleted(): boolean {
@@ -76,7 +66,7 @@ export class SurveyStatus {
       return;
     }
     this.#isPreviewing = true;
-    this.#host.announce(this.state);
+    this.#announce();
   }
 
   /** Back to the pages, with everything answerable again. */
@@ -85,7 +75,7 @@ export class SurveyStatus {
       return;
     }
     this.#isPreviewing = false;
-    this.#host.announce(this.state);
+    this.#announce();
   }
 
   /**
@@ -100,11 +90,13 @@ export class SurveyStatus {
     if (this.#isCompleted) {
       return;
     }
-    this.#host.clearAnswers();
+    clearAnswersOnComplete(this.#survey, (name) => {
+      this.#survey.setValue(name, undefined);
+    });
     this.#isCompleted = true;
     this.#isPreviewing = false;
-    this.#host.announceComplete();
-    this.#host.announce(this.state);
+    this.#survey.onComplete.emit({ data: this.#survey.data });
+    this.#announce();
   }
 
   /** What to draw: one value, because these are mutually exclusive. */
@@ -113,7 +105,7 @@ export class SurveyStatus {
       isLoading: this.#isLoading,
       isCompleted: this.#isCompleted,
       isPreviewing: this.#isPreviewing,
-      hasVisiblePages: this.#host.hasVisiblePages(),
+      hasVisiblePages: this.#survey.visiblePages.length > 0,
     });
   }
 
@@ -129,20 +121,19 @@ export class SurveyStatus {
    * Empty means the author wrote nothing, and the renderer says something of its own.
    */
   get completedHtml(): string {
-    const conditional = this.#host
-      .conditions()
+    const conditional = this.#survey.completedHtmlOnCondition
       .find((candidate) => candidate.expression.length > 0 && this.#holds(candidate.expression));
-    return this.#fill(conditional?.html ?? this.#host.readProperty('completedHtml'));
+    return this.#fill(conditional?.html ?? this.#readProperty('completedHtml'));
   }
 
   /** Markup for a survey the host is still loading. */
   get loadingHtml(): string {
-    return this.#fill(this.#host.readProperty('loadingHtml'));
+    return this.#fill(this.#readProperty('loadingHtml'));
   }
 
   /** Markup for a survey with nothing on it — every page hidden, or none authored. */
   get emptyHtml(): string {
-    return this.#fill(this.#host.readProperty('emptyHtml'));
+    return this.#fill(this.#readProperty('emptyHtml'));
   }
 
   /**
@@ -153,12 +144,21 @@ export class SurveyStatus {
    * them the default one.
    */
   #holds(expression: string): boolean {
-    const outcome = this.#host.evaluate(expression);
+    const outcome = this.#logic().evaluate(expression);
     return !outcome.failed && outcome.value === true;
   }
 
   /** Substitutes `{name}` placeholders, escaping whatever they resolve to. */
   #fill(template: string): string {
-    return interpolateHtml(template, (name) => this.#host.resolve(name));
+    return interpolateHtml(template, (name) => this.#answers.resolve(name));
+  }
+
+  #readProperty(name: string): string {
+    const value = this.#survey.getResolvedProperty(name);
+    return typeof value === 'string' ? value : '';
+  }
+
+  #announce(): void {
+    this.#survey.onStateChanged.emit({ state: this.state });
   }
 }

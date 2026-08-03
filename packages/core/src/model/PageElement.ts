@@ -1,4 +1,5 @@
 import { SurveyElement } from './SurveyElement.js';
+import type { ValueHost } from './ValueHost.js';
 
 /**
  * Anything a page can contain: a question, or a panel grouping further elements.
@@ -12,6 +13,8 @@ import { SurveyElement } from './SurveyElement.js';
  * answer, and a panel does not hold one.
  */
 export abstract class PageElement extends SurveyElement {
+  #valueHost: ValueHost | undefined;
+
   get name(): string {
     return this.getStringProperty('name');
   }
@@ -33,5 +36,33 @@ export abstract class PageElement extends SurveyElement {
 
   set title(value: string) {
     this.setPropertyValue('title', value);
+  }
+
+  /**
+   * Connects this element tree to the survey that owns its answers.
+   *
+   * Composite page elements use the conventional `elements` child collection. The
+   * propagation belongs here so adding a new composite type does not require teaching
+   * pages, panels, and every traversal about that concrete class.
+   */
+  attachValueHost(host: ValueHost): void {
+    this.#valueHost = host;
+    for (const child of this.getChildren('elements')) {
+      if (child instanceof PageElement) {
+        child.attachValueHost(host);
+      }
+    }
+  }
+
+  /** The answer host for question implementations. */
+  protected get valueHost(): ValueHost | undefined {
+    return this.#valueHost;
+  }
+
+  /** Connects a page element added after this element was attached to a survey. */
+  protected attachChildValueHost(child: PageElement): void {
+    if (this.#valueHost !== undefined) {
+      child.attachValueHost(this.#valueHost);
+    }
   }
 }

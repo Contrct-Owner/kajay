@@ -160,7 +160,7 @@ try {
 } from '@kajay/core';
 import { listToolboxItems } from '@kajay/creator-core';
 import { lightTheme } from '@kajay/themes';
-import { defaultQuestionRenderers } from '@kajay/react';
+import { defaultPageElementRenderers } from '@kajay/react';
 
 const definition: SurveyDefinition = {
   title: 'Pack smoke',
@@ -186,7 +186,7 @@ if (!globalRegistry.hasClass('text')) {
 if (listToolboxItems().length === 0) {
   throw new Error('Toolbox derived no items from the registry.');
 }
-if (!defaultQuestionRenderers.has('text')) {
+if (!defaultPageElementRenderers.has('text')) {
   throw new Error('Default renderers are missing the text question.');
 }
 if (lightTheme.name !== 'light') {

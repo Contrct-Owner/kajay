@@ -1,7 +1,7 @@
 import type { LogicEngineOptions } from '../logic/LogicEngine.js';
 import type { ChoicePageLoader } from './ChoicePageLoader.js';
 import type { Endpoints } from './endpoints.js';
-import type { ChoiceFetcher } from './ChoiceSourceController.js';
+import type { ChoiceFetcher } from './ChoiceFetcher.js';
 
 /**
  * Everything a survey may be given at construction.

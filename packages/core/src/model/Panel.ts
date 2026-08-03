@@ -1,21 +1,5 @@
 import { PageElement } from './PageElement.js';
-import { Question } from './Question.js';
 import type { SurveyElement } from './SurveyElement.js';
-import type { ValueHost } from './ValueHost.js';
-
-/**
- * Hands the value host to whichever kind of element this is.
- *
- * A free function rather than a `PageElement` method because only questions and panels
- * need one; forcing an empty implementation onto every future element type would be a
- * worse abstraction than one `instanceof`. Exported because a page propagates the same
- * way a panel does.
- */
-export function attachHostToElement(element: PageElement, host: ValueHost): void {
-  if (element instanceof Panel || element instanceof Question) {
-    element.attachValueHost(host);
-  }
-}
 
 /** Authored initial collapse state. `default` leaves the panel expanded. */
 export type PanelState = 'default' | 'expanded' | 'collapsed';
@@ -32,7 +16,6 @@ export type PanelState = 'default' | 'expanded' | 'collapsed';
  */
 export class Panel extends PageElement {
   readonly #elements: PageElement[] = [];
-  #valueHost: ValueHost | undefined;
   #isCollapsed: boolean | undefined;
   #announceCollapsed: ((isCollapsed: boolean) => void) | undefined;
 
@@ -109,16 +92,6 @@ export class Panel extends PageElement {
       throw new Error(`A panel accepts questions and panels; received "${child.type}".`);
     }
     this.#elements.push(child);
-    if (this.#valueHost !== undefined) {
-      attachHostToElement(child, this.#valueHost);
-    }
-  }
-
-  /** Propagates the host to current and future children, so attach order is free. */
-  attachValueHost(host: ValueHost): void {
-    this.#valueHost = host;
-    for (const element of this.#elements) {
-      attachHostToElement(element, host);
-    }
+    this.attachChildValueHost(child);
   }
 }

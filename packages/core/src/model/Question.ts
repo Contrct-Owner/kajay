@@ -3,12 +3,10 @@ import type { SurveyElement } from './SurveyElement.js';
 import type { SurveyError } from './SurveyError.js';
 import { Validator } from './Validator.js';
 import type { ValidationContext } from './Validator.js';
-import type { ValueHost } from './ValueHost.js';
 
 /** Base for every question type. Answers live in the host, never on the question. */
 export abstract class Question extends PageElement {
   readonly #validators: Validator[] = [];
-  #valueHost: ValueHost | undefined;
   #requiredOverride: boolean | undefined;
   #errors: readonly SurveyError[] = [];
 
@@ -52,7 +50,7 @@ export abstract class Question extends PageElement {
    * into work at all.
    */
   get isReadOnly(): boolean {
-    return (this.#valueHost?.isReadOnly ?? false) || this.getBooleanProperty('readOnly');
+    return (this.valueHost?.isReadOnly ?? false) || this.getBooleanProperty('readOnly');
   }
 
   /**
@@ -140,15 +138,11 @@ export abstract class Question extends PageElement {
   }
 
   get value(): unknown {
-    return this.#valueHost?.getValue(this.name);
+    return this.valueHost?.getValue(this.name);
   }
 
   set value(next: unknown) {
-    this.#valueHost?.setValue(this.name, next);
-  }
-
-  attachValueHost(host: ValueHost): void {
-    this.#valueHost = host;
+    this.valueHost?.setValue(this.name, next);
   }
 }
 

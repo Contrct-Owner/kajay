@@ -1,9 +1,9 @@
 import type { Survey as SurveyModel } from '@kajay/core';
 import type { FormEvent, ReactElement, RefObject } from 'react';
-import { defaultQuestionRenderers } from './defaultQuestionRenderers.js';
+import { defaultPageElementRenderers } from './defaultPageElementRenderers.js';
 import { HtmlSanitizerProvider } from './HtmlSanitizerContext.js';
 import type { HtmlSanitizer } from './HtmlSanitizerContext.js';
-import type { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
+import type { PageElementRendererRegistry } from './PageElementRendererRegistry.js';
 import { SurveyNavigation } from './SurveyNavigation.js';
 import { SurveyPage } from './SurveyPage.js';
 import { SurveyPreview } from './SurveyPreview.js';
@@ -21,7 +21,7 @@ import {
 export interface SurveyProps {
   readonly model: SurveyModel;
   /** Defaults to the built-in renderers; pass a clone to add custom question types. */
-  readonly renderers?: QuestionRendererRegistry;
+  readonly renderers?: PageElementRendererRegistry;
   /**
    * Cleans author-supplied markup before an `html` element renders it.
    *
@@ -53,7 +53,7 @@ function SurveyHeader({ survey }: { readonly survey: SurveyModel }): ReactElemen
  */
 export function Survey({
   model,
-  renderers = defaultQuestionRenderers,
+  renderers = defaultPageElementRenderers,
   sanitizeHtml,
 }: SurveyProps): ReactElement {
   const state = useSurveyStatus(model);
@@ -88,7 +88,7 @@ export function Survey({
 
 interface SurveyFormProps {
   readonly model: SurveyModel;
-  readonly renderers: QuestionRendererRegistry;
+  readonly renderers: PageElementRendererRegistry;
   readonly onErrors: () => void;
   readonly formRef: RefObject<HTMLFormElement | null>;
 }

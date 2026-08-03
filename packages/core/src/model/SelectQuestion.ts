@@ -1,5 +1,5 @@
 import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
-import type { ChoicePaging } from './ChoicePaging.js';
+import type { ChoicePager } from './ChoicePager.js';
 import { ItemValue } from './ItemValue.js';
 import { Question } from './Question.js';
 import type { SurveyElement } from './SurveyElement.js';
@@ -17,7 +17,7 @@ export const NONE_VALUE = 'none';
 export abstract class SelectQuestion extends Question {
   readonly #choices: ItemValue[] = [];
   #choiceProvider: (() => readonly ItemValue[]) | undefined;
-  #paging: ChoicePaging | undefined;
+  #paging: ChoicePager | undefined;
 
   /**
    * The choices in play: supplied at runtime if a source is active, else authored.
@@ -177,7 +177,7 @@ export abstract class SelectQuestion extends Question {
   }
 
   /** Installs whatever is paging this question's choices. */
-  attachChoicePaging(paging: ChoicePaging): void {
+  attachChoicePaging(paging: ChoicePager): void {
     this.#paging = paging;
   }
 

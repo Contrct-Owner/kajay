@@ -75,6 +75,7 @@ export const VALIDATOR_TYPE_DEFINITIONS: ValidatorTypeDefinitions = {
         name: 'expression',
         type: 'string',
         isRequired: true,
+        isExpression: true,
         description: 'The answer is acceptable while this evaluates truthy.',
       },
     ],

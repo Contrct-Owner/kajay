@@ -230,11 +230,29 @@ export const questionTypes: PageDefinition = {
       addRowText: 'Add a line',
       confirmDelete: true,
       maxRowCount: 4,
+      // The detail holds what does not fit across: a row of a table runs out of
+      // horizontal room long before a form runs out of questions.
+      detailPanelMode: 'underRow',
       columns: [
-        { type: 'text', name: 'what', title: 'What' },
-        { type: 'text', name: 'amount', title: 'Amount', inputType: 'number' },
+        { type: 'text', name: 'quantity', title: 'Quantity', inputType: 'number' },
+        { type: 'text', name: 'unit', title: 'Unit price', inputType: 'number' },
+        {
+          // Computed from its own row. `{row.unit}` becomes a real path into this row
+          // when the cell is built, so it is an ordinary expression question.
+          type: 'expression',
+          name: 'amount',
+          title: 'Amount',
+          expression: '{row.unit} * {row.quantity}',
+        },
       ],
-      totals: [{ column: 'amount', kind: 'sum', format: '{0}', precision: 2 }],
+      detailElements: [{ type: 'comment', name: 'what', title: 'What was it for?', rows: 2 }],
+      totals: [
+        { column: 'quantity', kind: 'sum' },
+        { column: 'amount', kind: 'sum', format: '{0}', precision: 2 },
+        // A total computed from the other totals: `{row.amount}` here is that column's
+        // own figure, one level up from what a cell condition means by `row`.
+        { column: 'unit', expression: '{row.amount} / {row.quantity}', precision: 2 },
+      ],
     },
     {
       type: 'rating',

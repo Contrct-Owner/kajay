@@ -16,6 +16,17 @@ import type { SurveyLogicDependencies } from './surveyLogicWiring.js';
 import type { ExpressionOutcome } from './Validator.js';
 
 /**
+ * A set of names an expression may use that are not answers.
+ *
+ * One scope, because one is all anything has needed: `row` inside a matrix total. A
+ * general scope chain would be a second name-resolution system to keep honest.
+ */
+export interface ExpressionScope {
+  readonly name: string;
+  readonly values: Readonly<Record<string, unknown>>;
+}
+
+/**
  * The half of rule registration the survey itself has to supply.
  *
  * A `Pick` of the full dependency set rather than a hand-written twin, so adding a hook
@@ -192,9 +203,29 @@ export class SurveyLogicHost {
    * value: a caller deciding what to do about a broken authored rule needs to tell
    * "the rule says no" from "the rule is unusable", and `undefined` cannot.
    */
-  evaluate(expression: string): ExpressionOutcome {
-    const evaluation = this.#engine.evaluate(expression, this.#resolvePath);
+  evaluate(expression: string, scope?: ExpressionScope): ExpressionOutcome {
+    const resolve = scope === undefined ? this.#resolvePath : this.#scopedResolver(scope);
+    const evaluation = this.#engine.evaluate(expression, resolve);
     return { value: evaluation.value, failed: evaluation.errors.length > 0 };
+  }
+
+  /**
+   * Resolves one scope name locally and everything else against the answers.
+   *
+   * `{row.price}` inside a matrix total is not an answer and never will be, so there is
+   * nothing for the rewriting trick that serves cells to rewrite it into. A local
+   * overlay is the honest alternative *here*, where the value is computed on read and
+   * no rule depends on it.
+   */
+  #scopedResolver(scope: ExpressionScope): (path: readonly PathSegment[]) => unknown {
+    const local = createPathResolver((name) => scope.values[name]);
+    return (path) => {
+      const [first, ...rest] = path;
+      if (first?.kind === 'name' && first.name === scope.name) {
+        return rest.length === 0 ? undefined : local(rest);
+      }
+      return this.#resolvePath(path);
+    };
   }
 
   /** Buffers an answer change until the model has finished settling. */

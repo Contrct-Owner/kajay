@@ -1,5 +1,6 @@
 import { collectEndpointDiagnostics } from '../model/endpoints.js';
 import { MatrixCellsBase } from '../model/MatrixCellsBase.js';
+import { ROW_SCOPE } from '../model/matrixCells.js';
 import { SelectQuestion } from '../model/SelectQuestion.js';
 import type { ChildCollectionDescriptor } from '../metadata/ClassDescriptor.js';
 import { globalRegistry } from '../metadata/globalRegistry.js';
@@ -127,6 +128,8 @@ function attachMatrixCells(survey: Survey, registry: MetadataRegistry): void {
         onRowsChanged: () => {
           survey.refreshLogic();
         },
+        evaluate: (expression, values) =>
+          survey.evaluate(expression, { name: ROW_SCOPE, values }).value,
       });
     }
   }

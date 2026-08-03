@@ -1,4 +1,20 @@
 import type { ClassMetadataDefinition } from './ClassDescriptor.js';
+import type { PropertyDefinition } from './PropertyDescriptor.js';
+
+/**
+ * How a matrix lays itself out on a narrow screen — checklist F6.
+ *
+ * Shared by all three matrix types, which are not related to each other by inheritance:
+ * a single-select matrix, a table of cells and a table of respondent-added rows are the
+ * same problem on a phone, and an author who learned the word on one should not find it
+ * spelled differently on the next.
+ */
+const MOBILE_MODE: PropertyDefinition = {
+  name: 'mobileMode',
+  type: 'string',
+  defaultValue: 'auto',
+  description: 'auto, table or list. auto turns the table into a list on a narrow screen.',
+};
 
 interface MatrixTypeDefinitions {
   readonly matrix: ClassMetadataDefinition;
@@ -38,6 +54,7 @@ export const MATRIX_TYPE_DEFINITIONS: MatrixTypeDefinitions = {
         type: 'boolean',
         description: 'Shade alternate rows. Presentation only.',
       },
+      MOBILE_MODE,
     ],
     childCollections: [
       { property: 'columns', elementBaseType: 'itemvalue', shorthandProperty: 'value' },
@@ -50,6 +67,12 @@ export const MATRIX_TYPE_DEFINITIONS: MatrixTypeDefinitions = {
       { name: 'column', type: 'string', isRequired: true, description: 'The column summarised.' },
       { name: 'kind', type: 'string', description: 'sum, count, min, max or avg.' },
       {
+        name: 'expression',
+        type: 'string',
+        isExpression: true,
+        description: 'Computes the figure instead. {row.col} is that column own total.',
+      },
+      {
         name: 'format',
         type: 'string',
         description: 'Template around the figure, with {0} standing for it.',
@@ -60,12 +83,22 @@ export const MATRIX_TYPE_DEFINITIONS: MatrixTypeDefinitions = {
   matrixCells: {
     name: 'matrixcells',
     parent: 'question',
+    properties: [
+      {
+        name: 'detailPanelMode',
+        type: 'string',
+        defaultValue: 'none',
+        description: 'none, underRow, or underRowSingle (one row open at a time).',
+      },
+      MOBILE_MODE,
+    ],
     childCollections: [
       // Ordinary question definitions. A column *is* a question — what SurveyJS spells
       // as `cellType` is simply `type` here — so a cell gets that type's properties,
       // validators, choices and renderer without the matrix knowing any of them.
       { property: 'columns', elementBaseType: 'question' },
       { property: 'rows', elementBaseType: 'itemvalue', shorthandProperty: 'value' },
+      { property: 'detailElements', elementBaseType: 'question' },
       { property: 'totals', elementBaseType: 'matrixtotal' },
     ],
   },
@@ -109,9 +142,17 @@ export const MATRIX_TYPE_DEFINITIONS: MatrixTypeDefinitions = {
         type: 'boolean',
         description: 'A new row starts as a copy of the one before it. Wins over defaultRowValue.',
       },
+      {
+        name: 'detailPanelMode',
+        type: 'string',
+        defaultValue: 'none',
+        description: 'none, underRow, or underRowSingle (one row open at a time).',
+      },
+      MOBILE_MODE,
     ],
     childCollections: [
       { property: 'columns', elementBaseType: 'question' },
+      { property: 'detailElements', elementBaseType: 'question' },
       { property: 'totals', elementBaseType: 'matrixtotal' },
     ],
   },

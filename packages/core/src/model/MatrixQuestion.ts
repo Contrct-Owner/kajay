@@ -1,5 +1,7 @@
 import { isEmptyValue, valuesAreEqual } from '../expressions/expressionValues.js';
 import { ItemValue } from './ItemValue.js';
+import { toMatrixLayout } from './matrixCells.js';
+import type { MatrixLayout } from './matrixCells.js';
 import { asAnswerRecord, withAnswerEntry } from './objectAnswers.js';
 import { Question } from './Question.js';
 import type { ConditionalItemGroup } from './Question.js';
@@ -73,6 +75,11 @@ export class MatrixQuestion extends Question {
   /** Whether two rows may share a column. */
   get eachRowUnique(): boolean {
     return this.getBooleanProperty('eachRowUnique');
+  }
+
+  /** Whether this table becomes a list on a narrow screen — checklist F6. */
+  get mobileMode(): MatrixLayout {
+    return toMatrixLayout(this.getStringProperty('mobileMode'));
   }
 
   /** Shade alternate rows. Presentation only — the model does nothing else with it. */

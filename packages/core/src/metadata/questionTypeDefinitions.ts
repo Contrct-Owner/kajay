@@ -27,6 +27,7 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
       {
         name: 'requiredIf',
         type: 'string',
+        isExpression: true,
         description: 'Expression; when present it overrides isRequired.',
       },
       {
@@ -37,17 +38,20 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
       {
         name: 'defaultValueExpression',
         type: 'string',
+        isExpression: true,
         description: 'Expression supplying a value while the question is unanswered.',
       },
       {
         name: 'setValueIf',
         type: 'string',
+        isExpression: true,
         description: 'Expression; while truthy, setValueExpression drives the answer.',
       },
-      { name: 'setValueExpression', type: 'string' },
+      { name: 'setValueExpression', type: 'string', isExpression: true },
       {
         name: 'resetValueIf',
         type: 'string',
+        isExpression: true,
         description: 'Expression; while truthy the answer is cleared. Wins over the others.',
       },
     ],
@@ -153,6 +157,7 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
         name: 'expression',
         type: 'string',
         isRequired: true,
+        isExpression: true,
         description: 'Computed from the answers. The respondent does not supply it.',
       },
       {

@@ -111,7 +111,7 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
   htmlCondition: {
     name: 'htmlcondition',
     properties: [
-      { name: 'expression', type: 'string', isRequired: true },
+      { name: 'expression', type: 'string', isRequired: true, isExpression: true },
       { name: 'html', type: 'string', isRequired: true },
     ],
   },
@@ -124,7 +124,7 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         isRequired: true,
         description: 'The name this value is referenced by in expressions.',
       },
-      { name: 'expression', type: 'string', isRequired: true },
+      { name: 'expression', type: 'string', isRequired: true, isExpression: true },
       {
         name: 'includeIntoResult',
         type: 'boolean',
@@ -157,6 +157,7 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
       {
         name: 'enableIf',
         type: 'string',
+        isExpression: true,
         description: 'Expression; the element is editable only while it evaluates truthy.',
       },
     ],

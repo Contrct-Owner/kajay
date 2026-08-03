@@ -1,11 +1,21 @@
 import type { PathSegment } from '../expressions/ExpressionNode.js';
 import { scopeReferences } from '../expressions/scopeReferences.js';
 import { isEmptyValue } from '../expressions/expressionValues.js';
-import { CONDITIONAL_PROPERTIES } from '../logic/conditionalProperties.js';
 import type { MetadataRegistry } from '../metadata/MetadataRegistry.js';
 import { copyElement } from './copyElement.js';
 import { Question } from './Question.js';
+import type { SurveyElement } from './SurveyElement.js';
 import type { ValueHost } from './ValueHost.js';
+
+/** How a matrix lays itself out: as a table, as a list, or by the screen it is on. */
+export type MatrixLayout = 'table' | 'list' | 'auto';
+
+const LAYOUTS: ReadonlySet<string> = new Set(['table', 'list', 'auto']);
+
+/** Anything unrecognised means `auto`, which is the behaviour nobody has to ask for. */
+export function toMatrixLayout(value: string): MatrixLayout {
+  return LAYOUTS.has(value) ? (value as MatrixLayout) : 'auto';
+}
 
 /** The scope name a column's own conditions use to talk about the row they are in. */
 export const ROW_SCOPE = 'row';
@@ -20,6 +30,14 @@ export interface CellAttachment {
    * added after the graph was built would otherwise carry rules nobody registered.
    */
   readonly onRowsChanged: () => void;
+  /**
+   * Evaluates an expression with the `row` scope filled in.
+   *
+   * Only totals need it — a cell's own expressions are rewritten into real paths and
+   * run as graph rules — and a total is not an answer, so there is nothing for the
+   * graph to hang a rule on.
+   */
+  readonly evaluate: (expression: string, scope: Readonly<Record<string, unknown>>) => unknown;
 }
 
 /**
@@ -83,16 +101,40 @@ export function buildCell(
   cell.setPropertyValue('title', `${row.title} ${column.title}`.trim());
   // Unique per cell, so the ids a renderer builds are unique too — see `instanceKey`.
   cell.setInstanceKey(`${row.key}.${column.name}`);
-  for (const conditional of CONDITIONAL_PROPERTIES) {
-    const expression = cell.getPropertyValue(conditional.property);
+  scopeElementTree(cell, attachment.registry, row.path);
+  return cell;
+}
+
+/**
+ * Rewrites every expression in an element and its children into the row's scope.
+ *
+ * *Every* one, not just the conditions: a computed cell's `expression`, a
+ * `defaultValueExpression`, a `setValueIf`, and the `expression` of a validator hanging
+ * off the column all talk about `{row.price}` and all have to mean the same thing.
+ *
+ * Which properties those are is the registry's answer (`isExpression`), so a property
+ * added later is covered by declaring itself rather than by being remembered here.
+ * Children are walked because a column's validators are elements of their own.
+ */
+function scopeElementTree(
+  element: SurveyElement,
+  registry: MetadataRegistry,
+  rowPath: readonly PathSegment[],
+): void {
+  for (const descriptor of registry.getProperties(element.type)) {
+    if (!descriptor.isExpression) {
+      continue;
+    }
+    const expression = element.getPropertyValue(descriptor.name);
     if (typeof expression === 'string' && expression.length > 0) {
-      cell.setPropertyValue(
-        conditional.property,
-        scopeReferences(expression, ROW_SCOPE, row.path),
-      );
+      element.setPropertyValue(descriptor.name, scopeReferences(expression, ROW_SCOPE, rowPath));
     }
   }
-  return cell;
+  for (const collection of registry.getChildCollections(element.type)) {
+    for (const child of element.getChildren(collection.property)) {
+      scopeElementTree(child, registry, rowPath);
+    }
+  }
 }
 
 /** How a column's answers are summarised under the table. */

@@ -42,7 +42,9 @@ export function TextQuestionRenderer({ survey, question }: QuestionRendererProps
       question.setInputValue(event.target.value);
       return;
     }
-    survey.setValue(question.name, event.target.value);
+    // Through the question for the same reason a cell reads through it: its answer may
+    // live inside another question's.
+    question.value = event.target.value;
   };
 
   return (

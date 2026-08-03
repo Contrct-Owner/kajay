@@ -31,6 +31,15 @@ export interface PropertyDefinition {
   readonly defaultValue?: PropertyValue;
   /** Required properties are always emitted, even when they equal the default. */
   readonly isRequired?: boolean;
+  /**
+   * Whether the property holds an expression in the survey's own language.
+   *
+   * Declared here because more than one thing needs to know, and a list kept elsewhere
+   * would be wrong the day a property arrived: a matrix cell rewrites `{row.price}` into
+   * a real path in *every* expression its column carries, and the Creator's logic editor
+   * (§M) has to know which fields it may open.
+   */
+  readonly isExpression?: boolean;
   readonly description?: string;
 }
 
@@ -40,6 +49,7 @@ export interface PropertyDescriptor {
   readonly type: PropertyType;
   readonly defaultValue: PropertyValue;
   readonly isRequired: boolean;
+  readonly isExpression: boolean;
   readonly description: string | undefined;
 }
 
@@ -64,6 +74,7 @@ export function normalizePropertyDefinition(definition: PropertyDefinition): Pro
     type: definition.type,
     defaultValue: definition.defaultValue ?? defaultForType(definition.type),
     isRequired: definition.isRequired ?? false,
+    isExpression: definition.isExpression ?? false,
     description: definition.description,
   };
 }

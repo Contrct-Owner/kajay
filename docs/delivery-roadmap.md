@@ -198,9 +198,8 @@ project keeps having to fix. That belongs beside Phase 2's other time-adjacent w
 
 **Goal:** everything a SurveyJS Form Library consumer would miss.
 
-**Progress (2026-08-02).** **F1, F2 and F3 are green**, so the matrix family is closed
-but for detail panels (F4), row/column expressions in totals (F5) and the responsive
-rendering mode (F6). The design that made F2 and F3 one slice rather than two: **a
+**Progress (2026-08-02).** **§F is closed.** All six rows are green, and the family cost
+one design decision rather than six features: **a
 column is a question and a cell is an instance of it**, built by a registry-driven copy
 and pointed at its slot through the same value-host seam a page question uses. Every
 question type therefore works inside a table — its validators, its choices, its renderer,
@@ -208,12 +207,21 @@ a host's own replacement for its renderer — without any of them knowing a matr
 Row context (`{row.price}`) is resolved by rewriting the condition into a real path when
 the cell is built, so the dependency graph still sees statically what a cell reads.
 
-Two things outside §F moved as a result. The metadata registry gained a **`json`
-property type**: the format is JSON and `defaultRowValue` is an object, which the scalar
-`value` type could not hold — §I's theme JSON would have hit the same wall. And two
-renderer-wide defects surfaced that had been latent since Phase 1: DOM ids built from
-`question.name` (which repeats across cells) and question values read from
-`survey.getValue(name)` rather than from the question itself.
+F4's detail panels needed nothing new: a detail element is a cell drawn under the row
+instead of in a column. F5 generalized the rewriting to *every* expression a column
+carries, which the registry now declares per property (`isExpression`) rather than the
+cell builder remembering a list. F6 is the one row that is genuinely about the DOM: the
+library ships no stylesheet, so a responsive "mode" that only added a class name would be
+unprovable and unusable, and `auto` resolves against a real media query instead.
+
+Four things outside §F moved as a result. The metadata registry gained a **`json`
+property type** (the format is JSON and `defaultRowValue` is an object, which the scalar
+`value` type could not hold — §I's theme JSON would have hit the same wall) and an
+**`isExpression` flag**, which §M's logic editor will want for the same reason the cell
+builder does. And three renderer-wide defects surfaced that had been latent since Phase 1,
+each invisible until a question could contain questions: DOM ids built from
+`question.name` (which repeats across cells), question values *read* from
+`survey.getValue(name)`, and question values *written* the same way.
 
 **F1 landed first** and **D1 closed with it** — the single-select
 matrix is the first §F row, and its rows and columns are `itemvalue` collections rather

@@ -79,21 +79,53 @@ test('parity/F2-matrix-cells', async ({ page }) => {
 
 test('parity/F3-matrix-dynamic', async ({ page }) => {
   const expenses = page.getByRole('group', { name: /Anything to expense/u });
-  await expenses.getByRole('textbox', { name: 'Line 1 What' }).fill('Train fare');
-  await expenses.getByRole('spinbutton', { name: 'Line 1 Amount' }).fill('42.5');
+  await expenses.getByRole('spinbutton', { name: 'Line 1 Quantity' }).fill('2');
+  await expenses.getByRole('spinbutton', { name: 'Line 1 Unit price' }).fill('21.25');
   await expenses.getByRole('button', { name: 'Add a line' }).click();
-  await expenses.getByRole('spinbutton', { name: 'Line 2 Amount' }).fill('7.5');
+  await expenses.getByRole('spinbutton', { name: 'Line 2 Quantity' }).fill('1');
+  await expenses.getByRole('spinbutton', { name: 'Line 2 Unit price' }).fill('7.5');
 
   // The rows *are* the answer, so the count needs nothing stored beside them.
-  await expect(page.getByTestId('survey-data')).toContainText('"what": "Train fare"');
+  await expect(page.getByTestId('survey-data')).toContainText('"quantity": 2');
   await expect(expenses.locator('[data-total-for="amount"]')).toHaveText('50.00');
 
   // Removing asks first, in the page rather than in a native dialog.
   await expenses.getByRole('button', { name: 'Remove' }).first().click();
   await expenses.getByRole('button', { name: 'Remove this row?' }).click();
 
-  await expect(expenses.getByRole('spinbutton', { name: 'Line 1 Amount' })).toHaveValue('7.5');
+  await expect(expenses.getByRole('spinbutton', { name: 'Line 1 Unit price' })).toHaveValue('7.5');
   await expect(expenses.locator('[data-total-for="amount"]')).toHaveText('7.50');
+});
+
+test('parity/F5-row-and-total-expressions', async ({ page }) => {
+  const expenses = page.getByRole('group', { name: /Anything to expense/u });
+  await expenses.getByRole('spinbutton', { name: 'Line 1 Quantity' }).fill('3');
+  await expenses.getByRole('spinbutton', { name: 'Line 1 Unit price' }).fill('4');
+
+  // Computed from its own row, and stored as a real answer rather than drawn.
+  await expect(expenses.getByLabel('Line 1 Amount')).toHaveText('12');
+  await expect(page.getByTestId('survey-data')).toContainText('"amount": 12');
+
+  await expenses.getByRole('button', { name: 'Add a line' }).click();
+  await expenses.getByRole('spinbutton', { name: 'Line 2 Quantity' }).fill('1');
+  await expenses.getByRole('spinbutton', { name: 'Line 2 Unit price' }).fill('8');
+
+  // 20 over 4 items: the unit total is an expression over the *other* totals.
+  await expect(expenses.locator('[data-total-for="amount"]')).toHaveText('20.00');
+  await expect(expenses.locator('[data-total-for="unit"]')).toHaveText('5.00');
+});
+
+test('parity/F4-detail-panels', async ({ page }) => {
+  const expenses = page.getByRole('group', { name: /Anything to expense/u });
+  const toggle = expenses.getByRole('button', { name: 'Line 1' });
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+
+  await toggle.click();
+  await expenses.getByRole('textbox', { name: 'Line 1 What was it for?' }).fill('Train fare');
+
+  // Into the row it belongs to, beside the columns: a detail is a cell drawn somewhere
+  // else, not a second kind of answer.
+  await expect(page.getByTestId('survey-data')).toContainText('"what": "Train fare"');
 });
 
 test('parity/F1-alternate-rows', async ({ page }) => {

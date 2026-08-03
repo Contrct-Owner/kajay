@@ -2,9 +2,9 @@ import { MatrixQuestion, matrixRowKey } from '@kajay/core';
 import type { ItemValue, SurveyError } from '@kajay/core';
 import type { ReactElement } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
-import { QuestionErrors } from './QuestionErrors.js';
-import { QuestionTitleContent } from './QuestionTitleContent.js';
-import { readOnlyGroup, whenEditable } from './readOnly.js';
+import { MatrixFrame } from './MatrixFrame.js';
+import { whenEditable } from './readOnly.js';
+import { useMatrixLayout } from './useMatrixLayout.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
 
@@ -111,6 +111,51 @@ function MatrixTable({ question, base, columnId }: MatrixTableProps): ReactEleme
 }
 
 /**
+ * One row as its own radio group — the narrow-screen layout, checklist F6.
+ *
+ * A single-select matrix is the type most likely to be answered on a phone, and as a
+ * table it is the worst offender: five columns of radio buttons in 375 pixels is a row
+ * of unlabelled dots. As a list each row is a group with its own legend and each option
+ * carries its text, which is the same question asked in a shape that fits.
+ */
+function MatrixRadioList({ question }: { readonly question: MatrixQuestion }): ReactElement {
+  return (
+    <div className="kajay-matrix-list">
+      {question.visibleRows.map((row) => (
+        <fieldset
+          className="kajay-matrix-list__row"
+          key={matrixRowKey(row)}
+          data-row-name={matrixRowKey(row)}
+        >
+          <legend className="kajay-matrix-list__row-title">{row.text}</legend>
+          {question.errors
+            .filter((error) => error.path === matrixRowKey(row))
+            .map((error) => (
+              <p className="kajay-question__error" key={error.kind} role="alert">
+                {error.text}
+              </p>
+            ))}
+          {question.visibleColumns.map((column) => (
+            <label className="kajay-choice" key={String(column.value)}>
+              <input
+                type="radio"
+                name={`${matrixRowKey(row)}-list`}
+                value={String(column.value)}
+                checked={question.isSelected(row, column)}
+                onChange={whenEditable(question.isReadOnly, () => {
+                  question.setRowValue(row, column.value);
+                })}
+              />
+              <span>{column.text}</span>
+            </label>
+          ))}
+        </fieldset>
+      ))}
+    </div>
+  );
+}
+
+/**
  * One question asked of several rows — checklist F1.
  *
  * A real table, because that is what it is: the column headers name the scale once and
@@ -119,47 +164,24 @@ function MatrixTable({ question, base, columnId }: MatrixTableProps): ReactEleme
  */
 export function MatrixQuestionRenderer({ survey, question }: QuestionRendererProps): ReactElement {
   useSurveyValue(survey, question.name);
+  const layout = useMatrixLayout(
+    question instanceof MatrixQuestion ? question.mobileMode : 'table',
+  );
 
   if (!(question instanceof MatrixQuestion)) {
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
   const base = questionId(question);
-  const errorId = `${base}-errors`;
   const columnId = (index: number): string => `${base}-column-${String(index)}`;
-  // Only what was reported against the question as a whole: a row's own message sits
-  // beside that row, and showing it in both places would say everything twice.
-  const questionErrors = question.errors.filter((error) => error.path === undefined);
 
   return (
-    <fieldset
-      className="kajay-question kajay-question--matrix"
-      data-question-name={question.name}
-      disabled={!question.isEnabled}
-      aria-required={question.isRequired}
-      {...readOnlyGroup(question.isReadOnly)}
-    >
-      <legend className="kajay-question__title">
-        <QuestionTitleContent question={question} />
-      </legend>
-
-      <QuestionErrors
-        survey={survey}
-        question={question}
-        at="top"
-        id={errorId}
-        errors={questionErrors}
-      />
-
-      <MatrixTable question={question} base={base} columnId={columnId} />
-
-      <QuestionErrors
-        survey={survey}
-        question={question}
-        at="bottom"
-        id={errorId}
-        errors={questionErrors}
-      />
-    </fieldset>
+    <MatrixFrame survey={survey} question={question} className="kajay-question--matrix">
+      {layout === 'list' ? (
+        <MatrixRadioList question={question} />
+      ) : (
+        <MatrixTable question={question} base={base} columnId={columnId} />
+      )}
+    </MatrixFrame>
   );
 }

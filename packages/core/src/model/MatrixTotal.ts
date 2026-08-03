@@ -27,6 +27,17 @@ export class MatrixTotal extends SurveyElement {
     return toTotalKind(this.getStringProperty('kind'));
   }
 
+  /**
+   * Computes the figure instead of aggregating a column.
+   *
+   * `{row.price}` here means *the total of the price column*, so a line total reads
+   * `{row.unit} * {row.quantity}` — the same scope word a cell condition uses, one level
+   * up, because in both places `row` means "the record this thing belongs to".
+   */
+  get expression(): string {
+    return this.getStringProperty('expression');
+  }
+
   /** Template around the figure, with `{0}` standing for it. */
   get format(): string {
     return this.getStringProperty('format');

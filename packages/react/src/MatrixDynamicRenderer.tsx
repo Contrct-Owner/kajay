@@ -1,13 +1,15 @@
 import { MatrixDynamicQuestion } from '@kajay/core';
 import type { Question, Survey as SurveyModel } from '@kajay/core';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import type { ReactElement } from 'react';
 import { MatrixCell } from './MatrixCell.js';
+import { MatrixDetailToggle, MatrixRowDetail } from './MatrixRowDetail.js';
+import { MatrixRowList } from './MatrixRowList.js';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
-import { QuestionErrors } from './QuestionErrors.js';
-import { questionErrorId, questionId } from './questionId.js';
-import { QuestionTitleContent } from './QuestionTitleContent.js';
-import { readOnlyGroup, whenEditable } from './readOnly.js';
+import { MatrixFrame } from './MatrixFrame.js';
+import { questionId } from './questionId.js';
+import { whenEditable } from './readOnly.js';
+import { useMatrixLayout } from './useMatrixLayout.js';
 import { useSurveyValue } from './useSurveyState.js';
 
 interface RemoveButtonProps {
@@ -70,32 +72,60 @@ interface DynamicBodyProps {
   readonly survey: SurveyModel;
   readonly question: MatrixDynamicQuestion;
   readonly columns: readonly Question[];
+  readonly onToggleDetail: () => void;
 }
 
-function DynamicBody({ survey, question, columns }: DynamicBodyProps): ReactElement {
+function DynamicBody({
+  survey,
+  question,
+  columns,
+  onToggleDetail,
+}: DynamicBodyProps): ReactElement {
   return (
     <tbody>
       {question.rowKeys.map((rowKey) => (
-        <tr className="kajay-matrix__row" key={rowKey} data-row-name={rowKey}>
-          <th className="kajay-matrix__row-title" scope="row">
-            {question.rowTitle(rowKey)}
-          </th>
-          {columns.map((column) => (
-            <td className="kajay-matrix__cell" key={column.name} data-column-name={column.name}>
-              <MatrixCell survey={survey} cell={question.cellAt(rowKey, column.name)} />
+        <Fragment key={rowKey}>
+          <tr className="kajay-matrix__row" data-row-name={rowKey}>
+            <th className="kajay-matrix__row-title" scope="row">
+              {question.hasDetailPanel ? (
+                <MatrixDetailToggle
+                  question={question}
+                  rowKey={rowKey}
+                  onToggle={onToggleDetail}
+                />
+              ) : (
+                question.rowTitle(rowKey)
+              )}
+            </th>
+            {columns.map((column) => (
+              <td className="kajay-matrix__cell" key={column.name} data-column-name={column.name}>
+                <MatrixCell survey={survey} cell={question.cellAt(rowKey, column.name)} />
+              </td>
+            ))}
+            <td className="kajay-matrix__actions">
+              {question.canRemoveRow ? <RemoveButton question={question} rowKey={rowKey} /> : null}
             </td>
-          ))}
-          <td className="kajay-matrix__actions">
-            {question.canRemoveRow ? <RemoveButton question={question} rowKey={rowKey} /> : null}
-          </td>
-        </tr>
+          </tr>
+          {question.isRowExpanded(rowKey) ? (
+            <tr className="kajay-matrix__detail-row">
+              <td colSpan={columns.length + 2}>
+                <MatrixRowDetail survey={survey} question={question} rowKey={rowKey} />
+              </td>
+            </tr>
+          ) : null}
+        </Fragment>
       ))}
     </tbody>
   );
 }
 
 /** The grid itself: a header row, the rows, and the totals. */
-function DynamicTable({ survey, question, columns }: DynamicBodyProps): ReactElement {
+function DynamicTable({
+  survey,
+  question,
+  columns,
+  onToggleDetail,
+}: DynamicBodyProps): ReactElement {
   return (
     <table className="kajay-matrix kajay-matrix--dynamic" id={questionId(question)}>
       <thead>
@@ -110,7 +140,12 @@ function DynamicTable({ survey, question, columns }: DynamicBodyProps): ReactEle
           <td className="kajay-matrix__corner" />
         </tr>
       </thead>
-      <DynamicBody survey={survey} question={question} columns={columns} />
+      <DynamicBody
+        survey={survey}
+        question={question}
+        columns={columns}
+        onToggleDetail={onToggleDetail}
+      />
       <DynamicTotals question={question} columns={columns} />
     </table>
   );
@@ -125,45 +160,64 @@ function DynamicTable({ survey, question, columns }: DynamicBodyProps): ReactEle
  */
 export function MatrixDynamicRenderer({ survey, question }: QuestionRendererProps): ReactElement {
   useSurveyValue(survey, question.name);
+  const layout = useMatrixLayout(
+    question instanceof MatrixDynamicQuestion ? question.mobileMode : 'table',
+  );
+  const [, setDetailVersion] = useState(0);
+  const redraw = (): void => {
+    setDetailVersion((version) => version + 1);
+  };
 
   if (!(question instanceof MatrixDynamicQuestion)) {
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const errorId = questionErrorId(question);
-  const own = question.errors.filter((error) => error.path === undefined);
   const columns = question.columns.filter((column) => question.isColumnVisible(column.name));
 
   return (
-    <fieldset
-      className="kajay-question kajay-question--matrix-dynamic"
-      data-question-name={question.name}
-      disabled={!question.isEnabled}
-      aria-required={question.isRequired}
-      {...readOnlyGroup(question.isReadOnly)}
+    <MatrixFrame survey={survey} question={question} className="kajay-question--matrix-dynamic">
+      {layout === 'list' ? (
+        <MatrixRowList
+          survey={survey}
+          question={question}
+          columns={columns}
+          rowKeys={question.rowKeys}
+          rowActions={(rowKey) =>
+            question.canRemoveRow ? <RemoveButton question={question} rowKey={rowKey} /> : null
+          }
+        />
+      ) : (
+        <DynamicTable
+          survey={survey}
+          question={question}
+          columns={columns}
+          onToggleDetail={redraw}
+        />
+      )}
+      <AddRowButton question={question} />
+    </MatrixFrame>
+  );
+}
+
+/** The control that creates a row. Absent, not disabled, once the ceiling is reached. */
+function AddRowButton({
+  question,
+}: {
+  readonly question: MatrixDynamicQuestion;
+}): ReactElement | null {
+  if (!question.canAddRow) {
+    return null;
+  }
+  return (
+    <button
+      type="button"
+      className="kajay-matrix__add"
+      onClick={whenEditable(question.isReadOnly, () => {
+        question.addRow();
+      })}
     >
-      <legend className="kajay-question__title">
-        <QuestionTitleContent question={question} />
-      </legend>
-
-      <QuestionErrors survey={survey} question={question} at="top" id={errorId} errors={own} />
-
-      <DynamicTable survey={survey} question={question} columns={columns} />
-
-      {question.canAddRow ? (
-        <button
-          type="button"
-          className="kajay-matrix__add"
-          onClick={whenEditable(question.isReadOnly, () => {
-            question.addRow();
-          })}
-        >
-          {question.addRowText}
-        </button>
-      ) : null}
-
-      <QuestionErrors survey={survey} question={question} at="bottom" id={errorId} errors={own} />
-    </fieldset>
+      {question.addRowText}
+    </button>
   );
 }
 

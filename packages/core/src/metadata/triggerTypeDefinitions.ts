@@ -19,6 +19,7 @@ export const TRIGGER_TYPE_DEFINITIONS: TriggerTypeDefinitions = {
         name: 'expression',
         type: 'string',
         isRequired: true,
+        isExpression: true,
         description: 'The trigger acts when this becomes true, not while it stays true.',
       },
     ],
@@ -44,7 +45,7 @@ export const TRIGGER_TYPE_DEFINITIONS: TriggerTypeDefinitions = {
     parent: 'trigger',
     properties: [
       { name: 'setToName', type: 'string' },
-      { name: 'runExpression', type: 'string', isRequired: true },
+      { name: 'runExpression', type: 'string', isRequired: true, isExpression: true },
     ],
   },
   complete: { name: 'complete', parent: 'trigger' },

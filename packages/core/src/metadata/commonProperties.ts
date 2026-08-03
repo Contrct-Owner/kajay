@@ -5,7 +5,11 @@ import type { PropertyDefinition } from './PropertyDescriptor.js';
  * item — and they must agree on its name and type or the same authored expression
  * would mean different things in different places.
  */
-export const VISIBLE_IF: PropertyDefinition = { name: 'visibleIf', type: 'string' };
+export const VISIBLE_IF: PropertyDefinition = {
+  name: 'visibleIf',
+  type: 'string',
+  isExpression: true,
+};
 
 /**
  * Shared for the same reason, by two bases that are not related to each other: the

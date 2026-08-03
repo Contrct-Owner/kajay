@@ -1217,6 +1217,11 @@
           "default": false,
           "description": "Shade alternate rows. Presentation only."
         },
+        "mobileMode": {
+          "type": "string",
+          "default": "auto",
+          "description": "auto, table or list. auto turns the table into a list on a narrow screen."
+        },
         "validators": {
           "type": "array",
           "items": {
@@ -1306,6 +1311,16 @@
           "default": "",
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
         },
+        "detailPanelMode": {
+          "type": "string",
+          "default": "none",
+          "description": "none, underRow, or underRowSingle (one row open at a time)."
+        },
+        "mobileMode": {
+          "type": "string",
+          "default": "auto",
+          "description": "auto, table or list. auto turns the table into a list on a narrow screen."
+        },
         "validators": {
           "type": "array",
           "items": {
@@ -1322,6 +1337,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/itemvalue"
+          }
+        },
+        "detailElements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/question"
           }
         },
         "totals": {
@@ -1458,6 +1479,16 @@
           "default": false,
           "description": "A new row starts as a copy of the one before it. Wins over defaultRowValue."
         },
+        "detailPanelMode": {
+          "type": "string",
+          "default": "none",
+          "description": "none, underRow, or underRowSingle (one row open at a time)."
+        },
+        "mobileMode": {
+          "type": "string",
+          "default": "auto",
+          "description": "auto, table or list. auto turns the table into a list on a narrow screen."
+        },
         "validators": {
           "type": "array",
           "items": {
@@ -1465,6 +1496,12 @@
           }
         },
         "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/question"
+          }
+        },
+        "detailElements": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/question"
@@ -1498,6 +1535,11 @@
           "type": "string",
           "default": "",
           "description": "sum, count, min, max or avg."
+        },
+        "expression": {
+          "type": "string",
+          "default": "",
+          "description": "Computes the figure instead. {row.col} is that column own total."
         },
         "format": {
           "type": "string",

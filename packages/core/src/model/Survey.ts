@@ -22,6 +22,7 @@ import type { HtmlCondition } from './HtmlCondition.js';
 import type { CalculatedValue } from './CalculatedValue.js';
 import { SurveyAnswers } from './SurveyAnswers.js';
 import { SurveyLogicHost } from './SurveyLogicHost.js';
+import type { ExpressionScope } from './SurveyLogicHost.js';
 import type { Page } from './Page.js';
 import { toQuestionsOnPageMode } from './PageLayout.js';
 import { SurveyPages } from './SurveyPages.js';
@@ -32,6 +33,7 @@ import { SurveyValidation } from './SurveyValidation.js';
 import type { AdvanceOutcome } from './SurveyValidation.js';
 import { createValidationHost, createValidationWiring } from './surveyValidationWiring.js';
 import type { Trigger } from './Trigger.js';
+import type { ExpressionOutcome } from './Validator.js';
 import type { ValueHost } from './ValueHost.js';
 
 /** Root of the model, and the value host every question writes through. */
@@ -125,6 +127,17 @@ export class Survey extends SurveyProperties implements ValueHost {
    * Set before logic first runs, because a lazily-paged question asks for its first
    * page as soon as it is registered.
    */
+  /**
+   * Evaluates an expression against the current answers.
+   *
+   * `scope` fills in names that are not answers — `{row.price}` inside a matrix total is
+   * the total of the price column, and no answer will ever be called that. Reports
+   * *whether* it could be evaluated rather than folding a failure into the value.
+   */
+  evaluate(expression: string, scope?: ExpressionScope): ExpressionOutcome {
+    return this.#logic.evaluate(expression, scope);
+  }
+
   /** Messages from choice sources: a failed load, or a missing fetcher. */
   get choiceErrors(): readonly string[] {
     return this.#logic.choiceErrors;

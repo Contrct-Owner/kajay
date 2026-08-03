@@ -1,34 +1,60 @@
 import { MatrixCellsBase } from '@kajay/core';
 import type { Question, Survey as SurveyModel } from '@kajay/core';
+import { Fragment, useState } from 'react';
 import type { ReactElement } from 'react';
 import { MatrixCell } from './MatrixCell.js';
+import { MatrixDetailToggle, MatrixRowDetail } from './MatrixRowDetail.js';
+import { MatrixRowList } from './MatrixRowList.js';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
-import { QuestionErrors } from './QuestionErrors.js';
-import { QuestionTitleContent } from './QuestionTitleContent.js';
-import { readOnlyGroup } from './readOnly.js';
+import { MatrixFrame } from './MatrixFrame.js';
+import { useMatrixLayout } from './useMatrixLayout.js';
 import { useSurveyValue } from './useSurveyState.js';
-import { questionErrorId } from './questionId.js';
 
 interface MatrixBodyProps {
   readonly survey: SurveyModel;
   readonly question: MatrixCellsBase;
   readonly columns: readonly Question[];
+  readonly onToggleDetail: () => void;
 }
 
-function MatrixBody({ survey, question, columns }: MatrixBodyProps): ReactElement {
+function MatrixBody({
+  survey,
+  question,
+  columns,
+  onToggleDetail,
+}: MatrixBodyProps): ReactElement {
   return (
     <tbody>
       {question.visibleRowKeys.map((rowKey) => (
-        <tr className="kajay-matrix__row" key={rowKey} data-row-name={rowKey}>
-          <th className="kajay-matrix__row-title" scope="row">
-            {question.rowTitle(rowKey)}
-          </th>
-          {columns.map((column) => (
-            <td className="kajay-matrix__cell" key={column.name} data-column-name={column.name}>
-              <MatrixCell survey={survey} cell={question.cellAt(rowKey, column.name)} />
-            </td>
-          ))}
-        </tr>
+        <Fragment key={rowKey}>
+          <tr className="kajay-matrix__row" data-row-name={rowKey}>
+            <th className="kajay-matrix__row-title" scope="row">
+              {question.hasDetailPanel ? (
+                <MatrixDetailToggle
+                  question={question}
+                  rowKey={rowKey}
+                  onToggle={onToggleDetail}
+                />
+              ) : (
+                question.rowTitle(rowKey)
+              )}
+            </th>
+            {columns.map((column) => (
+              <td className="kajay-matrix__cell" key={column.name} data-column-name={column.name}>
+                <MatrixCell survey={survey} cell={question.cellAt(rowKey, column.name)} />
+              </td>
+            ))}
+          </tr>
+          {question.isRowExpanded(rowKey) ? (
+            <tr className="kajay-matrix__detail-row">
+              {/* One cell across the whole width: the detail is about the row, not
+                  about any column in it. */}
+              <td colSpan={columns.length + 1}>
+                <MatrixRowDetail survey={survey} question={question} rowKey={rowKey} />
+              </td>
+            </tr>
+          ) : null}
+        </Fragment>
       ))}
     </tbody>
   );
@@ -62,6 +88,37 @@ function MatrixTotals({
   );
 }
 
+/** The grid itself: one header row naming the scale, then a row per subject. */
+function CellsTable({
+  survey,
+  question,
+  columns,
+  onToggleDetail,
+}: MatrixBodyProps): ReactElement {
+  return (
+    <table className="kajay-matrix kajay-matrix--cells">
+      <thead>
+        <tr>
+          {/* Empty by design: the corner heads the row titles, which name themselves. */}
+          <td className="kajay-matrix__corner" />
+          {columns.map((column) => (
+            <th className="kajay-matrix__column-title" scope="col" key={column.name}>
+              {column.title}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <MatrixBody
+        survey={survey}
+        question={question}
+        columns={columns}
+        onToggleDetail={onToggleDetail}
+      />
+      <MatrixTotals question={question} columns={columns} />
+    </table>
+  );
+}
+
 /**
  * A table whose cells are questions — checklist F2.
  *
@@ -71,46 +128,39 @@ function MatrixTotals({
  */
 export function MatrixCellsRenderer({ survey, question }: QuestionRendererProps): ReactElement {
   useSurveyValue(survey, question.name);
+  const layout = useMatrixLayout(
+    question instanceof MatrixCellsBase ? question.mobileMode : 'table',
+  );
+  // Opening a detail changes nothing a survey event carries, so the component that
+  // made the change is the one that has to notice it.
+  const [, setDetailVersion] = useState(0);
+  const redraw = (): void => {
+    setDetailVersion((version) => version + 1);
+  };
 
   if (!(question instanceof MatrixCellsBase)) {
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const errorId = questionErrorId(question);
-  // Only what the matrix earned as a whole: a cell's own message is drawn by the cell.
-  const own = question.errors.filter((error) => error.path === undefined);
   const columns = question.columns.filter((column) => question.isColumnVisible(column.name));
 
   return (
-    <fieldset
-      className="kajay-question kajay-question--matrix-cells"
-      data-question-name={question.name}
-      disabled={!question.isEnabled}
-      aria-required={question.isRequired}
-      {...readOnlyGroup(question.isReadOnly)}
-    >
-      <legend className="kajay-question__title">
-        <QuestionTitleContent question={question} />
-      </legend>
-
-      <QuestionErrors survey={survey} question={question} at="top" id={errorId} errors={own} />
-
-      <table className="kajay-matrix kajay-matrix--cells">
-        <thead>
-          <tr>
-            <td className="kajay-matrix__corner" />
-            {columns.map((column) => (
-              <th className="kajay-matrix__column-title" scope="col" key={column.name}>
-                {column.title}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <MatrixBody survey={survey} question={question} columns={columns} />
-        <MatrixTotals question={question} columns={columns} />
-      </table>
-
-      <QuestionErrors survey={survey} question={question} at="bottom" id={errorId} errors={own} />
-    </fieldset>
+    <MatrixFrame survey={survey} question={question} className="kajay-question--matrix-cells">
+      {layout === 'list' ? (
+        <MatrixRowList
+          survey={survey}
+          question={question}
+          columns={columns}
+          rowKeys={question.visibleRowKeys}
+        />
+      ) : (
+        <CellsTable
+          survey={survey}
+          question={question}
+          columns={columns}
+          onToggleDetail={redraw}
+        />
+      )}
+    </MatrixFrame>
   );
 }

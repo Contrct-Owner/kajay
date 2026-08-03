@@ -28,6 +28,11 @@ export default defineConfig({
             enabled: true,
             provider: playwright(),
             headless: true,
+            // A desktop viewport, stated rather than inherited. F6 made a matrix's
+            // layout depend on the window: with whatever width the runner happened to
+            // pick, three tests about table markup started asserting against a *list*
+            // and it was not obvious why. Tests about the narrow layout ask for it.
+            viewport: { width: 1280, height: 800 },
             instances: [{ browser: 'chromium' }],
           },
         },

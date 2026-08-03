@@ -80,7 +80,10 @@ export function CommentQuestionRenderer({
   const remaining = isComment ? question.remainingCharacters : undefined;
 
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>): void => {
-    survey.setValue(question.name, event.target.value);
+    // Through the question, not `survey.setValue(question.name, …)`: a matrix cell is a
+    // question named for its column, and its answer lives inside the matrix's rather
+    // than at a survey name — writing by name would put a stray key in the response.
+    question.value = event.target.value;
   };
 
   return (

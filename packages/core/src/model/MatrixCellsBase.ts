@@ -1,7 +1,8 @@
 import type { PathSegment } from '../expressions/ExpressionNode.js';
 import { MatrixTotal } from './MatrixTotal.js';
 import type { CellAttachment } from './matrixCells.js';
-import { buildCell, CellValueHost, summarise } from './matrixCells.js';
+import { buildCell, CellValueHost, summarise, toMatrixLayout } from './matrixCells.js';
+import type { MatrixLayout } from './matrixCells.js';
 import { asAnswerRecord, withAnswerEntry } from './objectAnswers.js';
 import { Question } from './Question.js';
 import type { ConditionalItemGroup } from './Question.js';
@@ -31,8 +32,11 @@ const PATH_SEPARATOR = '.';
  */
 export abstract class MatrixCellsBase extends Question {
   readonly #columns: Question[] = [];
+  readonly #detailElements: Question[] = [];
   readonly #totals: MatrixTotal[] = [];
   readonly #cells: Map<string, readonly Question[]> = new Map();
+  readonly #detailCells: Map<string, readonly Question[]> = new Map();
+  readonly #expanded: Set<string> = new Set();
   #attachment: CellAttachment | undefined;
 
   /** The column templates, exactly as authored. Serialization reads these. */
@@ -42,6 +46,80 @@ export abstract class MatrixCellsBase extends Question {
 
   get totals(): readonly MatrixTotal[] {
     return this.#totals;
+  }
+
+  /**
+   * Questions shown under a row rather than in a column of their own — checklist F4.
+   *
+   * The same cells as the columns, in a different place: built from the same templates
+   * by the same builder, pointed at the same row record, checked with the rest. A table
+   * runs out of horizontal room long before a form runs out of questions, and this is
+   * where the long ones go.
+   */
+  get detailElements(): readonly Question[] {
+    return this.#detailElements;
+  }
+
+  /**
+   * Whether this table becomes a list on a narrow screen — checklist F6.
+   *
+   * A statement about the *content*, not about the viewport: a two-column table survives
+   * a phone and a nine-column one does not, and only the author knows which this is.
+   * Which layout that resolves to is the renderer's decision, because only it can see
+   * the screen.
+   */
+  get mobileMode(): MatrixLayout {
+    return toMatrixLayout(this.getStringProperty('mobileMode'));
+  }
+
+  /** `none`, `underRow`, or `underRowSingle` — one row open at a time. */
+  get detailPanelMode(): string {
+    const mode = this.getStringProperty('detailPanelMode');
+    return this.#detailElements.length === 0 ? 'none' : mode;
+  }
+
+  get hasDetailPanel(): boolean {
+    return this.detailPanelMode !== 'none';
+  }
+
+  /**
+   * Whether a row's detail is open.
+   *
+   * A detail holding something invalid opens itself and stays open: an error nobody can
+   * see is one nobody can fix, and the respondent has just been told the page is wrong
+   * without being shown where.
+   */
+  isRowExpanded(rowKey: string): boolean {
+    if (!this.hasDetailPanel) {
+      return false;
+    }
+    return this.#expanded.has(rowKey) || this.#hasDetailErrors(rowKey);
+  }
+
+  /** Opens or closes one row's detail. `underRowSingle` closes whatever else was open. */
+  setRowExpanded(rowKey: string, isExpanded: boolean): void {
+    if (!isExpanded) {
+      this.#expanded.delete(rowKey);
+      return;
+    }
+    if (this.detailPanelMode === 'underRowSingle') {
+      this.#expanded.clear();
+    }
+    this.#expanded.add(rowKey);
+  }
+
+  #hasDetailErrors(rowKey: string): boolean {
+    return this.detailCellsFor(rowKey).some((cell) => cell.hasErrors);
+  }
+
+  /** The detail questions of one row, built and kept exactly as its columns are. */
+  detailCellsFor(rowKey: string): readonly Question[] {
+    return this.#buildRow(rowKey, this.#detailElements, this.#detailCells);
+  }
+
+  /** Every cell of one row: its columns first, then whatever its detail holds. */
+  rowCells(rowKey: string): readonly Question[] {
+    return [...this.cellsFor(rowKey), ...this.detailCellsFor(rowKey)];
   }
 
   /** Installed by `parseSurvey`, which owns the registry cells are built from. */
@@ -75,6 +153,17 @@ export abstract class MatrixCellsBase extends Question {
   /** Where this row's answers live, as an expression path. */
   protected abstract rowPath(rowKey: string): readonly PathSegment[];
 
+  /**
+   * Where one cell's answer lives, as an expression path.
+   *
+   * Public because the logic engine declares it: a cell's `defaultValueExpression` or
+   * computed `expression` is an ordinary rule, and a rule has to tell the graph what it
+   * writes or nothing can be ordered after it.
+   */
+  cellPath(rowKey: string, columnName: string): readonly PathSegment[] {
+    return [...this.rowPath(rowKey), { kind: 'name', name: columnName }];
+  }
+
   /** This row's answers, as one record. */
   protected abstract readRow(rowKey: string): Readonly<Record<string, unknown>>;
 
@@ -88,7 +177,15 @@ export abstract class MatrixCellsBase extends Question {
    * lives in it, and rebuilding on every read would lose both on every keystroke.
    */
   cellsFor(rowKey: string): readonly Question[] {
-    const existing = this.#cells.get(rowKey);
+    return this.#buildRow(rowKey, this.#columns, this.#cells);
+  }
+
+  #buildRow(
+    rowKey: string,
+    templates: readonly Question[],
+    cache: Map<string, readonly Question[]>,
+  ): readonly Question[] {
+    const existing = cache.get(rowKey);
     if (existing !== undefined) {
       return existing;
     }
@@ -106,27 +203,24 @@ export abstract class MatrixCellsBase extends Question {
         this.#writeCell(rowKey, column, value);
       },
     );
-    const built = this.#columns.map((column) => {
-      const cell = buildCell(
-        column,
-        { key: rowKey, title: this.rowTitle(rowKey), path: this.rowPath(rowKey) },
-        attachment,
-      );
+    const row = { key: rowKey, title: this.rowTitle(rowKey), path: this.rowPath(rowKey) };
+    const built = templates.map((template) => {
+      const cell = buildCell(template, row, attachment);
       cell.attachValueHost(host);
       return cell;
     });
-    this.#cells.set(rowKey, built);
+    cache.set(rowKey, built);
     return built;
   }
 
-  /** Every cell of every row, in row order. */
+  /** Every cell of every row, detail included, in row order. */
   get allCells(): readonly Question[] {
-    return this.rowKeys.flatMap((rowKey) => this.cellsFor(rowKey));
+    return this.rowKeys.flatMap((rowKey) => this.rowCells(rowKey));
   }
 
-  /** One cell, or undefined when the column is not one of this matrix's. */
+  /** One cell by name, from the columns or the detail. */
   cellAt(rowKey: string, columnName: string): Question | undefined {
-    return this.cellsFor(rowKey).find((cell) => cell.name === columnName);
+    return this.rowCells(rowKey).find((cell) => cell.name === columnName);
   }
 
   /**
@@ -162,6 +256,8 @@ export abstract class MatrixCellsBase extends Question {
   /** Forgets the built cells, so the next read builds them for the rows there are now. */
   protected invalidateCells(): void {
     this.#cells.clear();
+    this.#detailCells.clear();
+    this.#expanded.clear();
     this.#attachment?.onRowsChanged();
   }
 
@@ -176,8 +272,45 @@ export abstract class MatrixCellsBase extends Question {
    * printing it under a column nobody filled in states a result nobody produced.
    */
   totalFor(columnName: string): number | undefined {
+    return this.computedTotals.get(columnName);
+  }
+
+  /** The figure as the respondent reads it, formatted by the total's own template. */
+  totalText(columnName: string): string {
     const total = this.#totals.find((candidate) => candidate.column === columnName);
-    const kind = total?.kind;
+    return total?.display(this.totalFor(columnName)) ?? '';
+  }
+
+  /**
+   * Every total, computed in declaration order.
+   *
+   * Order matters because a total may be an *expression* over the others: `{row.price}`
+   * in a total means that column's total, so a line total can be `{row.unit} *
+   * {row.quantity}` — the same `row` scope a cell condition uses, one level up. A total
+   * naming one declared after it sees nothing, which is the same rule a spreadsheet
+   * would apply and cheaper to explain than a second dependency graph for four numbers.
+   */
+  get computedTotals(): ReadonlyMap<string, number | undefined> {
+    const computed = new Map<string, number | undefined>();
+    for (const total of this.#totals) {
+      computed.set(total.column, this.#computeTotal(total, computed));
+    }
+    return computed;
+  }
+
+  #computeTotal(
+    total: MatrixTotal,
+    computed: ReadonlyMap<string, number | undefined>,
+  ): number | undefined {
+    const expression = total.expression;
+    if (expression.length > 0) {
+      const scope = Object.fromEntries(computed);
+      const outcome = this.#attachment?.evaluate(expression, scope);
+      // A broken total shows nothing rather than a wrong number: a figure under a
+      // column is read as a fact, and there is no way to caveat one in a table cell.
+      return typeof outcome === 'number' && Number.isFinite(outcome) ? outcome : undefined;
+    }
+    const kind = total.kind;
     if (kind === undefined) {
       return undefined;
     }
@@ -185,14 +318,8 @@ export abstract class MatrixCellsBase extends Question {
     // that counted answers to questions nobody can see would not add up on the screen.
     return summarise(
       kind,
-      this.visibleRowKeys.map((rowKey) => this.getCellValue(rowKey, columnName)),
+      this.visibleRowKeys.map((rowKey) => this.getCellValue(rowKey, total.column)),
     );
-  }
-
-  /** The figure as the respondent reads it, formatted by the total's own template. */
-  totalText(columnName: string): string {
-    const total = this.#totals.find((candidate) => candidate.column === columnName);
-    return total?.display(this.totalFor(columnName)) ?? '';
   }
 
   /** Cells carry their conditions; the column templates never do — they never render. */
@@ -219,7 +346,7 @@ export abstract class MatrixCellsBase extends Question {
   override checkValue(context: ValidationContext): readonly SurveyError[] {
     const errors: SurveyError[] = [];
     for (const rowKey of this.visibleRowKeys) {
-      for (const cell of this.cellsFor(rowKey)) {
+      for (const cell of this.rowCells(rowKey)) {
         const own = cell.isVisible ? collectAnswerErrors(cell, context.evaluate) : [];
         cell.setErrors(own);
         for (const error of own) {
@@ -255,6 +382,9 @@ export abstract class MatrixCellsBase extends Question {
     if (property === 'columns') {
       return this.#columns;
     }
+    if (property === 'detailElements') {
+      return this.#detailElements;
+    }
     return property === 'totals' ? this.#totals : super.getChildren(property);
   }
 
@@ -266,13 +396,21 @@ export abstract class MatrixCellsBase extends Question {
       this.#totals.push(child);
       return;
     }
-    if (property !== 'columns') {
+    const questions = this.#questionCollection(property);
+    if (questions === undefined) {
       super.addChild(property, child);
       return;
     }
     if (!(child instanceof Question)) {
-      throw new Error(`columns accepts questions; received "${child.type}".`);
+      throw new Error(`${property} accepts questions; received "${child.type}".`);
     }
-    this.#columns.push(child);
+    questions.push(child);
+  }
+
+  #questionCollection(property: string): Question[] | undefined {
+    if (property === 'columns') {
+      return this.#columns;
+    }
+    return property === 'detailElements' ? this.#detailElements : undefined;
   }
 }

@@ -25,6 +25,15 @@ export interface ThemePalette {
   readonly text?: string;
   readonly muted?: string;
   readonly accent?: string;
+  /**
+   * What sits *on* the accent — text on the primary button, on a selected rating.
+   *
+   * Its own entry because it does not follow from the accent. A dark theme lightens the
+   * accent so it shows against a dark surface, and white text on a light accent is
+   * unreadable: the shipped dark preset managed 2.51:1 before this existed, which is a
+   * primary button nobody with low vision could read.
+   */
+  readonly onAccent?: string;
   readonly border?: string;
   readonly danger?: string;
   /** Behind the survey rather than inside it. Distinct from `surface`. */
@@ -69,6 +78,7 @@ const PALETTE_VARIABLES: readonly (readonly [keyof ThemePalette, string])[] = [
   ['text', '--kajay-color-text'],
   ['muted', '--kajay-color-muted'],
   ['accent', '--kajay-color-accent'],
+  ['onAccent', '--kajay-color-on-accent'],
   ['border', '--kajay-color-border'],
   ['danger', '--kajay-color-danger'],
   ['background', '--kajay-color-background'],
@@ -122,6 +132,7 @@ export const lightTheme: Theme = {
     text: '#101828',
     muted: '#667085',
     accent: '#2f6feb',
+    onAccent: '#ffffff',
     border: '#d0d5dd',
     danger: '#b42318',
     background: '#f6f8fb',
@@ -138,6 +149,7 @@ export const darkTheme: Theme = {
     text: '#e7ecf3',
     muted: '#98a2b3',
     accent: '#7aa2f7',
+    onAccent: '#0b0e14',
     border: '#2b3444',
     danger: '#f97066',
     background: '#0b0e14',

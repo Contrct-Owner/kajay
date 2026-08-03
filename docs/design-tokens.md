@@ -32,9 +32,14 @@ plain map — so nothing about theming is load-bearing for rendering.
 | `--kajay-color-text` | `#101828` | Body text |
 | `--kajay-color-muted` | `#667085` | Descriptions, counters, hints, row and column headers |
 | `--kajay-color-accent` | `#2f6feb` | The primary button, focus rings, the selected state, the required marker |
+| `--kajay-color-on-accent` | `#ffffff` | Text and glyphs *on* the accent. Its own token because it does not follow from the accent: a dark theme lightens the accent to show against a dark surface, and that is exactly when white stops being readable |
 | `--kajay-color-border` | `#d0d5dd` | Every border and divider |
 | `--kajay-color-danger` | `#b42318` | Validation messages and the fields they belong to |
 | `--kajay-color-background` | `#f6f8fb` | Behind the survey. Set by a theme for a host that wants it; the library paints nothing outside its own card |
+
+Contrast is a property of the palette rather than of a rule, so the accessibility sweep
+runs once per shipped theme. It has already earned its keep: the dark preset's primary
+button was white on a light accent at 2.51:1 until `--kajay-color-on-accent` existed.
 
 **Colour is never the only cue.** An invalid field carries `aria-invalid` and a message
 in words; the danger colour is the echo. A selected tab says `aria-selected`. Changing
@@ -82,6 +87,14 @@ panel) frames itself with the panel border and spacing tokens above, and
 jitter sideways as the seconds tick over. Neither is a decision a theme takes — the
 first is already the panel's, and the second is wrong in every theme if it is wrong at
 all. A host that disagrees overrides the class.
+
+## Direction
+
+There is no token for it. A right-to-left survey is a `dir` attribute on the survey
+root, and every rule in the stylesheet uses **logical** properties — `inline-start`,
+`start`, `end` — so the browser mirrors the layout. A rule that says `left` is a bug in
+Arabic that nobody sees while reading English; a host adding CSS should follow the same
+habit.
 
 ## Adding a token
 

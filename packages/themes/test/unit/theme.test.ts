@@ -14,6 +14,7 @@ describe('parity/I2-theme-format', () => {
       '--kajay-color-text': '#101828',
       '--kajay-color-muted': '#667085',
       '--kajay-color-accent': '#2f6feb',
+      '--kajay-color-on-accent': '#ffffff',
       '--kajay-color-border': '#d0d5dd',
       '--kajay-color-danger': '#b42318',
       '--kajay-color-background': '#f6f8fb',
@@ -94,6 +95,10 @@ describe('parity/I3-presets', () => {
           '--kajay-color-surface',
           '--kajay-color-text',
           '--kajay-color-accent',
+          // Named by every preset for the same reason as the rest, and one it earned:
+          // the dark theme's primary button was white on a light accent at 2.51:1 until
+          // this token existed, which axe found and no reviewer had (J5).
+          '--kajay-color-on-accent',
           '--kajay-color-border',
           '--kajay-color-danger',
         ]),

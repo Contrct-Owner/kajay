@@ -5,6 +5,8 @@ import type { PreviewMode } from './previewQuestions.js';
 import { toProgressBarLocation, toProgressBarType } from './progressBar.js';
 import type { ProgressBarLocation, ProgressBarType } from './progressBar.js';
 import { SurveyElement } from './SurveyElement.js';
+import { resolveTextDirection, toTextDirectionSetting } from './textDirection.js';
+import type { TextDirection } from './textDirection.js';
 import { toTimerPanelLocation, toTimerPanelMode } from './SurveyTimer.js';
 import type { TimerPanelLocation, TimerPanelMode } from './SurveyTimer.js';
 
@@ -103,6 +105,20 @@ export abstract class SurveyProperties extends SurveyElement {
    */
   get locale(): string {
     return this.localeScope.locale;
+  }
+
+  /**
+   * Which way the survey reads — checklist J3.
+   *
+   * Derived from the locale unless the definition says otherwise, so translating a
+   * survey into Hebrew is enough and forgetting a switch is not a way to ship one laid
+   * out backwards.
+   */
+  get direction(): TextDirection {
+    return resolveTextDirection(
+      this.locale,
+      toTextDirectionSetting(this.getStringProperty('textDirection')),
+    );
   }
 
   /** What happens to an answer the respondent can no longer reach. */

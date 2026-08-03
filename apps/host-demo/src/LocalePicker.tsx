@@ -9,6 +9,9 @@ const LOCALES: readonly { readonly tag: string; readonly label: string }[] = [
   { tag: 'de', label: 'Deutsch' },
   { tag: 'es', label: 'Español' },
   { tag: 'cy', label: 'Cymraeg' },
+  // Right to left, and nothing in the demo says so — the direction comes off the
+  // language (J3).
+  { tag: 'ar', label: 'العربية' },
 ];
 
 export interface LocalePickerProps {

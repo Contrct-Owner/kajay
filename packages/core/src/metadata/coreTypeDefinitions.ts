@@ -19,6 +19,12 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         isLocalizable: true, description: 'Survey title shown above the first page.' },
       { name: 'description', type: 'string', isLocalizable: true },
       {
+        name: 'textDirection',
+        type: 'string',
+        defaultValue: 'auto',
+        description: 'auto, ltr or rtl. auto reads the direction off the locale.',
+      },
+      {
         name: 'locale',
         type: 'string',
         description:

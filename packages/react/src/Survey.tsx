@@ -66,6 +66,7 @@ export interface SurveyProps {
 }
 
 interface SurroundingsProps {
+  readonly survey: SurveyModel;
   readonly theme: Readonly<Record<string, string>> | undefined;
   readonly css: SurveyCss | undefined;
   readonly sanitizeHtml: HtmlSanitizer | undefined;
@@ -83,6 +84,7 @@ interface SurroundingsProps {
  * per state was four chances to forget one.
  */
 function Surroundings({
+  survey,
   theme,
   css,
   sanitizeHtml,
@@ -91,7 +93,7 @@ function Surroundings({
   children,
 }: SurroundingsProps): ReactElement {
   return (
-    <ThemeScope theme={theme}>
+    <SurveyScope survey={survey} theme={theme}>
       <SurveyCssProvider css={css}>
         <TextRendererProvider renderText={renderText}>
           <HtmlSanitizerProvider sanitize={sanitizeHtml}>
@@ -99,29 +101,38 @@ function Surroundings({
           </HtmlSanitizerProvider>
         </TextRendererProvider>
       </SurveyCssProvider>
-    </ThemeScope>
+    </SurveyScope>
   );
 }
 
 /**
- * Scopes a theme to one survey.
+ * Everything scoped to *this* survey rather than to the page: its variables, and which
+ * way it reads.
  *
- * A wrapper rather than the survey element itself, so the variables reach every state —
- * the form, the preview, the completed page — from one place, and so a page with two
- * surveys on it can theme them differently. Custom properties inherit, which is the
- * whole reason this is one element and not a prop threaded through twenty.
+ * A wrapper rather than the survey element itself, so both reach every state — the
+ * form, the preview, the completed page — from one place, and so a page can hold two
+ * surveys with different themes and different directions. Custom properties inherit,
+ * which is the whole reason this is one element and not a prop threaded through twenty.
+ *
+ * `dir` and nothing else for direction (J3). The browser already mirrors layout,
+ * reorders bidirectional text and flips logical CSS properties; a stylesheet doing any
+ * of that by hand would be a second copy of the first, wrong wherever nobody read. On
+ * the survey rather than the document, because the page around it is the host's — a
+ * survey embedded in an English page may still be in Arabic.
  */
-function ThemeScope({
+function SurveyScope({
+  survey,
   theme,
   children,
 }: {
+  readonly survey: SurveyModel;
   readonly theme: Readonly<Record<string, string>> | undefined;
   readonly children: ReactNode;
 }): ReactElement {
   // React types `style` as known CSS properties; custom ones are legal at runtime and
   // this is the documented way to pass them.
   return (
-    <div className="kajay-theme" style={theme as CSSProperties | undefined}>
+    <div className="kajay-theme" dir={survey.direction} style={theme as CSSProperties | undefined}>
       {children}
     </div>
   );
@@ -166,7 +177,7 @@ export function Survey({
   const { formRef, requestFocus } = useErrorFocus(model);
   useAutoFocus(model, formRef, currentPageNo);
 
-  const surroundings = { theme, css, sanitizeHtml, renderText, renderers };
+  const surroundings = { survey: model, theme, css, sanitizeHtml, renderText, renderers };
 
   if (state !== 'running') {
     // Everything that is not the form still needs the sanitizer: the completed markup

@@ -167,6 +167,8 @@ export type {
   ProgressBarType,
   ProgressCount,
 } from './model/progressBar.js';
+export { resolveTextDirection, toTextDirectionSetting } from './model/textDirection.js';
+export type { TextDirection, TextDirectionSetting } from './model/textDirection.js';
 export { StringDictionary } from './strings/StringDictionary.js';
 export { EN_STRINGS, UI_STRING_DEFINITIONS, formatUiString } from './strings/uiStrings.js';
 export type { UiStringKey, UiStrings } from './strings/uiStrings.js';

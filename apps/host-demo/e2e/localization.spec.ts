@@ -64,3 +64,19 @@ test('parity/J2-ui-strings: a host may add a language the library does not ship'
   // falls back to English rather than to nothing.
   await expect(page.getByRole('heading', { name: 'Kajay demo' })).toBeVisible();
 });
+
+test('parity/J3-rtl', async ({ page }) => {
+  const survey = page.locator('.kajay-theme');
+  await expect(survey).toHaveAttribute('dir', 'ltr');
+
+  await page.getByLabel('Language').selectOption('ar');
+
+  // Nothing in the demo asked for this: the direction is derived from the language.
+  await expect(survey).toHaveAttribute('dir', 'rtl');
+
+  // And against the stylesheet the library actually ships, the mirroring is real —
+  // the row header's text now starts on the right, because the rule says `start` and
+  // the browser resolved it the other way.
+  const label = page.getByLabel(/What is your name\?|ما اسمك/u).first();
+  await expect(label).toHaveCSS('direction', 'rtl');
+});

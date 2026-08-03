@@ -1,3 +1,8 @@
+/* Every rule below uses **logical** properties — `inline-start`, `start`, `end` —
+ * rather than left and right (checklist J3). The survey root carries `dir`, so a
+ * right-to-left locale mirrors itself and there is no second stylesheet to keep in
+ * step with this one. A rule that says `left` is a bug in Arabic that nobody sees
+ * while reading English. */
 /*
  * Kajay design tokens and base component styles.
  *
@@ -11,6 +16,10 @@
   --kajay-color-text: #101828;
   --kajay-color-muted: #667085;
   --kajay-color-accent: #2f6feb;
+  /* What sits *on* the accent. Its own token because a theme that lightens the accent
+   * to be visible on a dark surface has to darken this to stay readable — hard-coded
+   * white failed the dark preset at 2.51:1, which axe found and nobody had (J5). */
+  --kajay-color-on-accent: #ffffff;
   --kajay-color-border: #d0d5dd;
   --kajay-color-danger: #b42318;
   --kajay-color-background: #f6f8fb;
@@ -162,7 +171,7 @@
   margin: 0;
   color: var(--kajay-color-muted);
   font-size: 0.8125em;
-  text-align: right;
+  text-align: end;
 }
 
 /* A range slider has no visible value of its own, so it gets its title and nothing
@@ -341,7 +350,7 @@
 .kajay-rating__input:checked + .kajay-rating__label {
   border-color: var(--kajay-color-accent);
   background: var(--kajay-color-accent);
-  color: #ffffff;
+  color: var(--kajay-color-on-accent);
 }
 
 /* Behind a glyph the number is the accessible name and nothing more, so it is hidden
@@ -485,7 +494,7 @@
   border: none;
   border-radius: var(--kajay-radius);
   background: var(--kajay-color-accent);
-  color: #ffffff;
+  color: var(--kajay-color-on-accent);
   font: inherit;
   cursor: pointer;
 }
@@ -496,7 +505,7 @@
 
 .kajay-toolbox {
   margin: 0;
-  padding-left: var(--kajay-spacing);
+  padding-inline-start: var(--kajay-spacing);
 }
 
 /* --- multipletext -------------------------------------------------------- */
@@ -655,7 +664,7 @@
   background: var(--kajay-color-surface);
   color: inherit;
   font: inherit;
-  text-align: left;
+  text-align: start;
   /* Or a touch drag scrolls the page instead of moving the row. */
   touch-action: none;
   cursor: grab;
@@ -894,7 +903,7 @@
 }
 
 .kajay-matrix__row-title {
-  text-align: left;
+  text-align: start;
 }
 
 .kajay-matrix--alternate tbody tr:nth-child(even) {
@@ -927,7 +936,7 @@
   flex-direction: column;
   gap: calc(var(--kajay-spacing) / 2);
   padding: calc(var(--kajay-spacing) / 2);
-  text-align: left;
+  text-align: start;
 }
 
 .kajay-matrix__detail-toggle {

@@ -3562,6 +3562,11 @@
           "type": "string",
           "default": ""
         },
+        "textDirection": {
+          "type": "string",
+          "default": "auto",
+          "description": "auto, ltr or rtl. auto reads the direction off the locale."
+        },
         "locale": {
           "type": "string",
           "default": "",

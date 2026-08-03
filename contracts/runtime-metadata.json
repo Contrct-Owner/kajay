@@ -1921,6 +1921,15 @@
           "description": null
         },
         {
+          "name": "textDirection",
+          "type": "string",
+          "defaultValue": "auto",
+          "isRequired": false,
+          "isExpression": false,
+          "isLocalizable": false,
+          "description": "auto, ltr or rtl. auto reads the direction off the locale."
+        },
+        {
           "name": "locale",
           "type": "string",
           "defaultValue": "",

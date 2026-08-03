@@ -246,12 +246,12 @@ export class SurveyValidation {
    */
   #snapshot(questions: readonly Question[]): () => boolean {
     const page = this.#host.currentPageName();
-    const asked = questions.map((question) => [question.name, question.value] as const);
+    const asked = questions.map((question) => [question.valueKey, question.value] as const);
     return () =>
       page !== this.#host.currentPageName() ||
       asked.some(
         ([name, value]) =>
-          questions.find((question) => question.name === name)?.value !== value,
+          questions.find((question) => question.valueKey === name)?.value !== value,
       );
   }
 

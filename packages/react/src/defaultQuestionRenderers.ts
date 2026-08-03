@@ -7,6 +7,7 @@ import { MatrixCellsRenderer } from './MatrixCellsRenderer.js';
 import { MatrixDynamicRenderer } from './MatrixDynamicRenderer.js';
 import { MatrixQuestionRenderer } from './MatrixQuestionRenderer.js';
 import { MultipleTextQuestionRenderer } from './MultipleTextQuestionRenderer.js';
+import { PanelDynamicRenderer } from './PanelDynamicRenderer.js';
 import { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
 import { RankingQuestionRenderer } from './RankingQuestionRenderer.js';
 import { RatingQuestionRenderer } from './RatingQuestionRenderer.js';
@@ -30,6 +31,7 @@ function createDefaultRenderers(): QuestionRendererRegistry {
   registry.register('matrix', MatrixQuestionRenderer);
   registry.register('matrixcells', MatrixCellsRenderer);
   registry.register('matrixdynamic', MatrixDynamicRenderer);
+  registry.register('paneldynamic', PanelDynamicRenderer);
   return registry;
 }
 

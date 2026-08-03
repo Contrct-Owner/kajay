@@ -11,7 +11,7 @@ import type { LazyChoiceController } from './LazyChoiceController.js';
 import { ExpressionQuestion } from './ExpressionQuestion.js';
 import type { PageElement } from './PageElement.js';
 import { Panel } from './Panel.js';
-import { MatrixCellsBase } from './MatrixCellsBase.js';
+import { RepeatingQuestion } from './RepeatingQuestion.js';
 import { Question } from './Question.js';
 import { registerCellRules } from './registerCellRules.js';
 import { SelectQuestion } from './SelectQuestion.js';
@@ -319,7 +319,7 @@ function registerElements(elements: readonly PageElement[], host: RuleHost): voi
     registerExpressionValue(element, owner, host);
     registerItemConditions(element, owner, host);
     registerChoiceSource(element, owner, host);
-    if (element instanceof MatrixCellsBase) {
+    if (element instanceof RepeatingQuestion) {
       // A cell is a question with everything that implies, so it brings its own value
       // rules. Its *conditions* came through `conditionalItems` a line above, with
       // every other kind of item that carries one.

@@ -3,10 +3,10 @@ import { scopeReferences } from '../expressions/scopeReferences.js';
 import { isEmptyValue } from '../expressions/expressionValues.js';
 import type { MetadataRegistry } from '../metadata/MetadataRegistry.js';
 import { copyElement } from './copyElement.js';
-import { collectElements } from './pageElements.js';
+import { collectElements, collectQuestions } from './pageElements.js';
 import { PageElement } from './PageElement.js';
 import { Panel } from './Panel.js';
-import { Question } from './Question.js';
+import type { Question } from './Question.js';
 import type { SurveyElement } from './SurveyElement.js';
 import type { ValueHost } from './ValueHost.js';
 
@@ -109,16 +109,21 @@ export function buildInstance(
   if (!(instance instanceof PageElement)) {
     throw new TypeError(`A template must be a page element; "${template.type}" is not.`);
   }
-  if (instance instanceof Question) {
-    // The instance is named for its record *and* its own name, because that is the
-    // question being asked — "Documentation, Quality" — and because every renderer
-    // builds its label out of the title. A cell titled only "Quality" would give four
-    // identical labels in a four-row table, and one with no title at all would give an
-    // input nobody can name. Hiding it on screen is a theme's business; saying it is not.
-    instance.setPropertyValue('title', `${row.title} ${template.title}`.trim());
+  // *Every* question in the instance, not just the element at the top of it: a group in
+  // a template holds questions too, and they repeat exactly as often. Missing them left
+  // a question two levels down sharing a title and a DOM id with its twin in the next
+  // instance — which is the §F cell-id defect, one level deeper, and it took an E2E to
+  // see it.
+  for (const question of collectQuestions([instance])) {
+    // Named for its record *and* itself, because that is the question being asked —
+    // "Traveller 2, Name" — and because every renderer builds its label out of the
+    // title. A title of just "Name" gives three identical labels in a three-instance
+    // panel, and no title at all gives an input nobody can name. Hiding it on screen is
+    // a theme's business; saying it is not.
+    question.setPropertyValue('title', `${row.title} ${question.title}`.trim());
     // Unique per instance, so the ids a renderer builds are unique too — see
     // `instanceKey`.
-    instance.setInstanceKey(`${row.key}.${template.name}`);
+    question.setInstanceKey(`${row.key}.${question.name}`);
   }
   scopeElementTree(instance, attachment.registry, row.scope, row.path);
   for (const nested of nestedRepeaters(instance)) {

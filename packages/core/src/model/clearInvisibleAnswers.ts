@@ -40,12 +40,12 @@ const MAX_PASSES = 10;
 export function unreachableAnswers(survey: Survey): readonly string[] {
   const reachable = new Set(
     survey.visiblePages.flatMap((page) =>
-      collectVisibleQuestions(page.elements).map((question) => question.name),
+      collectVisibleQuestions(page.elements).map((question) => question.valueKey),
     ),
   );
   return survey.questions
-    .filter((question) => !reachable.has(question.name) && question.value !== undefined)
-    .map((question) => question.name);
+    .filter((question) => !reachable.has(question.valueKey) && question.value !== undefined)
+    .map((question) => question.valueKey);
 }
 
 /**

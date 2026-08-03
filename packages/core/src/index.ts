@@ -124,6 +124,9 @@ export { ItemValue } from './model/ItemValue.js';
 export { MatrixQuestion, matrixRowKey } from './model/MatrixQuestion.js';
 export { MatrixCellsBase } from './model/MatrixCellsBase.js';
 export { RepeatingQuestion } from './model/RepeatingQuestion.js';
+// --- Dynamic panels (§G) ---------------------------------------------------
+export { PanelDynamicQuestion, toPanelRenderMode } from './model/PanelDynamicQuestion.js';
+export type { PanelRenderMode } from './model/PanelDynamicQuestion.js';
 export { MatrixCellsQuestion } from './model/MatrixCellsQuestion.js';
 export { MatrixDynamicQuestion } from './model/MatrixDynamicQuestion.js';
 export { MatrixTotal } from './model/MatrixTotal.js';

@@ -60,6 +60,11 @@
           "type": "boolean",
           "default": false
         },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
+        },
         "readOnly": {
           "type": "boolean",
           "default": false,
@@ -193,6 +198,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
         },
         "readOnly": {
           "type": "boolean",
@@ -362,6 +372,11 @@
           "type": "boolean",
           "default": false
         },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
+        },
         "readOnly": {
           "type": "boolean",
           "default": false,
@@ -519,6 +534,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
         },
         "readOnly": {
           "type": "boolean",
@@ -691,6 +711,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
         },
         "readOnly": {
           "type": "boolean",
@@ -937,6 +962,11 @@
           "type": "boolean",
           "default": false
         },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
+        },
         "readOnly": {
           "type": "boolean",
           "default": false,
@@ -1168,6 +1198,11 @@
           "type": "boolean",
           "default": false
         },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
+        },
         "readOnly": {
           "type": "boolean",
           "default": false,
@@ -1276,6 +1311,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
         },
         "readOnly": {
           "type": "boolean",
@@ -1387,6 +1427,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
         },
         "readOnly": {
           "type": "boolean",
@@ -1587,6 +1632,11 @@
           "type": "boolean",
           "default": false
         },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
+        },
         "readOnly": {
           "type": "boolean",
           "default": false,
@@ -1676,6 +1726,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
         },
         "readOnly": {
           "type": "boolean",
@@ -1819,6 +1874,9 @@
           "$ref": "#/$defs/panel"
         },
         {
+          "$ref": "#/$defs/paneldynamic"
+        },
+        {
           "$ref": "#/$defs/radiogroup"
         },
         {
@@ -1883,6 +1941,151 @@
       ],
       "additionalProperties": true
     },
+    "paneldynamic": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "paneldynamic"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "minPanelCount": {
+          "type": "number",
+          "default": 1,
+          "description": "Instances shown before the respondent adds any, and the floor on removal."
+        },
+        "maxPanelCount": {
+          "type": "number",
+          "default": 0,
+          "description": "0 means no limit."
+        },
+        "allowAddPanel": {
+          "type": "boolean",
+          "default": true
+        },
+        "allowRemovePanel": {
+          "type": "boolean",
+          "default": true
+        },
+        "addPanelText": {
+          "type": "string",
+          "default": "Add another"
+        },
+        "removePanelText": {
+          "type": "string",
+          "default": "Remove"
+        },
+        "confirmDelete": {
+          "type": "boolean",
+          "default": false,
+          "description": "Removing an instance asks first. A panel can hold a lot of typing."
+        },
+        "confirmDeleteText": {
+          "type": "string",
+          "default": "Remove this one?"
+        },
+        "panelTitleFormat": {
+          "type": "string",
+          "default": "",
+          "description": "Instance heading template, with {0} as its number."
+        },
+        "renderMode": {
+          "type": "string",
+          "default": "list",
+          "description": "list shows every instance; tab and progress show one at a time."
+        },
+        "defaultPanelValue": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "Answers a new instance starts with, keyed by question name."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
+        "templateElements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/pageelement"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
     "question": {
       "description": "Any concrete \"question\".",
       "oneOf": [
@@ -1915,6 +2118,9 @@
         },
         {
           "$ref": "#/$defs/multipletext"
+        },
+        {
+          "$ref": "#/$defs/paneldynamic"
         },
         {
           "$ref": "#/$defs/radiogroup"
@@ -1962,6 +2168,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
         },
         "readOnly": {
           "type": "boolean",
@@ -2121,6 +2332,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
         },
         "readOnly": {
           "type": "boolean",
@@ -2291,6 +2507,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
         },
         "readOnly": {
           "type": "boolean",
@@ -2655,6 +2876,11 @@
           "type": "boolean",
           "default": false
         },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
+        },
         "readOnly": {
           "type": "boolean",
           "default": false,
@@ -2822,6 +3048,11 @@
         "isRequired": {
           "type": "boolean",
           "default": false
+        },
+        "valueName": {
+          "type": "string",
+          "default": "",
+          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
         },
         "readOnly": {
           "type": "boolean",

@@ -234,6 +234,17 @@ is fixed here, with the demo scenario that proves it, because shipping a matrix 
 per-row requiredness works beside a multipletext whose per-field requiredness does not
 would have been indefensible.
 
+**Progress (2026-08-03).** **§G is closed.** A repeating panel turned out to be the same
+thing as a dynamic matrix seen from a different angle — an answer that is a collection of
+records, each holding instances of template questions bound to a local scope — so §F's
+machinery was extracted to `RepeatingQuestion` first, in a commit of its own that changed
+no behaviour, and §G is what was left over: the drawing, the navigation modes, and
+`{panel.q}` as the scope word. G4's nesting is mostly the absence of a restriction, since
+a template admits page elements rather than only questions.
+
+`valueName` landed with G3 and is survey-wide: a question's answer key, when it should
+differ from its name, so two questions can share an answer while staying two questions.
+
 **In scope**
 
 - Matrix family: matrix (single-select), matrixdropdown, matrixdynamic (add/remove

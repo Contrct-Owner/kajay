@@ -1,5 +1,5 @@
 import { collectEndpointDiagnostics } from '../model/endpoints.js';
-import { MatrixCellsBase } from '../model/MatrixCellsBase.js';
+import { RepeatingQuestion } from '../model/RepeatingQuestion.js';
 import { ROW_SCOPE } from '../model/matrixCells.js';
 import { SelectQuestion } from '../model/SelectQuestion.js';
 import type { ChildCollectionDescriptor } from '../metadata/ClassDescriptor.js';
@@ -99,7 +99,7 @@ export function parseSurvey(
   root.configure(options);
   // Before the first logic run, because a cell's conditions are registered as the tree
   // is walked and a matrix with no cells yet would be walked as an empty one.
-  attachMatrixCells(root, registry);
+  attachRepeatingCells(root, registry);
   root.refreshLogic();
   // After the tree exists, because it is a fact about the questions in it rather than
   // about any one property as it is read.
@@ -110,7 +110,7 @@ export function parseSurvey(
 }
 
 /**
- * Gives every matrix the registry its cells are built from.
+ * Gives every repeating question the registry its instances are built from.
  *
  * Here rather than in the model because the model has no registry and must not import
  * the serialization layer to find one — the same inversion the architecture check
@@ -120,9 +120,9 @@ export function parseSurvey(
  * `refreshLogic` is what a structural change needs: the rows of a dynamic matrix appear
  * at runtime, and their cells' conditions are graph rules like any other.
  */
-function attachMatrixCells(survey: Survey, registry: MetadataRegistry): void {
+function attachRepeatingCells(survey: Survey, registry: MetadataRegistry): void {
   for (const question of survey.questions) {
-    if (question instanceof MatrixCellsBase) {
+    if (question instanceof RepeatingQuestion) {
       question.attachCells({
         registry,
         onRowsChanged: () => {

@@ -1,6 +1,8 @@
 import { MatrixTotal } from './MatrixTotal.js';
 import { summarise, toMatrixLayout } from './matrixCells.js';
 import type { MatrixLayout } from './matrixCells.js';
+import type { PageElement } from './PageElement.js';
+import { collectQuestions } from './pageElements.js';
 import { Question } from './Question.js';
 import { RepeatingQuestion } from './RepeatingQuestion.js';
 import type { SurveyElement } from './SurveyElement.js';
@@ -118,17 +120,20 @@ export abstract class MatrixCellsBase extends RepeatingQuestion {
    * the distinction the base draws: same builder, same host, different place on screen.
    */
   cellsFor(rowKey: string): readonly Question[] {
-    return this.questionsIn(this.instancesOf('cells', rowKey, this.#columns));
+    return collectQuestions(this.instancesOf('cells', rowKey, this.#columns));
   }
 
   /** The detail questions of one row, built and kept exactly as its columns are. */
   detailCellsFor(rowKey: string): readonly Question[] {
-    return this.questionsIn(this.instancesOf('detail', rowKey, this.#detailElements));
+    return collectQuestions(this.instancesOf('detail', rowKey, this.#detailElements));
   }
 
-  /** Every cell of one row: its columns first, then whatever its detail holds. */
-  override rowCells(rowKey: string): readonly Question[] {
-    return [...this.cellsFor(rowKey), ...this.detailCellsFor(rowKey)];
+  /** A row's columns first, then whatever its detail holds. */
+  protected override rowInstances(rowKey: string): readonly PageElement[] {
+    return [
+      ...this.instancesOf('cells', rowKey, this.#columns),
+      ...this.instancesOf('detail', rowKey, this.#detailElements),
+    ];
   }
 
   /**

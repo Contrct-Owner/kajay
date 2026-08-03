@@ -197,12 +197,28 @@ export abstract class Question extends PageElement {
     this.#validators.push(child);
   }
 
+  /**
+   * The key this question's answer is stored under — checklist G3.
+   *
+   * Its own name, unless `valueName` says otherwise. Two questions sharing a `valueName`
+   * share an answer, which is the point: the same thing asked on two paths through a
+   * survey should come back as one field, and inside a repeating panel it is how an
+   * instance reads a value the whole survey shares.
+   *
+   * Identity stays with `name` — that is what a rule, a condition and `getQuestionByName`
+   * use — because two questions that share an answer are still two questions.
+   */
+  get valueKey(): string {
+    const authored = this.getStringProperty('valueName');
+    return authored.length > 0 ? authored : this.name;
+  }
+
   get value(): unknown {
-    return this.#valueHost?.getValue(this.name);
+    return this.#valueHost?.getValue(this.valueKey);
   }
 
   set value(next: unknown) {
-    this.#valueHost?.setValue(this.name, next);
+    this.#valueHost?.setValue(this.valueKey, next);
   }
 
   attachValueHost(host: ValueHost): void {

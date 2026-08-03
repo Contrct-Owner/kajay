@@ -20,6 +20,11 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
     properties: [
       { name: 'isRequired', type: 'boolean' },
       {
+        name: 'valueName',
+        type: 'string',
+        description: 'Answer key, when it should differ from the name. Shared keys share an answer.',
+      },
+      {
         name: 'readOnly',
         type: 'boolean',
         description: 'The answer is shown but cannot be changed by the respondent.',
@@ -188,6 +193,11 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
       { name: 'inputType', type: 'string', defaultValue: 'text' },
       { name: 'placeholder', type: 'string' },
       { name: 'isRequired', type: 'boolean' },
+      {
+        name: 'valueName',
+        type: 'string',
+        description: 'Answer key, when it should differ from the name. Shared keys share an answer.',
+      },
       {
         name: 'readOnly',
         type: 'boolean',

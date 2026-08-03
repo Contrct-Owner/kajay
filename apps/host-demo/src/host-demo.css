@@ -99,6 +99,33 @@ body {
   padding: 2px 8px;
 }
 
+/* Repeating panels. Again the library ships nothing: these say what the class names are
+   for, and a theme (§I) is what will decide how any of it looks. */
+.kajay-paneldynamic__panel {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+}
+
+.kajay-paneldynamic__tabs,
+.kajay-paneldynamic__progress {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.kajay-paneldynamic__add,
+.kajay-paneldynamic__remove,
+.kajay-paneldynamic__remove-confirm,
+.kajay-paneldynamic__remove-cancel,
+.kajay-paneldynamic__tab,
+.kajay-paneldynamic__previous,
+.kajay-paneldynamic__next {
+  font: inherit;
+  padding: 2px 8px;
+}
+
 /* The check timeline: a diagnostic list, readable at a glance in a failure snapshot. */
 .host-demo__timeline {
   margin: 0;

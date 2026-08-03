@@ -255,6 +255,32 @@ export const questionTypes: PageDefinition = {
       ],
     },
     {
+      // A whole form repeated for each of several things — and the same machinery the
+      // matrix rows use, under the word that reads better here: `{panel.age}` is this
+      // traveller's age. The template holds a group and a table of its own, neither of
+      // which needed anything: a template is a list of page elements.
+      type: 'paneldynamic',
+      name: 'travellers',
+      title: 'Who else is coming?',
+      panelTitleFormat: 'Traveller {0}',
+      addPanelText: 'Add a traveller',
+      confirmDelete: true,
+      maxPanelCount: 3,
+      templateElements: [
+        { type: 'text', name: 'fullName', title: 'Name' },
+        { type: 'text', name: 'age', title: 'Age', inputType: 'number' },
+        {
+          type: 'panel',
+          name: 'minorDetails',
+          title: 'Travelling with a minor',
+          visibleIf: '{panel.age} < 18',
+          elements: [
+            { type: 'text', name: 'guardian', title: 'Responsible adult', isRequired: true },
+          ],
+        },
+      ],
+    },
+    {
       type: 'rating',
       name: 'satisfaction',
       title: 'How is it going so far?',

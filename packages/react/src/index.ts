@@ -20,6 +20,9 @@ export type { MatrixDetailToggleProps, MatrixRowDetailProps } from './MatrixRowD
 export { MatrixFrame } from './MatrixFrame.js';
 export type { MatrixFrameProps } from './MatrixFrame.js';
 export { MatrixRowList } from './MatrixRowList.js';
+export { PanelDynamicRenderer } from './PanelDynamicRenderer.js';
+export { PanelInstance } from './PanelInstance.js';
+export type { PanelInstanceProps } from './PanelInstance.js';
 export type { MatrixRowListProps } from './MatrixRowList.js';
 export { useMatrixLayout } from './useMatrixLayout.js';
 export { questionErrorId, questionId } from './questionId.js';

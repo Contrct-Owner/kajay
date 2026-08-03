@@ -4,7 +4,7 @@ import { buildInstance, CellValueHost } from './matrixCells.js';
 import { asAnswerRecord, withAnswerEntry } from './objectAnswers.js';
 import type { PageElement } from './PageElement.js';
 import { attachHostToElement } from './Panel.js';
-import { collectQuestions } from './pageElements.js';
+import { collectElements, collectQuestions, collectVisibleQuestions } from './pageElements.js';
 import { Question } from './Question.js';
 import type { ConditionalItemGroup } from './Question.js';
 import type { SurveyError } from './SurveyError.js';
@@ -155,22 +155,34 @@ export abstract class RepeatingQuestion extends Question {
     return created;
   }
 
+  /** The elements built for one record, as they were authored: containers not flattened. */
+  protected abstract rowInstances(rowKey: string): readonly PageElement[];
+
   /** The questions of one record, in the order they are asked. */
-  abstract rowCells(rowKey: string): readonly Question[];
+  rowCells(rowKey: string): readonly Question[] {
+    return collectQuestions(this.rowInstances(rowKey));
+  }
 
   /** Every question of every record, in record order. */
   get allCells(): readonly Question[] {
     return this.rowKeys.flatMap((rowKey) => this.rowCells(rowKey));
   }
 
+  /**
+   * Every element of every record: what carries a condition, not just what holds an
+   * answer.
+   *
+   * Containers included, because a group inside a template carries a `visibleIf` of its
+   * own and is not a question — walking only the questions would leave that condition
+   * registered nowhere and the group permanently visible.
+   */
+  get allElements(): readonly PageElement[] {
+    return this.rowKeys.flatMap((rowKey) => collectElements(this.rowInstances(rowKey)));
+  }
+
   /** One question of one record, by name. */
   cellAt(rowKey: string, columnName: string): Question | undefined {
     return this.rowCells(rowKey).find((cell) => cell.name === columnName);
-  }
-
-  /** The questions inside built instances, panels flattened. */
-  protected questionsIn(elements: readonly PageElement[]): readonly Question[] {
-    return collectQuestions(elements);
   }
 
   getCellValue(rowKey: string, columnName: string): unknown {
@@ -201,7 +213,7 @@ export abstract class RepeatingQuestion extends Question {
 
   /** The instances carry the conditions; the templates never do — they never render. */
   override get conditionalItems(): readonly ConditionalItemGroup[] {
-    return [{ key: 'cell', items: this.allCells }];
+    return [{ key: 'cell', items: this.allElements }];
   }
 
   /** An untouched collection still owes whatever the questions in it demand. */
@@ -223,8 +235,14 @@ export abstract class RepeatingQuestion extends Question {
   override checkValue(context: ValidationContext): readonly SurveyError[] {
     const errors: SurveyError[] = [];
     for (const rowKey of this.visibleRowKeys) {
+      // Reachability, not the question's own flag: a question inside a hidden *group*
+      // is out of reach however visible it is itself, which is the rule a page has
+      // always applied and which an instance had been getting wrong. The demo found it —
+      // a required question inside a conditional group blocked a survey nobody could see
+      // it in.
+      const reachable = new Set(collectVisibleQuestions(this.rowInstances(rowKey)));
       for (const cell of this.rowCells(rowKey)) {
-        const own = cell.isVisible ? collectAnswerErrors(cell, context.evaluate) : [];
+        const own = reachable.has(cell) ? collectAnswerErrors(cell, context.evaluate) : [];
         cell.setErrors(own);
         for (const error of own) {
           errors.push(Object.assign({}, error, { path: `${rowKey}${PATH_SEPARATOR}${cell.name}` }));

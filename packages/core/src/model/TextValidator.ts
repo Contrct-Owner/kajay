@@ -25,13 +25,13 @@ export class TextValidator extends Validator {
     const text = String(value);
     const { minLength, maxLength } = this;
     if (minLength !== undefined && text.length < minLength) {
-      return this.fail(`Please enter at least ${String(minLength)} characters.`);
+      return this.fail(this.uiText('textMin', minLength));
     }
     if (maxLength !== undefined && text.length > maxLength) {
-      return this.fail(`Please enter no more than ${String(maxLength)} characters.`);
+      return this.fail(this.uiText('textMax', maxLength));
     }
     if (!this.allowDigits && /\d/u.test(text)) {
-      return this.fail('Please enter a value without digits.');
+      return this.fail(this.uiText('textNoDigits'));
     }
     return undefined;
   }

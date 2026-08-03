@@ -10,14 +10,11 @@ import { useReorder } from './useReorder.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
 
-const HOW_TO_REORDER =
-  'Press space to pick this up, then use the arrow keys to move it and space again to drop it.';
-
 function rankingHeading(question: RankingQuestion): string {
-  if (question.isReadOnly) {
-    return 'Your ranking';
+  if (question.isReadOnly || question.selectToRankEnabled) {
+    return question.uiText('rankYours');
   }
-  return question.selectToRankEnabled ? 'Your ranking' : 'Drag or use the keyboard to reorder';
+  return question.uiText('reorderHint');
 }
 
 /**
@@ -46,7 +43,7 @@ function RankedList({ question }: { readonly question: RankingQuestion }): React
       </p>
       {question.isReadOnly ? null : (
         <p className="kajay-ranking__hint" id={`${listId}-hint`}>
-          {HOW_TO_REORDER}
+          {question.uiText('reorderKeyboardHint')}
         </p>
       )}
       {/* The rows are direct children, and the remove buttons alongside them: that is
@@ -72,7 +69,7 @@ function RankedList({ question }: { readonly question: RankingQuestion }): React
           </Fragment>
         ))}
         {ranked.length === 0 ? (
-          <p className="kajay-ranking__empty">Nothing ranked yet.</p>
+          <p className="kajay-ranking__empty">{question.uiText('rankEmpty')}</p>
         ) : null}
       </div>
       {/* Assertive, because a row sliding past its neighbours is the entire feedback a
@@ -98,7 +95,7 @@ function PoolChoice({
       className="kajay-ranking__pool-choice"
       // The visible text is the choice; the name says what pressing it does, because
       // "Speed" on its own is not an action.
-      aria-label={`Rank ${choice.text}`}
+      aria-label={question.uiText('rankOption', choice.text)}
       onClick={() => {
         question.rank(choice.value);
       }}
@@ -115,14 +112,14 @@ function RankingPool({ question }: { readonly question: RankingQuestion }): Reac
   return (
     <div className="kajay-ranking__area" role="group" aria-labelledby={`${poolId}-heading`}>
       <p className="kajay-ranking__heading" id={`${poolId}-heading`}>
-        Choices
+        {question.uiText('rankChoices')}
       </p>
       <div className="kajay-ranking__pool">
         {unranked.map((choice) => (
           <PoolChoice key={String(choice.value)} question={question} choice={choice} />
         ))}
         {unranked.length === 0 ? (
-          <p className="kajay-ranking__empty">Everything has been ranked.</p>
+          <p className="kajay-ranking__empty">{question.uiText('rankFull')}</p>
         ) : null}
       </div>
     </div>

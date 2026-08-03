@@ -69,7 +69,7 @@ export class CommentQuestion extends Question {
     return [
       {
         kind: 'maxLength',
-        text: `Please shorten this to ${String(budget)} characters or fewer.`,
+        text: this.uiText('commentTooLong', budget),
       },
     ];
   }

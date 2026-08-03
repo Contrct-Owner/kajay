@@ -62,7 +62,7 @@ export interface ProgressCount {
  */
 export function measureProgress(survey: Survey): ProgressCount {
   if (survey.progressBarType === 'pages') {
-    return count(survey.currentPageNo, survey.pageCount, 'page');
+    return count(survey, survey.currentPageNo, survey.pageCount, 'Page');
   }
   if (survey.progressBarType === 'correctQuestions') {
     const score = scoreQuiz(survey);
@@ -72,7 +72,7 @@ export function measureProgress(survey: Survey): ProgressCount {
       ratio: score.ratio,
       // Not "completed": these marks are earned, and a respondent who reads "3 of 8
       // questions completed" on a quiz bar will believe five are still in front of them.
-      label: `${String(score.correct)} of ${String(score.total)} correct`,
+      label: survey.uiText('progressCorrect', score.correct, score.total),
     };
   }
   const questions = reachableQuestions(survey);
@@ -81,19 +81,34 @@ export function measureProgress(survey: Survey): ProgressCount {
       ? questions.filter((question) => question.isRequired)
       : questions;
   const answered = counted.filter((question) => question.value !== undefined);
-  return count(answered.length, counted.length, 'question');
+  return count(survey, answered.length, counted.length, 'Question');
 }
 
 function reachableQuestions(survey: Survey): readonly Question[] {
   return survey.visiblePages.flatMap((page) => collectVisibleQuestions(page.elements));
 }
 
-function count(done: number, total: number, noun: string): ProgressCount {
-  const plural = total === 1 ? noun : `${noun}s`;
+/**
+ * A reading, labelled in the survey's language.
+ *
+ * **A key per plural form**, chosen here rather than a rule applied to a noun. English
+ * needs two and picks by `total === 1`; a locale that needs a different split registers
+ * different text for the same two keys. Languages with more than two plural categories —
+ * Polish, Russian, Arabic — are **not covered**: they need a plural *rule*, which is a
+ * formatter the host supplies, and pretending otherwise here would produce confidently
+ * wrong grammar rather than an obvious gap.
+ */
+function count(
+  survey: Survey,
+  done: number,
+  total: number,
+  noun: 'Page' | 'Question',
+): ProgressCount {
+  const key = total === 1 ? (`progress${noun}One` as const) : (`progress${noun}Many` as const);
   return {
     done,
     total,
     ratio: total === 0 ? 1 : done / total,
-    label: `${String(done)} of ${String(total)} ${plural} completed`,
+    label: survey.uiText(key, done, total),
   };
 }

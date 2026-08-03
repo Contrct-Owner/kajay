@@ -12,6 +12,9 @@ import { questionTypes } from './pages/questionTypes.js';
 export const surveyDefinition: Readonly<Record<string, unknown>> = {
   // Deliberately not named for a phase: it goes stale every time the demo grows.
   title: 'Kajay demo',
+  // The language the survey opens in — checklist J1. A respondent switching afterwards
+  // does not edit the definition, so this stays `en` in the canonical JSON below.
+  locale: 'en',
   triggers: [
     {
       // Writes annualEstimate from price when the plan becomes paid.

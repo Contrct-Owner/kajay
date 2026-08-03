@@ -47,7 +47,7 @@ function AttachedFile({
         className="kajay-file__remove"
         onClick={whenEditable(question.isReadOnly, onRemove)}
       >
-        {`Remove ${entry.name}`}
+        {question.uiText('removeFile', entry.name)}
       </button>
     </li>
   );
@@ -128,7 +128,7 @@ function DropZone({
  */
 function UploadStatus({ question }: { readonly question: FileQuestion }): ReactElement | null {
   if (question.isUploading) {
-    return <p className="kajay-file__uploading">Uploading…</p>;
+    return <p className="kajay-file__uploading">{question.uiText('uploading')}</p>;
   }
   if (question.uploadFailure === undefined) {
     return null;

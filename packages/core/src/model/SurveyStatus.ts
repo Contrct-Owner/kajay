@@ -4,6 +4,7 @@ import { quizPlaceholder } from './quizScore.js';
 import type { Survey } from './Survey.js';
 import type { SurveyAnswers } from './SurveyAnswers.js';
 import type { SurveyLogicHost } from './SurveyLogicHost.js';
+import type { PreviewMode } from './previewQuestions.js';
 import { resolveSurveyState } from './SurveyState.js';
 import type { SurveyState } from './SurveyState.js';
 
@@ -98,6 +99,21 @@ export class SurveyStatus {
     this.#isPreviewing = false;
     this.#survey.onComplete.emit({ data: this.#survey.data });
     this.#announce();
+  }
+
+  /**
+   * Ends the survey the way the definition says: a last look first, or straight out.
+   *
+   * Here rather than on the survey root because both endings are states this object
+   * already owns, and the choice between them was the one piece of that decision living
+   * somewhere else.
+   */
+  finish(previewMode: PreviewMode): void {
+    if (previewMode === 'noPreview' || this.#isPreviewing) {
+      this.#survey.complete();
+      return;
+    }
+    this.enterPreview();
   }
 
   /** What to draw: one value, because these are mutually exclusive. */

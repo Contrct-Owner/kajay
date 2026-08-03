@@ -198,6 +198,50 @@
         ]
       },
       "diagnostics": []
+    },
+    {
+      "id": "localized-strings-round-trip",
+      "input": {
+        "locale": "fr",
+        "title": { "default": "A survey", "fr": "Un questionnaire" },
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "text",
+                "name": "q1",
+                "title": { "default": "Your name", "fr": "Votre nom" },
+                "visibleIf": { "fr": "{a} = 1" }
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": {
+        "schemaVersion": 1,
+        "title": { "default": "A survey", "fr": "Un questionnaire" },
+        "locale": "fr",
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "text",
+                "name": "q1",
+                "title": { "default": "Your name", "fr": "Votre nom" }
+              }
+            ]
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "code": "property-type-mismatch",
+          "path": "/pages/0/elements/0/visibleIf",
+          "severity": "error"
+        }
+      ]
     }
   ]
 }

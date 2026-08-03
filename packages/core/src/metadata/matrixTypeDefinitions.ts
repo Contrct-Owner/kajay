@@ -115,8 +115,10 @@ export const MATRIX_TYPE_DEFINITIONS: MatrixTypeDefinitions = {
       { name: 'maxRowCount', type: 'number', description: '0 means no limit.' },
       { name: 'allowAddRows', type: 'boolean', defaultValue: true },
       { name: 'allowRemoveRows', type: 'boolean', defaultValue: true },
-      { name: 'addRowText', type: 'string', defaultValue: 'Add row' },
-      { name: 'removeRowText', type: 'string', defaultValue: 'Remove' },
+      { name: 'addRowText', type: 'string',
+        isLocalizable: true, defaultValue: 'Add row' },
+      { name: 'removeRowText', type: 'string',
+        isLocalizable: true, defaultValue: 'Remove' },
       {
         name: 'confirmDelete',
         type: 'boolean',
@@ -125,11 +127,13 @@ export const MATRIX_TYPE_DEFINITIONS: MatrixTypeDefinitions = {
       {
         name: 'confirmDeleteText',
         type: 'string',
+        isLocalizable: true,
         defaultValue: 'Remove this row?',
       },
       {
         name: 'rowTitleFormat',
         type: 'string',
+        isLocalizable: true,
         description: 'Row header template, with {0} as the row number.',
       },
       {

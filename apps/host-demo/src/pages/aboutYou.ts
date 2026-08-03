@@ -16,10 +16,21 @@ export const aboutYou: PageDefinition = {
     {
       type: 'text',
       name: 'fullName',
-      title: 'What is your name?',
+      // Authored once per language — checklist J1. The object *is* what the definition
+      // holds: switching to French reads a different entry, and the canonical JSON below
+      // still carries every translation.
+      title: {
+        default: 'What is your name?',
+        fr: 'Quel est votre nom ?',
+        de: 'Wie heißen Sie?',
+        es: '¿Cómo se llama?',
+      },
       startWithNewLine: true,
       isRequired: true,
-      requiredErrorText: 'We need a name to address you by.',
+      requiredErrorText: {
+        default: 'We need a name to address you by.',
+        fr: 'Nous avons besoin d’un nom pour vous appeler.',
+      },
       placeholder: 'Ada Lovelace',
       department: 'engineering',
     },

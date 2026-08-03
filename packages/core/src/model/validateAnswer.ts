@@ -7,7 +7,6 @@ import type { ExpressionOutcome } from './Validator.js';
 export type ExpressionEvaluator = (expression: string) => ExpressionOutcome;
 
 const REQUIRED_KIND = 'required';
-const DEFAULT_REQUIRED_TEXT = 'This question requires an answer.';
 
 /**
  * Every reason one question's current answer is unacceptable.
@@ -42,7 +41,12 @@ export function collectAnswerErrors(
       return [];
     }
     const authored = question.requiredErrorText;
-    return [{ kind: REQUIRED_KIND, text: authored.length > 0 ? authored : DEFAULT_REQUIRED_TEXT }];
+    return [
+      {
+        kind: REQUIRED_KIND,
+        text: authored.length > 0 ? authored : question.uiText('requiredAnswer'),
+      },
+    ];
   }
 
   // The question's own constraints first: a `min` the author wrote as a property is

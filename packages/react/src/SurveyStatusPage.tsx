@@ -10,11 +10,11 @@ import { useHtmlSanitizer } from './HtmlSanitizerContext.js';
  */
 export type SurveyStatusState = Exclude<SurveyState, 'running' | 'preview'>;
 
-/** What each state says when the author has written nothing of their own. */
-const FALLBACKS: Readonly<Record<SurveyStatusState, string>> = {
-  completed: 'Thank you for completing this survey.',
-  loading: 'Loading…',
-  empty: 'This survey has no questions to answer.',
+/** The dictionary key each state falls back to when the author wrote nothing. */
+const FALLBACK_KEYS: Readonly<Record<SurveyStatusState, 'completedThanks' | 'loading' | 'emptySurvey'>> = {
+  completed: 'completedThanks',
+  loading: 'loading',
+  empty: 'emptySurvey',
 };
 
 export interface SurveyStatusPageProps {
@@ -58,7 +58,7 @@ export function SurveyStatusPage({ survey, state }: SurveyStatusPageProps): Reac
         // template is the author's, the answers are the respondent's.
         <div className="kajay-html" dangerouslySetInnerHTML={{ __html: sanitize(markup) }} />
       ) : (
-        <p className="kajay-survey__status-text">{FALLBACKS[state]}</p>
+        <p className="kajay-survey__status-text">{survey.uiText(FALLBACK_KEYS[state])}</p>
       )}
     </div>
   );

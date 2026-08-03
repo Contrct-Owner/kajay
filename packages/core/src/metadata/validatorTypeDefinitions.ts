@@ -28,6 +28,7 @@ export const VALIDATOR_TYPE_DEFINITIONS: ValidatorTypeDefinitions = {
       {
         name: 'text',
         type: 'string',
+        isLocalizable: true,
         description: 'Replaces the built-in message when this check fails.',
       },
     ],

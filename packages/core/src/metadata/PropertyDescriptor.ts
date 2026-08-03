@@ -42,6 +42,15 @@ export interface PropertyDefinition {
    * (§M) has to know which fields it may open.
    */
   readonly isExpression?: boolean;
+  /**
+   * Whether a respondent reads this property — checklist J1.
+   *
+   * A localizable property accepts `{ default, <locale> }` as well as a plain string.
+   * Declared rather than inferred from the type, because most `string` properties are
+   * not prose: translating a `name`, a `visibleIf` or a `regex` would break the survey
+   * in whichever language somebody translated it into.
+   */
+  readonly isLocalizable?: boolean;
   readonly description?: string;
 }
 
@@ -52,6 +61,7 @@ export interface PropertyDescriptor {
   readonly defaultValue: PropertyValue;
   readonly isRequired: boolean;
   readonly isExpression: boolean;
+  readonly isLocalizable: boolean;
   readonly description: string | undefined;
 }
 
@@ -77,6 +87,7 @@ export function normalizePropertyDefinition(definition: PropertyDefinition): Pro
     defaultValue: definition.defaultValue ?? defaultForType(definition.type),
     isRequired: definition.isRequired ?? false,
     isExpression: definition.isExpression ?? false,
+    isLocalizable: definition.isLocalizable ?? false,
     description: definition.description,
   };
 }

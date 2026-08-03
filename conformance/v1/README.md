@@ -59,6 +59,23 @@ and repeated no-op actions emit nothing. Adapter object identities are intention
 absent from the corpus; cross-language consumers depend on names, values, states, and
 event order instead.
 
+## Localized strings
+
+A property the metadata marks localizable accepts `{ "default": …, "<locale>": … }` as
+well as a plain string, and **canonical output keeps the object exactly as authored**. A
+runtime that resolved it while reading would emit a monolingual definition, which the
+fixed-point rule would not catch — both passes would agree, and every other translation
+would be gone. The same object on a property that is *not* localizable is a
+`property-type-mismatch`: translating a condition breaks the survey in whichever
+language somebody translated it into.
+
+The definition's `locale` is the one it opens in. Which locale a respondent switched to
+is runtime state and never appears in canonical output, on the same rule that keeps
+`visibleIf`'s current answer out of it.
+
+Fallback order for a localizable property is exact locale, then base language
+(`fr-CA` → `fr`), then `default`, then empty.
+
 ## Time in a lifecycle scenario
 
 A scenario may name a `clock` — an ISO-8601 instant — and move it with `advance-clock`,

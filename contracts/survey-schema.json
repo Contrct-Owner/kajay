@@ -3562,6 +3562,11 @@
           "type": "string",
           "default": ""
         },
+        "locale": {
+          "type": "string",
+          "default": "",
+          "description": "BCP-47 tag the survey opens in. Which one a respondent switches to afterwards is not part of the definition."
+        },
         "questionsOnPageMode": {
           "type": "string",
           "default": "standard",

@@ -19,6 +19,17 @@ export interface SurveyStateChangedEvent {
   readonly state: SurveyState;
 }
 
+/**
+ * Raised when the survey switches language — checklist J1.
+ *
+ * Its own channel rather than folded into element state: nothing about the survey's
+ * logic changed, only which of the strings an author already wrote is being read, and
+ * putting it on `logicVersion` would advance a counter that means something else.
+ */
+export interface LocaleChangedEvent {
+  readonly locale: string;
+}
+
 export interface CurrentPageChangedEvent {
   readonly previousPageNo: number;
   readonly currentPageNo: number;

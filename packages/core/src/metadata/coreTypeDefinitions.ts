@@ -15,8 +15,15 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
   survey: {
     name: 'survey',
     properties: [
-      { name: 'title', type: 'string', description: 'Survey title shown above the first page.' },
-      { name: 'description', type: 'string' },
+      { name: 'title', type: 'string',
+        isLocalizable: true, description: 'Survey title shown above the first page.' },
+      { name: 'description', type: 'string', isLocalizable: true },
+      {
+        name: 'locale',
+        type: 'string',
+        description:
+          'BCP-47 tag the survey opens in. Which one a respondent switches to afterwards is not part of the definition.',
+      },
       {
         name: 'questionsOnPageMode',
         type: 'string',
@@ -110,16 +117,19 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
       {
         name: 'completedHtml',
         type: 'string',
+        isLocalizable: true,
         description: 'Markup shown once the survey is finished. {name} resolves to an answer.',
       },
       {
         name: 'loadingHtml',
         type: 'string',
+        isLocalizable: true,
         description: 'Markup shown while the host reports the survey as loading.',
       },
       {
         name: 'emptyHtml',
         type: 'string',
+        isLocalizable: true,
         description: 'Markup shown when no page is visible, so there is nothing to answer.',
       },
     ],
@@ -134,7 +144,8 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
     name: 'htmlcondition',
     properties: [
       { name: 'expression', type: 'string', isRequired: true, isExpression: true },
-      { name: 'html', type: 'string', isRequired: true },
+      { name: 'html', type: 'string',
+        isLocalizable: true, isRequired: true },
     ],
   },
   calculatedValue: {
@@ -171,7 +182,8 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         isRequired: true,
         description: 'Unique element identifier. For a question, also its answer key.',
       },
-      { name: 'title', type: 'string', description: 'Display title; falls back to name.' },
+      { name: 'title', type: 'string',
+        isLocalizable: true, description: 'Display title; falls back to name.' },
       {
         ...VISIBLE_IF,
         description: 'Expression; the element is shown only while it evaluates truthy.',
@@ -215,7 +227,7 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         defaultValue: 1,
         description: 'How many columns the elements flow into.',
       },
-      { name: 'title', type: 'string' },
+      { name: 'title', type: 'string', isLocalizable: true },
       {
         name: 'maxTimeToFinish',
         type: 'number',
@@ -232,7 +244,7 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
     name: 'panel',
     parent: 'pageelement',
     properties: [
-      { name: 'description', type: 'string' },
+      { name: 'description', type: 'string', isLocalizable: true },
       {
         name: 'state',
         type: 'string',

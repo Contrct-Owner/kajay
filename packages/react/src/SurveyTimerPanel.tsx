@@ -26,16 +26,17 @@ function formatDuration(seconds: number): string {
  * to do next, and "0:29 elapsed" tells them nothing about whether to hurry.
  */
 function Clock({
+  survey,
   label,
   reading,
 }: {
+  readonly survey: SurveyModel;
   readonly label: string;
   readonly reading: TimerReading;
 }): ReactElement {
   const seconds = reading.remaining ?? reading.elapsed;
-  const spoken = `${label}: ${formatDuration(seconds)} ${
-    reading.remaining === undefined ? 'elapsed' : 'remaining'
-  }`;
+  const suffix = survey.uiText(reading.remaining === undefined ? 'timerElapsed' : 'timerRemaining');
+  const spoken = `${label}: ${formatDuration(seconds)} ${suffix}`;
 
   return (
     <p className="kajay-timer__clock" data-clock={label.toLowerCase()}>
@@ -75,8 +76,12 @@ export function SurveyTimerPanel({ survey, at }: SurveyTimerPanelProps): ReactEl
 
   return (
     <div className={className} data-at={at}>
-      {mode === 'survey' ? null : <Clock label="Page" reading={pageTime} />}
-      {mode === 'page' ? null : <Clock label="Survey" reading={surveyTime} />}
+      {mode === 'survey' ? null : (
+        <Clock survey={survey} label={survey.uiText('timerPage')} reading={pageTime} />
+      )}
+      {mode === 'page' ? null : (
+        <Clock survey={survey} label={survey.uiText('timerSurvey')} reading={surveyTime} />
+      )}
     </div>
   );
 }

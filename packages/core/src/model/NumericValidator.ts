@@ -26,14 +26,14 @@ export class NumericValidator extends Validator {
   override validate({ value }: ValidationContext): SurveyError | undefined {
     const numeric = toNumber(value);
     if (numeric === undefined) {
-      return this.fail('Please enter a number.');
+      return this.fail(this.uiText('numberInvalid'));
     }
     const { minValue, maxValue } = this;
     if (minValue !== undefined && numeric < minValue) {
-      return this.fail(`Please enter a value no less than ${String(minValue)}.`);
+      return this.fail(this.uiText('numberMin', minValue));
     }
     if (maxValue !== undefined && numeric > maxValue) {
-      return this.fail(`Please enter a value no greater than ${String(maxValue)}.`);
+      return this.fail(this.uiText('numberMax', maxValue));
     }
     return undefined;
   }

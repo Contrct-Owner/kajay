@@ -18,6 +18,6 @@ export class EmailValidator extends Validator {
   override validate({ value }: ValidationContext): SurveyError | undefined {
     const text = String(value).trim();
     const isShaped = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(text);
-    return isShaped ? undefined : this.fail('Please enter a valid email address.');
+    return isShaped ? undefined : this.fail(this.uiText('emailInvalid'));
   }
 }

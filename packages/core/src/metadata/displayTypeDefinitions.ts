@@ -26,6 +26,7 @@ export const DISPLAY_TYPE_DEFINITIONS: DisplayTypeDefinitions = {
       {
         name: 'html',
         type: 'string',
+        isLocalizable: true,
         description: 'Markup, rendered as markup. See HtmlElement on the trust boundary.',
       },
     ],
@@ -38,6 +39,7 @@ export const DISPLAY_TYPE_DEFINITIONS: DisplayTypeDefinitions = {
       {
         name: 'altText',
         type: 'string',
+        isLocalizable: true,
         description: 'Falls back to the title, then to empty — a decorative image.',
       },
       {

@@ -32,10 +32,10 @@ export function MoreChoices({ question }: MoreChoicesProps): ReactElement | null
             question.loadMoreChoices();
           }}
         >
-          {question.isLoadingChoices ? 'Loading options…' : 'Load more options'}
+          {question.uiText(question.isLoadingChoices ? 'loadingOptions' : 'loadMoreOptions')}
         </button>
       ) : (
-        <p className="kajay-choice-paging__done">That is every option.</p>
+        <p className="kajay-choice-paging__done">{question.uiText('allOptionsLoaded')}</p>
       )}
     </div>
   );

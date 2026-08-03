@@ -198,6 +198,17 @@ export abstract class RepeatingQuestion extends Question {
     this.writeRow(rowKey, Object.keys(rest).length > 0 ? rest : undefined);
   }
 
+  /**
+   * Throws every instance away, so the next read builds them again.
+   *
+   * Public because a locale switch needs it (J1) and is not a change to the records:
+   * an instance's title is composed from the template's *resolved* one, so the strings
+   * inside it are the only translated text the model keeps.
+   */
+  rebuildInstances(): void {
+    this.invalidateCells();
+  }
+
   /** Forgets what was built, so the next read builds it for the records there are now. */
   protected invalidateCells(): void {
     this.#instances.clear();

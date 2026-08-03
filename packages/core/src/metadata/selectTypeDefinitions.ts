@@ -19,7 +19,8 @@ export const SELECT_TYPE_DEFINITIONS: SelectTypeDefinitions = {
     name: 'itemvalue',
     properties: [
       { name: 'value', type: 'value', isRequired: true },
-      { name: 'text', type: 'string', description: 'Display text; falls back to the value.' },
+      { name: 'text', type: 'string',
+        isLocalizable: true, description: 'Display text; falls back to the value.' },
       {
         name: 'imageLink',
         type: 'string',
@@ -36,10 +37,12 @@ export const SELECT_TYPE_DEFINITIONS: SelectTypeDefinitions = {
       { name: 'choicesOrder', type: 'string', description: 'none, asc or desc.' },
       { name: 'colCount', type: 'number' },
       { name: 'showOtherItem', type: 'boolean' },
-      { name: 'otherText', type: 'string', defaultValue: 'Other' },
+      { name: 'otherText', type: 'string',
+        isLocalizable: true, defaultValue: 'Other' },
       { name: 'showNoneItem', type: 'boolean' },
-      { name: 'noneText', type: 'string', defaultValue: 'None' },
-      { name: 'placeholder', type: 'string' },
+      { name: 'noneText', type: 'string',
+        isLocalizable: true, defaultValue: 'None' },
+      { name: 'placeholder', type: 'string', isLocalizable: true },
       {
         name: 'searchEnabled',
         type: 'boolean',
@@ -91,7 +94,8 @@ export const SELECT_TYPE_DEFINITIONS: SelectTypeDefinitions = {
     isAbstract: true,
     properties: [
       { name: 'showSelectAllItem', type: 'boolean' },
-      { name: 'selectAllText', type: 'string', defaultValue: 'Select all' },
+      { name: 'selectAllText', type: 'string',
+        isLocalizable: true, defaultValue: 'Select all' },
       MAX_SELECTED_CHOICES,
     ],
   },

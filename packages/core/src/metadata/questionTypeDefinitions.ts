@@ -38,6 +38,7 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
       {
         name: 'requiredErrorText',
         type: 'string',
+        isLocalizable: true,
         description: 'Replaces the built-in message shown when a required answer is missing.',
       },
       {
@@ -79,7 +80,7 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
         description:
           'text, number, email, date, datetime-local, time, tel, url, color, range or password.',
       },
-      { name: 'placeholder', type: 'string' },
+      { name: 'placeholder', type: 'string', isLocalizable: true },
       {
         name: 'min',
         type: 'value',
@@ -93,7 +94,7 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
     name: 'comment',
     parent: 'question',
     properties: [
-      { name: 'placeholder', type: 'string' },
+      { name: 'placeholder', type: 'string', isLocalizable: true },
       { name: 'rows', type: 'number', defaultValue: 4, description: 'Visible height, in lines.' },
       {
         name: 'autoGrow',
@@ -117,8 +118,10 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
     name: 'boolean',
     parent: 'question',
     properties: [
-      { name: 'labelTrue', type: 'string', defaultValue: 'Yes' },
-      { name: 'labelFalse', type: 'string', defaultValue: 'No' },
+      { name: 'labelTrue', type: 'string',
+        isLocalizable: true, defaultValue: 'Yes' },
+      { name: 'labelFalse', type: 'string',
+        isLocalizable: true, defaultValue: 'No' },
       {
         name: 'valueTrue',
         type: 'value',
@@ -153,8 +156,8 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
         defaultValue: 'auto',
         description: 'auto, buttons or dropdown. auto collapses a long scale.',
       },
-      { name: 'minRateDescription', type: 'string' },
-      { name: 'maxRateDescription', type: 'string' },
+      { name: 'minRateDescription', type: 'string', isLocalizable: true },
+      { name: 'maxRateDescription', type: 'string', isLocalizable: true },
     ],
     childCollections: [
       { property: 'rateValues', elementBaseType: 'itemvalue', shorthandProperty: 'value' },
@@ -195,9 +198,10 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
         isRequired: true,
         description: 'Key this field is stored under inside the question answer.',
       },
-      { name: 'title', type: 'string', description: 'Display label; falls back to name.' },
+      { name: 'title', type: 'string',
+        isLocalizable: true, description: 'Display label; falls back to name.' },
       { name: 'inputType', type: 'string', defaultValue: 'text' },
-      { name: 'placeholder', type: 'string' },
+      { name: 'placeholder', type: 'string', isLocalizable: true },
       { name: 'isRequired', type: 'boolean' },
       {
         name: 'valueName',
@@ -209,7 +213,7 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
         type: 'boolean',
         description: 'The answer is shown but cannot be changed by the respondent.',
       },
-      { name: 'requiredErrorText', type: 'string' },
+      { name: 'requiredErrorText', type: 'string', isLocalizable: true },
       { name: 'size', type: 'number', description: 'Width in characters. 0 uses itemSize.' },
     ],
     childCollections: [{ property: 'validators', elementBaseType: 'validator' }],

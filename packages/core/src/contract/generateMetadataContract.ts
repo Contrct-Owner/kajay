@@ -12,6 +12,13 @@ export interface RuntimeMetadataProperty {
   readonly defaultValue: PropertyValue;
   readonly isRequired: boolean;
   readonly isExpression: boolean;
+  /**
+   * Whether this property accepts `{ default, <locale> }` as well as a string (J1).
+   *
+   * In the contract because a second runtime cannot infer it: `title` is prose and
+   * `visibleIf` is code, and both are declared `string`.
+   */
+  readonly isLocalizable: boolean;
   readonly description: string | null;
 }
 
@@ -46,6 +53,7 @@ function metadataProperty(property: PropertyDescriptor): RuntimeMetadataProperty
     defaultValue: property.defaultValue,
     isRequired: property.isRequired,
     isExpression: property.isExpression,
+    isLocalizable: property.isLocalizable,
     description: property.description ?? null,
   };
 }

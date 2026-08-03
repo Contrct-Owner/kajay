@@ -31,7 +31,7 @@ export function SurveyPreview({ survey, renderers }: SurveyPreviewProps): ReactE
 
   return (
     <form className="kajay-survey kajay-survey--preview" onSubmit={handleSubmit} noValidate>
-      <h2 className="kajay-survey__preview-title">Check your answers</h2>
+      <h2 className="kajay-survey__preview-title">{survey.uiText('preview')}</h2>
 
       <SurveyElements survey={survey} elements={survey.previewQuestions} renderers={renderers} />
 
@@ -45,7 +45,7 @@ export function SurveyPreview({ survey, renderers }: SurveyPreviewProps): ReactE
             survey.status.cancelPreview();
           }}
         >
-          Edit answers
+          {survey.uiText('editAnswers')}
         </button>
         <button className="kajay-navigation__next" type="submit">
           Complete

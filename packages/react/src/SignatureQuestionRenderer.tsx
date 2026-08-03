@@ -90,7 +90,9 @@ function SignaturePad({ question, canvasRef, signature, errorId }: PadProps): Re
       height={question.signatureHeight}
       role="img"
       aria-label={
-        signature.length > 0 ? `${question.title}: signed` : `${question.title}: not yet signed`
+        signature.length > 0
+          ? `${question.title}: signed`
+          : `${question.title}: ${question.uiText('notSigned')}`
       }
       aria-invalid={question.hasErrors || undefined}
       aria-describedby={question.hasErrors ? errorId : undefined}
@@ -135,7 +137,7 @@ function ClearButton({ question }: { readonly question: SignatureQuestion }): Re
         question.clear();
       })}
     >
-      Clear signature
+      {question.uiText('clearSignature')}
     </button>
   );
 }

@@ -206,7 +206,7 @@ export class FileQuestion extends Question {
     if (this.maxFileCount > 0 && entries.length > this.maxFileCount) {
       errors.push({
         kind: TOO_MANY,
-        text: `Please attach no more than ${String(this.maxFileCount)} files.`,
+        text: this.uiText('fileTooMany', this.maxFileCount),
       });
     }
     for (const entry of entries) {
@@ -221,14 +221,14 @@ export class FileQuestion extends Question {
     if (accept.length > 0 && !matchesAcceptedTypes(entry, accept)) {
       errors.push({
         kind: WRONG_TYPE,
-        text: `"${entry.name}" is not one of the accepted file types (${accept}).`,
+        text: this.uiText('fileWrongType', entry.name, accept),
         path: entry.name,
       });
     }
     if (this.maxSize > 0 && entry.size > this.maxSize) {
       errors.push({
         kind: TOO_LARGE,
-        text: `"${entry.name}" is larger than ${describeSize(this.maxSize)}.`,
+        text: this.uiText('fileTooLarge', entry.name, describeSize(this.maxSize)),
         path: entry.name,
       });
     }

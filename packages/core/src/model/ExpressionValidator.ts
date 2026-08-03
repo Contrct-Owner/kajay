@@ -33,6 +33,6 @@ export class ExpressionValidator extends Validator {
     if (outcome.failed || isTruthy(outcome.value)) {
       return undefined;
     }
-    return this.fail('This answer does not meet the required condition.');
+    return this.fail(this.uiText('expressionCondition'));
   }
 }

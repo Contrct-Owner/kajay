@@ -32,7 +32,7 @@ export class RegexValidator extends Validator {
     if (pattern === undefined || pattern.test(String(value))) {
       return undefined;
     }
-    return this.fail('Please enter a value in the expected format.');
+    return this.fail(this.uiText('regexInvalid'));
   }
 
   /** Compiled on demand and cached against its source, so an edit recompiles. */

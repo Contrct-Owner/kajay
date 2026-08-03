@@ -20,6 +20,10 @@ import type { SurveyElement } from './SurveyElement.js';
  */
 export function copyElement(element: SurveyElement, registry: MetadataRegistry): SurveyElement {
   const copy = registry.createInstance(element.type);
+  // The same locale holder, not a fresh one: a cell built from a column reads the
+  // survey's language, and a copy with a scope of its own would sit in a French survey
+  // rendering its titles in the default (J1).
+  copy.setLocaleScope(element.localeScope);
   for (const descriptor of registry.getProperties(element.type)) {
     const value = element.getPropertyValue(descriptor.name);
     if (value !== undefined) {

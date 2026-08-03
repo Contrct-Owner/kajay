@@ -1,4 +1,5 @@
 import { CommentQuestion } from '@kajay/core';
+import type { Question } from '@kajay/core';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useCallback, useLayoutEffect, useRef } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
@@ -50,9 +51,11 @@ function useAutoGrow(isEnabled: boolean, value: unknown): (node: HTMLTextAreaEle
  * model objects instead, so the limit is stated rather than enforced by disappearance.
  */
 function CharacterCounter({
+  question,
   remaining,
   id,
 }: {
+  readonly question: Question;
   readonly remaining: number | undefined;
   readonly id: string;
 }): ReactElement | null {
@@ -61,7 +64,7 @@ function CharacterCounter({
   }
   return (
     <p className="kajay-question__counter" id={id} aria-live="polite">
-      {`${String(remaining)} characters remaining`}
+      {question.uiText('charactersRemaining', remaining)}
     </p>
   );
 }
@@ -108,7 +111,7 @@ export function CommentQuestionRenderer({
         value={value === null || value === undefined ? '' : String(value)}
         onChange={handleChange}
       />
-      <CharacterCounter remaining={remaining} id={counterId} />
+      <CharacterCounter question={question} remaining={remaining} id={counterId} />
       <QuestionErrors survey={survey} question={question} at="bottom" id={errorId} />
     </div>
   );

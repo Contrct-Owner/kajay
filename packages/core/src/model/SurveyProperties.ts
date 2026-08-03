@@ -94,6 +94,17 @@ export abstract class SurveyProperties extends SurveyElement {
     return toPreviewMode(this.getStringProperty('showPreviewBeforeComplete'));
   }
 
+  /**
+   * The language every string in the survey is read in — checklist J1.
+   *
+   * Not `getStringProperty('locale')`: the definition's `locale` is what the survey
+   * *opens* in, and this is what it is being read in now. A respondent switching
+   * language does not edit the definition.
+   */
+  get locale(): string {
+    return this.localeScope.locale;
+  }
+
   /** What happens to an answer the respondent can no longer reach. */
   get clearInvisibleValues(): ClearInvisibleValues {
     return toClearPolicy(this.getStringProperty('clearInvisibleValues'));

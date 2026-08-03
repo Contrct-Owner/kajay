@@ -136,7 +136,7 @@ function RatingDropdown({ survey, question }: RatingProps): ReactElement {
         {...readOnlyGroup(question.isReadOnly)}
       >
         {/* Reading: only the chosen step is on offer, so there is nothing to change. */}
-        {question.isReadOnly ? null : <option value="">{'Choose a rating'}</option>}
+        {question.isReadOnly ? null : <option value="">{question.uiText('chooseRating')}</option>}
         {question.rateValues
           .filter((step) => !question.isReadOnly || question.isSelected(step.value))
           .map((step) => (

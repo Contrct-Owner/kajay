@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { CheckTimeline } from './CheckTimeline.js';
 import { renderEmphasis } from './renderEmphasis.js';
+import { LocalePicker } from './LocalePicker.js';
 import { ThemePicker, variablesFor } from './ThemePicker.js';
 import { useDemoSurvey } from './useDemoSurvey.js';
 import { useSurveyData } from './useSurveyData.js';
@@ -20,6 +21,7 @@ export function App(): ReactElement {
   return (
     <main className="host-demo" data-theme={theme}>
       <ThemePicker selected={theme} onSelect={setTheme} />
+      <LocalePicker model={model} />
 
       <Survey
         model={model}

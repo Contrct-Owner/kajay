@@ -62,6 +62,23 @@ export function useSurveyAnswerChanges(survey: Survey): void {
 }
 
 /**
+ * Re-renders when the survey switches language — checklist J1.
+ *
+ * Held by the survey root rather than by each question, because a locale switch changes
+ * every string at once: subscribing per question would be a thousand listeners agreeing
+ * on the same answer. It is the one change where re-rendering the whole survey is the
+ * cheap option rather than the expensive one.
+ */
+export function useSurveyLocale(survey: Survey): string {
+  const subscribe = useCallback(
+    (onStoreChange: () => void): (() => void) => survey.onLocaleChanged.add(onStoreChange),
+    [survey],
+  );
+  const getSnapshot = useCallback((): string => survey.locale, [survey]);
+  return useSyncExternalStore(subscribe, getSnapshot);
+}
+
+/**
  * Re-renders when conditional logic changes what is visible, editable or required.
  *
  * The model exposes a monotonic version rather than the visible set itself, because

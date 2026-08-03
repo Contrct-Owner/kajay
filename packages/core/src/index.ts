@@ -67,6 +67,7 @@ export type {
   CurrentPageChangedEvent,
   ElementStateChangedEvent,
   ElementStateKind,
+  LocaleChangedEvent,
   SurveyStateChangedEvent,
   ValidateQuestionEvent,
   ValidatingChangedEvent,
@@ -166,6 +167,12 @@ export type {
   ProgressBarType,
   ProgressCount,
 } from './model/progressBar.js';
+export { StringDictionary } from './strings/StringDictionary.js';
+export { EN_STRINGS, UI_STRING_DEFINITIONS, formatUiString } from './strings/uiStrings.js';
+export type { UiStringKey, UiStrings } from './strings/uiStrings.js';
+export { DE_STRINGS, ES_STRINGS, FR_STRINGS } from './strings/seedLocales.js';
+export { isLocalizedText, resolveLocalizedText } from './model/localizedText.js';
+export type { LocaleScope, LocalizedText } from './model/localizedText.js';
 export { SurveyTimer } from './model/SurveyTimer.js';
 export type {
   TimerPanelLocation,

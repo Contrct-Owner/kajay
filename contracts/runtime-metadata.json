@@ -21,6 +21,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -29,6 +30,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         }
       ],
@@ -45,6 +47,7 @@
           "defaultValue": "Yes",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -53,6 +56,7 @@
           "defaultValue": "No",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -61,6 +65,7 @@
           "defaultValue": true,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "What is stored for yes. Anything the host backend expects."
         },
         {
@@ -69,6 +74,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -77,6 +83,7 @@
           "defaultValue": "switch",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "switch or radio."
         }
       ],
@@ -93,6 +100,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "The name this value is referenced by in expressions."
         },
         {
@@ -101,6 +109,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": true,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -109,6 +118,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Whether the computed value joins the survey answers."
         }
       ],
@@ -132,6 +142,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -140,6 +151,7 @@
           "defaultValue": 4,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Visible height, in lines."
         },
         {
@@ -148,6 +160,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Grow to fit the answer rather than scrolling."
         },
         {
@@ -156,6 +169,7 @@
           "defaultValue": true,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Whether the respondent may drag the field taller."
         },
         {
@@ -164,6 +178,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Length budget. 0 means none, which also hides the counter."
         }
       ],
@@ -187,6 +202,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -195,6 +211,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         }
       ],
@@ -232,6 +249,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": true,
+          "isLocalizable": false,
           "description": "Computed from the answers. The respondent does not supply it."
         },
         {
@@ -240,6 +258,7 @@
           "defaultValue": "none",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "none, decimal, currency, percent or date."
         },
         {
@@ -248,6 +267,7 @@
           "defaultValue": "USD",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -256,6 +276,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "0 leaves it to the style."
         },
         {
@@ -264,6 +285,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Template around the result, with {0} standing for it."
         }
       ],
@@ -280,6 +302,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": true,
+          "isLocalizable": false,
           "description": "The answer is acceptable while this evaluates truthy."
         }
       ],
@@ -296,6 +319,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -304,6 +328,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "An `accept` list — image/*, .pdf — offered to the picker and enforced."
         },
         {
@@ -312,6 +337,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Bytes. 0 means no limit."
         },
         {
@@ -320,6 +346,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "0 means no limit."
         },
         {
@@ -328,6 +355,7 @@
           "defaultValue": true,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -336,6 +364,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "The content travels inside the response instead of being uploaded."
         },
         {
@@ -344,6 +373,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Offer the camera as well as the filesystem, where the platform has one."
         }
       ],
@@ -360,6 +390,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": "Markup, rendered as markup. See HtmlElement on the trust boundary."
         }
       ],
@@ -376,6 +407,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": true,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -384,6 +416,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         }
       ],
@@ -400,6 +433,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -408,6 +442,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": "Falls back to the title, then to empty — a decorative image."
         },
         {
@@ -416,6 +451,7 @@
           "defaultValue": "contain",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "none, contain, cover or fill. Mirrors CSS object-fit."
         },
         {
@@ -424,6 +460,7 @@
           "defaultValue": "image",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "image or video."
         },
         {
@@ -432,6 +469,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "CSS pixels. 0 lets layout decide."
         },
         {
@@ -440,6 +478,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         }
       ],
@@ -456,6 +495,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "The one select type whose arity is a property rather than its type."
         },
         {
@@ -464,6 +504,7 @@
           "defaultValue": "contain",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "none, contain, cover or fill. Mirrors CSS object-fit."
         },
         {
@@ -472,6 +513,7 @@
           "defaultValue": "image",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "image or video."
         },
         {
@@ -480,6 +522,7 @@
           "defaultValue": 200,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -488,6 +531,7 @@
           "defaultValue": 150,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -496,6 +540,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Whether the choice text is shown. It is the tile name either way."
         }
       ],
@@ -512,6 +557,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -520,6 +566,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": "Display text; falls back to the value."
         },
         {
@@ -528,6 +575,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Picture or video for this choice. Only an imagepicker draws it."
         },
         {
@@ -536,6 +584,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": true,
+          "isLocalizable": false,
           "description": "Expression; the choice is offered only while truthy."
         }
       ],
@@ -552,6 +601,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Every visible row demands an answer, not just the question as a whole."
         },
         {
@@ -560,6 +610,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "No two rows may be answered with the same column."
         },
         {
@@ -568,6 +619,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Shade alternate rows. Presentation only."
         },
         {
@@ -576,6 +628,7 @@
           "defaultValue": "auto",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "auto, table or list. auto turns the table into a list on a narrow screen."
         }
       ],
@@ -603,6 +656,7 @@
           "defaultValue": "none",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "none, underRow, or underRowSingle (one row open at a time)."
         },
         {
@@ -611,6 +665,7 @@
           "defaultValue": "auto",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "auto, table or list. auto turns the table into a list on a narrow screen."
         }
       ],
@@ -648,6 +703,7 @@
           "defaultValue": 1,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Rows shown before the respondent adds any, and the floor on removal."
         },
         {
@@ -656,6 +712,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "0 means no limit."
         },
         {
@@ -664,6 +721,7 @@
           "defaultValue": true,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -672,6 +730,7 @@
           "defaultValue": true,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -680,6 +739,7 @@
           "defaultValue": "Add row",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -688,6 +748,7 @@
           "defaultValue": "Remove",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -696,6 +757,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Removing a row asks first. A row can hold a lot of typing."
         },
         {
@@ -704,6 +766,7 @@
           "defaultValue": "Remove this row?",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -712,6 +775,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": "Row header template, with {0} as the row number."
         },
         {
@@ -720,6 +784,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Answers a new row starts with, keyed by column name."
         },
         {
@@ -728,6 +793,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "A new row starts as a copy of the one before it. Wins over defaultRowValue."
         },
         {
@@ -736,6 +802,7 @@
           "defaultValue": "none",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "none, underRow, or underRowSingle (one row open at a time)."
         },
         {
@@ -744,6 +811,7 @@
           "defaultValue": "auto",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "auto, table or list. auto turns the table into a list on a narrow screen."
         }
       ],
@@ -776,6 +844,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "The column summarised."
         },
         {
@@ -784,6 +853,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "sum, count, min, max or avg."
         },
         {
@@ -792,6 +862,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": true,
+          "isLocalizable": false,
           "description": "Computes the figure instead. {row.col} is that column own total."
         },
         {
@@ -800,6 +871,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Template around the figure, with {0} standing for it."
         },
         {
@@ -808,6 +880,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Decimal places shown."
         }
       ],
@@ -824,6 +897,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Default field width in characters. An item size wins."
         },
         {
@@ -832,6 +906,7 @@
           "defaultValue": 1,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         }
       ],
@@ -854,6 +929,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Key this field is stored under inside the question answer."
         },
         {
@@ -862,6 +938,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": "Display label; falls back to name."
         },
         {
@@ -870,6 +947,7 @@
           "defaultValue": "text",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -878,6 +956,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -886,6 +965,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -894,6 +974,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Answer key, when it should differ from the name. Shared keys share an answer."
         },
         {
@@ -902,6 +983,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "The answer is shown but cannot be changed by the respondent."
         },
         {
@@ -910,6 +992,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -918,6 +1001,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Width in characters. 0 uses itemSize."
         }
       ],
@@ -940,6 +1024,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -948,6 +1033,7 @@
           "defaultValue": "Select all",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -956,6 +1042,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "0 means no limit."
         }
       ],
@@ -972,6 +1059,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Omit for no lower bound."
         },
         {
@@ -980,6 +1068,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Omit for no upper bound."
         }
       ],
@@ -996,6 +1085,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Unique page identifier."
         },
         {
@@ -1004,6 +1094,7 @@
           "defaultValue": 1,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "How many columns the elements flow into."
         },
         {
@@ -1012,6 +1103,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -1020,6 +1112,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Seconds allowed for this page. 0 falls back to the survey's default."
         },
         {
@@ -1028,6 +1121,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": true,
+          "isLocalizable": false,
           "description": "Expression; the page is shown only while it evaluates truthy."
         }
       ],
@@ -1050,6 +1144,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Unique element identifier. For a question, also its answer key."
         },
         {
@@ -1058,6 +1153,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": "Display title; falls back to name."
         },
         {
@@ -1066,6 +1162,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": true,
+          "isLocalizable": false,
           "description": "Expression; the element is shown only while it evaluates truthy."
         },
         {
@@ -1074,6 +1171,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": true,
+          "isLocalizable": false,
           "description": "Expression; the element is editable only while it evaluates truthy."
         },
         {
@@ -1082,6 +1180,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Break onto a fresh row rather than flowing into the columns beside it."
         },
         {
@@ -1090,6 +1189,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "CSS length. Empty fills its column."
         },
         {
@@ -1098,6 +1198,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "CSS length."
         },
         {
@@ -1106,6 +1207,7 @@
           "defaultValue": "default",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
         }
       ],
@@ -1122,6 +1224,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -1130,6 +1233,7 @@
           "defaultValue": "default",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "default, expanded or collapsed. Collapsed panels start closed."
         },
         {
@@ -1138,6 +1242,7 @@
           "defaultValue": 1,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "How many columns the elements inside flow into."
         }
       ],
@@ -1160,6 +1265,7 @@
           "defaultValue": 1,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Instances shown before the respondent adds any, and the floor on removal."
         },
         {
@@ -1168,6 +1274,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "0 means no limit."
         },
         {
@@ -1176,6 +1283,7 @@
           "defaultValue": true,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -1184,6 +1292,7 @@
           "defaultValue": true,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -1192,6 +1301,7 @@
           "defaultValue": "Add another",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -1200,6 +1310,7 @@
           "defaultValue": "Remove",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -1208,6 +1319,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Removing an instance asks first. A panel can hold a lot of typing."
         },
         {
@@ -1216,6 +1328,7 @@
           "defaultValue": "Remove this one?",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -1224,6 +1337,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": "Instance heading template, with {0} as its number."
         },
         {
@@ -1232,6 +1346,7 @@
           "defaultValue": "list",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "list shows every instance; tab and progress show one at a time."
         },
         {
@@ -1240,6 +1355,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Answers a new instance starts with, keyed by question name."
         }
       ],
@@ -1262,6 +1378,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -1270,6 +1387,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Answer key, when it should differ from the name. Shared keys share an answer."
         },
         {
@@ -1278,6 +1396,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "The answer is shown but cannot be changed by the respondent."
         },
         {
@@ -1286,6 +1405,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": true,
+          "isLocalizable": false,
           "description": "Expression; when present it overrides isRequired."
         },
         {
@@ -1294,6 +1414,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": "Replaces the built-in message shown when a required answer is missing."
         },
         {
@@ -1302,6 +1423,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": true,
+          "isLocalizable": false,
           "description": "Expression supplying a value while the question is unanswered."
         },
         {
@@ -1310,6 +1432,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": true,
+          "isLocalizable": false,
           "description": "Expression; while truthy, setValueExpression drives the answer."
         },
         {
@@ -1318,6 +1441,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": true,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -1326,6 +1450,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": true,
+          "isLocalizable": false,
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
         },
         {
@@ -1334,6 +1459,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         }
       ],
@@ -1356,6 +1482,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         }
       ],
@@ -1372,6 +1499,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Choices start in a pool and are ranked only once placed."
         },
         {
@@ -1380,6 +1508,7 @@
           "defaultValue": "vertical",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "horizontal or vertical. Where the pool sits relative to the ranking."
         },
         {
@@ -1388,6 +1517,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "0 means no limit."
         }
       ],
@@ -1404,6 +1534,7 @@
           "defaultValue": 1,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -1412,6 +1543,7 @@
           "defaultValue": 5,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -1420,6 +1552,7 @@
           "defaultValue": 1,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -1428,6 +1561,7 @@
           "defaultValue": "labels",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "labels, stars or smileys."
         },
         {
@@ -1436,6 +1570,7 @@
           "defaultValue": "auto",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "auto, buttons or dropdown. auto collapses a long scale."
         },
         {
@@ -1444,6 +1579,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -1452,6 +1588,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         }
       ],
@@ -1474,6 +1611,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Pattern the answer must match. Applied with the unicode flag."
         }
       ],
@@ -1490,6 +1628,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -1498,6 +1637,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": true,
+          "isLocalizable": false,
           "description": null
         }
       ],
@@ -1514,6 +1654,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "none, asc or desc."
         },
         {
@@ -1522,6 +1663,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -1530,6 +1672,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -1538,6 +1681,7 @@
           "defaultValue": "Other",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -1546,6 +1690,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -1554,6 +1699,7 @@
           "defaultValue": "None",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -1562,6 +1708,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -1570,6 +1717,7 @@
           "defaultValue": true,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Whether a long list may be narrowed by typing."
         },
         {
@@ -1578,6 +1726,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Name of a select question whose choices are carried forward."
         },
         {
@@ -1586,6 +1735,7 @@
           "defaultValue": "all",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "all, selected or unselected."
         },
         {
@@ -1594,6 +1744,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "URL to load choices from; may interpolate {question} placeholders."
         },
         {
@@ -1602,6 +1753,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Dotted path to the array inside the response."
         },
         {
@@ -1610,6 +1762,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -1618,6 +1771,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -1626,6 +1780,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "The list arrives a page at a time from the host loader."
         },
         {
@@ -1634,6 +1789,7 @@
           "defaultValue": 25,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "How many choices one page asks for."
         }
       ],
@@ -1656,6 +1812,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -1664,6 +1821,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Literal written to setToName."
         }
       ],
@@ -1680,6 +1838,7 @@
           "defaultValue": "#1d2939",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -1688,6 +1847,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Empty is transparent, which is what a signature on a form usually wants."
         },
         {
@@ -1696,6 +1856,7 @@
           "defaultValue": "png",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "png, jpeg or svg."
         },
         {
@@ -1704,6 +1865,7 @@
           "defaultValue": 400,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -1712,6 +1874,7 @@
           "defaultValue": 160,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         }
       ],
@@ -1728,6 +1891,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Page name, or a question name whose page is navigated to."
         }
       ],
@@ -1744,6 +1908,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": "Survey title shown above the first page."
         },
         {
@@ -1752,7 +1917,17 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": false,
+          "isExpression": false,
+          "isLocalizable": false,
+          "description": "BCP-47 tag the survey opens in. Which one a respondent switches to afterwards is not part of the definition."
         },
         {
           "name": "questionsOnPageMode",
@@ -1760,6 +1935,7 @@
           "defaultValue": "standard",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "standard, singlePage or questionPerPage."
         },
         {
@@ -1768,6 +1944,7 @@
           "defaultValue": true,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Set false to stop validation blocking navigation or completion."
         },
         {
@@ -1776,6 +1953,7 @@
           "defaultValue": "onNextPage",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "onNextPage, onValueChanged or onComplete."
         },
         {
@@ -1784,6 +1962,7 @@
           "defaultValue": "top",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Whether a question draws its errors above its input or below it."
         },
         {
@@ -1792,6 +1971,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "The whole survey is for reading rather than answering."
         },
         {
@@ -1800,6 +1980,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Turn the page once every question on it has a one-step answer."
         },
         {
@@ -1808,6 +1989,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Give the first question on each page focus as the page arrives."
         },
         {
@@ -1816,6 +1998,7 @@
           "defaultValue": "off",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "off, top, bottom or both."
         },
         {
@@ -1824,6 +2007,7 @@
           "defaultValue": "pages",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "pages, questions or requiredQuestions."
         },
         {
@@ -1832,6 +2016,7 @@
           "defaultValue": false,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Offer a list of pages the respondent can jump between."
         },
         {
@@ -1840,6 +2025,7 @@
           "defaultValue": "noPreview",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "noPreview, showAllQuestions or showAnsweredQuestions."
         },
         {
@@ -1848,6 +2034,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Seconds allowed for the whole survey. 0 means untimed."
         },
         {
@@ -1856,6 +2043,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Seconds allowed for a page that does not state its own. 0 means untimed."
         },
         {
@@ -1864,6 +2052,7 @@
           "defaultValue": "none",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "none, top or bottom."
         },
         {
@@ -1872,6 +2061,7 @@
           "defaultValue": "all",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "page, survey or all. Which clocks the panel shows."
         },
         {
@@ -1880,6 +2070,7 @@
           "defaultValue": "onComplete",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "none, onHidden or onComplete. What happens to an unreachable answer."
         },
         {
@@ -1888,6 +2079,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": "Markup shown once the survey is finished. {name} resolves to an answer."
         },
         {
@@ -1896,6 +2088,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": "Markup shown while the host reports the survey as loading."
         },
         {
@@ -1904,6 +2097,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": "Markup shown when no page is visible, so there is nothing to answer."
         }
       ],
@@ -1948,6 +2142,7 @@
           "defaultValue": "text",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "text, number, email, date, datetime-local, time, tel, url, color, range or password."
         },
         {
@@ -1956,6 +2151,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": null
         },
         {
@@ -1964,6 +2160,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Lower bound. A number for numeric types, an ISO string for date ones."
         },
         {
@@ -1972,6 +2169,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Upper bound, read the same way as min."
         },
         {
@@ -1980,6 +2178,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "0 lets the browser choose."
         }
       ],
@@ -1996,6 +2195,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -2004,6 +2204,7 @@
           "defaultValue": 0,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": null
         },
         {
@@ -2012,6 +2213,7 @@
           "defaultValue": true,
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": false,
           "description": "Set false to reject an answer containing any digit."
         }
       ],
@@ -2028,6 +2230,7 @@
           "defaultValue": "",
           "isRequired": true,
           "isExpression": true,
+          "isLocalizable": false,
           "description": "The trigger acts when this becomes true, not while it stays true."
         }
       ],
@@ -2044,6 +2247,7 @@
           "defaultValue": "",
           "isRequired": false,
           "isExpression": false,
+          "isLocalizable": true,
           "description": "Replaces the built-in message when this check fails."
         }
       ],

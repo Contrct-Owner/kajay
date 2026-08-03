@@ -23,11 +23,11 @@ export interface SurveyNavigationProps {
  * Still one control that changes text, for the same reason it does not swap places:
  * whatever it says, it stays where the cursor already is.
  */
-function validatingLabel(isValidating: boolean, isLastPage: boolean): string {
+function validatingLabel(survey: SurveyModel, isValidating: boolean, isLastPage: boolean): string {
   if (isValidating) {
-    return 'Checking…';
+    return survey.uiText('validating');
   }
-  return isLastPage ? 'Complete' : 'Next';
+  return survey.uiText(isLastPage ? 'complete' : 'nextPage');
 }
 
 export function SurveyNavigation({ survey }: SurveyNavigationProps): ReactElement {
@@ -71,7 +71,7 @@ export function SurveyNavigation({ survey }: SurveyNavigationProps): ReactElemen
         disabled={isValidating}
         aria-busy={isValidating || undefined}
       >
-        {validatingLabel(isValidating, isLastPage)}
+        {validatingLabel(survey, isValidating, isLastPage)}
       </button>
     </div>
   );

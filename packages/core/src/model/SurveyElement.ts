@@ -1,5 +1,9 @@
 import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
 import { getPropertyDefault } from '../metadata/PropertyDefaults.js';
+import { StringDictionary } from '../strings/StringDictionary.js';
+import { isLocalizedText, resolveLocalizedText } from './localizedText.js';
+import type { LocaleScope } from './localizedText.js';
+import type { UiStringKey } from '../strings/uiStrings.js';
 
 /**
  * Base of every model object. Holds declared property values and — separately —
@@ -11,6 +15,7 @@ import { getPropertyDefault } from '../metadata/PropertyDefaults.js';
 export abstract class SurveyElement {
   readonly #values: Map<string, PropertyValue> = new Map();
   readonly #unknownProperties: Map<string, unknown> = new Map();
+  #localeScope: LocaleScope = { locale: '', strings: new StringDictionary() };
   #isVisible = true;
   #isEnabled = true;
 
@@ -94,9 +99,51 @@ export abstract class SurveyElement {
       : getPropertyDefault(this, this.type, name);
   }
 
+  /**
+   * Which language this element's strings are read in — checklist J1.
+   *
+   * A shared, mutable holder rather than a copied value: one survey has one locale, and
+   * every element in it has to see a switch at the same instant. Its own by default so a
+   * detached element — one a test built, or a template not yet parented — still reads.
+   */
+  get localeScope(): LocaleScope {
+    return this.#localeScope;
+  }
+
+  setLocaleScope(scope: LocaleScope): void {
+    this.#localeScope = scope;
+  }
+
+  /**
+   * One of the library's own strings, in this survey's language — checklist J2.
+   *
+   * On every element because every element has something to say: a validator's default
+   * message, a matrix's "add a row", a question's character counter. The key is checked
+   * against the catalogue at compile time, so a message that does not exist cannot be
+   * asked for.
+   *
+   * `uiText` rather than `text` because a validator already has a `text` — the message
+   * its *author* wrote. Two different things with one name on the same object would be
+   * a trap rather than a convenience.
+   */
+  uiText(key: UiStringKey, ...params: readonly (string | number)[]): string {
+    return this.#localeScope.strings.get(this.#localeScope.locale, key, ...params);
+  }
+
+  /**
+   * A declared string property, in the current locale.
+   *
+   * **The resolution lives here, in one place.** Ninety-odd call sites read strings
+   * through this method and not one of them had to learn that a title can be an object:
+   * a property that was never authored per-locale holds a plain string and takes the
+   * first branch, exactly as before.
+   */
   protected getStringProperty(name: string): string {
     const value = this.getResolvedProperty(name);
-    return typeof value === 'string' ? value : '';
+    if (typeof value === 'string') {
+      return value;
+    }
+    return isLocalizedText(value) ? resolveLocalizedText(value, this.#localeScope.locale) : '';
   }
 
   protected getBooleanProperty(name: string): boolean {

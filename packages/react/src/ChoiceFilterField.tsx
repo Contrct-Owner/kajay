@@ -40,7 +40,7 @@ export function ChoiceFilterField({ question, id }: ChoiceFilterFieldProps): Rea
   return (
     <div className="kajay-choice-filter">
       <label className="kajay-choice-filter__label" htmlFor={id}>
-        Filter options
+        {question.uiText('filterOptions')}
       </label>
       <input
         id={id}

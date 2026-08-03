@@ -3,6 +3,7 @@ import type {
   CompleteEvent,
   CurrentPageChangedEvent,
   ElementStateChangedEvent,
+  LocaleChangedEvent,
   SurveyStateChangedEvent,
   ValidateQuestionEvent,
   ValidatingChangedEvent,
@@ -10,7 +11,9 @@ import type {
 } from '../events/SurveyEvents.js';
 import type { LogicDiagnostics } from '../logic/LogicEngine.js';
 import type { SurveyOptions } from './SurveyOptions.js';
-import { clearHiddenAnswers } from './clearInvisibleAnswers.js';
+import type { StringDictionary } from '../strings/StringDictionary.js';
+import { applyLocale } from './applyLocale.js';
+import { createSurveyLogic } from './createSurveyLogic.js';
 import { shouldAdvanceAutomatically } from './autoAdvance.js';
 import { collectPreviewQuestions } from './previewQuestions.js';
 import { SurveyProperties } from './SurveyProperties.js';
@@ -22,7 +25,7 @@ import { createSurveyTimer } from './surveyTimerHost.js';
 import type { HtmlCondition } from './HtmlCondition.js';
 import type { CalculatedValue } from './CalculatedValue.js';
 import { SurveyAnswers } from './SurveyAnswers.js';
-import { SurveyLogicHost } from './SurveyLogicHost.js';
+import type { SurveyLogicHost } from './SurveyLogicHost.js';
 import type { ExpressionScope } from './SurveyLogicHost.js';
 import type { Page } from './Page.js';
 import { toQuestionsOnPageMode } from './PageLayout.js';
@@ -73,6 +76,8 @@ export class Survey extends SurveyProperties implements ValueHost {
    */
   readonly onStateChanged: EventEmitter<SurveyStateChangedEvent> = new EventEmitter();
   readonly onCurrentPageChanged: EventEmitter<CurrentPageChangedEvent> = new EventEmitter();
+  /** Raised when the survey switches language — checklist J1. */
+  readonly onLocaleChanged: EventEmitter<LocaleChangedEvent> = new EventEmitter();
   readonly onElementStateChanged: EventEmitter<ElementStateChangedEvent> = new EventEmitter();
   /** Raised per question as it is checked. Listeners report by calling `addError`. */
   readonly onValidateQuestion: EventEmitter<ValidateQuestionEvent> = new EventEmitter();
@@ -81,34 +86,11 @@ export class Survey extends SurveyProperties implements ValueHost {
 
   constructor(options: SurveyOptions = {}) {
     super();
-    this.#logic = new SurveyLogicHost(
-      this,
-      this.#answers,
-      options,
-      {
-        // Logic may have hidden the page the respondent is standing on, and a listener
-        // must never see a page that no longer exists.
-        beforeAnnounce: () => {
-          this.#pages.clampToVisible();
-        },
-        value: (event) => {
-          this.onValueChanged.emit(event);
-        },
-        elementState: (event) => {
-          this.onElementStateChanged.emit(event);
-        },
+    this.#logic = createSurveyLogic(this, this.#answers, options, {
+      clampPages: () => {
+        this.#pages.clampToVisible();
       },
-      (name, value) => this.#writeValue(name, value),
-    );
-    // Inside the settle, so nobody ever sees the moment where the question has gone
-    // and its answer has not — and recomputed against, because something may have been
-    // reading the answer that just disappeared.
-    this.#logic.setAfterSettle(() => {
-      clearHiddenAnswers(this, (name) => {
-        // The ordinary write path: nested inside the settle that hid the question, so
-        // it buffers rather than announcing, and whatever read the answer recomputes.
-        this.setValue(name, undefined);
-      });
+      writeValue: (name, value) => this.#writeValue(name, value),
     });
   }
 
@@ -125,12 +107,6 @@ export class Survey extends SurveyProperties implements ValueHost {
     this.#logic.configure(options);
   }
 
-  /**
-   * Supplies the loader for `choicesLazyLoadEnabled`, on the same terms.
-   *
-   * Set before logic first runs, because a lazily-paged question asks for its first
-   * page as soon as it is registered.
-   */
   /**
    * Evaluates an expression against the current answers.
    *
@@ -318,17 +294,12 @@ export class Survey extends SurveyProperties implements ValueHost {
     return collectPreviewQuestions(this);
   }
 
+  // The end of the last page is where a preview belongs — after the gate that checks it,
+  // so a respondent never reviews answers the survey is about to refuse.
   #advance(): void {
-    if (this.#pages.nextPage()) {
-      return;
+    if (!this.#pages.nextPage()) {
+      this.#status.finish(this.showPreviewBeforeComplete);
     }
-    // The end of the last page is where a preview belongs — after the gate that checks
-    // it, so a respondent never reviews answers the survey is about to refuse.
-    if (this.showPreviewBeforeComplete === 'noPreview' || this.#status.isPreviewing) {
-      this.complete();
-      return;
-    }
-    this.#status.enterPreview();
   }
 
   /** Navigates to a page by name, or to the page owning the named question. */
@@ -416,6 +387,27 @@ export class Survey extends SurveyProperties implements ValueHost {
    */
   get timer(): SurveyTimer {
     return this.#timer;
+  }
+
+  /**
+   * The library's own words, in every locale registered for this survey — checklist J2.
+   *
+   * Per survey rather than per process: a host serving two tenants should be able to
+   * give them different wording without either seeing the other's.
+   */
+  get strings(): StringDictionary {
+    return this.localeScope.strings;
+  }
+
+  /**
+   * Switches language.
+   *
+   * Not a property write: the definition records the locale the survey was *authored*
+   * for, and which one a respondent is reading it in is no more part of the definition
+   * than which page they are on. Serialization is unaffected, deliberately.
+   */
+  setLocale(locale: string): void {
+    applyLocale(this, locale);
   }
 
   /** Loading, empty, running or completed — and the markup that goes with each. */

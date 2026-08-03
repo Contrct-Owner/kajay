@@ -21,6 +21,7 @@ import { useAutoFocus } from './useAutoFocus.js';
 import { useErrorFocus } from './useErrorFocus.js';
 import {
   useSurveyCurrentPageNo,
+  useSurveyLocale,
   useSurveyLogicState,
   useSurveyStatus,
 } from './useSurveyState.js';
@@ -159,6 +160,9 @@ export function Survey({
   useSurveyLogicState(model);
   // And again for navigation, which moves for reasons logic knows nothing about.
   const currentPageNo = useSurveyCurrentPageNo(model);
+  // And once more for the language, which changes every string on screen at once — the
+  // one change where re-rendering everything is cheaper than subscribing per question.
+  useSurveyLocale(model);
   const { formRef, requestFocus } = useErrorFocus(model);
   useAutoFocus(model, formRef, currentPageNo);
 

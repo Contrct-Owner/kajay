@@ -28,7 +28,7 @@ export function SurveyToc({ survey }: SurveyTocProps): ReactElement | null {
   }
 
   return (
-    <nav className="kajay-toc" aria-label="Survey pages">
+    <nav className="kajay-toc" aria-label={survey.uiText('tableOfContents')}>
       <ol className="kajay-toc__list">
         {survey.visiblePages.map((page, index) => (
           <li key={page.name}>

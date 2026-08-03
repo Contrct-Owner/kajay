@@ -23,10 +23,10 @@ export class AnswerCountValidator extends Validator {
     const count = toArray(value).length;
     const { minCount, maxCount } = this;
     if (minCount !== undefined && count < minCount) {
-      return this.fail(`Please select at least ${String(minCount)} options.`);
+      return this.fail(this.uiText('selectMin', minCount));
     }
     if (maxCount !== undefined && count > maxCount) {
-      return this.fail(`Please select no more than ${String(maxCount)} options.`);
+      return this.fail(this.uiText('selectMax', maxCount));
     }
     return undefined;
   }

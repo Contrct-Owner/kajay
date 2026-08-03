@@ -1,6 +1,9 @@
 import { collectEndpointDiagnostics } from '../model/endpoints.js';
 import { FileQuestion } from '../model/FileQuestion.js';
 import { RepeatingQuestion } from '../model/RepeatingQuestion.js';
+import { StringDictionary } from '../strings/StringDictionary.js';
+import { isLocalizedText } from '../model/localizedText.js';
+import type { LocaleScope } from '../model/localizedText.js';
 import { ROW_SCOPE } from '../model/matrixCells.js';
 import { SelectQuestion } from '../model/SelectQuestion.js';
 import type { ChildCollectionDescriptor } from '../metadata/ClassDescriptor.js';
@@ -26,6 +29,15 @@ const TYPE_PROPERTY = 'type';
 interface ReadContext {
   readonly registry: MetadataRegistry;
   readonly diagnostics: Diagnostic[];
+  /**
+   * The one locale holder every element in this survey shares — checklist J1.
+   *
+   * Handed out here rather than walked in afterwards because this is the only place
+   * that sees *every* element: choices, validators, matrix columns and multiple-text
+   * items are all created down this path, and a walk would have to know about each
+   * collection separately and be wrong about the next one.
+   */
+  readonly locale: LocaleScope;
 }
 
 function isJsonObject(value: unknown): value is Record<string, unknown> {
@@ -88,7 +100,7 @@ export function parseSurvey(
   }
   assertSupportedSchemaVersion(definition);
 
-  const context: ReadContext = { registry, diagnostics: [] };
+  const context: ReadContext = { registry, diagnostics: [], locale: { locale: '', strings: new StringDictionary() } };
   const root = readElement(definition, 'survey', '', context, [SCHEMA_VERSION_PROPERTY]);
   if (!(root instanceof Survey)) {
     throw new TypeError('The root of a definition must deserialize to a survey.');
@@ -98,6 +110,11 @@ export function parseSurvey(
   // afterwards would be too late for it. Conditions can only be registered once the
   // whole tree exists, so this runs here rather than as elements are added.
   root.configure(options);
+  // The authored locale, applied before anything reads a string. Through `setLocale` so
+  // there is one path a locale can arrive by, and so a definition that names one is
+  // indistinguishable from a host that switched to it.
+  const authored = root.getResolvedProperty('locale');
+  root.setLocale(typeof authored === 'string' ? authored : '');
   // Before the first logic run, because a cell's conditions are registered as the tree
   // is walked and a matrix with no cells yet would be walked as an empty one.
   attachRepeatingCells(root, registry);
@@ -167,6 +184,7 @@ function readElement(
   reservedKeys: readonly string[],
 ): SurveyElement {
   const element = context.registry.createInstance(className);
+  element.setLocaleScope(context.locale);
   const properties = context.registry.getProperties(className);
   const childCollections = context.registry.getChildCollections(className);
 
@@ -214,6 +232,13 @@ function readProperty(
         'verbatim and will round-trip unchanged.',
       path: `${path}/${key}`,
     });
+    return;
+  }
+
+  if (descriptor.isLocalizable && isLocalizedText(value)) {
+    // Stored as authored. Resolving it here would flatten the survey to one language
+    // the first time it was read, and the round trip would come back monolingual.
+    element.setPropertyValue(key, value);
     return;
   }
 

@@ -39,6 +39,15 @@ export function useDemoSurvey(): DemoSurvey {
       clearFiles,
     });
     first.survey.validation.setServerValidator(validateOnServer);
+    // A language the library does not ship, registered by the host — checklist J2. Only
+    // the strings this demo shows off; everything else falls back to English, which is
+    // what makes a partial translation usable rather than broken.
+    first.survey.strings.register('cy', {
+      nextPage: 'Nesaf',
+      prevPage: 'Blaenorol',
+      complete: 'Gorffen',
+      requiredAnswer: 'Mae angen ateb ar y cwestiwn hwn.',
+    });
     const saved = readSavedProgress();
     if (saved !== undefined) {
       // Before anything renders, so the respondent never sees the first page flash past

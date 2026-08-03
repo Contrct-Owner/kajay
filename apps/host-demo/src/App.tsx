@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { CheckTimeline } from './CheckTimeline.js';
 import { DefinitionPanels } from './DefinitionPanels.js';
+import { DesignerToolbox } from './DesignerToolbox.js';
 import { EventLog } from './EventLog.js';
 import { renderEmphasis } from './renderEmphasis.js';
 import { LocalePicker } from './LocalePicker.js';
@@ -41,6 +42,9 @@ export function App(): ReactElement {
 
       {/* The typed event surface, heard the way a host hears it — checklist A7. */}
       <EventLog model={model} />
+
+      {/* Phase 3 begins: the Creator's first piece, driven by the host — checklist K1. */}
+      <DesignerToolbox theme={variablesFor(theme)} />
 
       <DefinitionPanels
         data={data}

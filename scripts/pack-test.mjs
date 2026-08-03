@@ -159,7 +159,7 @@ try {
   globalRegistry,
   type SurveyDefinition,
 } from '@kajay/core';
-import { listToolboxItems } from '@kajay/creator-core';
+import { Toolbox } from '@kajay/creator-core';
 import { lightTheme } from '@kajay/themes';
 import {
   defaultPageElementRenderers,
@@ -189,8 +189,12 @@ if (!first.diagnostics.some((d) => d.code === 'unknown-property')) {
 if (!globalRegistry.hasClass('text')) {
   throw new Error('Built-in types are not registered.');
 }
-if (listToolboxItems().length === 0) {
+const toolbox = new Toolbox();
+if (toolbox.items.length === 0) {
   throw new Error('Toolbox derived no items from the registry.');
+}
+if (!toolbox.categories.some((category) => category.name === 'Choice')) {
+  throw new Error('Toolbox categories did not survive packaging.');
 }
 if (!defaultPageElementRenderers.has('text')) {
   throw new Error('Default renderers are missing the text question.');

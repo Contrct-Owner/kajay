@@ -503,9 +503,69 @@
   align-items: flex-start;
 }
 
+/* --- Creator: the toolbox (K1) -------------------------------------------
+ *
+ * The Creator's chrome is styled by the same tokens as the survey, so a host theming
+ * one has already themed the other (ADR-0022). A host who wants their own components
+ * rather than their own colours replaces the primitives instead, and these rules stop
+ * applying to what they supplied — which is the point.
+ */
 .kajay-toolbox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kajay-spacing);
+  font-family: var(--kajay-font-family);
+  color: var(--kajay-color-text);
+}
+
+.kajay-toolbox__search {
+  padding: calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+}
+
+.kajay-toolbox__category {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 4);
+}
+
+.kajay-toolbox__category-title {
   margin: 0;
-  padding-inline-start: var(--kajay-spacing);
+  color: var(--kajay-color-muted);
+  font-size: 0.8125em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kajay-toolbox__list {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kajay-toolbox__button {
+  width: 100%;
+  padding: calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+  /* Start, not left: the Creator mirrors with the survey (J3). */
+  text-align: start;
+  cursor: pointer;
+}
+
+.kajay-toolbox__empty {
+  margin: 0;
+  color: var(--kajay-color-muted);
 }
 
 /* --- multipletext -------------------------------------------------------- */

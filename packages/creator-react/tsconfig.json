@@ -10,5 +10,5 @@
     "tsBuildInfoFile": "../../.tsbuild/creator-react.tsbuildinfo"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "references": [{ "path": "../creator-core" }, { "path": "../react" }]
+  "references": [{ "path": "../core" }, { "path": "../creator-core" }, { "path": "../react" }]
 }

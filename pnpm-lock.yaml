@@ -83,6 +83,12 @@ importers:
       '@kajay/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@kajay/creator-core':
+        specifier: workspace:*
+        version: link:../../packages/creator-core
+      '@kajay/creator-react':
+        specifier: workspace:*
+        version: link:../../packages/creator-react
       '@kajay/react':
         specifier: workspace:*
         version: link:../../packages/react
@@ -106,6 +112,9 @@ importers:
 
   packages/creator-react:
     dependencies:
+      '@kajay/core':
+        specifier: workspace:*
+        version: link:../core
       '@kajay/creator-core':
         specifier: workspace:*
         version: link:../creator-core

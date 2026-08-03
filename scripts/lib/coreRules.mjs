@@ -8,6 +8,14 @@ import { importSpecifiers, stripComments } from './workspace.mjs';
 // `EventTarget` earns its place here: a lint rule actively recommends it over our own
 // emitter, and taking that advice would drag the DOM lib into a core package. See
 // ADR-0013.
+//
+// Sharp edge, met once and worth knowing about: comments are stripped before this runs
+// but **string literals are not**, so a core package cannot use these words in prose
+// either — `keywords: ['document']` in the Creator's toolbox tripped it. Left as is on
+// purpose. Stripping strings would mean skipping regex literals correctly to avoid
+// swallowing a real reference, and a checker that misses a violation is worse than one
+// that occasionally objects to a word. Rename the string; if this bites a second time,
+// fix it properly rather than working around it again.
 const DOM_GLOBALS = [
   'document',
   'window',

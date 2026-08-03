@@ -13,6 +13,8 @@
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "references": [
     { "path": "../../packages/core" },
+    { "path": "../../packages/creator-core" },
+    { "path": "../../packages/creator-react" },
     { "path": "../../packages/react" },
     { "path": "../../packages/themes" }
   ]

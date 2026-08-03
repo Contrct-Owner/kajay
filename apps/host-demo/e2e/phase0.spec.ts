@@ -115,8 +115,8 @@ test('parity/B7-triggers', async ({ page }) => {
 });
 
 test('parity/C3-C4-select-questions', async ({ page }) => {
-  await page.getByLabel('engineering').check();
-  await page.getByLabel('design').check();
+  await page.getByLabel('engineering', { exact: true }).check();
+  await page.getByLabel('design', { exact: true }).check();
   await expect(page.getByTestId('survey-data')).toContainText('"engineering"');
 
   // `none` is exclusive: choosing it clears the rest.
@@ -126,9 +126,9 @@ test('parity/C3-C4-select-questions', async ({ page }) => {
 });
 
 test('parity/B3-visible-if-choice', async ({ page }) => {
-  await expect(page.getByLabel('management')).toHaveCount(0);
+  await expect(page.getByLabel('management', { exact: true })).toHaveCount(0);
   await page.getByLabel('Manager').check();
-  await expect(page.getByLabel('management')).toBeVisible();
+  await expect(page.getByLabel('management', { exact: true })).toBeVisible();
 });
 
 test('parity/B10-rest-choices', async ({ page }) => {
@@ -181,15 +181,15 @@ test('parity/B9-carry-forward-choices', async ({ page }) => {
   // The source question is a page back: carry-forward reaches across pages, which is
   // exactly the case a single-page demo could not have shown.
   await page.getByRole('button', { name: 'Previous' }).click();
-  await page.getByLabel('engineering').check();
-  await page.getByLabel('design').check();
+  await page.getByLabel('engineering', { exact: true }).check();
+  await page.getByLabel('design', { exact: true }).check();
   await gotoLogicShowcase(page);
   await expect(primary.locator('option')).toHaveCount(3);
   await expect(primary).toContainText('engineering');
 
   // Deselecting upstream withdraws the option here.
   await page.getByRole('button', { name: 'Previous' }).click();
-  await page.getByLabel('design').uncheck();
+  await page.getByLabel('design', { exact: true }).uncheck();
   await gotoLogicShowcase(page);
   await expect(primary.locator('option')).toHaveCount(2);
 });
@@ -207,7 +207,7 @@ test('parity/B7-trigger-runexpression', async ({ page }) => {
 
 test('parity/B7-trigger-copyvalue', async ({ page }) => {
   await page.getByLabel(/What is your name\?/u).fill('Ada Lovelace');
-  await page.getByLabel('engineering').check();
+  await page.getByLabel('engineering', { exact: true }).check();
   await gotoLogicShowcase(page);
   await page.getByLabel('Which topic matters most?').selectOption('engineering');
 

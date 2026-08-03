@@ -21,6 +21,7 @@
     "dist"
   ],
   "dependencies": {
+    "@kajay/core": "workspace:*",
     "@kajay/creator-core": "workspace:*",
     "@kajay/react": "workspace:*"
   },

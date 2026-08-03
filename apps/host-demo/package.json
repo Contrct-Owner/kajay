@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@kajay/core": "workspace:*",
+    "@kajay/creator-core": "workspace:*",
+    "@kajay/creator-react": "workspace:*",
     "@kajay/react": "workspace:*",
     "@kajay/themes": "workspace:*",
     "react": "catalog:",

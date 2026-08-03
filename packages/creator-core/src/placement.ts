@@ -114,3 +114,24 @@ function insertAt(
 function createElement(item: ToolboxItem, taken: ReadonlySet<string>): SurveyDefinition {
   return { type: item.type, ...item.defaults, name: uniqueName(item.type, taken) };
 }
+
+/**
+ * What to select once the placement has landed.
+ *
+ * The thing that was just placed, in both cases. A designer who drops a question wants
+ * to name it next, and one who moves a question has not stopped working on it — leaving
+ * the selection where it was would make the very next keystroke edit the wrong element.
+ *
+ * A new element's name is read back out of the edited definition rather than predicted,
+ * because {@link applyPlacement} is what decides it.
+ */
+export function placedName(
+  source: PlacementSource,
+  after: SurveyDefinition,
+  slot: DropSlot,
+): string | undefined {
+  if (source.kind === 'move') {
+    return source.name;
+  }
+  return nameOf(listOf(after, slot.list)?.[slot.index] ?? {});
+}

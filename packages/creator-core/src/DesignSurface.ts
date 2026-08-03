@@ -1,4 +1,4 @@
-import { EventEmitter, isLocalizedText, parseSurvey, serializeSurvey } from '@kajay/core';
+import { EventEmitter, isLocalizedText } from '@kajay/core';
 import type {
   Diagnostic,
   MetadataRegistry,
@@ -8,13 +8,28 @@ import type {
   SurveyDefinition,
   SurveyElement,
 } from '@kajay/core';
-import { listOf, nameOf } from './definitionTree.js';
-import { addPage, pageAfterRemoving, removePage } from './pageEdits.js';
-import { applyPlacement, canPlace, dropSlotsFor } from './placement.js';
+import { nameOf } from './definitionTree.js';
+import { SurveyDocument } from './SurveyDocument.js';
+import { UndoHistory } from './UndoHistory.js';
+import type { HistorySnapshot } from './UndoHistory.js';
+import { addPageTo, placeOn, removePageFrom } from './designerEdits.js';
+import { canPlace, dropSlotsFor } from './placement.js';
 import type { DropSlot, PlacementSource } from './placement.js';
 
 /** The one place a title is written, so the key it lands under is decided once. */
 const DEFAULT_LOCALE_KEY = 'default';
+
+/** What an edit wants restored once its definition has been parsed. */
+export interface EditOptions {
+  /** The element or page to select. Nothing, by default. */
+  readonly select?: string | undefined;
+  /** The page to show. The one already open, by default. */
+  readonly goTo?: string | undefined;
+  /** Edits sharing a key coalesce into one undo entry — see {@link UndoHistory}. */
+  readonly undoKey?: string | undefined;
+  /** The definition being replaced, when the caller has already computed it. */
+  readonly from?: SurveyDefinition | undefined;
+}
 
 export interface DesignSurfaceOptions {
   readonly definition: SurveyDefinition;
@@ -39,37 +54,24 @@ export interface DesignSurfaceOptions {
  * will wrap. Scattered setters would mean finding them all later, and missing one.
  */
 export class DesignSurface {
-  readonly #registry: MetadataRegistry | undefined;
-  #survey: Survey;
-  #diagnostics: readonly Diagnostic[];
+  readonly #document: SurveyDocument;
   #selected: SurveyElement | undefined;
   #version = 0;
+  readonly #history: UndoHistory = new UndoHistory();
 
   readonly onChanged: EventEmitter<number> = new EventEmitter();
 
   constructor(options: DesignSurfaceOptions) {
-    this.#registry = options.registry;
-    const parsed = this.#parse(options.definition);
-    this.#survey = parsed.survey;
-    this.#diagnostics = parsed.diagnostics;
-  }
-
-  #parse(definition: SurveyDefinition): { survey: Survey; diagnostics: readonly Diagnostic[] } {
-    const parsed = parseSurvey(definition, this.#registry);
-    // A survey on a canvas is being built, not answered. Design mode is runtime state
-    // rather than the `readOnly` property, so opening a definition in the Creator does
-    // not stamp it with a flag the author never wrote.
-    parsed.survey.setDesignMode(true);
-    return parsed;
+    this.#document = new SurveyDocument(options.definition, options.registry);
   }
 
   get survey(): Survey {
-    return this.#survey;
+    return this.#document.survey;
   }
 
   /** What was wrong with the definition it was given. Never thrown away silently. */
   get diagnostics(): readonly Diagnostic[] {
-    return this.#diagnostics;
+    return this.#document.diagnostics;
   }
 
   /**
@@ -85,7 +87,7 @@ export class DesignSurface {
 
   /** The page a designer is looking at. {@link goToPage} changes it. */
   get page(): Page | undefined {
-    return this.#survey.currentPage;
+    return this.#document.page;
   }
 
   get selected(): SurveyElement | undefined {
@@ -115,6 +117,10 @@ export class DesignSurface {
     if (this.#selected === element) {
       return;
     }
+    // The designer's attention has moved. Without this, renaming a question, going away
+    // and coming back to rename it again would be one undo, because the key had not
+    // changed in between.
+    this.#history.breakRun();
     this.#selected = element;
     this.#announce();
   }
@@ -131,21 +137,24 @@ export class DesignSurface {
    */
   setTitle(element: PageElement | Page, title: string): void {
     const current = element.getPropertyValue('title');
+    // Every keystroke arrives here, and they coalesce into one undo entry (K6): giving
+    // a rename back one letter at a time is not what anybody means by undoing it.
+    const undoKey = `title:${element.name}`;
     if (isLocalizedText(current)) {
-      const key = this.#survey.locale.length > 0 ? this.#survey.locale : DEFAULT_LOCALE_KEY;
+      const key = this.survey.locale.length > 0 ? this.survey.locale : DEFAULT_LOCALE_KEY;
       this.change(() => {
         element.setPropertyValue('title', { ...current, [key]: title });
-      });
+      }, undoKey);
       return;
     }
     this.change(() => {
       element.setPropertyValue('title', title);
-    });
+    }, undoKey);
   }
 
   /** The canonical JSON of what is on the canvas right now — ADR-0002's round trip. */
   get definition(): SurveyDefinition {
-    return serializeSurvey(this.#survey, this.#registry);
+    return this.#document.definition;
   }
 
   /** Every position a drop could land in on the page being designed — checklist K2. */
@@ -158,12 +167,12 @@ export class DesignSurface {
 
   /** Every position a page could be dragged to — checklist K4. */
   get pageSlots(): readonly DropSlot[] {
-    return dropSlotsFor({ of: 'pages' }, this.#survey.pages.length);
+    return dropSlotsFor({ of: 'pages' }, this.pages.length);
   }
 
   /** The pages a designer can switch between. */
   get pages(): readonly Page[] {
-    return this.#survey.pages;
+    return this.#document.pages;
   }
 
   /**
@@ -178,71 +187,49 @@ export class DesignSurface {
     if (this.page?.name === name) {
       return;
     }
-    this.#survey.goTo(name);
+    // Navigating is not an edit, so it records nothing — but the designer's attention
+    // has moved, so whatever was coalescing has ended.
+    this.#history.breakRun();
+    this.#document.replace(this.definition, name);
     this.#selected = undefined;
     this.#announce();
   }
 
-  /**
-   * Adds an empty page at the end and moves to it — checklist K4.
-   *
-   * Moving to it is the whole point of the button: a designer adds a page in order to put
-   * something on it, and one that appeared somewhere off-screen would need finding first.
-   */
+  /** Adds an empty page at the end and moves to it — checklist K4. */
   addPage(): void {
-    const after = addPage(this.definition);
-    const created = after['pages'];
-    const name = Array.isArray(created) ? nameOf(created.at(-1)) : undefined;
-    this.#reparse(after, undefined, name);
+    addPageTo(this);
+  }
+
+  /** Removes a page and everything on it — checklist K4. Says whether it was there. */
+  removePage(name: string): boolean {
+    return removePageFrom(this, name);
+  }
+
+  /** Puts a new element, or an existing one, at a slot — checklist K2 and K4. */
+  place(source: PlacementSource, slot: DropSlot): boolean {
+    return placeOn(this, source, slot);
   }
 
   /**
-   * Removes a page and everything on it — checklist K4.
+   * Swaps in an edited definition, remembering the state it replaced — K6.
    *
-   * Returns whether anything happened. The canvas lands on the page that took its place,
-   * or the one before it when the last page went — never on nothing while a page remains.
+   * **The chokepoint for every structural edit**, and public because K5 and a host will
+   * both have edits this class does not name. `change` is its counterpart for edits that
+   * mutate the model in place; between them nothing reaches the survey unrecorded.
+   *
+   * The caller has already produced the new definition, which is
+   * [ADR-0009](../../../docs/adr/0009-creator-drag-and-drop.md) decision 3 working as
+   * intended: what an edit *means* is a pure function from one definition to another,
+   * and this is only the part that cannot be pure.
    */
-  removePage(name: string): boolean {
-    const before = this.definition;
-    const after = removePage(before, name);
-    if (after === before) {
-      return false;
-    }
-    if (this.page?.name === name) {
-      this.#reparse(after, undefined, pageAfterRemoving(before, name));
-      return true;
-    }
-    // Deleting a page the designer is not looking at moves them nowhere. Relocating
-    // unconditionally sent them off the page they were working on because a *different*
-    // one had been tidied up.
-    this.#reparse(after, undefined, this.page?.name);
-    return true;
+  applyEdit(definition: SurveyDefinition, options: EditOptions = {}): void {
+    this.#record(options.from ?? this.definition, options.undoKey);
+    this.#reparse(definition, options.select, options.goTo ?? this.page?.name);
   }
 
   /** Whether this placement would change anything. What a drop indicator is drawn from. */
   canPlace(source: PlacementSource, slot: DropSlot): boolean {
     return canPlace(this.definition, source, slot);
-  }
-
-  /**
-   * Puts a new element, or an existing one, at a slot — checklist K2.
-   *
-   * **The whole survey is re-parsed** ([ADR-0009](../../../docs/adr/0009-creator-drag-and-drop.md)
-   * decision 3). Creating an element correctly means a name nothing else has taken, a
-   * value host, layout and a place in the logic graph, and that is what `parseSurvey`
-   * does — assembling one by hand against a live model is how the Creator learns to
-   * build surveys the parser would never produce.
-   *
-   * Returns whether anything happened, so a caller can leave a refused drop unspoken.
-   */
-  place(source: PlacementSource, slot: DropSlot): boolean {
-    const before = this.definition;
-    const after = applyPlacement(before, source, slot);
-    if (after === before) {
-      return false;
-    }
-    this.#reparse(after, placedName(source, after, slot), this.page?.name);
-    return true;
   }
 
   /**
@@ -259,12 +246,7 @@ export class DesignSurface {
     selectedName: string | undefined,
     goToPage: string | undefined,
   ): void {
-    const parsed = this.#parse(definition);
-    this.#survey = parsed.survey;
-    this.#diagnostics = parsed.diagnostics;
-    if (goToPage !== undefined) {
-      this.#survey.goTo(goToPage);
-    }
+    this.#document.replace(definition, goToPage);
     this.#selected = this.#resolve(selectedName);
     this.#announce();
   }
@@ -282,8 +264,59 @@ export class DesignSurface {
     }
     return (
       this.page?.elements.find((element) => element.name === name) ??
-      this.#survey.pages.find((page) => page.name === name)
+      this.pages.find((page) => page.name === name)
     );
+  }
+
+  get canUndo(): boolean {
+    return this.#history.canUndo;
+  }
+
+  get canRedo(): boolean {
+    return this.#history.canRedo;
+  }
+
+  /**
+   * Takes back the last edit — checklist K6.
+   *
+   * Returns whether there was one. Undo is a re-parse of a definition this class kept,
+   * which is the return on [ADR-0009](../../../docs/adr/0009-creator-drag-and-drop.md)
+   * decision 3: no operation has to know how to invert itself, so no future operation
+   * can forget to.
+   */
+  undo(): boolean {
+    return this.#travel(this.#history.undo(this.#snapshot()));
+  }
+
+  /** Puts back what {@link undo} took — checklist K6. */
+  redo(): boolean {
+    return this.#travel(this.#history.redo(this.#snapshot()));
+  }
+
+  #travel(snapshot: HistorySnapshot | undefined): boolean {
+    if (snapshot === undefined) {
+      return false;
+    }
+    this.#reparse(snapshot.definition, snapshot.selected, snapshot.page);
+    return true;
+  }
+
+  /**
+   * Remembers the state an edit is about to change.
+   *
+   * The definition is passed in rather than read, because every caller has just
+   * computed it — serializing a whole survey twice per drop is a real cost for nothing.
+   */
+  #record(definition: SurveyDefinition, undoKey?: string): void {
+    this.#history.record(this.#snapshot(definition), undoKey);
+  }
+
+  #snapshot(definition: SurveyDefinition = this.definition): HistorySnapshot {
+    return {
+      definition,
+      page: this.page?.name,
+      selected: nameOf({ name: this.#selected?.getPropertyValue('name') }),
+    };
   }
 
   /**
@@ -293,7 +326,8 @@ export class DesignSurface {
    * class does not name, and the alternative is either a method per operation or a
    * mutation nobody hears about. What matters is that *every* change comes through here.
    */
-  change(edit: () => void): void {
+  change(edit: () => void, undoKey?: string): void {
+    this.#record(this.definition, undoKey);
     edit();
     this.#announce();
   }
@@ -304,24 +338,4 @@ export class DesignSurface {
   }
 }
 
-/**
- * What to select once the placement has landed.
- *
- * The thing that was just placed, in both cases. A designer who drops a question wants
- * to name it next, and one who moves a question has not stopped working on it — leaving
- * the selection where it was would make the very next keystroke edit the wrong element.
- *
- * A new element's name is read back out of the edited definition rather than predicted,
- * because {@link applyPlacement} is what decides it.
- */
-function placedName(
-  source: PlacementSource,
-  after: SurveyDefinition,
-  slot: DropSlot,
-): string | undefined {
-  if (source.kind === 'move') {
-    return source.name;
-  }
-  return nameOf(listOf(after, slot.list)?.[slot.index] ?? {});
-}
 

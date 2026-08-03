@@ -6,6 +6,10 @@
 
 export { DesignSurfacePanel } from './DesignSurfacePanel.js';
 export type { DesignSurfacePanelProps } from './DesignSurfacePanel.js';
+export { HistoryPanel } from './HistoryPanel.js';
+export type { HistoryPanelProps } from './HistoryPanel.js';
+export { historyShortcut, isTextEntry } from './historyShortcut.js';
+export type { HistoryIntent, HistoryKey } from './historyShortcut.js';
 export { PageNavigatorPanel } from './PageNavigatorPanel.js';
 export type { PageNavigatorPanelProps } from './PageNavigatorPanel.js';
 export { ToolboxPanel } from './ToolboxPanel.js';

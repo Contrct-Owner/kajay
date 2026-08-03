@@ -1,5 +1,5 @@
 import { DesignSurface, Toolbox } from '@kajay/creator-core';
-import { PageNavigatorPanel, useDesignerPlacement } from '@kajay/creator-react';
+import { HistoryPanel, PageNavigatorPanel, useDesignerPlacement } from '@kajay/creator-react';
 import { useMemo } from 'react';
 import type { ReactElement } from 'react';
 import { DesignerSurface } from './DesignerSurface.js';
@@ -68,6 +68,7 @@ export function Designer({ theme }: DesignerProps): ReactElement {
         getItemProps={placement.getItemProps}
       />
       <DesignerSurface theme={theme} surface={surface} placement={placement}>
+        <HistoryPanel surface={surface} />
         <PageNavigatorPanel surface={surface} placement={placement} />
       </DesignerSurface>
     </>

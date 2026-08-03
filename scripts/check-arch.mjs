@@ -9,7 +9,7 @@
 import { readFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { checkCorePackageRules } from './lib/coreRules.mjs';
+import { checkCorePackageRules, assertDomRuleWorks } from './lib/coreRules.mjs';
 import { readJsonc } from './lib/readJsonc.mjs';
 import {
   importSpecifiers,
@@ -44,6 +44,11 @@ const ALLOWED_EXPORT_KEYS = {
   default: new Set(['.', './package.json']),
   '@kajay/themes': new Set(['.', './package.json', './styles.css', './themes/*.css']),
 };
+
+// The DOM-free rule carries a carve-out, so it is checked against known samples before
+// it is trusted against the source. A matcher that had quietly stopped matching would
+// otherwise report a clean run.
+assertDomRuleWorks();
 
 const violations = [];
 

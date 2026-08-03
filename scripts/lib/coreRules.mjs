@@ -9,13 +9,17 @@ import { importSpecifiers, stripComments } from './workspace.mjs';
 // emitter, and taking that advice would drag the DOM lib into a core package. See
 // ADR-0013.
 //
-// Sharp edge, met once and worth knowing about: comments are stripped before this runs
-// but **string literals are not**, so a core package cannot use these words in prose
-// either — `keywords: ['document']` in the Creator's toolbox tripped it. Left as is on
-// purpose. Stripping strings would mean skipping regex literals correctly to avoid
-// swallowing a real reference, and a checker that misses a violation is worse than one
-// that occasionally objects to a word. Rename the string; if this bites a second time,
-// fix it properly rather than working around it again.
+// Sharp edge, worth knowing about: comments are stripped before this runs but **string
+// literals are not**, so a core package cannot use these words in prose either —
+// `keywords: ['document']` in the Creator's toolbox tripped it. Left as is on purpose.
+// Stripping strings would mean skipping regex literals correctly to avoid swallowing a
+// real reference, and a checker that misses a violation is worse than one that
+// occasionally objects to a word. Rename the string.
+//
+// A **private field** is a different matter and is excluded below rather than renamed
+// around. `this.#document` cannot be the DOM global — `#` only ever begins a private
+// member — so matching it was the checker being wrong, not the code. That is precise
+// enough to fix; the string-literal case is not.
 const DOM_GLOBALS = [
   'document',
   'window',
@@ -44,10 +48,36 @@ const CORE_LAYERS = [
   { dir: 'logic', mayNotImport: ['model', 'serialization'] },
 ];
 
+/**
+ * Proves the DOM matcher still bites, every run.
+ *
+ * The pattern has a carve-out — a private field cannot be the DOM global — and a
+ * carve-out that grew by one character would silently stop the rule catching anything.
+ * Cheaper to assert than to find out from a core package that shipped with a `document`
+ * in it, and it runs on every gate rather than living in a script nobody executes.
+ */
+export function assertDomRuleWorks() {
+  const cases = [
+    { code: 'const probe = document;', caught: true },
+    { code: 'if (window.x) {}', caught: true },
+    { code: 'class A { #document; use() { return this.#document; } }', caught: false },
+    { code: 'class A { readonly documentation = 1; }', caught: false },
+  ];
+  for (const { code, caught } of cases) {
+    const found = [];
+    checkDomFree(code, 'self-check', 'self-check', (_rule, _location, detail) =>
+      found.push(detail),
+    );
+    if (found.length > 0 !== caught) {
+      throw new Error(`The DOM-free rule has stopped working: ${code}`);
+    }
+  }
+}
+
 function checkDomFree(source, location, packageName, fail) {
   const code = stripComments(source);
   for (const domGlobal of DOM_GLOBALS) {
-    if (new RegExp(String.raw`\b${domGlobal}\b`, 'u').test(code)) {
+    if (new RegExp(String.raw`(?<!#)\b${domGlobal}\b`, 'u').test(code)) {
       fail(
         'core-dom-free',
         location,

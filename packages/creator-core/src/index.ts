@@ -2,10 +2,13 @@
 // private, and there are no subpath entries (ADR-0010) — this file *is* the package.
 
 export { DesignSurface } from './DesignSurface.js';
-export type { DesignSurfaceOptions } from './DesignSurface.js';
+export type { DesignSurfaceOptions, EditOptions } from './DesignSurface.js';
+export { addPageTo, placeOn, removePageFrom } from './designerEdits.js';
 export { canPlace, applyPlacement, dropSlotsFor } from './placement.js';
 export type { DropSlot, PlacementSource } from './placement.js';
 export { addPage, pageAfterRemoving, removePage } from './pageEdits.js';
+export { UndoHistory } from './UndoHistory.js';
+export type { HistorySnapshot } from './UndoHistory.js';
 export type { DropList } from './definitionTree.js';
 export { Toolbox } from './Toolbox.js';
 export type { ToolboxCategory, ToolboxOptions } from './Toolbox.js';

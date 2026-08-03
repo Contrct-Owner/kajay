@@ -3,6 +3,7 @@ import { defaultPageElementRenderers, PageElementSlot } from '@kajay/react';
 import type { PageElementRendererRegistry } from '@kajay/react';
 import type { ReactElement } from 'react';
 import { DesignedElement } from './DesignedElement.js';
+import { historyShortcut, isTextEntry } from './historyShortcut.js';
 import { PageAdorner } from './PageAdorner.js';
 import { useSurfaceVersion } from './useSurfaceVersion.js';
 import type { DesignerPlacement } from './useDesignerPlacement.js';
@@ -73,6 +74,23 @@ export function DesignSurfacePanel({
       onClick={(event) => {
         if (event.target === event.currentTarget) {
           surface.clearSelection();
+        }
+      }}
+      // Undo is bound *here*, on the canvas, rather than on the document — a library
+      // that grabbed Ctrl+Z globally would take it from the rest of the host's
+      // application (K6). And a press inside a text field is that field's own undo:
+      // somebody mid-rename means "that letter", not "the whole rename", and the
+      // letters they typed are on no stack of ours.
+      onKeyDown={(event) => {
+        const intent = historyShortcut(event);
+        if (intent === undefined || isTextEntry(event.target)) {
+          return;
+        }
+        event.preventDefault();
+        if (intent === 'undo') {
+          surface.undo();
+        } else {
+          surface.redo();
         }
       }}
     >

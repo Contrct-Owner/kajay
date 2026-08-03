@@ -632,6 +632,33 @@
   color: var(--kajay-color-muted);
 }
 
+/* --- undo and redo (K6) -------------------------------------------------- */
+
+.kajay-history {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 2);
+  align-items: center;
+}
+
+.kajay-history__undo,
+.kajay-history__redo {
+  padding: 0 calc(var(--kajay-spacing) / 3);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Genuinely disabled, not merely read-only: there is nothing to undo, so there is
+   nothing to reach. Unlike E7's questions, no value is being hidden by this. */
+.kajay-history__undo:disabled,
+.kajay-history__redo:disabled {
+  color: var(--kajay-color-muted);
+  cursor: default;
+}
+
 /* --- the page navigator (K4) --------------------------------------------- */
 
 .kajay-pages {

@@ -2,6 +2,7 @@ import { ExpressionQuestion } from '@kajay/core';
 import type { ReactElement } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { useSurveyValue } from './useSurveyState.js';
+import { questionId } from './questionId.js';
 
 /**
  * A computed value, shown rather than asked.
@@ -20,7 +21,7 @@ export function ExpressionQuestionRenderer({
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const outputId = `kajay-question-${question.name}`;
+  const outputId = questionId(question);
   return (
     <div className="kajay-question kajay-question--expression" data-question-name={question.name}>
       <label className="kajay-question__title" htmlFor={outputId}>

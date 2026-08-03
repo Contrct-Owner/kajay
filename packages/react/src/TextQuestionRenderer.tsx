@@ -4,7 +4,8 @@ import type { ChangeEvent, ReactElement } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
-import { useSurveyValue } from './useSurveyState.js';
+import { useQuestionValue } from './useSurveyState.js';
+import { questionId } from './questionId.js';
 
 /**
  * The bounds and granularity the browser also understands.
@@ -26,8 +27,8 @@ function boundAttributes(question: Question): Record<string, string | number> {
 }
 
 export function TextQuestionRenderer({ survey, question }: QuestionRendererProps): ReactElement {
-  const value = useSurveyValue(survey, question.name);
-  const inputId = `kajay-question-${question.name}`;
+  const value = useQuestionValue(survey, question);
+  const inputId = questionId(question);
   const errorId = `${inputId}-errors`;
 
   const isTextQuestion = question instanceof TextQuestion;

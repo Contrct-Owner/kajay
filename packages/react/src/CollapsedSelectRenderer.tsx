@@ -8,6 +8,7 @@ import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
+import { questionId } from './questionId.js';
 
 function currentSelection(question: SelectQuestion): string | string[] {
   return question instanceof MultiSelectQuestion
@@ -98,7 +99,7 @@ export function CollapsedSelectRenderer({
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const inputId = `kajay-question-${question.name}`;
+  const inputId = questionId(question);
   const errorId = `${inputId}-errors`;
 
   return (

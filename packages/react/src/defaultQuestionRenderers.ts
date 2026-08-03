@@ -3,6 +3,8 @@ import { CollapsedSelectRenderer } from './CollapsedSelectRenderer.js';
 import { CommentQuestionRenderer } from './CommentQuestionRenderer.js';
 import { ExpressionQuestionRenderer } from './ExpressionQuestionRenderer.js';
 import { ImagePickerRenderer } from './ImagePickerRenderer.js';
+import { MatrixCellsRenderer } from './MatrixCellsRenderer.js';
+import { MatrixDynamicRenderer } from './MatrixDynamicRenderer.js';
 import { MatrixQuestionRenderer } from './MatrixQuestionRenderer.js';
 import { MultipleTextQuestionRenderer } from './MultipleTextQuestionRenderer.js';
 import { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
@@ -26,6 +28,8 @@ function createDefaultRenderers(): QuestionRendererRegistry {
   registry.register('imagepicker', ImagePickerRenderer);
   registry.register('ranking', RankingQuestionRenderer);
   registry.register('matrix', MatrixQuestionRenderer);
+  registry.register('matrixcells', MatrixCellsRenderer);
+  registry.register('matrixdynamic', MatrixDynamicRenderer);
   return registry;
 }
 

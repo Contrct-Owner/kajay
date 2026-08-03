@@ -3,6 +3,7 @@ import type { FormEvent, ReactElement, RefObject } from 'react';
 import { defaultQuestionRenderers } from './defaultQuestionRenderers.js';
 import { HtmlSanitizerProvider } from './HtmlSanitizerContext.js';
 import type { HtmlSanitizer } from './HtmlSanitizerContext.js';
+import { QuestionRenderersProvider } from './QuestionRenderersContext.js';
 import type { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
 import { SurveyNavigation } from './SurveyNavigation.js';
 import { SurveyPage } from './SurveyPage.js';
@@ -70,18 +71,22 @@ export function Survey({
     // is author-supplied, and a preview draws real questions.
     return (
       <HtmlSanitizerProvider sanitize={sanitizeHtml}>
-        {state === 'preview' ? (
-          <SurveyPreview survey={model} renderers={renderers} />
-        ) : (
-          <SurveyStatusPage survey={model} state={state} />
-        )}
+        <QuestionRenderersProvider renderers={renderers}>
+          {state === 'preview' ? (
+            <SurveyPreview survey={model} renderers={renderers} />
+          ) : (
+            <SurveyStatusPage survey={model} state={state} />
+          )}
+        </QuestionRenderersProvider>
       </HtmlSanitizerProvider>
     );
   }
 
   return (
     <HtmlSanitizerProvider sanitize={sanitizeHtml}>
-      <SurveyForm model={model} renderers={renderers} onErrors={requestFocus} formRef={formRef} />
+      <QuestionRenderersProvider renderers={renderers}>
+        <SurveyForm model={model} renderers={renderers} onErrors={requestFocus} formRef={formRef} />
+      </QuestionRenderersProvider>
     </HtmlSanitizerProvider>
   );
 }

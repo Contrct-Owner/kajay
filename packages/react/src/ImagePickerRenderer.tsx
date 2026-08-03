@@ -6,6 +6,7 @@ import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { readOnlyGroup, whenEditable } from './readOnly.js';
 import { useSurveyValue } from './useSurveyState.js';
+import { questionId } from './questionId.js';
 
 function tileStyle(question: ImagePickerQuestion): CSSProperties {
   return {
@@ -104,7 +105,7 @@ export function ImagePickerRenderer({ survey, question }: QuestionRendererProps)
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const groupName = `kajay-question-${question.name}`;
+  const groupName = questionId(question);
   const errorId = `${groupName}-errors`;
 
   return (

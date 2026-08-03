@@ -6,6 +6,7 @@ import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { readOnlyGroup, whenEditable } from './readOnly.js';
 import { useSurveyValue } from './useSurveyState.js';
+import { questionId } from './questionId.js';
 
 interface MatrixRowProps {
   readonly question: MatrixQuestion;
@@ -123,7 +124,7 @@ export function MatrixQuestionRenderer({ survey, question }: QuestionRendererPro
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const base = `kajay-question-${question.name}`;
+  const base = questionId(question);
   const errorId = `${base}-errors`;
   const columnId = (index: number): string => `${base}-column-${String(index)}`;
   // Only what was reported against the question as a whole: a row's own message sits

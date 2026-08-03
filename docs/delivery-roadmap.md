@@ -198,7 +198,24 @@ project keeps having to fix. That belongs beside Phase 2's other time-adjacent w
 
 **Goal:** everything a SurveyJS Form Library consumer would miss.
 
-**Progress (2026-08-02).** **F1 is green** and **D1 closed with it** — the single-select
+**Progress (2026-08-02).** **F1, F2 and F3 are green**, so the matrix family is closed
+but for detail panels (F4), row/column expressions in totals (F5) and the responsive
+rendering mode (F6). The design that made F2 and F3 one slice rather than two: **a
+column is a question and a cell is an instance of it**, built by a registry-driven copy
+and pointed at its slot through the same value-host seam a page question uses. Every
+question type therefore works inside a table — its validators, its choices, its renderer,
+a host's own replacement for its renderer — without any of them knowing a matrix exists.
+Row context (`{row.price}`) is resolved by rewriting the condition into a real path when
+the cell is built, so the dependency graph still sees statically what a cell reads.
+
+Two things outside §F moved as a result. The metadata registry gained a **`json`
+property type**: the format is JSON and `defaultRowValue` is an object, which the scalar
+`value` type could not hold — §I's theme JSON would have hit the same wall. And two
+renderer-wide defects surfaced that had been latent since Phase 1: DOM ids built from
+`question.name` (which repeats across cells) and question values read from
+`survey.getValue(name)` rather than from the question itself.
+
+**F1 landed first** and **D1 closed with it** — the single-select
 matrix is the first §F row, and its rows and columns are `itemvalue` collections rather
 than a shape of their own, which cost one generalization: conditions on a question's
 items are now something each question type declares, not a list of select-question

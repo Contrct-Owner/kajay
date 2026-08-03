@@ -1,4 +1,4 @@
-import type { Survey, SurveyState } from '@kajay/core';
+import type { Question, Survey, SurveyState } from '@kajay/core';
 import { useCallback, useSyncExternalStore } from 'react';
 
 /**
@@ -14,6 +14,29 @@ export function useSurveyValue(survey: Survey, name: string): unknown {
     [survey],
   );
   const getSnapshot = useCallback((): unknown => survey.getValue(name), [survey, name]);
+  return useSyncExternalStore(subscribe, getSnapshot);
+}
+
+/**
+ * Subscribes to one question's answer, read through the question itself.
+ *
+ * The difference from `useSurveyValue` is where the answer is looked up. A matrix cell
+ * is a question named for its column, and its answer lives inside the matrix's — so
+ * asking the *survey* for a value called `quantity` returns nothing, and a controlled
+ * input bound to that renders empty. It only looked right because React skips a DOM
+ * write when the value it last rendered has not changed; the field went blank the first
+ * time anything forced a real reconcile, which is how a row removal lost the row that
+ * survived it.
+ *
+ * `question.value` goes through the question's own value host, which is the survey for
+ * a question on a page and the matrix for a cell. One expression, right in both places.
+ */
+export function useQuestionValue(survey: Survey, question: Question): unknown {
+  const subscribe = useCallback(
+    (onStoreChange: () => void): (() => void) => survey.onValueChanged.add(onStoreChange),
+    [survey],
+  );
+  const getSnapshot = useCallback((): unknown => question.value, [question]);
   return useSyncExternalStore(subscribe, getSnapshot);
 }
 

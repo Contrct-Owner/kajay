@@ -189,6 +189,54 @@ export const questionTypes: PageDefinition = {
       ],
     },
     {
+      // Cells are questions. The column says `type`, and everything that type can do
+      // works inside the table — the dropdown's choices, the comment's rows, and a
+      // `{row.rating}` condition that means "the cell beside this one, in this row".
+      type: 'matrixcells',
+      name: 'areas',
+      title: 'How are we doing in each area?',
+      rows: [
+        { value: 'docs', text: 'Documentation' },
+        { value: 'support', text: 'Support' },
+      ],
+      columns: [
+        {
+          type: 'dropdown',
+          name: 'rating',
+          title: 'Rating',
+          placeholder: 'Choose',
+          choices: [
+            { value: 'good', text: 'Good' },
+            { value: 'poor', text: 'Poor' },
+          ],
+        },
+        {
+          type: 'comment',
+          name: 'notes',
+          title: 'What went wrong?',
+          rows: 2,
+          visibleIf: "{row.rating} = 'poor'",
+        },
+      ],
+    },
+    {
+      // The same cells, with the rows in the respondent's hands. The total is declared
+      // on the table rather than the column, because a question has no business
+      // declaring a table footer.
+      type: 'matrixdynamic',
+      name: 'expenses',
+      title: 'Anything to expense?',
+      rowTitleFormat: 'Line {0}',
+      addRowText: 'Add a line',
+      confirmDelete: true,
+      maxRowCount: 4,
+      columns: [
+        { type: 'text', name: 'what', title: 'What' },
+        { type: 'text', name: 'amount', title: 'Amount', inputType: 'number' },
+      ],
+      totals: [{ column: 'amount', kind: 'sum', format: '{0}', precision: 2 }],
+    },
+    {
       type: 'rating',
       name: 'satisfaction',
       title: 'How is it going so far?',

@@ -62,8 +62,44 @@ test('parity/F1-each-row-unique', async ({ page }) => {
   await expect(page.getByRole('status')).toContainText('You answered');
 });
 
+test('parity/F2-matrix-cells', async ({ page }) => {
+  const areas = page.getByRole('group', { name: /How are we doing in each area/u });
+  // A real dropdown, drawn by the renderer registered for `dropdown` — the column said
+  // `type`, and the cell is a question of that type like any other.
+  await areas.getByRole('combobox', { name: 'Documentation Rating' }).selectOption('poor');
+
+  // One answer, an object of objects keyed by row and then column.
+  await expect(page.getByTestId('survey-data')).toContainText('"rating": "poor"');
+
+  // The comment appears in the row that asked for it, and only there: the column's
+  // `{row.rating}` was rewritten into a real path when the cell was built.
+  await expect(areas.getByRole('textbox', { name: 'Documentation What went wrong?' })).toBeVisible();
+  await expect(areas.getByRole('textbox', { name: 'Support What went wrong?' })).toHaveCount(0);
+});
+
+test('parity/F3-matrix-dynamic', async ({ page }) => {
+  const expenses = page.getByRole('group', { name: /Anything to expense/u });
+  await expenses.getByRole('textbox', { name: 'Line 1 What' }).fill('Train fare');
+  await expenses.getByRole('spinbutton', { name: 'Line 1 Amount' }).fill('42.5');
+  await expenses.getByRole('button', { name: 'Add a line' }).click();
+  await expenses.getByRole('spinbutton', { name: 'Line 2 Amount' }).fill('7.5');
+
+  // The rows *are* the answer, so the count needs nothing stored beside them.
+  await expect(page.getByTestId('survey-data')).toContainText('"what": "Train fare"');
+  await expect(expenses.locator('[data-total-for="amount"]')).toHaveText('50.00');
+
+  // Removing asks first, in the page rather than in a native dialog.
+  await expenses.getByRole('button', { name: 'Remove' }).first().click();
+  await expenses.getByRole('button', { name: 'Remove this row?' }).click();
+
+  await expect(expenses.getByRole('spinbutton', { name: 'Line 1 Amount' })).toHaveValue('7.5');
+  await expect(expenses.locator('[data-total-for="amount"]')).toHaveText('7.50');
+});
+
 test('parity/F1-alternate-rows', async ({ page }) => {
   // A hook in the markup, not a rendering the model performs: the library ships no
   // stylesheet, and the demo's own CSS decides what shading means.
-  await expect(page.locator('table.kajay-matrix')).toHaveClass(/kajay-matrix--alternate/u);
+  await expect(
+    page.locator('[data-question-name="comparison"] table.kajay-matrix'),
+  ).toHaveClass(/kajay-matrix--alternate/u);
 });

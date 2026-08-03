@@ -72,6 +72,33 @@ body {
   background: #f2f4f7;
 }
 
+/* A cell's own title names its row and its column — "Documentation Rating" — because a
+   renderer builds its label out of it and an unnamed input is an unanswerable question.
+   On screen the two headers already say it, so the demo hides the label *visually*
+   while leaving it where a screen reader can still read it. `clip-path`, not
+   `display: none`, which would take it out of the accessibility tree as well. */
+.kajay-matrix--cells .kajay-question__title,
+.kajay-matrix--dynamic .kajay-question__title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.kajay-matrix__total {
+  font-weight: 600;
+}
+
+.kajay-matrix__add,
+.kajay-matrix__remove,
+.kajay-matrix__remove-confirm,
+.kajay-matrix__remove-cancel {
+  font: inherit;
+  padding: 2px 8px;
+}
+
 /* The check timeline: a diagnostic list, readable at a glance in a failure snapshot. */
 .host-demo__timeline {
   margin: 0;

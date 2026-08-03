@@ -122,6 +122,13 @@ export { TagboxQuestion } from './model/TagboxQuestion.js';
 export { ItemValue } from './model/ItemValue.js';
 // --- Matrix family (§F) ----------------------------------------------------
 export { MatrixQuestion, matrixRowKey } from './model/MatrixQuestion.js';
+export { MatrixCellsBase } from './model/MatrixCellsBase.js';
+export { MatrixCellsQuestion } from './model/MatrixCellsQuestion.js';
+export { MatrixDynamicQuestion } from './model/MatrixDynamicQuestion.js';
+export { MatrixTotal } from './model/MatrixTotal.js';
+export type { CellAttachment, TotalKind } from './model/matrixCells.js';
+export { copyElement } from './model/copyElement.js';
+export { scopeReferences } from './expressions/scopeReferences.js';
 export { RadiogroupQuestion } from './model/RadiogroupQuestion.js';
 export { RankingQuestion } from './model/RankingQuestion.js';
 export type { RankAreasLayout } from './model/RankingQuestion.js';

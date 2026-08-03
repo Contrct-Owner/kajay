@@ -5,6 +5,7 @@ import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
+import { questionErrorId, questionId } from './questionId.js';
 
 interface ItemFieldProps {
   readonly question: MultipleTextQuestion;
@@ -21,7 +22,7 @@ interface ItemFieldProps {
  * itself.
  */
 function ItemField({ question, item, errors }: ItemFieldProps): ReactElement {
-  const inputId = `kajay-question-${question.name}-${item.name}`;
+  const inputId = `${questionId(question)}-${item.name}`;
   const errorId = `${inputId}-errors`;
   const size = item.size > 0 ? item.size : question.itemSize;
 
@@ -82,7 +83,7 @@ export function MultipleTextQuestionRenderer({
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const errorId = `kajay-question-${question.name}-errors`;
+  const errorId = questionErrorId(question);
   const own = question.errors.filter((error) => error.path === undefined);
 
   return (

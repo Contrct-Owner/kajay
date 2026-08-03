@@ -18,6 +18,11 @@ function jsonTypeFor(type: PropertyType): string | readonly string[] {
     // A literal of whichever scalar the author wrote.
     case 'value':
       return ['string', 'number', 'boolean'];
+    // A structure the registry deliberately does not describe. Every JSON type is
+    // listed rather than the schema being left open, so a consumer generating code
+    // from the contract still gets something it can name.
+    case 'json':
+      return ['string', 'number', 'boolean', 'object', 'array', 'null'];
   }
 }
 

@@ -8,6 +8,7 @@ import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { readOnlyGroup } from './readOnly.js';
 import { useReorder } from './useReorder.js';
 import { useSurveyValue } from './useSurveyState.js';
+import { questionId } from './questionId.js';
 
 const HOW_TO_REORDER =
   'Press space to pick this up, then use the arrow keys to move it and space again to drop it.';
@@ -29,7 +30,7 @@ function rankingHeading(question: RankingQuestion): string {
  */
 function RankedList({ question }: { readonly question: RankingQuestion }): ReactElement {
   const ranked = question.rankedChoices;
-  const listId = `kajay-question-${question.name}-ranked`;
+  const listId = `${questionId(question)}-ranked`;
   const reorder = useReorder({
     itemCount: ranked.length,
     onMove: (from, to) => question.moveRanked(from, to),
@@ -109,7 +110,7 @@ function PoolChoice({
 
 /** The choices nobody has placed yet. Only `selectToRankEnabled` has one. */
 function RankingPool({ question }: { readonly question: RankingQuestion }): ReactElement {
-  const poolId = `kajay-question-${question.name}-pool`;
+  const poolId = `${questionId(question)}-pool`;
   const unranked = question.unrankedChoices;
   return (
     <div className="kajay-ranking__area" role="group" aria-labelledby={`${poolId}-heading`}>
@@ -166,7 +167,7 @@ export function RankingQuestionRenderer({ survey, question }: QuestionRendererPr
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const groupName = `kajay-question-${question.name}`;
+  const groupName = questionId(question);
   const errorId = `${groupName}-errors`;
 
   return (

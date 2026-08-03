@@ -2,6 +2,9 @@ import type { ClassMetadataDefinition } from './ClassDescriptor.js';
 
 interface MatrixTypeDefinitions {
   readonly matrix: ClassMetadataDefinition;
+  readonly matrixTotal: ClassMetadataDefinition;
+  readonly matrixCells: ClassMetadataDefinition;
+  readonly matrixDynamic: ClassMetadataDefinition;
 }
 
 /**
@@ -39,6 +42,77 @@ export const MATRIX_TYPE_DEFINITIONS: MatrixTypeDefinitions = {
     childCollections: [
       { property: 'columns', elementBaseType: 'itemvalue', shorthandProperty: 'value' },
       { property: 'rows', elementBaseType: 'itemvalue', shorthandProperty: 'value' },
+    ],
+  },
+  matrixTotal: {
+    name: 'matrixtotal',
+    properties: [
+      { name: 'column', type: 'string', isRequired: true, description: 'The column summarised.' },
+      { name: 'kind', type: 'string', description: 'sum, count, min, max or avg.' },
+      {
+        name: 'format',
+        type: 'string',
+        description: 'Template around the figure, with {0} standing for it.',
+      },
+      { name: 'precision', type: 'number', description: 'Decimal places shown.' },
+    ],
+  },
+  matrixCells: {
+    name: 'matrixcells',
+    parent: 'question',
+    childCollections: [
+      // Ordinary question definitions. A column *is* a question — what SurveyJS spells
+      // as `cellType` is simply `type` here — so a cell gets that type's properties,
+      // validators, choices and renderer without the matrix knowing any of them.
+      { property: 'columns', elementBaseType: 'question' },
+      { property: 'rows', elementBaseType: 'itemvalue', shorthandProperty: 'value' },
+      { property: 'totals', elementBaseType: 'matrixtotal' },
+    ],
+  },
+  matrixDynamic: {
+    name: 'matrixdynamic',
+    parent: 'question',
+    properties: [
+      {
+        name: 'minRowCount',
+        type: 'number',
+        description: 'Rows shown before the respondent adds any, and the floor on removal.',
+        defaultValue: 1,
+      },
+      { name: 'maxRowCount', type: 'number', description: '0 means no limit.' },
+      { name: 'allowAddRows', type: 'boolean', defaultValue: true },
+      { name: 'allowRemoveRows', type: 'boolean', defaultValue: true },
+      { name: 'addRowText', type: 'string', defaultValue: 'Add row' },
+      { name: 'removeRowText', type: 'string', defaultValue: 'Remove' },
+      {
+        name: 'confirmDelete',
+        type: 'boolean',
+        description: 'Removing a row asks first. A row can hold a lot of typing.',
+      },
+      {
+        name: 'confirmDeleteText',
+        type: 'string',
+        defaultValue: 'Remove this row?',
+      },
+      {
+        name: 'rowTitleFormat',
+        type: 'string',
+        description: 'Row header template, with {0} as the row number.',
+      },
+      {
+        name: 'defaultRowValue',
+        type: 'json',
+        description: 'Answers a new row starts with, keyed by column name.',
+      },
+      {
+        name: 'defaultValueFromLastRow',
+        type: 'boolean',
+        description: 'A new row starts as a copy of the one before it. Wins over defaultRowValue.',
+      },
+    ],
+    childCollections: [
+      { property: 'columns', elementBaseType: 'question' },
+      { property: 'totals', elementBaseType: 'matrixtotal' },
     ],
   },
 };

@@ -11,7 +11,13 @@ export { DisplayElementRenderer } from './DisplayElementRenderer.js';
 export { ExpressionQuestionRenderer } from './ExpressionQuestionRenderer.js';
 export type { HtmlSanitizer } from './HtmlSanitizerContext.js';
 export { ImagePickerRenderer } from './ImagePickerRenderer.js';
+export { MatrixCell } from './MatrixCell.js';
+export type { MatrixCellProps } from './MatrixCell.js';
+export { MatrixCellsRenderer } from './MatrixCellsRenderer.js';
+export { MatrixDynamicRenderer } from './MatrixDynamicRenderer.js';
+export { questionErrorId, questionId } from './questionId.js';
 export { MatrixQuestionRenderer } from './MatrixQuestionRenderer.js';
+export { QuestionRenderersProvider, useQuestionRenderers } from './QuestionRenderersContext.js';
 export { MultipleTextQuestionRenderer } from './MultipleTextQuestionRenderer.js';
 export { RankingQuestionRenderer } from './RankingQuestionRenderer.js';
 export { RatingQuestionRenderer } from './RatingQuestionRenderer.js';
@@ -49,6 +55,7 @@ export { reorderAnnouncement } from './reorderAnnouncement.js';
 export type { ReorderEventKind } from './reorderAnnouncement.js';
 export { useAutoFocus } from './useAutoFocus.js';
 export {
+  useQuestionValue,
   useSurveyCompleted,
   useSurveyCurrentPageNo,
   useSurveyLogicState,

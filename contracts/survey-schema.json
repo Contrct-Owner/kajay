@@ -1242,6 +1242,279 @@
       ],
       "additionalProperties": true
     },
+    "matrixcells": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "matrixcells"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/question"
+          }
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/itemvalue"
+          }
+        },
+        "totals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/matrixtotal"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "matrixdynamic": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "matrixdynamic"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "description": "Unique element identifier. For a question, also its answer key."
+        },
+        "title": {
+          "type": "string",
+          "default": "",
+          "description": "Display title; falls back to name."
+        },
+        "visibleIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is shown only while it evaluates truthy."
+        },
+        "enableIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; the element is editable only while it evaluates truthy."
+        },
+        "isRequired": {
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "The answer is shown but cannot be changed by the respondent."
+        },
+        "requiredIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; when present it overrides isRequired."
+        },
+        "requiredErrorText": {
+          "type": "string",
+          "default": "",
+          "description": "Replaces the built-in message shown when a required answer is missing."
+        },
+        "defaultValueExpression": {
+          "type": "string",
+          "default": "",
+          "description": "Expression supplying a value while the question is unanswered."
+        },
+        "setValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy, setValueExpression drives the answer."
+        },
+        "setValueExpression": {
+          "type": "string",
+          "default": ""
+        },
+        "resetValueIf": {
+          "type": "string",
+          "default": "",
+          "description": "Expression; while truthy the answer is cleared. Wins over the others."
+        },
+        "minRowCount": {
+          "type": "number",
+          "default": 1,
+          "description": "Rows shown before the respondent adds any, and the floor on removal."
+        },
+        "maxRowCount": {
+          "type": "number",
+          "default": 0,
+          "description": "0 means no limit."
+        },
+        "allowAddRows": {
+          "type": "boolean",
+          "default": true
+        },
+        "allowRemoveRows": {
+          "type": "boolean",
+          "default": true
+        },
+        "addRowText": {
+          "type": "string",
+          "default": "Add row"
+        },
+        "removeRowText": {
+          "type": "string",
+          "default": "Remove"
+        },
+        "confirmDelete": {
+          "type": "boolean",
+          "default": false,
+          "description": "Removing a row asks first. A row can hold a lot of typing."
+        },
+        "confirmDeleteText": {
+          "type": "string",
+          "default": "Remove this row?"
+        },
+        "rowTitleFormat": {
+          "type": "string",
+          "default": "",
+          "description": "Row header template, with {0} as the row number."
+        },
+        "defaultRowValue": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ],
+          "default": "",
+          "description": "Answers a new row starts with, keyed by column name."
+        },
+        "defaultValueFromLastRow": {
+          "type": "boolean",
+          "default": false,
+          "description": "A new row starts as a copy of the one before it. Wins over defaultRowValue."
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/question"
+          }
+        },
+        "totals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/matrixtotal"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "matrixtotal": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "matrixtotal"
+        },
+        "column": {
+          "type": "string",
+          "default": "",
+          "description": "The column summarised."
+        },
+        "kind": {
+          "type": "string",
+          "default": "",
+          "description": "sum, count, min, max or avg."
+        },
+        "format": {
+          "type": "string",
+          "default": "",
+          "description": "Template around the figure, with {0} standing for it."
+        },
+        "precision": {
+          "type": "number",
+          "default": 0,
+          "description": "Decimal places shown."
+        }
+      },
+      "required": [
+        "column"
+      ],
+      "additionalProperties": true
+    },
     "multipletext": {
       "type": "object",
       "properties": {
@@ -1492,6 +1765,12 @@
           "$ref": "#/$defs/matrix"
         },
         {
+          "$ref": "#/$defs/matrixcells"
+        },
+        {
+          "$ref": "#/$defs/matrixdynamic"
+        },
+        {
           "$ref": "#/$defs/multipletext"
         },
         {
@@ -1585,6 +1864,12 @@
         },
         {
           "$ref": "#/$defs/matrix"
+        },
+        {
+          "$ref": "#/$defs/matrixcells"
+        },
+        {
+          "$ref": "#/$defs/matrixdynamic"
         },
         {
           "$ref": "#/$defs/multipletext"

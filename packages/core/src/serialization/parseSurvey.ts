@@ -1,4 +1,5 @@
 import { collectEndpointDiagnostics } from '../model/endpoints.js';
+import { MatrixCellsBase } from '../model/MatrixCellsBase.js';
 import { SelectQuestion } from '../model/SelectQuestion.js';
 import type { ChildCollectionDescriptor } from '../metadata/ClassDescriptor.js';
 import { globalRegistry } from '../metadata/globalRegistry.js';
@@ -95,6 +96,9 @@ export function parseSurvey(
   // afterwards would be too late for it. Conditions can only be registered once the
   // whole tree exists, so this runs here rather than as elements are added.
   root.configure(options);
+  // Before the first logic run, because a cell's conditions are registered as the tree
+  // is walked and a matrix with no cells yet would be walked as an empty one.
+  attachMatrixCells(root, registry);
   root.refreshLogic();
   // After the tree exists, because it is a fact about the questions in it rather than
   // about any one property as it is read.
@@ -102,6 +106,30 @@ export function parseSurvey(
     ...collectEndpointDiagnostics(urlQuestions(root), options.endpoints ?? {}),
   );
   return { survey: root, diagnostics: context.diagnostics };
+}
+
+/**
+ * Gives every matrix the registry its cells are built from.
+ *
+ * Here rather than in the model because the model has no registry and must not import
+ * the serialization layer to find one — the same inversion the architecture check
+ * enforces everywhere else. A cell is built by copying its column, so the type it is
+ * copied *into* has to come from whoever knows which registry this survey was read with.
+ *
+ * `refreshLogic` is what a structural change needs: the rows of a dynamic matrix appear
+ * at runtime, and their cells' conditions are graph rules like any other.
+ */
+function attachMatrixCells(survey: Survey, registry: MetadataRegistry): void {
+  for (const question of survey.questions) {
+    if (question instanceof MatrixCellsBase) {
+      question.attachCells({
+        registry,
+        onRowsChanged: () => {
+          survey.refreshLogic();
+        },
+      });
+    }
+  }
 }
 
 /** Every question that loads its choices from a URL. */

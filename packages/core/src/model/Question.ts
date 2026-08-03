@@ -22,6 +22,7 @@ const NO_CONDITIONAL_ITEMS: readonly ConditionalItemGroup[] = [];
 export abstract class Question extends PageElement {
   readonly #validators: Validator[] = [];
   #valueHost: ValueHost | undefined;
+  #instanceKey: string | undefined;
   #requiredOverride: boolean | undefined;
   #errors: readonly SurveyError[] = [];
 
@@ -81,6 +82,25 @@ export abstract class Question extends PageElement {
    */
   get answersInOneStep(): boolean {
     return false;
+  }
+
+  /**
+   * What tells two instances of this question apart. The name, ordinarily.
+   *
+   * Matrix cells are the exception that made it necessary: every cell in a column is a
+   * question *named for the column*, because that is the key its answer is stored under
+   * and the name a `{row.price}` condition uses. Two cells therefore share a name, and a
+   * renderer building a DOM id out of the name alone emits the same id twice — which a
+   * browser resolves by pointing every label at the first input, so typing in the second
+   * row wrote into the first. Found by a totals test that added up to the wrong number.
+   */
+  get instanceKey(): string {
+    return this.#instanceKey ?? this.name;
+  }
+
+  /** Set when a question is one instance among several, as a matrix cell is. */
+  setInstanceKey(key: string): void {
+    this.#instanceKey = key;
   }
 
   /** Author's replacement for the built-in "this is required" message. */

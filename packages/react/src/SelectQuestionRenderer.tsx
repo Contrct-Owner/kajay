@@ -6,6 +6,7 @@ import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
+import { questionId } from './questionId.js';
 
 function ClearButton({ question }: { readonly question: RadiogroupQuestion }): ReactElement {
   return (
@@ -84,7 +85,7 @@ export function SelectQuestionRenderer({ survey, question }: QuestionRendererPro
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const groupName = `kajay-question-${question.name}`;
+  const groupName = questionId(question);
   const errorId = `${groupName}-errors`;
   const columns = question.colCount > 0 ? question.colCount : 1;
 

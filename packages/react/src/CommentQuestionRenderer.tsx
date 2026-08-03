@@ -4,7 +4,8 @@ import { useCallback, useLayoutEffect, useRef } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
-import { useSurveyValue } from './useSurveyState.js';
+import { useQuestionValue } from './useSurveyState.js';
+import { questionId } from './questionId.js';
 
 /**
  * Grows a textarea to fit what is in it.
@@ -69,11 +70,11 @@ export function CommentQuestionRenderer({
   survey,
   question,
 }: QuestionRendererProps): ReactElement {
-  const value = useSurveyValue(survey, question.name);
+  const value = useQuestionValue(survey, question);
   const isComment = question instanceof CommentQuestion;
   const autoGrow = useAutoGrow(isComment && question.autoGrow, value);
 
-  const inputId = `kajay-question-${question.name}`;
+  const inputId = questionId(question);
   const errorId = `${inputId}-errors`;
   const counterId = `${inputId}-counter`;
   const remaining = isComment ? question.remainingCharacters : undefined;

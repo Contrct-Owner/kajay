@@ -5,6 +5,7 @@ import { readOnlyGroup, whenEditable } from './readOnly.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
+import { questionErrorId, questionId } from './questionId.js';
 
 const SMILEYS = ['😖', '🙁', '😐', '🙂', '😄'];
 
@@ -50,7 +51,7 @@ function StepGlyph({
  * group, and the visible label is what the pointer lands on.
  */
 function RatingButtons({ question }: { readonly question: RatingQuestion }): ReactElement {
-  const groupName = `kajay-question-${question.name}`;
+  const groupName = questionId(question);
   return (
     <div className="kajay-rating" data-rate-type={question.rateType}>
       {question.rateValues.map((step, index) => (
@@ -106,7 +107,7 @@ function RateDescriptions({ question }: { readonly question: RatingQuestion }): 
  * legend names the fieldset and nothing inside it.
  */
 function RatingDropdown({ survey, question }: RatingProps): ReactElement {
-  const inputId = `kajay-question-${question.name}`;
+  const inputId = questionId(question);
   const errorId = `${inputId}-errors`;
 
   const handleChange = (event: ChangeEvent<HTMLSelectElement>): void => {
@@ -151,7 +152,7 @@ function RatingDropdown({ survey, question }: RatingProps): ReactElement {
 }
 
 function RatingGroup({ survey, question }: RatingProps): ReactElement {
-  const errorId = `kajay-question-${question.name}-errors`;
+  const errorId = questionErrorId(question);
   return (
     <fieldset
       className="kajay-question kajay-question--rating"

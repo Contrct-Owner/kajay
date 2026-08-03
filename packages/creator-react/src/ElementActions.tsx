@@ -9,7 +9,7 @@ export interface ElementActionsProps {
 }
 
 /**
- * Duplicate, copy, paste and change type — checklist K5.
+ * Duplicate, copy, paste, delete and change type — checklists K5 and K7.
  *
  * Shown only on the selected element, like K3's title editor and for the same reason:
  * four more controls on every question would bury the survey the designer is looking at
@@ -20,7 +20,7 @@ export interface ElementActionsProps {
  * the designer is working.
  */
 export function ElementActions({ surface, element }: ElementActionsProps): ReactElement {
-  const { Button, Select } = useCreatorComponents();
+  const { Button } = useCreatorComponents();
   const name = element.name;
 
   return (
@@ -53,16 +53,40 @@ export function ElementActions({ surface, element }: ElementActionsProps): React
       >
         Paste
       </Button>
-      <Select
-        className="kajay-designer__type"
-        aria-label={`Type of ${name}`}
-        data-testid={`type-${name}`}
-        value={element.type}
-        options={surface.convertibleTypes.map((type) => ({ value: type, label: type }))}
-        onValueChange={(type) => {
-          surface.convert(name, type);
+      <Button
+        className="kajay-designer__action kajay-designer__delete"
+        data-testid={`delete-${name}`}
+        title="Delete (Del)"
+        onClick={() => {
+          surface.removeElement(name);
         }}
-      />
+      >
+        Delete
+      </Button>
+      <TypePicker surface={surface} element={element} />
     </span>
+  );
+}
+
+/**
+ * What the question is, and what it could be — checklist K5's conversion.
+ *
+ * Its own control because it is the one that is not a verb: the others do something to
+ * the question, this one says what the question *is* and changes it by being changed.
+ */
+function TypePicker({ surface, element }: ElementActionsProps): ReactElement {
+  const { Select } = useCreatorComponents();
+
+  return (
+    <Select
+      className="kajay-designer__type"
+      aria-label={`Type of ${element.name}`}
+      data-testid={`type-${element.name}`}
+      value={element.type}
+      options={surface.convertibleTypes.map((type) => ({ value: type, label: type }))}
+      onValueChange={(type) => {
+        surface.convert(element.name, type);
+      }}
+    />
   );
 }

@@ -651,6 +651,12 @@
   cursor: pointer;
 }
 
+.kajay-designer__delete {
+  /* `danger` is the token the theme actually defines — `error` was a guess, and a
+     `var()` fallback would have hidden it rather than shown red. */
+  color: var(--kajay-color-danger);
+}
+
 .kajay-designer__action:disabled {
   color: var(--kajay-color-muted);
   cursor: default;

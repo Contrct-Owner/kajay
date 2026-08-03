@@ -3,10 +3,11 @@ import { MetadataRegistry, registerBuiltInTypes } from '@kajay/core';
 import type { SurveyDefinition } from '@kajay/core';
 import { DesignSurface } from '@kajay/creator-core';
 import { DesignSurfacePanel } from '@kajay/creator-react';
+import { userEvent } from '@vitest/browser/context';
 import { expect, test } from 'vitest';
 import { render } from 'vitest-browser-react';
 
-/** Copy, paste, duplicate and convert — checklist K5. */
+/** Copy, paste, duplicate and convert (K5), and deletion (K7). */
 const BASIC: SurveyDefinition = {
   pages: [
     {
@@ -97,4 +98,51 @@ test('parity/K5-convert: the picker shows what the question is now', async () =>
   await screen.getByTestId('select-tier').click();
 
   await expect.element(screen.getByLabelText('Type of tier')).toHaveValue('radiogroup');
+});
+
+test('parity/K7-delete: the button removes the question', async () => {
+  const designed = surface();
+  const screen = await render(<DesignSurfacePanel surface={designed} />);
+  await screen.getByTestId('select-who').click();
+
+  await screen.getByTestId('delete-who').click();
+
+  expect(names(designed)).toEqual(['tier']);
+  expect(screen.container.querySelectorAll('[data-element-index]')).toHaveLength(1);
+});
+
+test('parity/K7-delete: the Delete key removes the selection', async () => {
+  const designed = surface();
+  const screen = await render(<DesignSurfacePanel surface={designed} />);
+
+  await screen.getByTestId('select-who').click();
+  await userEvent.keyboard('{Delete}');
+
+  expect(names(designed)).toEqual(['tier']);
+});
+
+test('parity/K7-delete: Backspace deliberately does not', async () => {
+  const designed = surface();
+  const screen = await render(<DesignSurfacePanel surface={designed} />);
+
+  await screen.getByTestId('select-who').click();
+  await userEvent.keyboard('{Backspace}');
+
+  // Backspace is the "go back" reflex and the easiest key on the board to hit by
+  // accident. Undo makes either recoverable; only one makes a designer wonder what
+  // just happened.
+  expect(names(designed)).toEqual(['who', 'tier']);
+});
+
+test('parity/K7-delete: the Delete key belongs to a text field first', async () => {
+  const designed = surface();
+  const screen = await render(<DesignSurfacePanel surface={designed} />);
+  await screen.getByTestId('select-who').click();
+
+  await screen.getByLabelText('Title of who').fill('Renamed');
+  await userEvent.keyboard('{Delete}');
+
+  // Somebody editing a title means "delete a character", not "delete the question I am
+  // in the middle of naming".
+  expect(names(designed)).toEqual(['who', 'tier']);
 });

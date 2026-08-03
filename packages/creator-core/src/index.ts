@@ -4,7 +4,15 @@
 export { DesignSurface } from './DesignSurface.js';
 export type { DesignSurfaceOptions, EditOptions } from './DesignSurface.js';
 export { addPageTo, placeOn, removePageFrom } from './designerEdits.js';
-export { canConvert, convertibleTypes, convertIn, copyFrom, duplicateIn, pasteInto } from './elementEdits.js';
+export {
+  canConvert,
+  convertibleTypes,
+  convertIn,
+  copyFrom,
+  duplicateIn,
+  pasteInto,
+  removeElementFrom,
+} from './elementEdits.js';
 export { freshenFragment, takenNames } from './fragments.js';
 export { canPlace, applyPlacement, dropSlotsFor } from './placement.js';
 export type { DropSlot, PlacementSource } from './placement.js';

@@ -68,6 +68,36 @@ export function pasteInto(
 }
 
 /**
+ * Removes an element, and everything inside it — checklist K7.
+ *
+ * Returns whether it was there. **Deleting a panel takes its questions with it**, which
+ * is the operation rather than a side effect — the same argument K4 made about a page,
+ * and the same thing that makes it safe to mean: it goes through `applyEdit`, so undo
+ * brings the whole subtree back without anything having written an inverse.
+ *
+ * What is selected afterwards is the element that took its place, or the one before it
+ * when the last went. Clearing the selection would be defensible and worse: a designer
+ * deleting the third of five questions is still working in the middle of a page, and an
+ * empty property grid reads as having lost their place rather than removed one thing.
+ */
+export function removeElementFrom(surface: DesignSurface, name: string): boolean {
+  const page = surface.page;
+  const before = surface.definition;
+  const list: DropList = { of: 'elements', page: page?.name ?? '' };
+  const items = listOf(before, list);
+  const at = items?.findIndex((element) => nameOf(element) === name) ?? -1;
+  if (items === undefined || at < 0) {
+    return false;
+  }
+  const remaining = items.filter((_unused, index) => index !== at);
+  surface.applyEdit(withList(before, list, remaining), {
+    select: nameOf(remaining[Math.min(at, remaining.length - 1)] ?? {}),
+    from: before,
+  });
+  return true;
+}
+
+/**
  * Changes a question's type, keeping what the new type understands — checklist K5.
  *
  * **Properties the target type does not declare are dropped.** Converting a radio group

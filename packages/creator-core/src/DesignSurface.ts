@@ -14,7 +14,14 @@ import { SurveyDocument } from './SurveyDocument.js';
 import { UndoHistory } from './UndoHistory.js';
 import type { HistorySnapshot } from './UndoHistory.js';
 import { addPageTo, placeOn, removePageFrom } from './designerEdits.js';
-import { convertibleTypes, convertIn, copyFrom, duplicateIn, pasteInto } from './elementEdits.js';
+import {
+  convertibleTypes,
+  convertIn,
+  copyFrom,
+  duplicateIn,
+  pasteInto,
+  removeElementFrom,
+} from './elementEdits.js';
 import { canPlace, dropSlotsFor } from './placement.js';
 import type { DropSlot, PlacementSource } from './placement.js';
 
@@ -228,6 +235,11 @@ export class DesignSurface {
   applyEdit(definition: SurveyDefinition, options: EditOptions = {}): void {
     this.#record(options.from ?? this.definition, options.undoKey);
     this.#reparse(definition, options.select, options.goTo ?? this.page?.name);
+  }
+
+  /** Removes an element, and everything inside it — checklist K7. */
+  removeElement(name: string): boolean {
+    return removeElementFrom(this, name);
   }
 
   /** Puts a copy of an element straight after it — checklist K5. */

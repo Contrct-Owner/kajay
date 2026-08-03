@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import type { Result } from 'axe-core';
 
-/** Copy, paste, duplicate and convert against the real demo — checklist K5. */
+/** Copy, paste, duplicate and convert (K5), and deletion (K7), against the real demo. */
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
@@ -70,6 +70,27 @@ test('parity/K5-convert: it is undoable like everything else', async ({ page }) 
   // Nothing in the conversion knows about undo — it goes through `applyEdit`, which is
   // what K6 asked of every editing feature that came after it.
   await expect(page.getByTestId('surface-json')).toContainText('bronze');
+});
+
+test('parity/K7-delete: a question goes, and comes back', async ({ page }) => {
+  await page.getByTestId('select-draftTier').click();
+
+  await page.getByTestId('delete-draftTier').click();
+  expect(await orderOn(page)).toEqual(['draftName', 'draftScore']);
+  await expect(page.getByTestId('surface-json')).not.toContainText('bronze');
+
+  await page.getByTestId('undo').click();
+  expect(await orderOn(page)).toEqual(['draftName', 'draftTier', 'draftScore']);
+});
+
+test('parity/K7-delete: the Delete key removes the selection', async ({ page }) => {
+  await page.getByTestId('select-draftName').click();
+
+  await page.keyboard.press('Delete');
+
+  expect(await orderOn(page)).toEqual(['draftTier', 'draftScore']);
+  // The neighbour is selected, so the designer is still working where they were.
+  await expect(page.getByTestId('surface-selected')).toHaveText('Selected draftTier.');
 });
 
 test('parity/K5-actions: the adorner passes the same accessibility bar', async ({ page }) => {

@@ -1,7 +1,7 @@
 import type { DesignSurface } from '@kajay/creator-core';
 import { defaultPageElementRenderers, PageElementSlot } from '@kajay/react';
 import type { PageElementRendererRegistry } from '@kajay/react';
-import type { ReactElement } from 'react';
+import type { KeyboardEvent, ReactElement } from 'react';
 import { DesignedElement } from './DesignedElement.js';
 import { historyShortcut, isTextEntry } from './historyShortcut.js';
 import { PageAdorner } from './PageAdorner.js';
@@ -43,6 +43,9 @@ export interface DesignSurfacePanelProps {
  * *over* the rendered title would have to guess at its position, and one that suppressed
  * it would make the layout on screen a lie.
  *
+ * Two keyboard shortcuts are bound here rather than on the document — see
+ * {@link handleCanvasKey}.
+ *
  * **The drop indicator is drawn from the model, not from the pointer.** Which slot is
  * active is a number the placement already tracks, so the line between two elements is
  * rendered from state — assertable in a test, and identical whether a pointer or the
@@ -82,16 +85,7 @@ export function DesignSurfacePanel({
       // somebody mid-rename means "that letter", not "the whole rename", and the
       // letters they typed are on no stack of ours.
       onKeyDown={(event) => {
-        const intent = historyShortcut(event);
-        if (intent === undefined || isTextEntry(event.target)) {
-          return;
-        }
-        event.preventDefault();
-        if (intent === 'undo') {
-          surface.undo();
-        } else {
-          surface.redo();
-        }
+        handleCanvasKey(surface, event);
       }}
     >
       <CanvasBody
@@ -169,4 +163,38 @@ function CanvasBody({
       ))}
     </>
   );
+}
+
+/**
+ * The two shortcuts the canvas owns: undo/redo, and `Delete` for the selection.
+ *
+ * Bound here rather than on the document, for the reason in {@link historyShortcut}: a
+ * library that grabbed these globally would take them from the rest of a host's
+ * application. Both stand aside when focus is in a text field, where every one of these
+ * keys already means something — somebody mid-rename means "that character", not "the
+ * question I am in the middle of naming".
+ *
+ * **`Backspace` deliberately does nothing.** It is the "go back" reflex and the easiest
+ * key on the board to hit by accident. Undo makes either recoverable; only one of them
+ * makes a designer wonder what just happened.
+ */
+function handleCanvasKey(surface: DesignSurface, event: KeyboardEvent<HTMLElement>): void {
+  if (isTextEntry(event.target)) {
+    return;
+  }
+  const intent = historyShortcut(event);
+  if (intent !== undefined) {
+    event.preventDefault();
+    if (intent === 'undo') {
+      surface.undo();
+    } else {
+      surface.redo();
+    }
+    return;
+  }
+  const selected = surface.selected?.getPropertyValue('name');
+  if (event.key === 'Delete' && typeof selected === 'string') {
+    event.preventDefault();
+    surface.removeElement(selected);
+  }
 }

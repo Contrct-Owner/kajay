@@ -60,12 +60,15 @@ test('parity/E7-read-only: a choice refuses the click without leaving the page',
   await screen.getByLabelText('paid').click();
 
   // The activation is cancelled, so nothing changed — and the radio is still focusable
-  // and still announced, which is what `aria-readonly` on the group tells a screen
-  // reader to expect.
+  // and still announced, which is what `aria-readonly` tells a screen reader to expect.
+  //
+  // On the **radiogroup**, not on a `group`: a bare `<fieldset>` maps to `group`, which
+  // does not support the attribute, and this assertion used to pin that invalid markup
+  // in place. K3's accessibility sweep caught it.
   expect(model.data['plan']).toBe('free');
   await expect.element(screen.getByLabelText('free')).toBeChecked();
   await expect
-    .element(screen.getByRole('group', { name: /Plan/u }))
+    .element(screen.getByRole('radiogroup', { name: /Plan/u }))
     .toHaveAttribute('aria-readonly', 'true');
 });
 

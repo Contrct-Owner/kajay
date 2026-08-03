@@ -201,6 +201,21 @@ describe('parity/E8-page-timer', () => {
     expect(survey.timer.surveyTime.elapsed).toBe(6);
   });
 
+  test('a page-change listener sees the new page allowance, not the old remainder', () => {
+    const clock = new TestClock();
+    const survey = pageTimed(clock);
+    survey.timer.start();
+    clock.advance(6);
+    const seen: (number | undefined)[] = [];
+    survey.onCurrentPageChanged.add(() => seen.push(survey.timer.pageTime.remaining));
+
+    survey.nextPage();
+
+    // The clock restarts *before* anyone is told. A listener that reads the timer on a
+    // page change — to draw it, to log it — would otherwise see the page they just left.
+    expect(seen).toEqual([25]);
+  });
+
   test('the survey clock wins when both run out at once', () => {
     const clock = new TestClock();
     const survey = build(

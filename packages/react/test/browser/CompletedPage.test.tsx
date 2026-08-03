@@ -101,7 +101,9 @@ test('parity/E5-survey-state: a survey that empties itself mid-answer says so', 
     ],
   }).survey;
   const screen = await render(<Survey model={model} />);
-  await expect.element(screen.getByRole('group', { name: 'Stage' })).toBeInTheDocument();
+  // A single-select group is a `radiogroup`, which is both more accurate and what
+  // makes `aria-readonly` legal on it (K3's sweep found the old `group` shipping).
+  await expect.element(screen.getByRole('radiogroup', { name: 'Stage' })).toBeInTheDocument();
 
   // The answer hides the page holding it. Emptying is announced on the logic channel
   // rather than the state one, so a renderer watching only for completion would sit

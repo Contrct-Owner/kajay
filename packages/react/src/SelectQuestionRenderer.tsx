@@ -88,16 +88,23 @@ export function SelectQuestionRenderer({ survey, question }: QuestionRendererPro
   const groupName = questionId(question);
   const errorId = `${groupName}-errors`;
   const columns = question.colCount > 0 ? question.colCount : 1;
+  const isMultiple = question instanceof CheckboxQuestion;
 
   return (
     <fieldset
       className="kajay-question kajay-question--select"
       data-question-name={question.name}
       disabled={!question.isEnabled}
+      // A single-select group *is* a radio group, and saying so is both more accurate
+      // and what makes `aria-readonly` legal here: a bare `<fieldset>` maps to `group`,
+      // which does not support the attribute. K3's accessibility sweep found this
+      // shipping — E7 had put the attribute on the fieldset for every arity, and axe
+      // had never seen the demo in a state where a choice question was read-only.
+      role={isMultiple ? undefined : 'radiogroup'}
       aria-required={question.isRequired}
       aria-invalid={question.hasErrors || undefined}
       aria-describedby={question.hasErrors ? errorId : undefined}
-      {...readOnlyGroup(question.isReadOnly)}
+      {...(isMultiple ? {} : readOnlyGroup(question.isReadOnly))}
     >
       <legend className="kajay-question__title">
         <QuestionTitleContent question={question} />

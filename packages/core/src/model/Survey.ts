@@ -30,8 +30,8 @@ import { SurveyAnswers } from './SurveyAnswers.js';
 import type { SurveyLogicHost } from './SurveyLogicHost.js';
 import type { ExpressionScope } from './SurveyLogicHost.js';
 import type { Page } from './Page.js';
-import { toQuestionsOnPageMode } from './PageLayout.js';
-import { SurveyPages } from './SurveyPages.js';
+import type { SurveyPages } from './SurveyPages.js';
+import { createSurveyPages } from './createSurveyPages.js';
 import type { Question } from './Question.js';
 import { SurveyChildren } from './SurveyChildren.js';
 import type { SurveyElement } from './SurveyElement.js';
@@ -46,26 +46,18 @@ export class Survey extends SurveyProperties implements ValueHost {
   readonly #children: SurveyChildren = new SurveyChildren();
   readonly #answers: SurveyAnswers = new SurveyAnswers();
   readonly #logic: SurveyLogicHost;
-  readonly #pages: SurveyPages = new SurveyPages(
-    () => this.#children.pages,
-    () => toQuestionsOnPageMode(this.questionsOnPageMode),
-    (event) => {
-      // A fresh page gets its own full allowance, however the respondent arrived on it.
-      this.#timer.restartPage();
-      this.onCurrentPageChanged.emit(event);
-    },
-  );
+  readonly #pages: SurveyPages = createSurveyPages(this, () => this.#children.pages, () => {
+    // A fresh page gets its own full allowance, however the respondent arrived on it.
+    this.#timer.restartPage();
+  });
   readonly #validation: SurveyValidation = new SurveyValidation(this, () => this.#logic);
+  #isDesignMode = false;
 
   readonly #timer: SurveyTimer = createSurveyTimer(this, () => this.#logic.now(), () => {
     this.#advance();
   });
 
-  readonly #status: SurveyStatus = new SurveyStatus(
-    this,
-    () => this.#logic,
-    this.#answers,
-  );
+  readonly #status: SurveyStatus = new SurveyStatus(this, () => this.#logic, this.#answers);
 
   readonly onValueChanged: EventEmitter<ValueChangedEvent> = new EventEmitter();
   readonly onComplete: EventEmitter<CompleteEvent> = new EventEmitter();
@@ -290,9 +282,33 @@ export class Survey extends SurveyProperties implements ValueHost {
    * True while previewing, whatever the definition says: a preview the respondent could
    * type into is not a preview, and making that a fact about the survey means no
    * renderer has to be told — every question already reports itself read-only.
+   *
+   * True in design mode for the same reason. A survey on a Creator's canvas is being
+   * *built*, not answered, and every question already knows how to be unanswerable.
    */
   override get isReadOnly(): boolean {
-    return super.isReadOnly || this.#status.isPreviewing;
+    return super.isReadOnly || this.#status.isPreviewing || this.#isDesignMode;
+  }
+
+  /** Whether this survey is on a Creator's canvas rather than in front of a respondent. */
+  get isDesignMode(): boolean {
+    return this.#isDesignMode;
+  }
+
+  /**
+   * Puts the survey on a canvas — checklist K3.
+   *
+   * **Runtime state, not a property.** `setReadOnly` writes `readOnly` into the
+   * definition, so a Creator that reached for it would stamp every survey it opened
+   * with a flag the author never wrote. This takes the same route `isPreviewing`
+   * already does: computed into `isReadOnly`, invisible to serialization.
+   */
+  setDesignMode(isDesignMode: boolean): void {
+    if (this.#isDesignMode === isDesignMode) {
+      return;
+    }
+    this.#isDesignMode = isDesignMode;
+    this.#logic.announceReadOnly(this);
   }
 
   /** The questions shown before submitting: all of them, or only the answered ones. */

@@ -568,6 +568,70 @@
   color: var(--kajay-color-muted);
 }
 
+/* --- Creator: the design surface (K3) ------------------------------------ */
+
+.kajay-designer {
+  display: grid;
+  grid-template-columns: repeat(var(--kajay-col-count, 1), minmax(0, 1fr));
+  gap: var(--kajay-spacing);
+  padding: var(--kajay-spacing);
+  border: 1px dashed var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  font-family: var(--kajay-font-family);
+  color: var(--kajay-color-text);
+  /* Room to click past the last element, because clicking the background is how a
+     selection is let go. Without it a full surface has nowhere to click. */
+  min-height: 8rem;
+}
+
+.kajay-designer__element {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 4);
+  padding: calc(var(--kajay-spacing) / 2);
+  border: 1px solid transparent;
+  border-radius: var(--kajay-radius);
+}
+
+.kajay-designer__element[data-selected='true'] {
+  border-color: var(--kajay-color-accent);
+  /* Not colour alone: the outline is the second cue, and `data-selected` is on the
+     element for anything that reads structure rather than pixels. */
+  outline: 1px solid var(--kajay-color-accent);
+}
+
+.kajay-designer__adorner {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 2);
+  align-items: center;
+}
+
+.kajay-designer__select {
+  padding: 0 calc(var(--kajay-spacing) / 3);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: var(--kajay-color-muted);
+  font: inherit;
+  font-size: 0.75em;
+  cursor: pointer;
+}
+
+.kajay-designer__title {
+  flex: 1;
+  padding: calc(var(--kajay-spacing) / 4);
+  border: 1px solid var(--kajay-color-accent);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+}
+
+.kajay-designer__empty {
+  margin: 0;
+  color: var(--kajay-color-muted);
+}
+
 /* --- multipletext -------------------------------------------------------- */
 
 .kajay-question--multipletext {

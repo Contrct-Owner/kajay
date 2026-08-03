@@ -4,6 +4,8 @@
 // These are the *pieces* (ADR-0021). The default assembly that arranges them lands with
 // the design surface, and will be built from nothing but what is exported here.
 
+export { DesignSurfacePanel } from './DesignSurfacePanel.js';
+export type { DesignSurfacePanelProps } from './DesignSurfacePanel.js';
 export { ToolboxPanel } from './ToolboxPanel.js';
 export type { ToolboxPanelProps } from './ToolboxPanel.js';
 export { CreatorComponentsProvider, useCreatorComponents } from './CreatorComponents.js';

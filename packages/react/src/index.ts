@@ -3,6 +3,11 @@
 export type { HtmlSanitizer } from './HtmlSanitizerContext.js';
 export { defaultPageElementRenderers } from './defaultPageElementRenderers.js';
 export { PageElementRendererRegistry } from './PageElementRendererRegistry.js';
+// Exported for the Creator's design surface (K3): it draws elements one at a time so it
+// can wrap each in an adorner, and re-implementing the slot there would put I5's layout
+// decisions in a second place to drift from this one.
+export { PageElementSlot } from './PageElementSlot.js';
+export type { PageElementSlotProps } from './PageElementSlot.js';
 export type {
   PageElementRenderer,
   PageElementRendererProps,

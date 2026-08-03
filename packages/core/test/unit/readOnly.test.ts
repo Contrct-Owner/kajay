@@ -92,3 +92,39 @@ describe('parity/E7-read-only', () => {
     expect(survey.getQuestionByName('reference')?.getPropertyValue('readOnly')).toBe(true);
   });
 });
+
+describe('parity/K3-design-mode', () => {
+  test('a survey on a canvas is read-only without the definition saying so', () => {
+    const survey = build();
+    survey.setDesignMode(true);
+
+    // The third contributor to `isReadOnly`, taking the route `isPreviewing` already
+    // takes: computed, never a property, so opening a definition in a Creator cannot
+    // stamp it with a flag the author never wrote.
+    expect(survey.isReadOnly).toBe(true);
+    expect(survey.getPropertyValue('readOnly')).toBeUndefined();
+  });
+
+  test('entering the mode it is already in announces nothing', () => {
+    const survey = build();
+    survey.setDesignMode(true);
+    let announcements = 0;
+    survey.onElementStateChanged.add(() => {
+      announcements += 1;
+    });
+
+    survey.setDesignMode(true);
+
+    // Re-entering design mode would otherwise re-render every question on the canvas
+    // for a state that did not change.
+    expect(announcements).toBe(0);
+  });
+
+  test('leaving it hands the survey back', () => {
+    const survey = build();
+    survey.setDesignMode(true);
+    survey.setDesignMode(false);
+
+    expect(survey.isReadOnly).toBe(false);
+  });
+});

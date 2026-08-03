@@ -72,6 +72,16 @@ test('parity/J5-axe: the preview and the completed page', async ({ page }) => {
   expect(await violations(page)).toEqual([]);
 });
 
+test('parity/E7-axe: every question type in read-only', async ({ page }) => {
+  await gotoQuestionTypes(page);
+  await page.getByLabel('Read-only survey').check();
+
+  // The state nothing had ever swept. `aria-readonly` is legal on a handful of roles
+  // and not on `group`, which is what a `<fieldset>` maps to — and until this ran,
+  // five renderers were spreading it onto one.
+  expect(await violations(page)).toEqual([]);
+});
+
 test('parity/J5-axe: right to left', async ({ page }) => {
   // The direction is where contrast and reading order most easily come apart, and it is
   // not a state anybody looks at while developing in English.

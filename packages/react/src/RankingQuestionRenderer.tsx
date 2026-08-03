@@ -5,8 +5,9 @@ import { Fragment } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
-import { readOnlyGroup } from './readOnly.js';
+import { readOnlyAction } from './readOnly.js';
 import { useReorder } from './useReorder.js';
+import type { ReorderItemProps } from './useReorder.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
 
@@ -25,6 +26,46 @@ function rankingHeading(question: RankingQuestion): string {
  * `useReorder`, which knows nothing about questions — this component only says how many
  * rows there are, what moving one means, and what each is called.
  */
+/**
+ * One row of the ranking: its position, its text, and whether it can be moved.
+ *
+ * Extracted so `RankedList` stays under the file's own function-size limit, and because
+ * "what a row is" and "how the list is wired to the reorder primitive" are two subjects
+ * that were only sharing a scope.
+ */
+function RankedRow({
+  question,
+  choice,
+  index,
+  hintId,
+  itemProps,
+}: {
+  readonly question: RankingQuestion;
+  readonly choice: ItemValue;
+  readonly index: number;
+  readonly hintId: string;
+  readonly itemProps: ReorderItemProps | Record<string, never>;
+}): ReactElement {
+  return (
+    <button
+      type="button"
+      className="kajay-ranking__row"
+      // Reading: no hint and no handlers, because there is nothing to grab. The order
+      // itself is the answer and stays on the page to be read.
+      aria-describedby={question.isReadOnly ? undefined : hintId}
+      // A button holds no value, so ARIA has no read-only state for it — and the
+      // `<fieldset>` around these is a `group`, which has none either. `aria-disabled`
+      // is what can be said, and unlike the HTML attribute it leaves the row focusable
+      // and readable: the order *is* the answer.
+      {...readOnlyAction(question.isReadOnly)}
+      {...itemProps}
+    >
+      <span className="kajay-ranking__rank">{index + 1}</span>
+      <span className="kajay-ranking__text">{choice.text}</span>
+    </button>
+  );
+}
+
 function RankedList({ question }: { readonly question: RankingQuestion }): ReactElement {
   const ranked = question.rankedChoices;
   const listId = `${questionId(question)}-ranked`;
@@ -52,17 +93,13 @@ function RankedList({ question }: { readonly question: RankingQuestion }): React
       <div className="kajay-ranking__list" ref={reorder.listRef}>
         {ranked.map((choice, index) => (
           <Fragment key={String(choice.value)}>
-            <button
-              type="button"
-              className="kajay-ranking__row"
-              // Reading: no hint and no handlers, because there is nothing to grab. The
-              // order itself is the answer and stays on the page to be read.
-              aria-describedby={question.isReadOnly ? undefined : `${listId}-hint`}
-              {...(question.isReadOnly ? {} : reorder.getItemProps(index))}
-            >
-              <span className="kajay-ranking__rank">{index + 1}</span>
-              <span className="kajay-ranking__text">{choice.text}</span>
-            </button>
+            <RankedRow
+              question={question}
+              choice={choice}
+              index={index}
+              hintId={`${listId}-hint`}
+              itemProps={question.isReadOnly ? {} : reorder.getItemProps(index)}
+            />
             {question.selectToRankEnabled && !question.isReadOnly ? (
               <UnrankButton question={question} choice={choice} />
             ) : null}
@@ -175,7 +212,6 @@ export function RankingQuestionRenderer({ survey, question }: QuestionRendererPr
       aria-required={question.isRequired}
       aria-invalid={question.hasErrors || undefined}
       aria-describedby={question.hasErrors ? errorId : undefined}
-      {...readOnlyGroup(question.isReadOnly)}
     >
       <legend className="kajay-question__title">
         <QuestionTitleContent question={question} />

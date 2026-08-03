@@ -1,7 +1,7 @@
 import { RatingQuestion } from '@kajay/core';
 import type { ChangeEvent, ReactElement } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
-import { readOnlyGroup, whenEditable } from './readOnly.js';
+import { readOnlyControl, whenEditable } from './readOnly.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
@@ -133,7 +133,7 @@ function RatingDropdown({ survey, question }: RatingProps): ReactElement {
         aria-describedby={question.hasErrors ? errorId : undefined}
         value={String(question.value ?? '')}
         onChange={handleChange}
-        {...readOnlyGroup(question.isReadOnly)}
+        {...readOnlyControl(question.isReadOnly)}
       >
         {/* Reading: only the chosen step is on offer, so there is nothing to change. */}
         {question.isReadOnly ? null : <option value="">{question.uiText('chooseRating')}</option>}

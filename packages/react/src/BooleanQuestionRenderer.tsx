@@ -1,7 +1,7 @@
 import { BooleanQuestion } from '@kajay/core';
 import type { ReactElement } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
-import { readOnlyGroup, whenEditable } from './readOnly.js';
+import { readOnlyControl, readOnlyRadioGroup, whenEditable } from './readOnly.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
@@ -37,6 +37,9 @@ function SwitchInput({ question, inputId }: ModeProps): ReactElement {
         type="checkbox"
         checked={question.checkedValue === true}
         disabled={!question.isEnabled}
+        // A switch is a `checkbox` to ARIA, which does carry the state — so it says it
+        // here rather than on the `<fieldset>` around it, where `group` cannot.
+        {...readOnlyControl(question.isReadOnly)}
         onChange={(event) => {
           whenEditable(question.isReadOnly, () => {
             question.setChecked(event.target.checked);
@@ -95,7 +98,10 @@ export function BooleanQuestionRenderer({
       aria-required={question.isRequired}
       aria-invalid={question.hasErrors || undefined}
       aria-describedby={question.hasErrors ? errorId : undefined}
-      {...readOnlyGroup(question.isReadOnly)}
+      // A pair of radios is a radio group and can say it here; a switch is one control
+      // and says it on itself, because a `<fieldset>` is a `group` and ARIA gives a
+      // group no read-only state to report.
+      {...(isRadio ? readOnlyRadioGroup(question.isReadOnly) : {})}
     >
       <legend className="kajay-question__title">
         <QuestionTitleContent question={question} />

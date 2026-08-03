@@ -4,7 +4,7 @@ import type { CSSProperties, ReactElement } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
-import { readOnlyGroup, whenEditable } from './readOnly.js';
+import { readOnlyRadioGroup, whenEditable } from './readOnly.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
 
@@ -116,7 +116,9 @@ export function ImagePickerRenderer({ survey, question }: QuestionRendererProps)
       aria-required={question.isRequired}
       aria-invalid={question.hasErrors || undefined}
       aria-describedby={question.hasErrors ? errorId : undefined}
-      {...readOnlyGroup(question.isReadOnly)}
+      // Radios when it takes one answer, checkboxes when it takes several — so the
+      // read-only state goes in the two different places ARIA allows for the two.
+      {...(question.multiSelect ? {} : readOnlyRadioGroup(question.isReadOnly))}
     >
       <legend className="kajay-question__title">
         <QuestionTitleContent question={question} />

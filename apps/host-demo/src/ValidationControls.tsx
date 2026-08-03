@@ -1,6 +1,7 @@
 import type { CheckErrorsMode, QuestionErrorLocation, Survey } from '@kajay/core';
 import type { ReactElement } from 'react';
 import { useState } from 'react';
+import { ReadOnlyToggle } from './ReadOnlyToggle.js';
 
 interface ChoiceControlProps<TValue extends string> {
   readonly id: string;
@@ -105,6 +106,8 @@ export function ValidationControls({ model }: { readonly model: Survey }): React
           {' Validation enabled'}
         </label>
       </div>
+
+      <ReadOnlyToggle model={model} />
     </section>
   );
 }

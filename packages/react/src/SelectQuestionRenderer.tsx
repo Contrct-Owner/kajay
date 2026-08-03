@@ -1,7 +1,7 @@
 import { CheckboxQuestion, RadiogroupQuestion, SelectQuestion } from '@kajay/core';
 import type { ReactElement } from 'react';
 import { ChoiceInput } from './ChoiceInput.js';
-import { readOnlyGroup } from './readOnly.js';
+import { readOnlyRadioGroup } from './readOnly.js';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
@@ -95,16 +95,14 @@ export function SelectQuestionRenderer({ survey, question }: QuestionRendererPro
       className="kajay-question kajay-question--select"
       data-question-name={question.name}
       disabled={!question.isEnabled}
-      // A single-select group *is* a radio group, and saying so is both more accurate
-      // and what makes `aria-readonly` legal here: a bare `<fieldset>` maps to `group`,
-      // which does not support the attribute. K3's accessibility sweep found this
-      // shipping — E7 had put the attribute on the fieldset for every arity, and axe
-      // had never seen the demo in a state where a choice question was read-only.
-      role={isMultiple ? undefined : 'radiogroup'}
       aria-required={question.isRequired}
       aria-invalid={question.hasErrors || undefined}
       aria-describedby={question.hasErrors ? errorId : undefined}
-      {...(isMultiple ? {} : readOnlyGroup(question.isReadOnly))}
+      // A single-select group *is* a radio group, and saying so is both more accurate
+      // and what makes `aria-readonly` legal — the helper supplies the role with it. A
+      // multi-select group is a plain `group`, where ARIA has no read-only state at
+      // all, so each checkbox says it instead.
+      {...(isMultiple ? {} : readOnlyRadioGroup(question.isReadOnly))}
     >
       <legend className="kajay-question__title">
         <QuestionTitleContent question={question} />

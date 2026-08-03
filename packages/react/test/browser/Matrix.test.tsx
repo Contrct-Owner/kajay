@@ -111,12 +111,25 @@ test('parity/F1-matrix: a read-only matrix does not record a click', async () =>
   const model = build({ readOnly: true });
   const screen = await render(<Survey model={model} />);
 
-  await screen.getByRole('radio', { name: 'Documentation First' }).click();
+  // A raw click rather than the usual helper: `aria-disabled` makes the radio fail the
+  // "enabled" actionability check, which is the attribute doing exactly its job. The
+  // point of the test is what happens when the click lands anyway.
+  screen
+    .getByRole('radio', { name: 'Documentation First' })
+    .element()
+    .dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
   // Cancelling the click's default would stop the browser checking the radio but not
   // React reporting the change, so the guard is on the handler — see E7.
   expect(model.data).toEqual({});
-  await expect.element(screen.getByRole('group')).toHaveAttribute('aria-readonly', 'true');
+  // Said on the radios, not on the `<fieldset>` around them. A fieldset is a `group`,
+  // and ARIA defines neither `aria-readonly` on a group nor on a `radio` — so
+  // `aria-disabled` per cell is the only thing that can be said, and it keeps them
+  // focusable. This assertion used to pin the invalid version in place.
+  await expect
+    .element(screen.getByRole('radio', { name: 'Documentation First' }))
+    .toHaveAttribute('aria-disabled', 'true');
+  expect(screen.container.querySelector('fieldset')?.getAttribute('aria-readonly')).toBeNull();
 });
 
 test('parity/F1-matrix: alternateRows is on the table, where the styling can reach it', async () => {

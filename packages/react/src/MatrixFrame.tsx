@@ -3,7 +3,6 @@ import type { ReactElement, ReactNode } from 'react';
 import { QuestionErrors } from './QuestionErrors.js';
 import { questionErrorId } from './questionId.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
-import { readOnlyGroup } from './readOnly.js';
 
 export interface MatrixFrameProps {
   readonly survey: SurveyModel;
@@ -38,7 +37,6 @@ export function MatrixFrame({
       data-question-name={question.name}
       disabled={!question.isEnabled}
       aria-required={question.isRequired}
-      {...readOnlyGroup(question.isReadOnly)}
     >
       <legend className="kajay-question__title">
         <QuestionTitleContent question={question} />

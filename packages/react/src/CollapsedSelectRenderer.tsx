@@ -3,7 +3,7 @@ import type { ItemValue } from '@kajay/core';
 import type { ReactElement } from 'react';
 import { ChoiceFilterField } from './ChoiceFilterField.js';
 import { MoreChoices } from './MoreChoices.js';
-import { readOnlyGroup } from './readOnly.js';
+import { readOnlyControl } from './readOnly.js';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
@@ -39,7 +39,7 @@ function ChoiceOptions({ question, inputId, errorId }: ChoiceOptionsProps): Reac
       onChange={(event) => {
         applySelection(question, event.target);
       }}
-      {...readOnlyGroup(question.isReadOnly)}
+      {...readOnlyControl(question.isReadOnly)}
     >
       {isMultiple || question.isReadOnly ? null : (
         <option value="">{question.placeholder}</option>

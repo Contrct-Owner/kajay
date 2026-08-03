@@ -125,3 +125,54 @@ test('parity/E7-read-only: a host can flip the whole survey while it is on scree
   // page would go on accepting answers the model no longer believes in.
   await expect.element(screen.getByLabelText('Name')).toHaveAttribute('readonly');
 });
+
+test('parity/E7-read-only: the state is announced on a role that carries it', async () => {
+  // The rule ARIA actually imposes, pinned per question type. `aria-readonly` is
+  // defined on `radiogroup`, `checkbox`, `switch` and `combobox`, and *not* on `group`
+  // — which is what a `<fieldset>` maps to. Five renderers put it on one until K3's
+  // accessibility sweep looked at a read-only survey for the first time.
+  const model = parseSurvey({
+    readOnly: true,
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          { type: 'radiogroup', name: 'tier', title: 'Tier', choices: ['a', 'b'] },
+          { type: 'checkbox', name: 'topics', title: 'Topics', choices: ['x', 'y'] },
+          { type: 'boolean', name: 'agreed', title: 'Agreed' },
+          {
+            type: 'ranking',
+            name: 'order',
+            title: 'Order',
+            choices: ['first', 'second'],
+          },
+        ],
+      },
+    ],
+  }).survey;
+  const screen = await render(<Survey model={model} />);
+  const container = screen.container;
+
+  // A single-select group is a radiogroup, and says it there.
+  const tier = container.querySelector('[data-question-name="tier"]');
+  expect(tier?.getAttribute('role')).toBe('radiogroup');
+  expect(tier?.getAttribute('aria-readonly')).toBe('true');
+
+  // A multi-select group is a plain `group`, so each checkbox says it instead.
+  const topics = container.querySelector('[data-question-name="topics"]');
+  expect(topics?.getAttribute('aria-readonly')).toBeNull();
+  expect(topics?.querySelector('input[type=checkbox]')?.getAttribute('aria-readonly')).toBe('true');
+
+  // A switch is a checkbox to ARIA and carries it itself.
+  const agreed = container.querySelector('[data-question-name="agreed"]');
+  expect(agreed?.getAttribute('aria-readonly')).toBeNull();
+  expect(agreed?.querySelector('input')?.getAttribute('aria-readonly')).toBe('true');
+
+  // A ranking row is a button: no value, so no read-only state exists for it.
+  // `aria-disabled` is what can be said, and it keeps the row focusable.
+  const order = container.querySelector('[data-question-name="order"]');
+  expect(order?.getAttribute('aria-readonly')).toBeNull();
+  const row = order?.querySelector('.kajay-ranking__row');
+  expect(row?.getAttribute('aria-disabled')).toBe('true');
+  expect(row?.hasAttribute('disabled')).toBe(false);
+});

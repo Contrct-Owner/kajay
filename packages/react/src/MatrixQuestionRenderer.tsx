@@ -3,7 +3,7 @@ import type { ItemValue, SurveyError } from '@kajay/core';
 import type { ReactElement } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { MatrixFrame } from './MatrixFrame.js';
-import { whenEditable } from './readOnly.js';
+import { readOnlyAction, whenEditable } from './readOnly.js';
 import { useMatrixLayout } from './useMatrixLayout.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
@@ -56,6 +56,11 @@ function MatrixRow({ question, row, rowId, columnId, errors }: MatrixRowProps): 
             aria-labelledby={`${rowId} ${columnId(index)}`}
             aria-invalid={hasErrors || undefined}
             aria-describedby={hasErrors ? errorId : undefined}
+            // ARIA defines no read-only state on `radio`, and the `<fieldset>` around
+            // the table is a `group`, which has none either — so a read-only matrix
+            // says it here, once per cell. `aria-disabled` leaves the radio focusable
+            // and readable, which is the whole of E7's point.
+            {...readOnlyAction(question.isReadOnly)}
             onChange={whenEditable(question.isReadOnly, () => {
               question.setRowValue(row, column.value);
             })}

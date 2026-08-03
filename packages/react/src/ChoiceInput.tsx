@@ -1,6 +1,6 @@
 import type { ItemValue, SelectQuestion } from '@kajay/core';
 import type { ReactElement } from 'react';
-import { whenEditable } from './readOnly.js';
+import { readOnlyControl, whenEditable } from './readOnly.js';
 
 export interface ChoiceInputProps {
   readonly question: SelectQuestion;
@@ -28,12 +28,10 @@ export function ChoiceInput({
         name={groupName}
         value={String(choice.value)}
         checked={question.isSelected(choice.value)}
-        // On the checkbox rather than on the group around it: ARIA supports
-        // `aria-readonly` on `checkbox` and on `radiogroup`, but *not* on `radio` and
-        // not on `group` — which is what a `<fieldset>` maps to. A multi-select group
-        // therefore says it here, and a single-select one says it on the fieldset,
-        // which carries `role="radiogroup"` for exactly that reason.
-        aria-readonly={isMultiple && question.isReadOnly ? true : undefined}
+        // A checkbox carries the state itself; a radio cannot — ARIA does not define
+        // `aria-readonly` on `radio`, so a single-select group says it on the
+        // `radiogroup` around them instead.
+        {...(isMultiple ? readOnlyControl(question.isReadOnly) : {})}
         onChange={whenEditable(question.isReadOnly, () => {
           question.select(choice.value);
         })}

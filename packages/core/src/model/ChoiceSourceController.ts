@@ -1,31 +1,19 @@
 import { valuesAreEqual } from '../expressions/expressionValues.js';
 import type { LogicRule } from '../logic/LogicRule.js';
+import type { ChoiceFetcher } from './ChoiceFetcher.js';
+import type { ChoicePageLoader } from './ChoicePageLoader.js';
+import { ChoicePager } from './ChoicePager.js';
 import type { Endpoints } from './endpoints.js';
-import { undeclaredEndpoints } from './endpoints.js';
-import type { ChoiceSettings } from './choiceResponse.js';
-import {
-  choicesFromResponse,
-  createCacheKey,
-  placeholderDependencies,
-  resolveUrl,
-} from './choiceResponse.js';
 import type { ItemValue } from './ItemValue.js';
 import { choiceListsMatch } from './ItemValue.js';
-import type { SelectQuestion } from './SelectQuestion.js';
+import { SelectQuestion } from './SelectQuestion.js';
+import type { SurveyLogicHost } from './SurveyLogicHost.js';
+import { UrlChoiceLoader } from './UrlChoiceLoader.js';
 
-/** The host-owned I/O adapter used by URL-backed choice sources. */
-export type ChoiceFetcher = (url: string) => Promise<unknown>;
+const DEFAULT_PAGE_SIZE = 25;
 
 /** How a carried-forward list relates to the source question's answer. */
 export type CarryForwardMode = 'all' | 'selected' | 'unselected';
-
-export interface UrlChoiceSource {
-  readonly key: string;
-  readonly question: SelectQuestion;
-  readonly url: string;
-  readonly resolvePlaceholder: (name: string) => unknown;
-  readonly announce: () => void;
-}
 
 export interface CarryForwardChoiceSource {
   readonly key: string;
@@ -55,30 +43,116 @@ function selectedValues(value: unknown): readonly unknown[] {
  * pending-request sharing, and error capture — is kept behind this one interface.
  */
 export class ChoiceSourceController {
-  readonly #cache: Map<string, readonly ItemValue[]> = new Map();
   readonly #errors: string[] = [];
-  readonly #generations: Map<string, number> = new Map();
-  readonly #pending: Map<string, Promise<unknown>> = new Map();
-  #fetchJson: ChoiceFetcher | undefined;
-  #endpoints: Endpoints = {};
+  readonly #pagers: Map<string, ChoicePager> = new Map();
+  readonly #urls: UrlChoiceLoader = new UrlChoiceLoader();
+  #loadPage: ChoicePageLoader | undefined;
 
   setFetcher(fetchJson: ChoiceFetcher | undefined): void {
-    this.#fetchJson = fetchJson;
+    this.#urls.setFetcher(fetchJson);
+  }
+
+  setPageLoader(loadPage: ChoicePageLoader | undefined): void {
+    this.#loadPage = loadPage;
   }
 
   /** The origins `{@name}` resolves against. Constant for the session by design. */
   setEndpoints(endpoints: Endpoints): void {
-    this.#endpoints = endpoints;
+    this.#urls.setEndpoints(endpoints);
   }
 
   /** A failed load, malformed response, or URL configured without a fetcher. */
   get errors(): readonly string[] {
-    return this.#errors;
+    return [...this.#urls.errors, ...this.#errors];
   }
 
   /** Makes every outstanding request for a removed URL source obsolete. */
   invalidate(key: string): void {
-    this.#nextGeneration(key);
+    this.#urls.invalidate(key);
+  }
+
+  /**
+   * Installs the one dynamic source a select question declares.
+   *
+   * Source arbitration lives beside acquisition: carry-forward wins, then URL, then
+   * paged loading. Rebuilding survey rules therefore cannot accidentally install two
+   * providers or forget to detach the previous pager.
+   */
+  register(question: SelectQuestion, owner: string, host: SurveyLogicHost): void {
+    const urlKey = `${owner}:choicesByUrl`;
+    const hadDynamicChoices = question.hasDynamicChoices;
+    question.clearChoiceProvider();
+
+    const carryForward = optionalString(question.choicesFromQuestion);
+    if (carryForward !== undefined) {
+      this.#registerCarryForward(question, owner, carryForward, host);
+      return;
+    }
+
+    const url = optionalString(question.choicesByUrl);
+    if (url !== undefined) {
+      this.#registerUrl(question, urlKey, url, host);
+      return;
+    }
+
+    this.invalidate(urlKey);
+    if (question.choicesLazyLoadEnabled) {
+      this.#attachPager(question, () => {
+        host.announceChoices(question);
+      });
+      return;
+    }
+
+    this.#detachPager(question);
+    if (hadDynamicChoices) {
+      host.announceChoices(question);
+    }
+  }
+
+  #registerCarryForward(
+    question: SelectQuestion,
+    owner: string,
+    sourceName: string,
+    host: SurveyLogicHost,
+  ): void {
+    this.invalidate(`${owner}:choicesByUrl`);
+    this.#detachPager(question);
+    host.logic.addRule(
+      this.createCarryForwardRule({
+        key: `${owner}:choicesFromQuestion`,
+        question,
+        sourceName,
+        mode: toCarryForwardMode(question.choicesFromQuestionMode),
+        getSourceChoices: () => {
+          const source = host.findQuestion(sourceName);
+          return source instanceof SelectQuestion ? source.visibleChoices : undefined;
+        },
+        getSourceValue: () => host.resolveValue(sourceName),
+        announce: () => {
+          host.announceChoices(question);
+        },
+      }),
+    );
+  }
+
+  #registerUrl(
+    question: SelectQuestion,
+    key: string,
+    url: string,
+    host: SurveyLogicHost,
+  ): void {
+    this.#detachPager(question);
+    host.logic.addRule(
+      this.#urls.createRule({
+        key,
+        question,
+        url,
+        resolvePlaceholder: (name) => host.resolveValue(name),
+        announce: () => {
+          host.announceChoices(question);
+        },
+      }),
+    );
   }
 
   /**
@@ -133,161 +207,54 @@ export class ChoiceSourceController {
     };
   }
 
-  /**
-   * Creates the logic rule that keeps one question's remote choices current.
-   *
-   * The URL's `{question}` placeholders are declared as graph dependencies, so changing
-   * an answer the URL interpolates re-runs this rule and re-fetches — the same
-   * mechanism every other piece of logic uses, rather than a bespoke watcher.
-   *
-   * Loading is asynchronous and therefore lands *after* the settle that started it. The
-   * cache is checked synchronously first, so a repeat of a URL already seen applies
-   * within the transaction and never re-renders.
-   */
-  createUrlRule(source: UrlChoiceSource): LogicRule {
-    const settings: ChoiceSettings = {
-      path: source.question.choicesPath,
-      valueName: source.question.choicesValueName,
-      titleName: source.question.choicesTitleName,
-    };
-    let loaded: readonly ItemValue[] | undefined;
-
-    const apply = (choices: readonly ItemValue[]): void => {
-      if (loaded !== undefined && choiceListsMatch(loaded, choices)) {
-        // A cached response identical to what is already shown must not re-render.
-        return;
-      }
-      loaded = choices;
-      source.question.setChoiceProvider(() => loaded ?? []);
-      source.announce();
-    };
-    const clear = (): void => {
-      loaded = undefined;
-      source.question.clearChoiceProvider();
-      source.announce();
-    };
-
-    return {
-      key: source.key,
-      reads: placeholderDependencies(source.url),
-      run: () => {
-        this.#refreshSource(source, settings, apply, clear);
-      },
-    };
-  }
-
-  #refreshSource(
-    source: UrlChoiceSource,
-    settings: ChoiceSettings,
-    apply: (choices: readonly ItemValue[]) => void,
-    clear: () => void,
-  ): void {
-    const generation = this.#nextGeneration(source.key);
-    if (this.#hasUnknownOrigin(source)) {
-      clear();
-      return;
-    }
-    const url = resolveUrl(source.url, source.resolvePlaceholder, this.#endpoints);
-    if (url.trim().length === 0) {
-      clear();
-      return;
-    }
-
-    const cacheKey = createCacheKey(url, settings);
-    const cached = this.#cache.get(cacheKey);
-    if (cached !== undefined) {
-      apply(cached);
-      return;
-    }
-
-    const request = this.#request(url, cacheKey);
-    if (request === undefined) {
-      return;
-    }
-    void request.then(
-      (payload) => {
-        try {
-          const choices = choicesFromResponse(payload, url, settings);
-          this.#cache.set(cacheKey, choices);
-          // A response for a URL this question has since moved off must not install
-          // itself: it answers a question nobody is asking any more.
-          if (this.#isCurrent(source.key, generation)) {
-            apply(choices);
-          }
-        } catch (error: unknown) {
-          if (this.#isCurrent(source.key, generation)) {
-            this.#errors.push(`Loading "${url}" failed: ${String(error)}`);
-          }
-        }
-      },
-      (error: unknown) => {
-        if (this.#isCurrent(source.key, generation)) {
-          this.#errors.push(`Loading "${url}" failed: ${String(error)}`);
-        }
-      },
-    );
-  }
-
-  /**
-   * Whether the URL names an origin nobody supplied — and says so if it does.
-   *
-   * Such a URL is not fetched at all. Substituting the empty string would send it to
-   * the app's own origin, where it either 404s confusingly or succeeds against
-   * something never meant to answer it, and that is the failure ADR-0017 exists to
-   * prevent. The parse diagnostic tells an author; this stops the request.
-   */
-  #hasUnknownOrigin(source: UrlChoiceSource): boolean {
-    const missing = undeclaredEndpoints(source.url, this.#endpoints);
-    if (missing.length === 0) {
-      return false;
-    }
-    this.#errors.push(
-      `"${source.question.name}" loads choices from ${JSON.stringify(missing[0])}, which no endpoint supplies.`,
-    );
-    return true;
-  }
-
-  #nextGeneration(key: string): number {
-    const generation = (this.#generations.get(key) ?? 0) + 1;
-    this.#generations.set(key, generation);
-    return generation;
-  }
-
-  #isCurrent(key: string, generation: number): boolean {
-    return this.#generations.get(key) === generation;
-  }
-
-  /** Shares one in-flight request between every source awaiting the same response. */
-  #request(url: string, cacheKey: string): Promise<unknown> | undefined {
-    const fetchJson = this.#fetchJson;
-    if (fetchJson === undefined) {
+  #attachPager(question: SelectQuestion, announce: () => void): void {
+    const load = this.#loadPage;
+    if (load === undefined) {
       this.#errors.push(
-        `No choice fetcher is configured, so "${url}" cannot be loaded. Pass one as the survey's fetchJson option.`,
+        `"${question.name}" loads its choices lazily, so the survey needs a page loader. Pass one as the loadChoicePage option.`,
       );
-      return undefined;
+      return;
+    }
+    const existing = this.#pagers.get(question.name);
+    if (existing !== undefined) {
+      this.#installPager(question, existing);
+      return;
     }
 
-    const pending = this.#pending.get(cacheKey);
-    if (pending !== undefined) {
-      return pending;
-    }
-
-    let response: Promise<unknown>;
-    try {
-      response = fetchJson(url);
-    } catch (error: unknown) {
-      // A fetcher that throws synchronously is reported like one that rejects.
-      response = Promise.reject(error);
-    }
-    this.#pending.set(cacheKey, response);
-    void response.then(
-      () => {
-        this.#pending.delete(cacheKey);
+    const pager = new ChoicePager({
+      questionName: question.name,
+      pageSize:
+        question.choicesLazyLoadPageSize > 0
+          ? question.choicesLazyLoadPageSize
+          : DEFAULT_PAGE_SIZE,
+      load,
+      announce,
+      reportError: (message) => {
+        this.#errors.push(`Loading choices for "${question.name}" failed: ${message}`);
       },
-      () => {
-        this.#pending.delete(cacheKey);
-      },
-    );
-    return response;
+    });
+    this.#pagers.set(question.name, pager);
+    this.#installPager(question, pager);
+    pager.loadMore();
   }
+
+  #detachPager(question: SelectQuestion): void {
+    if (this.#pagers.delete(question.name)) {
+      question.detachChoicePaging();
+      question.clearChoiceProvider();
+    }
+  }
+
+  #installPager(question: SelectQuestion, pager: ChoicePager): void {
+    question.setChoiceProvider(() => pager.items);
+    question.attachChoicePaging(pager);
+  }
+}
+
+function optionalString(value: string): string | undefined {
+  return value.length > 0 ? value : undefined;
+}
+
+function toCarryForwardMode(mode: string): CarryForwardMode {
+  return mode === 'selected' || mode === 'unselected' ? mode : 'all';
 }

@@ -1,5 +1,4 @@
 import { PageElement } from './PageElement.js';
-import { attachHostToElement } from './Panel.js';
 import { SurveyElement } from './SurveyElement.js';
 import type { ValueHost } from './ValueHost.js';
 
@@ -56,7 +55,7 @@ export class Page extends SurveyElement {
     }
     this.#elements.push(child);
     if (this.#valueHost !== undefined) {
-      attachHostToElement(child, this.#valueHost);
+      child.attachValueHost(this.#valueHost);
     }
   }
 
@@ -64,7 +63,7 @@ export class Page extends SurveyElement {
   attachValueHost(host: ValueHost): void {
     this.#valueHost = host;
     for (const element of this.#elements) {
-      attachHostToElement(element, host);
+      element.attachValueHost(host);
     }
   }
 }

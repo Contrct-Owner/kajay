@@ -4,22 +4,6 @@
 export { generateContract } from './contract/generateContract.js';
 export { EventEmitter } from './events/EventEmitter.js';
 
-// --- Dependency graph (ADR-0004) ------------------------------------------
-export type { DependencyError, DependencyErrorCode } from './dependencies/DependencyError.js';
-export { DependencyGraph } from './dependencies/DependencyGraph.js';
-export type { DependencyPlan } from './dependencies/DependencyGraph.js';
-export type { DependencyNode } from './dependencies/DependencyNode.js';
-export {
-  ANY_INDEX,
-  formatPattern,
-  generalizeIndices,
-  pathMatchesPattern,
-} from './dependencies/DependencyPattern.js';
-export type {
-  AnyIndexSegment,
-  DependencyPattern,
-  PatternSegment,
-} from './dependencies/DependencyPattern.js';
 // --- Expression language (ADR-0003) ---------------------------------------
 export {
   createDefaultFunctionRegistry,
@@ -56,8 +40,6 @@ export type {
   UnaryNode,
   UnaryOperator,
 } from './expressions/ExpressionNode.js';
-export { AsyncFunctionCache } from './expressions/AsyncFunctionCache.js';
-export type { AsyncFunctionCacheOptions } from './expressions/AsyncFunctionCache.js';
 export { FunctionRegistry } from './expressions/FunctionRegistry.js';
 export { parseExpression } from './expressions/parseExpression.js';
 export type { ParseExpressionResult } from './expressions/parseExpression.js';
@@ -92,14 +74,13 @@ export type {
 } from './metadata/PropertyDescriptor.js';
 export { registerBuiltInTypes } from './metadata/registerBuiltInTypes.js';
 export { CalculatedValue } from './model/CalculatedValue.js';
-export type { ChoiceFetcher } from './model/ChoiceSourceController.js';
+export type { ChoiceFetcher } from './model/ChoiceFetcher.js';
 export type {
   ChoicePage,
   ChoicePageItem,
   ChoicePageLoader,
   ChoicePageRequest,
 } from './model/ChoicePageLoader.js';
-export type { ChoicePaging } from './model/ChoicePaging.js';
 export { BooleanQuestion } from './model/BooleanQuestion.js';
 export type { BooleanRenderMode } from './model/BooleanQuestion.js';
 export { CheckboxQuestion } from './model/CheckboxQuestion.js';
@@ -161,21 +142,8 @@ export { Question } from './model/Question.js';
 export type { ConditionalItemGroup } from './model/Question.js';
 export { Survey } from './model/Survey.js';
 export { HtmlCondition } from './model/HtmlCondition.js';
-export { readProgress, restoreProgress } from './model/SurveyProgress.js';
-export { shouldAdvanceAutomatically } from './model/autoAdvance.js';
-export {
-  collectEndpointDiagnostics,
-  isEndpointName,
-  resolveEndpoint,
-  undeclaredEndpoints,
-} from './model/endpoints.js';
 export type { Endpoints } from './model/endpoints.js';
-export { collectPreviewQuestions, toPreviewMode } from './model/previewQuestions.js';
-export {
-  measureProgress,
-  toProgressBarLocation,
-  toProgressBarType,
-} from './model/progressBar.js';
+export { measureProgress } from './model/progressBar.js';
 export type {
   ProgressBarLocation,
   ProgressBarType,
@@ -183,16 +151,8 @@ export type {
 } from './model/progressBar.js';
 export type { PreviewMode } from './model/previewQuestions.js';
 export type { SurveyProgress } from './model/SurveyProgress.js';
-export {
-  clearAnswersOnComplete,
-  clearHiddenAnswers,
-  toClearPolicy,
-  unreachableAnswers,
-} from './model/clearInvisibleAnswers.js';
 export type { ClearInvisibleValues } from './model/clearInvisibleAnswers.js';
-export { interpolate, interpolateHtml } from './model/interpolate.js';
-export { resolveSurveyState } from './model/SurveyState.js';
-export type { SurveyState, SurveyStateInputs } from './model/SurveyState.js';
+export type { SurveyState } from './model/SurveyState.js';
 export type { SurveyOptions } from './model/SurveyOptions.js';
 export { SurveyElement } from './model/SurveyElement.js';
 export type { SurveyError } from './model/SurveyError.js';

@@ -13,8 +13,11 @@ Before planning, implementing, or reviewing code or tests, read
   `core ← creator-core ← creator-react`, nothing else. Core packages
   (`@kajay/core`, `@kajay/creator-core`) never import UI packages, never touch the
   DOM, and carry zero runtime dependencies unless an ADR grants one.
-- A package's public surface is exactly its `package.json` `exports` map. No deep
-  imports anywhere, including tests and `apps/host-demo`.
+- A package's public surface is exactly its `package.json` `exports` map. Cross-package
+  imports always use that published surface; package subpath imports are forbidden,
+  including in tests and `apps/host-demo`. A package's unit tests may use relative
+  imports into its own `src` tree to prove internal modules. Browser/E2E tests and the
+  host demo use public package imports only.
 - **Consumers are supported from TypeScript 5.5 upward** (ADR-0014). Nothing may reach
   the published `.d.ts` that a 5.5 consumer cannot compile; the pack test enforces this
   against real installed compilers. Raising the floor is a breaking change.

@@ -1,5 +1,4 @@
 import type { ChoicePage, ChoicePageItem, ChoicePageLoader } from './ChoicePageLoader.js';
-import type { ChoicePaging } from './ChoicePaging.js';
 import { ItemValue } from './ItemValue.js';
 
 export interface ChoicePagerOptions {
@@ -24,7 +23,7 @@ export interface ChoicePagerOptions {
  * problem to hear about, and a spinner that never stops is a list a respondent can
  * neither read nor get past — the same failure the async validators had.
  */
-export class ChoicePager implements ChoicePaging {
+export class ChoicePager {
   readonly #options: ChoicePagerOptions;
   #items: readonly ItemValue[] = [];
   #filter = '';

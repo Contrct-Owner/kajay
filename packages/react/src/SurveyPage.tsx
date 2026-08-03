@@ -1,12 +1,12 @@
 import type { Page, Survey as SurveyModel } from '@kajay/core';
 import type { ReactElement } from 'react';
-import type { QuestionRendererRegistry } from './QuestionRendererRegistry.js';
+import type { PageElementRendererRegistry } from './PageElementRendererRegistry.js';
 import { SurveyElements } from './SurveyElements.js';
 
 export interface SurveyPageProps {
   readonly survey: SurveyModel;
   readonly page: Page;
-  readonly renderers: QuestionRendererRegistry;
+  readonly renderers: PageElementRendererRegistry;
 }
 
 /**

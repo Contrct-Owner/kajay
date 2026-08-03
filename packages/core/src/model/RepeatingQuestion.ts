@@ -3,7 +3,6 @@ import type { CellAttachment } from './matrixCells.js';
 import { buildInstance, CellValueHost } from './matrixCells.js';
 import { asAnswerRecord, withAnswerEntry } from './objectAnswers.js';
 import type { PageElement } from './PageElement.js';
-import { attachHostToElement } from './Panel.js';
 import { collectElements, collectQuestions, collectVisibleQuestions } from './pageElements.js';
 import { Question } from './Question.js';
 import type { ConditionalItemGroup } from './Question.js';
@@ -136,9 +135,7 @@ export abstract class RepeatingQuestion extends Question {
     };
     const built = templates.map((template) => {
       const instance = buildInstance(template, row, attachment);
-      // Panels propagate the host to their own children, so a group inside a template
-      // needs nothing said about it here.
-      attachHostToElement(instance, host);
+      instance.attachValueHost(host);
       return instance;
     });
     cache.set(rowKey, built);

@@ -3,7 +3,6 @@ import type { SurveyElement } from './SurveyElement.js';
 import type { SurveyError } from './SurveyError.js';
 import { Validator } from './Validator.js';
 import type { ValidationContext } from './Validator.js';
-import type { ValueHost } from './ValueHost.js';
 
 /**
  * A collection of a question's items that carry conditions of their own.
@@ -21,7 +20,6 @@ const NO_CONDITIONAL_ITEMS: readonly ConditionalItemGroup[] = [];
 /** Base for every question type. Answers live in the host, never on the question. */
 export abstract class Question extends PageElement {
   readonly #validators: Validator[] = [];
-  #valueHost: ValueHost | undefined;
   #instanceKey: string | undefined;
   #requiredOverride: boolean | undefined;
   #errors: readonly SurveyError[] = [];
@@ -66,7 +64,7 @@ export abstract class Question extends PageElement {
    * into work at all.
    */
   get isReadOnly(): boolean {
-    return (this.#valueHost?.isReadOnly ?? false) || this.getBooleanProperty('readOnly');
+    return (this.valueHost?.isReadOnly ?? false) || this.getBooleanProperty('readOnly');
   }
 
   /**
@@ -184,12 +182,13 @@ export abstract class Question extends PageElement {
   }
 
   override getChildren(property: string): readonly SurveyElement[] {
-    return property === 'validators' ? this.#validators : [];
+    return property === 'validators' ? this.#validators : super.getChildren(property);
   }
 
   override addChild(property: string, child: SurveyElement): void {
     if (property !== 'validators') {
-      throw new Error(`"${this.type}" does not accept children under "${property}".`);
+      super.addChild(property, child);
+      return;
     }
     if (!(child instanceof Validator)) {
       throw new Error(`validators accepts validators; received "${child.type}".`);
@@ -214,15 +213,11 @@ export abstract class Question extends PageElement {
   }
 
   get value(): unknown {
-    return this.#valueHost?.getValue(this.valueKey);
+    return this.valueHost?.getValue(this.valueKey);
   }
 
   set value(next: unknown) {
-    this.#valueHost?.setValue(this.valueKey, next);
-  }
-
-  attachValueHost(host: ValueHost): void {
-    this.#valueHost = host;
+    this.valueHost?.setValue(this.valueKey, next);
   }
 }
 

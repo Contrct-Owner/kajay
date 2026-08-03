@@ -1,13 +1,16 @@
 import {
-  ANY_INDEX,
-  DependencyGraph,
   collectReferences,
+  parseExpression,
+} from '@kajay/core';
+import { DependencyGraph } from '../../src/dependencies/DependencyGraph.js';
+import {
+  ANY_INDEX,
   formatPattern,
   generalizeIndices,
-  parseExpression,
   pathMatchesPattern,
-} from '@kajay/core';
-import type { DependencyPattern, PathSegment } from '@kajay/core';
+} from '../../src/dependencies/DependencyPattern.js';
+import type { DependencyPattern } from '../../src/dependencies/DependencyPattern.js';
+import type { PathSegment } from '../../src/expressions/ExpressionNode.js';
 import { describe, expect, test } from 'vitest';
 
 function path(...segments: readonly (string | number)[]): readonly PathSegment[] {

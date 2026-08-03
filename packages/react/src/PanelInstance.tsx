@@ -1,4 +1,3 @@
-import { Panel, Question } from '@kajay/core';
 import type { PageElement, PanelDynamicQuestion, Survey as SurveyModel } from '@kajay/core';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
@@ -30,30 +29,7 @@ function InstanceElement({
   if (!element.isVisible) {
     return null;
   }
-  if (element instanceof Panel) {
-    return (
-      <fieldset className="kajay-panel" data-panel-name={element.name}>
-        {element.title.length > 0 ? (
-          <legend className="kajay-panel__title">{element.title}</legend>
-        ) : null}
-        {element.elements.map((child) => (
-          <InstanceElement key={child.name} survey={survey} element={child} />
-        ))}
-      </fieldset>
-    );
-  }
-  if (!(element instanceof Question)) {
-    return null;
-  }
-  const Renderer = renderers.get(element.type);
-  if (Renderer === undefined) {
-    return (
-      <div className="kajay-question kajay-question--unsupported">
-        {`No renderer is registered for question type "${element.type}".`}
-      </div>
-    );
-  }
-  return <Renderer survey={survey} question={element} />;
+  return renderers.render(survey, element);
 }
 
 /**

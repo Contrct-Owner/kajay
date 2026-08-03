@@ -1,8 +1,9 @@
-import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
+import { collectVisibleQuestions } from './pageElements.js';
 import type { Question } from './Question.js';
 import type { ServerValidator } from './ServerValidator.js';
+import type { Survey } from './Survey.js';
 import type { SurveyError } from './SurveyError.js';
-import type { ExpressionEvaluator } from './validateAnswer.js';
+import type { SurveyLogicHost } from './SurveyLogicHost.js';
 import { clearQuestionErrors, validateQuestions } from './validateAnswer.js';
 import type { AsyncValidationResult } from './validateAnswerAsync.js';
 import { collectAsyncErrors, hasAsyncWork } from './validateAnswerAsync.js';
@@ -39,34 +40,6 @@ export type ValidationGate = 'allowed' | 'blocked' | 'pending';
  */
 export type AdvanceOutcome = 'advanced' | 'blocked' | 'pending';
 
-/** The parts of the survey validation reads. */
-export interface SurveyValidationHost {
-  /**
-   * Reads and writes the survey's own declared properties.
-   *
-   * The policy below is authored in the definition and serializes on the survey, so it
-   * has to live in the survey's property bag; a copy held here would be a second source
-   * of truth that a round-trip could not see.
-   */
-  readonly readProperty: (name: string) => PropertyValue | undefined;
-  readonly writeProperty: (name: string, value: PropertyValue) => void;
-  readonly currentPageQuestions: () => readonly Question[];
-  readonly allQuestions: () => readonly Question[];
-  readonly isLastPage: () => boolean;
-  /** Identifies where the respondent is standing, for comparison after a round trip. */
-  readonly currentPageName: () => string;
-  readonly evaluate: ExpressionEvaluator;
-  /** The answers as a host would submit them. Handed to the server validator. */
-  readonly data: () => Readonly<Record<string, unknown>>;
-  /** Host rules that need no round trip: whatever `onValidateQuestion` reported. */
-  readonly hostErrors: (question: Question) => readonly SurveyError[];
-  /** Records that one question's errors changed. Buffered, not delivered. */
-  readonly announce: (question: Question) => void;
-  /** Delivers whatever `announce` buffered — once per check, not once per question. */
-  readonly flush: () => void;
-  readonly announceValidating: (isValidating: boolean) => void;
-}
-
 /**
  * Decides what gets checked, and when.
  *
@@ -75,40 +48,42 @@ export interface SurveyValidationHost {
  * from inside the model would spread one rule across three call sites.
  */
 export class SurveyValidation {
-  readonly #host: SurveyValidationHost;
+  readonly #survey: Survey;
+  readonly #logic: () => SurveyLogicHost;
   #serverValidator: ServerValidator | undefined;
   #isValidating = false;
   #checkError: string | undefined;
 
-  constructor(host: SurveyValidationHost) {
-    this.#host = host;
+  constructor(survey: Survey, logic: () => SurveyLogicHost) {
+    this.#survey = survey;
+    this.#logic = logic;
   }
 
   /** While false, validation neither runs nor blocks anything. */
   get isEnabled(): boolean {
-    return this.#host.readProperty('validationEnabled') !== false;
+    return this.#survey.getResolvedProperty('validationEnabled') !== false;
   }
 
   setEnabled(isEnabled: boolean): void {
-    this.#host.writeProperty('validationEnabled', isEnabled);
+    this.#survey.setPropertyValue('validationEnabled', isEnabled);
   }
 
   get checkErrorsMode(): CheckErrorsMode {
-    const mode = this.#host.readProperty('checkErrorsMode');
+    const mode = this.#survey.getResolvedProperty('checkErrorsMode');
     return mode === 'onValueChanged' || mode === 'onComplete' ? mode : 'onNextPage';
   }
 
   setCheckErrorsMode(mode: CheckErrorsMode): void {
-    this.#host.writeProperty('checkErrorsMode', mode);
+    this.#survey.setPropertyValue('checkErrorsMode', mode);
   }
 
   /** Whether a question draws its errors above its input or below it. */
   get errorLocation(): QuestionErrorLocation {
-    return this.#host.readProperty('questionErrorLocation') === 'bottom' ? 'bottom' : 'top';
+    return this.#survey.getResolvedProperty('questionErrorLocation') === 'bottom' ? 'bottom' : 'top';
   }
 
   setErrorLocation(location: QuestionErrorLocation): void {
-    this.#host.writeProperty('questionErrorLocation', location);
+    this.#survey.setPropertyValue('questionErrorLocation', location);
   }
 
   /** Installs the host's out-of-process check. Undefined removes it. */
@@ -136,12 +111,12 @@ export class SurveyValidation {
 
   /** Checks the visible questions on the page the respondent is standing on. */
   validateCurrentPage(): boolean {
-    return this.#run(this.#host.currentPageQuestions());
+    return this.#run(this.#currentPageQuestions());
   }
 
   /** Checks every question in the survey, whatever page it lives on. */
   validateAll(): boolean {
-    return this.#run(this.#host.allQuestions());
+    return this.#run(this.#allQuestions());
   }
 
   /**
@@ -192,9 +167,8 @@ export class SurveyValidation {
     if (!this.isEnabled || this.checkErrorsMode !== 'onValueChanged') {
       return;
     }
-    const question = this.#host
-      .currentPageQuestions()
-      .find((candidate) => candidate.name === name);
+    const question = this.#currentPageQuestions()
+      .find((candidate) => candidate.valueKey === name);
     if (question !== undefined) {
       this.#run([question]);
     }
@@ -208,14 +182,16 @@ export class SurveyValidation {
    * focus.
    */
   get firstErrorQuestion(): Question | undefined {
-    return this.#host.currentPageQuestions().find((question) => question.hasErrors);
+    return this.#currentPageQuestions().find((question) => question.hasErrors);
   }
 
   /** Forgets every recorded error. Nothing is re-checked. */
   clear(): void {
     this.#checkError = undefined;
-    clearQuestionErrors(this.#host.allQuestions(), this.#host.announce);
-    this.#host.flush();
+    clearQuestionErrors(this.#allQuestions(), (question) => {
+      this.#logic().notifyErrorsChanged(question);
+    });
+    this.#logic().release();
   }
 
   /**
@@ -229,9 +205,9 @@ export class SurveyValidation {
       return [];
     }
     if (this.checkErrorsMode !== 'onComplete') {
-      return this.#host.currentPageQuestions();
+      return this.#currentPageQuestions();
     }
-    return this.#host.isLastPage() ? this.#host.allQuestions() : [];
+    return this.#survey.isLastPage ? this.#allQuestions() : [];
   }
 
   /**
@@ -245,10 +221,10 @@ export class SurveyValidation {
    * reply to a question they withdrew.
    */
   #snapshot(questions: readonly Question[]): () => boolean {
-    const page = this.#host.currentPageName();
+    const page = this.#survey.currentPage?.name ?? '';
     const asked = questions.map((question) => [question.valueKey, question.value] as const);
     return () =>
-      page !== this.#host.currentPageName() ||
+      page !== (this.#survey.currentPage?.name ?? '') ||
       asked.some(
         ([name, value]) =>
           questions.find((question) => question.valueKey === name)?.value !== value,
@@ -261,8 +237,8 @@ export class SurveyValidation {
 
     void collectAsyncErrors({
       questions,
-      evaluate: this.#host.evaluate,
-      data: this.#host.data(),
+      evaluate: (expression) => this.#logic().evaluate(expression),
+      data: this.#survey.data,
       serverValidator: this.#serverValidator,
     }).then(
       (result) => {
@@ -326,7 +302,7 @@ export class SurveyValidation {
 
   #setValidating(isValidating: boolean): void {
     this.#isValidating = isValidating;
-    this.#host.announceValidating(isValidating);
+    this.#survey.onValidatingChanged.emit({ isValidating });
   }
 
   #run(
@@ -334,13 +310,38 @@ export class SurveyValidation {
     carried?: ReadonlyMap<string, readonly SurveyError[]>,
   ): boolean {
     const isValid = validateQuestions(questions, {
-      evaluate: this.#host.evaluate,
-      announce: this.#host.announce,
-      hostErrors: this.#host.hostErrors,
+      evaluate: (expression) => this.#logic().evaluate(expression),
+      announce: (question) => {
+        this.#logic().notifyErrorsChanged(question);
+      },
+      hostErrors: (question) => this.#collectHostErrors(question),
       ...(carried === undefined ? {} : { carried }),
     });
-    this.#host.flush();
+    this.#logic().release();
     return isValid;
+  }
+
+  #currentPageQuestions(): readonly Question[] {
+    return collectVisibleQuestions(this.#survey.currentPage?.elements ?? []);
+  }
+
+  #allQuestions(): readonly Question[] {
+    return this.#survey.visiblePages.flatMap((page) => collectVisibleQuestions(page.elements));
+  }
+
+  #collectHostErrors(question: Question): readonly SurveyError[] {
+    if (this.#survey.onValidateQuestion.listenerCount === 0) {
+      return [];
+    }
+    const errors: SurveyError[] = [];
+    this.#survey.onValidateQuestion.emit({
+      question,
+      value: question.value,
+      addError: (text) => {
+        errors.push({ kind: 'host', text });
+      },
+    });
+    return errors;
   }
 }
 

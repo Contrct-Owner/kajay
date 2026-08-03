@@ -2,17 +2,20 @@ import type { ElementStateChangedEvent, ValueChangedEvent } from '../events/Surv
 import type { PathSegment } from '../expressions/ExpressionNode.js';
 import { LogicEngine } from '../logic/LogicEngine.js';
 import type { LogicDiagnostics } from '../logic/LogicEngine.js';
+import type { CalculatedValue } from './CalculatedValue.js';
 import { ChoiceSourceController } from './ChoiceSourceController.js';
-import { LazyChoiceController } from './LazyChoiceController.js';
 import { createPathResolver } from './createPathResolver.js';
 import { ElementStateController } from './ElementStateController.js';
 import { SettleCoordinator } from './SettleCoordinator.js';
 import type { SurveyAnswers } from './SurveyAnswers.js';
 import type { SurveyChildren } from './SurveyChildren.js';
+import type { Survey } from './Survey.js';
 import type { SurveyElement } from './SurveyElement.js';
 import type { SurveyOptions } from './SurveyOptions.js';
-import { refreshSurveyLogic } from './surveyLogicWiring.js';
-import type { SurveyLogicDependencies } from './surveyLogicWiring.js';
+import { registerSurveyRules } from './registerSurveyRules.js';
+import type { Question } from './Question.js';
+import type { Panel } from './Panel.js';
+import type { SelectQuestion } from './SelectQuestion.js';
 import type { ExpressionOutcome } from './Validator.js';
 
 /**
@@ -27,12 +30,6 @@ export interface ExpressionScope {
 }
 
 /**
- * The half of rule registration the survey itself has to supply.
- *
- * A `Pick` of the full dependency set rather than a hand-written twin, so adding a hook
- * cannot leave the two lists disagreeing about what a rule may reach for.
- */
-/**
  * How a settle reaches the outside world.
  *
  * The host drains its own state buffer rather than handing it back, because forgetting
@@ -46,11 +43,6 @@ export interface LogicAnnouncer {
   readonly value: (event: ValueChangedEvent) => void;
   readonly elementState: (event: ElementStateChangedEvent) => void;
 }
-
-export type SurveyRuleHooks = Pick<
-  SurveyLogicDependencies,
-  'getValue' | 'writeValue' | 'complete' | 'goTo' | 'findQuestion'
->;
 
 /**
  * The survey's logic subsystem: the engine, the change buffer, the settle coordinator
@@ -67,14 +59,23 @@ export class SurveyLogicHost {
   readonly #states: ElementStateController = new ElementStateController();
   readonly #settle: SettleCoordinator;
   readonly #choiceSources: ChoiceSourceController = new ChoiceSourceController();
-  readonly #lazyChoices: LazyChoiceController = new LazyChoiceController();
   readonly #answers: SurveyAnswers;
+  readonly #survey: Survey;
+  readonly #writeValue: (name: string, value: unknown) => boolean;
   readonly #resolvePath: (path: readonly PathSegment[]) => unknown;
   #afterSettle: (() => void) | undefined;
   #inAfterSettle = false;
 
-  constructor(answers: SurveyAnswers, options: SurveyOptions, announcer: LogicAnnouncer) {
+  constructor(
+    survey: Survey,
+    answers: SurveyAnswers,
+    options: SurveyOptions,
+    announcer: LogicAnnouncer,
+    writeValue: (name: string, value: unknown) => boolean,
+  ) {
+    this.#survey = survey;
     this.#answers = answers;
+    this.#writeValue = writeValue;
     this.#engine = new LogicEngine(options);
     this.configure(options);
     this.#engine.setAsyncSettledHandler(() => {
@@ -104,7 +105,7 @@ export class SurveyLogicHost {
 
   /** Messages from choice sources: a failed load, a failed page, a missing fetcher. */
   get choiceErrors(): readonly string[] {
-    return [...this.#choiceSources.errors, ...this.#lazyChoices.errors];
+    return this.#choiceSources.errors;
   }
 
   /**
@@ -119,7 +120,7 @@ export class SurveyLogicHost {
     }
     this.#choiceSources.setFetcher(options.fetchJson);
     this.#choiceSources.setEndpoints(options.endpoints ?? {});
-    this.#lazyChoices.setLoader(options.loadChoicePage);
+    this.#choiceSources.setPageLoader(options.loadChoicePage);
   }
 
   /**
@@ -155,20 +156,76 @@ export class SurveyLogicHost {
   }
 
   /** Rebuilds every rule from the current tree and evaluates them once. */
-  refresh(children: SurveyChildren, hooks: SurveyRuleHooks): void {
-    refreshSurveyLogic(children, {
-      logic: this.#engine,
-      states: this.#states,
-      settle: this.#settle,
-      choiceSources: this.#choiceSources,
-      lazyChoices: this.#lazyChoices,
-      answers: this.#answers,
-      resolvePath: this.#resolvePath,
-      afterSettle: () => {
-        this.#runAfterSettle();
-      },
-      ...hooks,
+  refresh(children: SurveyChildren): void {
+    this.#engine.clear();
+    registerSurveyRules(children, this);
+    this.#settle.run(() => {
+      const result = this.#engine.evaluateAll(this.#resolvePath);
+      // A restored response can name a question the definition hides, so the very first
+      // evaluation has to enforce the policy too — not only later changes.
+      this.#runAfterSettle();
+      return result;
     });
+  }
+
+  /** Internal rule-registration access to the expression graph. */
+  get logic(): LogicEngine {
+    return this.#engine;
+  }
+
+  /** Internal rule-registration access to computed element state. */
+  get states(): ElementStateController {
+    return this.#states;
+  }
+
+  get choiceSources(): ChoiceSourceController {
+    return this.#choiceSources;
+  }
+
+  getValue(name: string): unknown {
+    return this.#survey.getValue(name);
+  }
+
+  setValue(name: string, value: unknown): boolean {
+    return this.#writeValue(name, value);
+  }
+
+  setCalculated(calculated: CalculatedValue, value: unknown): boolean {
+    const { changed, previousValue } = this.#answers.writeCalculated(calculated.name, value);
+    if (changed && calculated.includeIntoResult) {
+      this.#settle.queueValue({ name: calculated.name, value, previousValue });
+    }
+    return changed;
+  }
+
+  complete(): void {
+    this.#survey.complete();
+  }
+
+  goTo(name: string): void {
+    this.#survey.goTo(name);
+  }
+
+  findQuestion(name: string): Question | undefined {
+    return this.#survey.getQuestionByName(name);
+  }
+
+  resolveValue(name: string): unknown {
+    return this.#resolvePath([{ kind: 'name', name }]);
+  }
+
+  announcePanelCollapsed(panel: Panel): void {
+    panel.setCollapseAnnouncer((isCollapsed) => {
+      this.#states.notifyCollapsedChanged(panel, isCollapsed);
+      this.#settle.release();
+    });
+  }
+
+  announceChoices(question: SelectQuestion): void {
+    this.#states.notifyChoicesChanged(question);
+    if (!this.#settle.isSettling) {
+      this.#settle.release();
+    }
   }
 
   /**

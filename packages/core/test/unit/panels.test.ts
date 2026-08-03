@@ -1,5 +1,5 @@
-import { Panel, parseSurvey, serializeSurvey } from '@kajay/core';
-import type { Survey } from '@kajay/core';
+import { PageElement, Panel, parseSurvey, serializeSurvey } from '@kajay/core';
+import type { Survey, SurveyElement } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
 import { createTestRegistry } from '../support/createTestRegistry.js';
 
@@ -15,6 +15,26 @@ function panelOf(survey: Survey, name: string): Panel {
     throw new TypeError(`no panel named ${name}`);
   }
   return found;
+}
+
+class SectionElement extends PageElement {
+  readonly #elements: PageElement[] = [];
+
+  override get type(): string {
+    return 'test-section';
+  }
+
+  override getChildren(property: string): readonly SurveyElement[] {
+    return property === 'elements' ? this.#elements : [];
+  }
+
+  override addChild(property: string, child: SurveyElement): void {
+    if (property !== 'elements' || !(child instanceof PageElement)) {
+      throw new TypeError('A test section accepts page elements.');
+    }
+    this.#elements.push(child);
+    this.attachChildValueHost(child);
+  }
 }
 
 const nested = {
@@ -43,6 +63,45 @@ const nested = {
 };
 
 describe('parity/E1-panels', () => {
+  test('a registered composite joins traversal, rules, and answer hosting automatically', () => {
+    const registry = createTestRegistry();
+    registry.addClass({
+      name: 'test-section',
+      parent: 'pageelement',
+      childCollections: [{ property: 'elements', elementBaseType: 'pageelement' }],
+      create: () => new SectionElement(),
+    });
+    const survey = parseSurvey(
+      {
+        pages: [
+          {
+            name: 'p1',
+            elements: [
+              {
+                type: 'test-section',
+                name: 'conditional-section',
+                visibleIf: '{gate} = true',
+                elements: [{ type: 'text', name: 'inside' }],
+              },
+              { type: 'boolean', name: 'gate' },
+            ],
+          },
+        ],
+      },
+      registry,
+    ).survey;
+
+    expect(survey.questions.map((question) => question.name)).toEqual(['inside', 'gate']);
+    expect(survey.pages[0]?.visibleElements.map((element) => element.name)).toEqual(['gate']);
+    survey.setValue('inside', 'reachable');
+    survey.setValue('gate', true);
+    expect(survey.getQuestionByName('inside')?.value).toBe('reachable');
+    expect(survey.pages[0]?.visibleElements.map((element) => element.name)).toEqual([
+      'conditional-section',
+      'gate',
+    ]);
+  });
+
   test('a panel groups elements without holding an answer of its own', () => {
     const survey = build(nested);
     const panel = panelOf(survey, 'contact');
@@ -122,6 +181,40 @@ describe('parity/E1-panel-visibility', () => {
     expect(page?.visibleElements.map((element) => element.name)).toEqual(['gate']);
     survey.setValue('gate', 'yes');
     expect(page?.visibleElements.map((element) => element.name)).toEqual(['gate', 'extras']);
+  });
+
+  test('same-named element types keep distinct conditional rules', () => {
+    const survey = build({
+      pages: [
+        {
+          name: 'p1',
+          elements: [
+            { type: 'boolean', name: 'showPanel' },
+            { type: 'boolean', name: 'showHtml' },
+            {
+              type: 'panel',
+              name: 'shared',
+              visibleIf: '{showPanel} = true',
+              elements: [],
+            },
+            {
+              type: 'html',
+              name: 'shared',
+              visibleIf: '{showHtml} = true',
+              html: '<p>Shared name, separate rule.</p>',
+            },
+          ],
+        },
+      ],
+    });
+    const visibleTypes = (): readonly string[] =>
+      survey.pages[0]?.visibleElements.map((element) => element.type) ?? [];
+
+    expect(visibleTypes()).toEqual(['boolean', 'boolean']);
+    survey.setValue('showPanel', true);
+    expect(visibleTypes()).toEqual(['boolean', 'boolean', 'panel']);
+    survey.setValue('showHtml', true);
+    expect(visibleTypes()).toEqual(['boolean', 'boolean', 'panel', 'html']);
   });
 
   test('a hidden panel takes its questions out of reach without hiding them one by one', () => {

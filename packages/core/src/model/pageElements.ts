@@ -1,6 +1,13 @@
-import type { PageElement } from './PageElement.js';
+import { PageElement } from './PageElement.js';
 import { Panel } from './Panel.js';
 import { Question } from './Question.js';
+
+/** Direct content children declared by a composite page element. */
+export function getPageElementChildren(element: PageElement): readonly PageElement[] {
+  return element
+    .getChildren('elements')
+    .filter((child): child is PageElement => child instanceof PageElement);
+}
 
 /**
  * Walks an element tree to the questions in it, in document order.
@@ -11,17 +18,15 @@ import { Question } from './Question.js';
  */
 export function collectQuestions(elements: readonly PageElement[]): readonly Question[] {
   return elements.flatMap((element) => {
-    if (element instanceof Panel) {
-      return collectQuestions(element.elements);
-    }
-    return element instanceof Question ? [element] : [];
+    const own = element instanceof Question ? [element] : [];
+    return own.concat(collectQuestions(getPageElementChildren(element)));
   });
 }
 
 /** Every element in the tree, containers included, in document order. */
 export function collectElements(elements: readonly PageElement[]): readonly PageElement[] {
   return elements.flatMap((element) =>
-    element instanceof Panel ? [element, ...collectElements(element.elements)] : [element],
+    [element].concat(collectElements(getPageElementChildren(element))),
   );
 }
 
@@ -37,16 +42,15 @@ export function collectVisibleQuestions(
   return elements
     .filter((element) => element.isVisible)
     .flatMap((element) => {
-      if (element instanceof Panel) {
-        return collectVisibleQuestions(element.elements);
-      }
-      return element instanceof Question ? [element] : [];
+      const own = element instanceof Question ? [element] : [];
+      return own.concat(collectVisibleQuestions(getPageElementChildren(element)));
     });
 }
 
 /** Every panel in the tree, in document order. */
 export function collectPanels(elements: readonly PageElement[]): readonly Panel[] {
-  return elements.flatMap((element) =>
-    element instanceof Panel ? [element, ...collectPanels(element.elements)] : [],
-  );
+  return elements.flatMap((element) => {
+    const own = element instanceof Panel ? [element] : [];
+    return own.concat(collectPanels(getPageElementChildren(element)));
+  });
 }

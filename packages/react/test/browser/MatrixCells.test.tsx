@@ -3,7 +3,7 @@ import { parseSurvey } from '@kajay/core';
 import type { Survey as SurveyModel } from '@kajay/core';
 import { Survey } from '@kajay/react';
 import type { QuestionRendererProps } from '@kajay/react';
-import { defaultQuestionRenderers } from '@kajay/react';
+import { defaultPageElementRenderers } from '@kajay/react';
 import { expect, test } from 'vitest';
 import { render } from 'vitest-browser-react';
 
@@ -114,8 +114,8 @@ test('parity/F2-matrix-cells: the columns head the table once', async () => {
 });
 
 test("parity/F2-matrix-cells: a host's own renderer draws the cells too", async () => {
-  const renderers = defaultQuestionRenderers.clone();
-  renderers.register('text', function HostText({ question }: QuestionRendererProps) {
+  const renderers = defaultPageElementRenderers.clone();
+  renderers.registerQuestion('text', function HostText({ question }: QuestionRendererProps) {
     return <div data-testid="host-cell">{question.title}</div>;
   });
 

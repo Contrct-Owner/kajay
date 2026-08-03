@@ -22,13 +22,5 @@ export function MatrixCell({ survey, cell }: MatrixCellProps): ReactElement | nu
   if (cell === undefined || !cell.isVisible) {
     return null;
   }
-  const Renderer = renderers.get(cell.type);
-  if (Renderer === undefined) {
-    return (
-      <div className="kajay-question kajay-question--unsupported">
-        {`No renderer is registered for question type "${cell.type}".`}
-      </div>
-    );
-  }
-  return <Renderer survey={survey} question={cell} />;
+  return renderers.render(survey, cell);
 }

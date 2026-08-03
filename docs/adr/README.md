@@ -40,6 +40,8 @@ recorded here (status `superseded`) **and** in the
 | [0015](./0015-pnpm-workspace.md) | pnpm for the workspace; npm stays the consumer's business | accepted | 2026-08-02 |
 | [0016](./0016-metadata-owns-property-defaults.md) | Metadata descriptors own property defaults; unset ≠ empty | accepted | 2026-08-02 |
 | [0017](./0017-choices-url-environment-portability.md) | `choicesByUrl` origin belongs to the host, not the definition | accepted | 2026-08-02 |
+| [0018](./0018-input-masking-out-of-scope.md) | Input masking is out of parity scope | accepted | 2026-08-02 |
+| [0019](./0019-deep-runtime-modules-and-rendering-seam.md) | Deep runtime modules and one page-element rendering seam | accepted | 2026-08-02 |
 
 ## Parent and related links
 

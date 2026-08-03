@@ -17,7 +17,6 @@ import { SurveyProperties } from './SurveyProperties.js';
 import { readProgress, restoreProgress } from './SurveyProgress.js';
 import type { SurveyProgress } from './SurveyProgress.js';
 import { SurveyStatus } from './SurveyStatus.js';
-import { createStatusHost } from './surveyStatusWiring.js';
 import type { HtmlCondition } from './HtmlCondition.js';
 import type { CalculatedValue } from './CalculatedValue.js';
 import { SurveyAnswers } from './SurveyAnswers.js';
@@ -31,7 +30,6 @@ import { SurveyChildren } from './SurveyChildren.js';
 import type { SurveyElement } from './SurveyElement.js';
 import { SurveyValidation } from './SurveyValidation.js';
 import type { AdvanceOutcome } from './SurveyValidation.js';
-import { createValidationHost, createValidationWiring } from './surveyValidationWiring.js';
 import type { Trigger } from './Trigger.js';
 import type { ExpressionOutcome } from './Validator.js';
 import type { ValueHost } from './ValueHost.js';
@@ -48,20 +46,12 @@ export class Survey extends SurveyProperties implements ValueHost {
       this.onCurrentPageChanged.emit(event);
     },
   );
-  readonly #validation: SurveyValidation = new SurveyValidation(
-    createValidationHost(this, createValidationWiring(this, () => this.#logic)),
-  );
+  readonly #validation: SurveyValidation = new SurveyValidation(this, () => this.#logic);
 
   readonly #status: SurveyStatus = new SurveyStatus(
-    createStatusHost(this, {
-      evaluate: (expression) => this.#logic.evaluate(expression),
-      // Answers *and* calculated values: a completed page saying "you answered 3 of 5"
-      // is reading something computed, and B6 exists to make that possible.
-      resolve: (name) => this.#answers.resolve(name),
-      announce: (state) => {
-        this.onStateChanged.emit({ state });
-      },
-    }),
+    this,
+    () => this.#logic,
+    this.#answers,
   );
 
   readonly onValueChanged: EventEmitter<ValueChangedEvent> = new EventEmitter();
@@ -83,19 +73,25 @@ export class Survey extends SurveyProperties implements ValueHost {
 
   constructor(options: SurveyOptions = {}) {
     super();
-    this.#logic = new SurveyLogicHost(this.#answers, options, {
-      // Logic may have hidden the page the respondent is standing on, and a listener
-      // must never see a page that no longer exists.
-      beforeAnnounce: () => {
-        this.#pages.clampToVisible();
+    this.#logic = new SurveyLogicHost(
+      this,
+      this.#answers,
+      options,
+      {
+        // Logic may have hidden the page the respondent is standing on, and a listener
+        // must never see a page that no longer exists.
+        beforeAnnounce: () => {
+          this.#pages.clampToVisible();
+        },
+        value: (event) => {
+          this.onValueChanged.emit(event);
+        },
+        elementState: (event) => {
+          this.onElementStateChanged.emit(event);
+        },
       },
-      value: (event) => {
-        this.onValueChanged.emit(event);
-      },
-      elementState: (event) => {
-        this.onElementStateChanged.emit(event);
-      },
-    });
+      (name, value) => this.#writeValue(name, value),
+    );
     // Inside the settle, so nobody ever sees the moment where the question has gone
     // and its answer has not — and recomputed against, because something may have been
     // reading the answer that just disappeared.
@@ -233,13 +229,7 @@ export class Survey extends SurveyProperties implements ValueHost {
 
   /** Rebuilds conditional logic from the current tree and evaluates it once. */
   refreshLogic(): void {
-    this.#logic.refresh(this.#children, {
-      getValue: (name) => this.getValue(name),
-      writeValue: (name, value) => this.#writeValue(name, value),
-      complete: () => this.complete(),
-      goTo: (name) => this.goTo(name),
-      findQuestion: (name) => this.getQuestionByName(name),
-    });
+    this.#logic.refresh(this.#children);
   }
 
   get currentPageNo(): number {

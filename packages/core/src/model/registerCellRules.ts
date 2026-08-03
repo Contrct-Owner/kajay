@@ -6,8 +6,8 @@ import { createValueRule } from '../logic/createValueRule.js';
 import { ExpressionQuestion } from './ExpressionQuestion.js';
 import type { RepeatingQuestion } from './RepeatingQuestion.js';
 import type { Question } from './Question.js';
-import type { RuleHost } from './registerSurveyRules.js';
 import { stringProperty } from './registerSurveyRules.js';
+import type { SurveyLogicHost } from './SurveyLogicHost.js';
 
 /**
  * Writes a cell's answer and says whether anything changed.
@@ -50,7 +50,7 @@ function registerCellRule(
   cell: Question,
   path: readonly PathSegment[],
   owner: string,
-  host: RuleHost,
+  host: SurveyLogicHost,
 ): void {
   const target = {
     path,
@@ -94,7 +94,11 @@ function registerCellRule(
 }
 
 /** Every cell of every row. Re-run whenever the rows change, like any other rule. */
-export function registerCellRules(matrix: RepeatingQuestion, owner: string, host: RuleHost): void {
+export function registerCellRules(
+  matrix: RepeatingQuestion,
+  owner: string,
+  host: SurveyLogicHost,
+): void {
   for (const rowKey of matrix.rowKeys) {
     for (const cell of matrix.rowCells(rowKey)) {
       registerCellRule(

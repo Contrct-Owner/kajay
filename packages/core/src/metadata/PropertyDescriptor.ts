@@ -11,7 +11,9 @@
  * `value` rather than a widening of it, because everything reading a `value` property
  * treats it as a scalar and would have to start asking.
  */
-export type PropertyType = 'string' | 'number' | 'boolean' | 'value' | 'json';
+export const PROPERTY_TYPES = ['string', 'number', 'boolean', 'value', 'json'] as const;
+
+export type PropertyType = (typeof PROPERTY_TYPES)[number];
 
 /** Every value a declared property can hold. */
 export type PropertyValue =

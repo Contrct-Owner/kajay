@@ -1,0 +1,141 @@
+{
+  "contractVersion": 1,
+  "clock": "2026-08-02T12:34:56.000Z",
+  "parsing": [
+    {
+      "id": "alternative-operators-canonicalize",
+      "source": "{a} = 1 && {b} <> 2",
+      "canonical": "{a} == 1 and {b} != 2",
+      "errorCodes": []
+    },
+    {
+      "id": "precedence-and-associativity",
+      "source": "1 + 2 * 3 ^ 2",
+      "canonical": "1 + 2 * 3 ^ 2",
+      "errorCodes": []
+    },
+    {
+      "id": "composite-reference",
+      "source": "{panel[1].question} notempty",
+      "canonical": "{panel[1].question} notempty",
+      "errorCodes": []
+    },
+    {
+      "id": "unterminated-string",
+      "source": "'unfinished",
+      "canonical": null,
+      "errorCodes": ["unterminated-string"]
+    },
+    {
+      "id": "unknown-identifier",
+      "source": "bareWord",
+      "canonical": null,
+      "errorCodes": ["unknown-identifier"]
+    }
+  ],
+  "evaluation": [
+    {
+      "id": "numeric-string-coercion",
+      "source": "{amount} + 1",
+      "data": { "amount": "41" },
+      "result": { "kind": "json", "value": 42 },
+      "errorCodes": []
+    },
+    {
+      "id": "arithmetic-precedence",
+      "source": "1 + 2 * 3",
+      "result": { "kind": "json", "value": 7 },
+      "errorCodes": []
+    },
+    {
+      "id": "division-by-zero-is-undefined",
+      "source": "1 / 0",
+      "result": { "kind": "undefined" },
+      "errorCodes": []
+    },
+    {
+      "id": "missing-is-equal-to-null",
+      "source": "{missing} == null",
+      "result": { "kind": "json", "value": true },
+      "errorCodes": []
+    },
+    {
+      "id": "empty-array-is-empty",
+      "source": "{values} empty",
+      "data": { "values": [] },
+      "result": { "kind": "json", "value": true },
+      "errorCodes": []
+    },
+    {
+      "id": "membership-is-element-wise",
+      "source": "{values} allof ['a', 'b']",
+      "data": { "values": ["a", "b", "c"] },
+      "result": { "kind": "json", "value": true },
+      "errorCodes": []
+    },
+    {
+      "id": "and-short-circuits",
+      "source": "false and notRegistered()",
+      "result": { "kind": "json", "value": false },
+      "errorCodes": []
+    },
+    {
+      "id": "today-is-midnight-utc",
+      "source": "today()",
+      "result": { "kind": "date", "value": "2026-08-02T00:00:00.000Z" },
+      "errorCodes": []
+    },
+    {
+      "id": "current-date-uses-the-explicit-clock",
+      "source": "currentDate()",
+      "result": { "kind": "date", "value": "2026-08-02T12:34:56.000Z" },
+      "errorCodes": []
+    },
+    {
+      "id": "date-difference-uses-utc-days",
+      "source": "diffDays('2026-01-01', '2026-01-31')",
+      "result": { "kind": "json", "value": 30 },
+      "errorCodes": []
+    },
+    {
+      "id": "unknown-function-is-an-error",
+      "source": "notRegistered(1)",
+      "result": { "kind": "undefined" },
+      "errorCodes": ["unknown-function"]
+    },
+    {
+      "id": "async-function-needs-a-value-source",
+      "source": "lookup(21)",
+      "asyncFunction": { "name": "lookup" },
+      "result": { "kind": "undefined" },
+      "errorCodes": ["async-unavailable"]
+    },
+    {
+      "id": "async-function-is-absent-while-pending",
+      "source": "lookup(21)",
+      "asyncFunction": { "name": "lookup", "outcome": { "kind": "pending" } },
+      "result": { "kind": "undefined" },
+      "errorCodes": []
+    },
+    {
+      "id": "async-function-reads-a-settled-value",
+      "source": "lookup(21)",
+      "asyncFunction": {
+        "name": "lookup",
+        "outcome": { "kind": "resolved", "value": 42 }
+      },
+      "result": { "kind": "json", "value": 42 },
+      "errorCodes": []
+    },
+    {
+      "id": "async-function-failure-is-reported",
+      "source": "lookup(21)",
+      "asyncFunction": {
+        "name": "lookup",
+        "outcome": { "kind": "failed", "message": "lookup failed" }
+      },
+      "result": { "kind": "undefined" },
+      "errorCodes": ["function-failed"]
+    }
+  ]
+}

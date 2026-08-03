@@ -1,0 +1,81 @@
+{
+  "contractVersion": 1,
+  "scenarios": [
+    {
+      "id": "running-preview-complete",
+      "definition": {
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [{ "type": "text", "name": "q1" }]
+          }
+        ]
+      },
+      "initialState": "running",
+      "actions": [
+        {
+          "kind": "set-loading",
+          "value": true,
+          "state": "loading",
+          "events": [{ "type": "state-changed", "state": "loading" }]
+        },
+        {
+          "kind": "set-loading",
+          "value": false,
+          "state": "running",
+          "events": [{ "type": "state-changed", "state": "running" }]
+        },
+        {
+          "kind": "enter-preview",
+          "state": "preview",
+          "events": [{ "type": "state-changed", "state": "preview" }]
+        },
+        {
+          "kind": "cancel-preview",
+          "state": "running",
+          "events": [{ "type": "state-changed", "state": "running" }]
+        },
+        {
+          "kind": "set-value",
+          "name": "q1",
+          "value": "Ada",
+          "state": "running",
+          "events": [
+            {
+              "type": "value-changed",
+              "name": "q1",
+              "previousValue": { "kind": "undefined" },
+              "value": { "kind": "json", "value": "Ada" }
+            }
+          ]
+        },
+        {
+          "kind": "set-value",
+          "name": "q1",
+          "value": "Ada",
+          "state": "running",
+          "events": []
+        },
+        {
+          "kind": "complete",
+          "state": "completed",
+          "events": [
+            { "type": "complete", "data": { "q1": "Ada" } },
+            { "type": "state-changed", "state": "completed" }
+          ]
+        },
+        {
+          "kind": "complete",
+          "state": "completed",
+          "events": []
+        }
+      ]
+    },
+    {
+      "id": "empty-definition",
+      "definition": {},
+      "initialState": "empty",
+      "actions": []
+    }
+  ]
+}

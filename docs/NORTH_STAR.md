@@ -3,7 +3,7 @@
 - Area: Product vision, architecture, and guiding principles
 - Status: proposed
 - Owner: Jarod
-- Last updated: 2026-08-02
+- Last updated: 2026-08-03
 
 ---
 
@@ -165,6 +165,12 @@ the registry shows up as a reviewable contract diff in the same PR, and a CI che
 fails on drift. The schema doubles as public documentation of the definition format
 and as the validation target for definitions authored outside the Creator.
 
+The same generator emits language-neutral registry metadata and diagnostic catalogs.
+Observable runtime behavior that JSON Schema cannot express — canonicalization,
+expressions, value semantics, lifecycle states, and event order — is versioned as an
+executable JSON corpus under `conformance/`
+([ADR-0020](./adr/0020-versioned-cross-language-runtime-contract.md)).
+
 ---
 
 ## 5. Tech stack
@@ -195,19 +201,27 @@ and as the validation target for definitions authored outside the Creator.
   Playwright E2E for the host-demo parity scenarios.
 - **Lint:** oxlint. **Warnings are errors** everywhere.
 - **CI:** GitHub Actions; separate jobs (lint/typecheck, architecture checks, unit,
-  browser integration, host-app E2E, contract drift, pack test) funneled into a
+  browser integration, host-app E2E, contract drift, cross-language conformance, pack test) funneled into a
   single `survey-checks` gate job for branch protection — adding a job never means
   editing the protected-checks list.
 
 ---
 
-## 6. Multi-framework strategy
+## 6. Multi-framework and multi-runtime strategy
 
 React first; the core packages are the product, the renderer is an adapter. The rule
 that keeps other frameworks possible is mechanical, not aspirational: **core and
 creator-core must never import from a UI package or touch the DOM**, and the
 architecture checks fail the build if they do. A Vue or Angular adapter (horizon)
 would be a new `packages/vue` peer of `react`, not a refactor.
+
+The same definition format may be implemented natively in another language. Shape is
+shared through the generated JSON Schema and runtime metadata; behavior is shared
+through the versioned corpus under `conformance/`. TypeScript is the first runtime
+adapter, not the specification by accident. A C# implementation would reproduce the
+headless core behind that seam and prove compatibility by running the same cases
+([ADR-0020](./adr/0020-versioned-cross-language-runtime-contract.md)). This does not
+turn the core into a network service; an HTTP/RPC deployment remains a separate design.
 
 ---
 
@@ -320,6 +334,7 @@ The host app exists to make embeddability falsifiable:
 
 | Date | Decision |
 | --- | --- |
+| 2026-08-03 | **Runtime compatibility is a versioned, executable interface rather than a source-code promise.** Generated metadata and diagnostic catalogs join the JSON Schema, while adapter-neutral definition, expression, value, and lifecycle cases live under `conformance/v1`. TypeScript is the first adapter; a future .NET runtime must pass the same corpus. [ADR-0020](./adr/0020-versioned-cross-language-runtime-contract.md). |
 | 2026-08-02 | **Runtime seams represent independent policy, not one-use wiring.** Page-element traversal and host propagation now follow the registered content tree; validation/status/logic depend on concrete runtime modules; all dynamic-choice acquisition is owned together; and React dispatches every page element through one registry. Package entries were narrowed to consumer operations and intentional extension seams. [ADR-0019](./adr/0019-deep-runtime-modules-and-rendering-seam.md). |
 | 2026-08-02 | Corpus created. Framework-agnostic core + React-first adapters; parity scope = Form Library + Creator; proof = in-repo host app consuming public APIs + CI pack test; TS 6 strict with tsgo dual-check. |
 | 2026-08-02 | **Workspace moved from npm to pnpm** ([ADR-0015](./adr/0015-pnpm-workspace.md)), reversing the npm-workspaces choice in §5 and superseding ADR-0010's rejection of corepack. Deciding feature: catalogs, which pin a shared version once across the workspace and are what the single version train wants. Consumers are unaffected — packages still publish for npm, and the pack test now packs with pnpm and installs with npm precisely so the `workspace:*` rewrite is verified rather than assumed. |

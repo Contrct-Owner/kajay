@@ -18,12 +18,13 @@
     "typecheck:tsc7": "node node_modules/typescript7/bin/tsc -b --force",
     "check:arch": "node scripts/check-arch.mjs",
     "check:contract": "node scripts/check-contract.mjs",
+    "check:conformance": "node scripts/check-conformance.mjs",
     "test:unit": "vitest run --project unit",
     "test:browser": "vitest run --project browser",
     "build:demo": "pnpm --filter @kajay/host-demo run build",
     "test:e2e": "pnpm run build:demo && playwright test",
     "test:pack": "node scripts/pack-test.mjs",
-    "verify": "pnpm run lint && pnpm run typecheck && pnpm run check:arch && pnpm run test:unit && pnpm run test:browser && pnpm run check:contract && pnpm run test:e2e && pnpm run test:pack"
+    "verify": "pnpm run lint && pnpm run typecheck && pnpm run check:arch && pnpm run test:unit && pnpm run test:browser && pnpm run check:contract && pnpm run check:conformance && pnpm run test:e2e && pnpm run test:pack"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",

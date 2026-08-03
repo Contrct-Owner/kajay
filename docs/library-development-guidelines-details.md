@@ -3,7 +3,7 @@
 - Area: Package architecture, TypeScript configuration, and automated testing
 - Status: proposed
 - Owner: Jarod
-- Last updated: 2026-08-02
+- Last updated: 2026-08-03
 
 These guidelines define the default shape of code and tests in this repository. A
 change is acceptable only when it preserves package ownership and dependency
@@ -46,10 +46,15 @@ packaged artifacts*.
 
 ## The contract
 
-`contracts/survey-schema.json` is generated from the metadata registry and
-**committed**. CI regenerates it and fails on drift, so every change to the survey
-definition format appears as a reviewable diff in the same PR that causes it. Treat a
-contract diff you did not expect as a design signal, not noise to regenerate away.
+The generated files in `contracts/` are **committed**. The survey JSON Schema, runtime
+metadata manifest, and stable diagnostic catalogs are regenerated from the built core
+and checked for drift, so every interface change appears as a reviewable diff in the
+same PR that causes it. Treat an unexpected contract diff as a design signal, not noise.
+
+Language-neutral behavior lives in `conformance/v*/`. The corpus uses JSON and semantic
+actions rather than TypeScript objects or method names. The TypeScript runtime adapter
+must pass it in CI; another SDK earns compatibility by implementing the same small
+conformance interface and passing the same versioned cases.
 
 ## Test project boundaries
 
@@ -141,8 +146,10 @@ via `AGENTS.md`.
 - **Test-boundary checks:** unit-test projects declare no browser/jsdom/mocking
   packages; no test config globally disables parallelization.
 - **Contract drift check** as described above.
+- **Cross-language conformance:** canonical definitions, expression behavior, stable
+  errors, value semantics, and lifecycle event order run through the public core seam.
 - **CI gates:** lint/typecheck (tsc + tsgo), architecture, unit, rendering
-  integration, host E2E, contract, pack test — separate jobs behind the single
+  integration, host E2E, contract, conformance, pack test — separate jobs behind the single
   required `survey-checks` gate.
 
 Checks must report the violated rule and the file or package responsible, so the
@@ -155,6 +162,7 @@ response is to correct the design, not suppress the failure.
   matches North Star §4 and is mechanically enforced.
 - Unit tests are pure logic with no environment substitutes; DOM behavior is proven
   only in real browsers.
+- The TypeScript runtime passes the current versioned cross-language conformance corpus.
 - Every parity-checklist item that is marked green maps to a passing public-API
   scenario; the pack test passes on every PR.
 - The suite runs order-independently and in parallel, locally and sharded in CI.

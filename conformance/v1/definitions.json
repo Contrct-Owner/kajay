@@ -1,0 +1,153 @@
+{
+  "contractVersion": 1,
+  "cases": [
+    {
+      "id": "minimal-definition",
+      "input": {
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [{ "type": "text", "name": "q1" }]
+          }
+        ]
+      },
+      "canonical": {
+        "schemaVersion": 1,
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [{ "type": "text", "name": "q1" }]
+          }
+        ]
+      },
+      "diagnostics": []
+    },
+    {
+      "id": "explicit-defaults-are-elided",
+      "input": {
+        "title": "",
+        "pages": [
+          {
+            "name": "p1",
+            "title": "",
+            "elements": [
+              {
+                "type": "text",
+                "name": "q1",
+                "isRequired": false,
+                "inputType": "text"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": {
+        "schemaVersion": 1,
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [{ "type": "text", "name": "q1" }]
+          }
+        ]
+      },
+      "diagnostics": []
+    },
+    {
+      "id": "unknown-properties-round-trip",
+      "input": {
+        "pages": [
+          {
+            "name": "p1",
+            "department": "engineering",
+            "elements": [
+              {
+                "type": "text",
+                "name": "q1",
+                "extension": { "keep": [1, 2, 3] }
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": {
+        "schemaVersion": 1,
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "text",
+                "name": "q1",
+                "extension": { "keep": [1, 2, 3] }
+              }
+            ],
+            "department": "engineering"
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "code": "unknown-property",
+          "path": "/pages/0/department",
+          "severity": "warning"
+        },
+        {
+          "code": "unknown-property",
+          "path": "/pages/0/elements/0/extension",
+          "severity": "warning"
+        }
+      ]
+    },
+    {
+      "id": "wrong-property-type-is-reported-and-ignored",
+      "input": {
+        "title": 42,
+        "pages": [{ "name": "p1" }]
+      },
+      "canonical": {
+        "schemaVersion": 1,
+        "pages": [{ "name": "p1" }]
+      },
+      "diagnostics": [
+        {
+          "code": "property-type-mismatch",
+          "path": "/title",
+          "severity": "error"
+        }
+      ]
+    },
+    {
+      "id": "scalar-child-shorthand-expands",
+      "input": {
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "checkbox",
+                "name": "q1",
+                "choices": ["a", "b"]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": {
+        "schemaVersion": 1,
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "checkbox",
+                "name": "q1",
+                "choices": [{ "value": "a" }, { "value": "b" }]
+              }
+            ]
+          }
+        ]
+      },
+      "diagnostics": []
+    }
+  ]
+}

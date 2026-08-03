@@ -1,4 +1,12 @@
-export type DependencyErrorCode = 'cycle' | 'cascade-limit';
+export const DEPENDENCY_ERROR_DEFINITIONS = [
+  { code: 'cycle', description: 'The dependency graph contains a cycle.' },
+  {
+    code: 'cascade-limit',
+    description: 'A dependency transaction exceeded its configured settle limit.',
+  },
+] as const;
+
+export type DependencyErrorCode = (typeof DEPENDENCY_ERROR_DEFINITIONS)[number]['code'];
 
 /**
  * A structural problem in the graph or its execution.

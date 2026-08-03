@@ -1,4 +1,5 @@
 import type { SourceSpan } from './ExpressionNode.js';
+import type { ExpressionErrorCode } from './ExpressionErrorCode.js';
 
 /**
  * A problem found while reading an expression.
@@ -8,7 +9,7 @@ import type { SourceSpan } from './ExpressionNode.js';
  */
 export interface ExpressionError {
   /** Stable machine-readable identifier, e.g. `unterminated-string`. */
-  readonly code: string;
+  readonly code: ExpressionErrorCode;
   readonly message: string;
   readonly span: SourceSpan;
 }

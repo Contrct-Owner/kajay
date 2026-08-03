@@ -2,6 +2,21 @@
 // and there are no subpath entries (ADR-0010) — this file *is* the package.
 
 export { generateContract } from './contract/generateContract.js';
+export {
+  generateDiagnosticContract,
+  RUNTIME_DIAGNOSTIC_CONTRACT_VERSION,
+} from './contract/generateDiagnosticContract.js';
+export type { RuntimeDiagnosticContract } from './contract/generateDiagnosticContract.js';
+export {
+  generateMetadataContract,
+  RUNTIME_METADATA_CONTRACT_VERSION,
+} from './contract/generateMetadataContract.js';
+export type {
+  RuntimeMetadataChildCollection,
+  RuntimeMetadataClass,
+  RuntimeMetadataContract,
+  RuntimeMetadataProperty,
+} from './contract/generateMetadataContract.js';
 export { EventEmitter } from './events/EventEmitter.js';
 
 // --- Expression language (ADR-0003) ---------------------------------------
@@ -17,6 +32,7 @@ export type {
   EvaluationResult,
 } from './expressions/evaluateExpression.js';
 export type { ExpressionError } from './expressions/ExpressionError.js';
+export type { ExpressionErrorCode } from './expressions/ExpressionErrorCode.js';
 export type {
   AsyncExpressionFunction,
   ExpressionFunction,
@@ -63,6 +79,7 @@ export type {
   ChildCollectionDescriptor,
   ClassDefinition,
   ClassDescriptor,
+  ClassMetadataDefinition,
 } from './metadata/ClassDescriptor.js';
 export { globalRegistry } from './metadata/globalRegistry.js';
 export { MetadataRegistry } from './metadata/MetadataRegistry.js';
@@ -156,6 +173,7 @@ export type { SurveyState } from './model/SurveyState.js';
 export type { SurveyOptions } from './model/SurveyOptions.js';
 export { SurveyElement } from './model/SurveyElement.js';
 export type { SurveyError } from './model/SurveyError.js';
+export type { BuiltInSurveyErrorKind } from './model/SurveyErrorKind.js';
 export type {
   AdvanceOutcome,
   CheckErrorsMode,
@@ -181,6 +199,7 @@ export { TextQuestion } from './model/TextQuestion.js';
 export { Trigger } from './model/Trigger.js';
 export type { TriggerKind } from './model/Trigger.js';
 export type { Diagnostic, DiagnosticSeverity } from './serialization/Diagnostic.js';
+export type { DefinitionDiagnosticCode } from './serialization/DiagnosticCode.js';
 export { parseSurvey } from './serialization/parseSurvey.js';
 export type { ParseOptions, ParseResult } from './serialization/parseSurvey.js';
 export {

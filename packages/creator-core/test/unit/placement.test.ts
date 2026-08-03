@@ -14,7 +14,7 @@ const TEXT_ITEM: ToolboxItem = {
 };
 
 const NEW_TEXT: PlacementSource = { kind: 'new', item: TEXT_ITEM };
-const P1: DropList = { of: 'elements', page: 'p1' };
+const P1: DropList = { of: 'elements', container: 'p1' };
 
 function survey(...names: readonly string[]): SurveyDefinition {
   return {
@@ -162,7 +162,7 @@ describe('parity/K2-move', () => {
 
 describe('parity/K2-placement-refusals', () => {
   test('a page the survey does not have', () => {
-    expect(canPlace(survey('a'), NEW_TEXT, { list: { of: 'elements', page: 'nowhere' }, index: 0 })).toBe(false);
+    expect(canPlace(survey('a'), NEW_TEXT, { list: { of: 'elements', container: 'nowhere' }, index: 0 })).toBe(false);
   });
 
   test('a position off either end of the list', () => {

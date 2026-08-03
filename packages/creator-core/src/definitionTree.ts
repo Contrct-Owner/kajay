@@ -21,8 +21,16 @@ import type { SurveyDefinition } from '@kajay/core';
  * would be a second place for that bug to live. It survived a mutant once already.
  */
 export type DropList =
-  | { readonly of: 'elements'; readonly page: string }
+  | { readonly of: 'elements'; readonly container: string }
   | { readonly of: 'pages' };
+
+/** Whether two slots name the same place. Slots are values, and compared as values. */
+export function sameList(left: DropList, right: DropList): boolean {
+  if (left.of === 'pages' || right.of === 'pages') {
+    return left.of === right.of;
+  }
+  return left.container === right.container;
+}
 
 /** What is in that list, or `undefined` if the definition has no such list. */
 export function listOf(
@@ -32,10 +40,70 @@ export function listOf(
   if (list.of === 'pages') {
     return pages(definition);
   }
-  const page = pages(definition).find((candidate) => candidate['name'] === list.page);
-  // `undefined` for "no such page" and `[]` for "a page with nothing on it" are
-  // different answers: the second still offers a slot to drop into.
-  return page === undefined ? undefined : definitionsUnder(page, 'elements');
+  // `undefined` for "no such container" and `[]` for "a container with nothing in it"
+  // are different answers: the second still offers a slot to drop into.
+  return findContainer(definition, list.container)?.elements;
+}
+
+/**
+ * A container and the elements in it, wherever it is.
+ *
+ * Pages *and panels*, found by walking. A panel is a container in exactly the way a page
+ * is — it holds an ordered list of page elements — and the only reason K2 shipped
+ * without this was that the design surface could not draw a slot inside one.
+ */
+function findContainer(
+  definition: SurveyDefinition,
+  name: string,
+): { readonly elements: readonly SurveyDefinition[] } | undefined {
+  for (const page of pages(definition)) {
+    if (page['name'] === name) {
+      return { elements: definitionsUnder(page, 'elements') };
+    }
+    const nested = findNested(definitionsUnder(page, 'elements'), name);
+    if (nested !== undefined) {
+      return nested;
+    }
+  }
+  return undefined;
+}
+
+function findNested(
+  elements: readonly SurveyDefinition[],
+  name: string,
+): { readonly elements: readonly SurveyDefinition[] } | undefined {
+  for (const element of elements) {
+    const children = definitionsUnder(element, 'elements');
+    // Matched by name alone, without asking whether it looks like a container: an empty
+    // one does not. Nothing reaches here for a question, because a slot only exists
+    // where {@link slotsOnPage} was told a container is.
+    if (element['name'] === name) {
+      return { elements: children };
+    }
+    const nested = findNested(children, name);
+    if (nested !== undefined) {
+      return nested;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Whether an element is one a drop can land inside.
+ *
+ * **The definition cannot answer this and must be told.** An empty panel serializes
+ * without its `elements` at all — canonical form elides a collection with nothing in it
+ * (ADR-0002) — so by shape it is indistinguishable from a text question. Guessing from
+ * the shape meant a panel a designer had just added was the one container in the survey
+ * nothing could be dropped into, which took an E2E scenario to notice.
+ *
+ * The registry knows, so the caller that has one says. `DesignSurface` supplies it.
+ */
+export type IsContainerType = (type: string) => boolean;
+
+function typeOf(element: SurveyDefinition): string {
+  const type = element['type'];
+  return typeof type === 'string' ? type : '';
 }
 
 /**
@@ -52,11 +120,40 @@ export function withList(
   if (list.of === 'pages') {
     return { ...definition, pages: items };
   }
-  const rewritten: SurveyDefinition[] = [];
-  for (const page of pages(definition)) {
-    rewritten.push(page['name'] === list.page ? Object.assign({}, page, { elements: items }) : page);
-  }
+  const container = list.container;
+  const rewritten = pages(definition).map((page) =>
+    page['name'] === container
+      ? Object.assign({}, page, { elements: items })
+      : Object.assign({}, page, {
+          elements: replaceNested(definitionsUnder(page, 'elements'), container, items),
+        }),
+  );
   return { ...definition, pages: rewritten };
+}
+
+/**
+ * The same elements, with one nested container's own list replaced.
+ *
+ * Copies only the containers on the path down and shares every leaf, so dropping into a
+ * panel three levels deep still does not clone the questions around it.
+ */
+function replaceNested(
+  elements: readonly SurveyDefinition[],
+  container: string,
+  items: readonly SurveyDefinition[],
+): readonly SurveyDefinition[] {
+  return elements.map((element) => {
+    if (element['name'] === container) {
+      return Object.assign({}, element, { elements: items });
+    }
+    const children = definitionsUnder(element, 'elements');
+    if (children.length === 0) {
+      return element;
+    }
+    return Object.assign({}, element, {
+      elements: replaceNested(children, container, items),
+    });
+  });
 }
 
 /**
@@ -95,6 +192,183 @@ export function uniqueName(stem: string, taken: ReadonlySet<string>): string {
   }
 }
 
+/**
+ * An element's name, plus the name of every container inside it.
+ *
+ * What a move may **not** land in: dropping a panel into itself, or into one of its own
+ * descendants, would detach the whole subtree from the survey and leave it pointing at
+ * itself. The classic tree bug, and the one that produces a definition no parser can
+ * make sense of rather than merely a wrong-looking page.
+ */
+export function containersWithin(
+  definition: SurveyDefinition,
+  name: string,
+): ReadonlySet<string> {
+  const found = new Set<string>();
+  const element = findElement(definition, name);
+  if (element !== undefined) {
+    found.add(name);
+    collectContainers(definitionsUnder(element, 'elements'), found);
+  }
+  return found;
+}
+
+function collectContainers(elements: readonly SurveyDefinition[], into: Set<string>): void {
+  for (const element of elements) {
+    const name = nameOf(element);
+    if (name !== undefined) {
+      into.add(name);
+    }
+    collectContainers(definitionsUnder(element, 'elements'), into);
+  }
+}
+
+function findElement(
+  definition: SurveyDefinition,
+  name: string,
+): SurveyDefinition | undefined {
+  const search = (elements: readonly SurveyDefinition[]): SurveyDefinition | undefined => {
+    for (const element of elements) {
+      if (nameOf(element) === name) {
+        return element;
+      }
+      const nested = search(definitionsUnder(element, 'elements'));
+      if (nested !== undefined) {
+        return nested;
+      }
+    }
+    return undefined;
+  };
+  for (const page of pages(definition)) {
+    const found = search(definitionsUnder(page, 'elements'));
+    if (found !== undefined) {
+      return found;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Where an element is: the container holding it, and its index in that container.
+ *
+ * Needed because a move is no longer within one list. Until a panel became a container
+ * a drop could land in, the source and the target were always the same list and the
+ * question never came up — which is why `canPlace` looked for the element in the list it
+ * was being moved *to*, and refused every move that crossed a container.
+ */
+export function locate(
+  definition: SurveyDefinition,
+  name: string,
+): { readonly list: DropList; readonly index: number } | undefined {
+  const search = (
+    container: string,
+    elements: readonly SurveyDefinition[],
+  ): { readonly list: DropList; readonly index: number } | undefined => {
+    for (const [index, element] of elements.entries()) {
+      const childName = nameOf(element);
+      if (childName === name) {
+        return { list: { of: 'elements', container }, index };
+      }
+      if (childName !== undefined) {
+        const nested = search(childName, definitionsUnder(element, 'elements'));
+        if (nested !== undefined) {
+          return nested;
+        }
+      }
+    }
+    return undefined;
+  };
+  for (const [index, page] of pages(definition).entries()) {
+    if (nameOf(page) === name) {
+      return { list: { of: 'pages' }, index };
+    }
+    const found = search(nameOf(page) ?? '', definitionsUnder(page, 'elements'));
+    if (found !== undefined) {
+      return found;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Every position a drop could land in on one page, in the order they are on screen.
+ *
+ * The tree flattened, so that a keyboard walk covers a panel's interior without needing
+ * a second gesture to get into one. Reading order: the slot above an element comes before
+ * the element, a container's own slots come between its opening and its close, and the
+ * slot after the last element closes the list.
+ */
+export function slotsOnPage(
+  definition: SurveyDefinition,
+  page: string,
+  isContainerType: IsContainerType,
+): readonly { readonly container: string; readonly index: number }[] {
+  const slots: { container: string; index: number }[] = [];
+  const walk = (container: string, elements: readonly SurveyDefinition[]): void => {
+    for (const [index, element] of elements.entries()) {
+      slots.push({ container, index });
+      const name = nameOf(element);
+      if (name !== undefined && isContainerType(typeOf(element))) {
+        walk(name, definitionsUnder(element, 'elements'));
+      }
+    }
+    slots.push({ container, index: elements.length });
+  };
+  const elements = listOf(definition, { of: 'elements', container: page });
+  if (elements !== undefined) {
+    walk(page, elements);
+  }
+  return slots;
+}
+
+/**
+ * How many elements a container holds, walking what is on screen.
+ *
+ * Reads the *model* rather than the definition, because it is asked on every pointer
+ * move to say "position 2 of 4" — and serializing a survey to count two questions is not
+ * something to do sixty times a second.
+ */
+export function countIn(page: PageLike | undefined, container: string): number {
+  if (page === undefined) {
+    return 0;
+  }
+  if (page.name === container) {
+    return page.elements.length;
+  }
+  const walk = (elements: readonly ElementLike[]): number | undefined => {
+    for (const element of elements) {
+      const children = childElements(element);
+      if (element.name === container) {
+        return children.length;
+      }
+      const nested = walk(children);
+      if (nested !== undefined) {
+        return nested;
+      }
+    }
+    return undefined;
+  };
+  return walk(page.elements) ?? 0;
+}
+
+/** The little of the model this file needs: a name, and what is inside. */
+interface ElementLike {
+  readonly name: string;
+  getChildren: (property: string) => readonly unknown[];
+}
+
+interface PageLike {
+  readonly name: string;
+  readonly elements: readonly ElementLike[];
+}
+
+function childElements(element: ElementLike): readonly ElementLike[] {
+  return element.getChildren('elements').filter((child): child is ElementLike => {
+    const candidate = child as Partial<ElementLike>;
+    return typeof candidate.name === 'string' && typeof candidate.getChildren === 'function';
+  });
+}
+
 export function nameOf(definition: SurveyDefinition): string | undefined {
   const name = definition['name'];
   return typeof name === 'string' ? name : undefined;
@@ -118,13 +392,7 @@ function visit(value: unknown, names: Set<string>): void {
   }
 }
 
-/**
- * The survey's pages.
- *
- * A drop into a *panel* is not offered. Extending {@link listOf} to find one is a
- * recursive walk, but the design surface cannot yet adorn an element inside a panel, and
- * logic no test can reach is logic nobody has checked.
- */
+/** The survey's pages. */
 function pages(definition: SurveyDefinition): readonly SurveyDefinition[] {
   return definitionsUnder(definition, 'pages');
 }

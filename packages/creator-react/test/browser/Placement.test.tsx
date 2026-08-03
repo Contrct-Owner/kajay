@@ -149,3 +149,75 @@ test('parity/K2-handle: dragging is on a handle, not on the element', async () =
   expect(screen.container.querySelectorAll('[data-drop-before]')).toHaveLength(0);
   await expect.element(screen.getByRole('button', { name: 'Move tier' })).toBeInTheDocument();
 });
+
+test('parity/K2-nesting: the arrow keys walk into a panel and out again', async () => {
+  const designed = surface({
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          { type: 'text', name: 'who', title: 'Your name' },
+          { type: 'panel', name: 'group', elements: [{ type: 'text', name: 'inner' }] },
+        ],
+      },
+    ],
+  });
+  const screen = await render(<Harness designed={designed} />);
+
+  await screen.getByRole('button', { name: 'Move who' }).click();
+  await userEvent.keyboard('{ }');
+  // Slots in reading order: [p1 0] [p1 1] [group 0] [group 1] [p1 2]. `who` sits at p1 0,
+  // so the first two are where it already is and the walk skips them.
+  await userEvent.keyboard('{ArrowDown}');
+  await userEvent.keyboard('{ }');
+
+  // Into the panel with the arrow keys alone — no second gesture to discover, which is
+  // the whole reason the slot list is flattened across containers.
+  expect(designed.survey.getQuestionByName('who')).toBeDefined();
+  expect((designed.page?.elements ?? []).map((element) => element.name)).toEqual(['group']);
+});
+
+test('parity/K2-nesting: an element inside a panel has an adorner of its own', async () => {
+  const designed = surface({
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          { type: 'panel', name: 'group', elements: [{ type: 'text', name: 'inner' }] },
+        ],
+      },
+    ],
+  });
+  const screen = await render(<Harness designed={designed} />);
+
+  // Drawn by the respondent's own panel renderer, adorned by exactly the same code that
+  // adorns a question on the page. The panel renderer needed no change at all.
+  await expect.element(screen.getByTestId('select-inner')).toBeInTheDocument();
+  await expect.element(screen.getByRole('button', { name: 'Move inner' })).toBeInTheDocument();
+  expect(
+    screen.container.querySelector('[data-element-index="0"][data-in-container="group"]'),
+  ).not.toBeNull();
+});
+
+test('parity/K2-nesting: a question hidden by logic is still editable', async () => {
+  const designed = surface({
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          {
+            type: 'panel',
+            name: 'group',
+            elements: [{ type: 'text', name: 'inner', visibleIf: 'false' }],
+          },
+        ],
+      },
+    ],
+  });
+  const screen = await render(<Harness designed={designed} />);
+
+  // The page-level list never filtered, so a hidden question at the top level was always
+  // editable. Inside a panel it was not — an inconsistency waiting for somebody to make
+  // a panel's children addressable.
+  await expect.element(screen.getByTestId('select-inner')).toBeInTheDocument();
+});

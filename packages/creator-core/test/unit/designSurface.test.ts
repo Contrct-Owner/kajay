@@ -3,7 +3,7 @@ import type { SurveyDefinition } from '@kajay/core';
 import { DesignSurface } from '@kajay/creator-core';
 import type { DropList, ToolboxItem } from '@kajay/creator-core';
 
-const P1: DropList = { of: 'elements', page: 'p1' };
+const P1: DropList = { of: 'elements', container: 'p1' };
 import { describe, expect, test } from 'vitest';
 
 const TEXT_ITEM: ToolboxItem = {
@@ -276,7 +276,7 @@ describe('parity/K2-place', () => {
     });
     designed.survey.goTo('p2');
 
-    designed.place({ kind: 'new', item: TEXT_ITEM }, { list: { of: 'elements', page: 'p2' }, index: 0 });
+    designed.place({ kind: 'new', item: TEXT_ITEM }, { list: { of: 'elements', container: 'p2' }, index: 0 });
 
     // A re-parse starts on page one. A drop that scrolled the designer back there
     // would land the edit correctly and lose the canvas its place.

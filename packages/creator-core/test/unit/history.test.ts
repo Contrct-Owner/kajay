@@ -5,7 +5,7 @@ import type { DropList, HistorySnapshot, ToolboxItem } from '@kajay/creator-core
 import { describe, expect, test } from 'vitest';
 
 /** Undo and redo — checklist K6. */
-const P1: DropList = { of: 'elements', page: 'p1' };
+const P1: DropList = { of: 'elements', container: 'p1' };
 
 const TEXT_ITEM: ToolboxItem = {
   name: 'text',
@@ -123,7 +123,7 @@ describe('parity/K6-undo-place', () => {
   test('undo puts the designer back where the edit happened', () => {
     const designed = surface();
     designed.goToPage('p2');
-    designed.place({ kind: 'new', item: TEXT_ITEM }, { list: { of: 'elements', page: 'p2' }, index: 0 });
+    designed.place({ kind: 'new', item: TEXT_ITEM }, { list: { of: 'elements', container: 'p2' }, index: 0 });
     designed.goToPage('p1');
 
     designed.undo();

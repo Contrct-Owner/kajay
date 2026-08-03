@@ -8,7 +8,7 @@ import type {
   SurveyDefinition,
   SurveyElement,
 } from '@kajay/core';
-import { nameOf } from './definitionTree.js';
+import { countIn, locate, nameOf } from './definitionTree.js';
 import type { DropList } from './definitionTree.js';
 import { SurveyDocument } from './SurveyDocument.js';
 import { UndoHistory } from './UndoHistory.js';
@@ -22,7 +22,7 @@ import {
   pasteInto,
   removeElementFrom,
 } from './elementEdits.js';
-import { canPlace, dropSlotsFor } from './placement.js';
+import { canPlace, dropSlotsFor, dropSlotsOn } from './placement.js';
 import type { DropSlot, PlacementSource } from './placement.js';
 
 /** The one place a title is written, so the key it lands under is decided once. */
@@ -167,12 +167,48 @@ export class DesignSurface {
     return this.#document.definition;
   }
 
-  /** Every position a drop could land in on the page being designed — checklist K2. */
+  /**
+   * Every position a drop could land in on the page being designed — checklist K2.
+   *
+   * Flattened across containers and in the order they are on screen, so a keyboard walk
+   * goes into a panel and out again without a second gesture to learn.
+   */
   get slots(): readonly DropSlot[] {
     const page = this.page;
-    return page === undefined
-      ? []
-      : dropSlotsFor({ of: 'elements', page: page.name }, page.elements.length);
+    return page === undefined ? [] : dropSlotsOn(this.definition, page.name, this.#isContainerType);
+  }
+
+  /**
+   * Whether an element is one a drop can land *inside* — checklist K2's nesting.
+   *
+   * Asked of the registry rather than of `type === 'panel'`, so a host's own container
+   * type is a drop target with no registration — the same argument K1 made about the
+   * toolbox, which lists nothing by name either.
+   */
+  isContainer(element: PageElement): boolean {
+    return this.#isContainerType(element.type);
+  }
+
+  readonly #isContainerType = (type: string): boolean =>
+    this.#document.registry.getChildCollection(type, 'elements') !== undefined;
+
+  /** Where an element sits: which container holds it, and at what index. */
+  locate(name: string): DropSlot | undefined {
+    return locate(this.definition, name);
+  }
+
+  /**
+   * How many elements a container holds.
+   *
+   * Read from the *model* rather than the definition, because it is asked on every
+   * pointer move to say "position 2 of 4" — and serializing a survey to count two
+   * questions is not something to do sixty times a second.
+   */
+  countIn(list: DropList): number {
+    if (list.of === 'pages') {
+      return this.pages.length;
+    }
+    return countIn(this.page, list.container);
   }
 
   /** Every position a page could be dragged to — checklist K4. */
@@ -302,7 +338,7 @@ export class DesignSurface {
       return undefined;
     }
     const at = page.elements.findIndex((element) => element === this.#selected);
-    const list: DropList = { of: 'elements', page: page.name };
+    const list: DropList = { of: 'elements', container: page.name };
     return { list, index: at < 0 ? page.elements.length : at + 1 };
   }
 
@@ -426,5 +462,4 @@ export class DesignSurface {
     this.onChanged.emit(this.#version);
   }
 }
-
 

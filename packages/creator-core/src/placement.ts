@@ -1,7 +1,17 @@
 import type { SurveyDefinition } from '@kajay/core';
 import type { ToolboxItem } from './ToolboxItem.js';
-import { collectNames, listOf, nameOf, uniqueName, withList } from './definitionTree.js';
-import type { DropList } from './definitionTree.js';
+import {
+  collectNames,
+  containersWithin,
+  listOf,
+  locate,
+  nameOf,
+  sameList,
+  slotsOnPage,
+  uniqueName,
+  withList,
+} from './definitionTree.js';
+import type { DropList, IsContainerType } from './definitionTree.js';
 
 /**
  * A position between items — checklist K2 and K4.
@@ -62,8 +72,40 @@ export function canPlace(
     // type can express it, so it is refused here rather than left to produce nonsense.
     return slot.list.of === 'elements';
   }
-  const from = items.findIndex((item) => nameOf(item) === source.name);
-  return from >= 0 && slot.index !== from && slot.index !== from + 1;
+  if (
+    slot.list.of === 'elements' &&
+    containersWithin(definition, source.name).has(slot.list.container)
+  ) {
+    // Into itself, or into one of its own descendants. That detaches the subtree from
+    // the survey and leaves it pointing at itself — a definition no parser can make
+    // sense of, rather than merely a page that looks wrong.
+    return false;
+  }
+  const at = locate(definition, source.name);
+  if (at === undefined) {
+    return false;
+  }
+  // **The two slots that mean "where it already is" only exist within one list.** Moving
+  // across containers has no such pair, because removing the element does not shift
+  // anything in the list it is arriving in.
+  return !sameList(at.list, slot.list) || (slot.index !== at.index && slot.index !== at.index + 1);
+}
+
+/**
+ * Every position a drop could land in on a page, in the order they are on screen.
+ *
+ * Flattened across containers, so the arrow keys walk into a panel and out again without
+ * a second gesture to learn — the same reason the slot names its list at all.
+ */
+export function dropSlotsOn(
+  definition: SurveyDefinition,
+  page: string,
+  isContainerType: IsContainerType,
+): readonly DropSlot[] {
+  return slotsOnPage(definition, page, isContainerType).map((slot) => ({
+    list: { of: 'elements', container: slot.container },
+    index: slot.index,
+  }));
 }
 
 /**
@@ -81,19 +123,29 @@ export function applyPlacement(
   if (!canPlace(definition, source, slot)) {
     return definition;
   }
-  const items = listOf(definition, slot.list) ?? [];
   if (source.kind === 'new') {
     const created = createElement(source.item, collectNames(definition));
+    const items = listOf(definition, slot.list) ?? [];
     return withList(definition, slot.list, insertAt(items, created, slot.index));
   }
-  const from = items.findIndex((item) => nameOf(item) === source.name);
-  const moved = items[from]!;
-  const without = items.filter((_unused, index) => index !== from);
+  const at = locate(definition, source.name)!;
+  const from = listOf(definition, at.list) ?? [];
+  const moved = from[at.index]!;
+  // Taken out first, and the destination read from the result. A move across containers
+  // touches two lists, and reading the second before the first was rewritten would put
+  // the element in twice.
+  const lifted = withList(
+    definition,
+    at.list,
+    from.filter((_unused, index) => index !== at.index),
+  );
   // The target index was measured against the list *with* the item still in it, so a
-  // move downwards has to account for the hole it leaves behind. Off by one here is the
-  // classic reorder bug and it only shows up in one direction.
-  const to = slot.index > from ? slot.index - 1 : slot.index;
-  return withList(definition, slot.list, insertAt(without, moved, to));
+  // move downwards within one list has to account for the hole it leaves behind. Off by
+  // one here is the classic reorder bug and it only shows up in one direction — and only
+  // when the element is arriving in the list it left.
+  const shift = sameList(at.list, slot.list) && slot.index > at.index ? 1 : 0;
+  const items = listOf(lifted, slot.list) ?? [];
+  return withList(lifted, slot.list, insertAt(items, moved, slot.index - shift));
 }
 
 function insertAt(

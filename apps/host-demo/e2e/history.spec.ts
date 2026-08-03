@@ -10,9 +10,16 @@ function canvasOf(page: Page): Locator {
   return page.getByRole('region', { name: 'Design surface' }).locator('.kajay-designer');
 }
 
-function orderOn(page: Page): Promise<readonly string[]> {
+/**
+ * The elements at the top level of a container, in order.
+ *
+ * Scoped by container, because the canvas is a tree now: `[data-element-index]` matches
+ * a question inside a panel exactly as it matches one on the page, and an unscoped
+ * version quietly started reporting the whole survey flattened.
+ */
+function orderIn(page: Page, container = 'p1'): Promise<readonly string[]> {
   return canvasOf(page)
-    .locator('[data-element-index] .kajay-designer__select')
+    .locator(`[data-in-container="${container}"] > .kajay-designer__adorner > .kajay-designer__select`)
     .evaluateAll((nodes) =>
       nodes.map((node) => node.getAttribute('aria-label')?.replace('Select ', '') ?? ''),
     );
@@ -22,11 +29,11 @@ test('parity/K6-undo: a dropped question is taken back, and put back', async ({ 
   await expect(page.getByTestId('undo')).toBeDisabled();
 
   await page.getByTestId('toolbox-comment').click();
-  expect(await orderOn(page)).toContain('comment1');
+  expect(await orderIn(page)).toContain('comment1');
 
   await page.getByTestId('undo').click();
   // The definition the host would save is what changed back, not just the screen.
-  expect(await orderOn(page)).toEqual(['draftName', 'draftTier', 'draftScore']);
+  expect(await orderIn(page)).toEqual(['draftName', 'draftTier', 'draftScore', 'draftGroup', 'draftEmpty']);
   await expect(page.getByTestId('surface-json')).not.toContainText('comment1');
 
   await page.getByTestId('redo').click();
@@ -75,5 +82,5 @@ test('parity/K6-shortcut: Ctrl+Z works inside the canvas', async ({ page }) => {
   await page.getByTestId('select-draftName').click();
   await page.keyboard.press('Control+z');
 
-  expect(await orderOn(page)).toEqual(['draftName', 'draftTier', 'draftScore']);
+  expect(await orderIn(page)).toEqual(['draftName', 'draftTier', 'draftScore', 'draftGroup', 'draftEmpty']);
 });

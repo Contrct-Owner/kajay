@@ -7,6 +7,14 @@ export { PageElementRendererRegistry } from './PageElementRendererRegistry.js';
 // can wrap each in an adorner, and re-implementing the slot there would put I5's layout
 // decisions in a second place to drift from this one.
 export { PageElementSlot } from './PageElementSlot.js';
+export {
+  PageElementDecoratorProvider,
+  usePageElementDecorator,
+} from './PageElementDecoratorContext.js';
+export type {
+  PageElementDecorator,
+  PageElementDecoratorProviderProps,
+} from './PageElementDecoratorContext.js';
 export type { PageElementSlotProps } from './PageElementSlot.js';
 export type {
   PageElementRenderer,

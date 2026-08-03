@@ -1,4 +1,5 @@
 import { Panel } from '@kajay/core';
+import type { PageElement, Survey } from '@kajay/core';
 import type { ReactElement } from 'react';
 import type { CSSProperties } from 'react';
 import { PageElementSlot } from './PageElementSlot.js';
@@ -31,7 +32,7 @@ export function PanelRenderer({
       ) : null}
       {isCollapsed ? null : (
         <div className="kajay-panel__content" id={contentId} style={columns}>
-          {element.visibleElements.map((child) => (
+          {contents(survey, element).map((child) => (
             <PageElementSlot key={child.name} element={child}>
               {renderers.render(survey, child)}
             </PageElementSlot>
@@ -40,6 +41,19 @@ export function PanelRenderer({
       )}
     </fieldset>
   );
+}
+
+/**
+ * What the panel shows.
+ *
+ * Everything on a design canvas, only what is visible to a respondent. A question hidden
+ * by `visibleIf` still has to be editable, and once K2 made a panel's children
+ * addressable, one hidden inside a panel became the only element in a survey a designer
+ * could not reach. The page-level list never filtered, so this was an inconsistency
+ * waiting for somebody to nest something.
+ */
+function contents(survey: Survey, panel: Panel): readonly PageElement[] {
+  return survey.isDesignMode ? panel.elements : panel.visibleElements;
 }
 
 interface PanelLegendProps {

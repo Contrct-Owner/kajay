@@ -1,17 +1,23 @@
 import type { DesignSurface } from '@kajay/creator-core';
 import type { PageElement } from '@kajay/core';
-import type { PageElementRendererRegistry } from '@kajay/react';
-import type { ReactElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
 import { ElementActions } from './ElementActions.js';
-import { ELEMENT_INDEX_ATTRIBUTE } from './placementGeometry.js';
+import {
+  CONTAINER_ATTRIBUTE,
+  ELEMENT_INDEX_ATTRIBUTE,
+  EMPTY_CONTAINER_ATTRIBUTE,
+} from './placementGeometry.js';
 import type { DesignerPlacement } from './useDesignerPlacement.js';
 
 export interface DesignedElementProps {
   readonly surface: DesignSurface;
   readonly element: PageElement;
   readonly index: number;
-  readonly renderers: PageElementRendererRegistry;
+  /** The container holding it: a page, or a panel — checklist K2's nesting. */
+  readonly container: string;
+  /** What the respondent's renderer drew. Passed in, never called for. */
+  readonly children: ReactNode;
   /** Absent when the host wired no placement: the canvas is then read-only furniture. */
   readonly placement?: DesignerPlacement | undefined;
   /** Whether a drop would land immediately before this element. */
@@ -40,11 +46,16 @@ export function DesignedElement({
   surface,
   element,
   index,
-  renderers,
+  container,
+  children,
   placement,
   isDropTarget,
 }: DesignedElementProps): ReactElement {
   const isSelected = surface.isSelected(element);
+  // A container with nothing in it has no child to aim at, so it says so itself —
+  // otherwise a panel a designer has just added is the one place a drop cannot land.
+  const isEmptyContainer =
+    surface.isContainer(element) && element.getChildren('elements').length === 0;
 
   return (
     <div
@@ -52,7 +63,11 @@ export function DesignedElement({
       data-selected={isSelected ? 'true' : undefined}
       data-element-type={element.type}
       data-drop-before={isDropTarget ? 'true' : undefined}
-      {...{ [ELEMENT_INDEX_ATTRIBUTE]: String(index) }}
+      {...{
+        [ELEMENT_INDEX_ATTRIBUTE]: String(index),
+        [CONTAINER_ATTRIBUTE]: container,
+        ...(isEmptyContainer ? { [EMPTY_CONTAINER_ATTRIBUTE]: element.name } : {}),
+      }}
       onClickCapture={() => {
         // A click anywhere on the element selects it. Nothing has to stop the control
         // underneath from answering, because the survey is in design mode and every
@@ -61,8 +76,8 @@ export function DesignedElement({
         surface.select(element);
       }}
     >
-      <Adorner surface={surface} element={element} index={index} placement={placement} />
-      {renderers.render(surface.survey, element)}
+      <Adorner surface={surface} element={element} placement={placement} />
+      {children}
     </div>
   );
 }
@@ -77,9 +92,8 @@ export function DesignedElement({
 function Adorner({
   surface,
   element,
-  index,
   placement,
-}: Pick<DesignedElementProps, 'surface' | 'element' | 'index' | 'placement'>): ReactElement {
+}: Pick<DesignedElementProps, 'surface' | 'element' | 'placement'>): ReactElement {
   const { Button, Input } = useCreatorComponents();
 
   return (
@@ -99,7 +113,7 @@ function Adorner({
           className="kajay-designer__handle"
           aria-label={`Move ${element.name}`}
           data-testid={`move-${element.name}`}
-          {...placement.getHandleProps(element.name, index)}
+          {...placement.getHandleProps(element.name)}
         >
           ⠿
         </Button>

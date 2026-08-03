@@ -14,12 +14,13 @@ export {
   removeElementFrom,
 } from './elementEdits.js';
 export { freshenFragment, takenNames } from './fragments.js';
-export { canPlace, applyPlacement, dropSlotsFor } from './placement.js';
+export { canPlace, applyPlacement, dropSlotsFor, dropSlotsOn } from './placement.js';
 export type { DropSlot, PlacementSource } from './placement.js';
 export { addPage, pageAfterRemoving, removePage } from './pageEdits.js';
 export { UndoHistory } from './UndoHistory.js';
 export type { HistorySnapshot } from './UndoHistory.js';
-export type { DropList } from './definitionTree.js';
+export type { DropList, IsContainerType } from './definitionTree.js';
+export { containersWithin, sameList, slotsOnPage } from './definitionTree.js';
 export { Toolbox } from './Toolbox.js';
 export type { ToolboxCategory, ToolboxOptions } from './Toolbox.js';
 export { fallbackTitle, OTHER_CATEGORY } from './ToolboxItem.js';

@@ -1,6 +1,6 @@
-import type { DesignSurface } from '@kajay/creator-core';
-import { defaultPageElementRenderers, PageElementSlot } from '@kajay/react';
-import type { PageElementRendererRegistry } from '@kajay/react';
+import type { DesignSurface, DropSlot } from '@kajay/creator-core';
+import { defaultPageElementRenderers, PageElementDecoratorProvider, PageElementSlot } from '@kajay/react';
+import type { PageElementDecorator, PageElementRendererRegistry } from '@kajay/react';
 import type { KeyboardEvent, ReactElement } from 'react';
 import { DesignedElement } from './DesignedElement.js';
 import { historyShortcut, isTextEntry } from './historyShortcut.js';
@@ -62,8 +62,11 @@ export function DesignSurfacePanel({
   // Only a drop aimed at *this* page's elements draws a line here. A page being
   // dragged in the navigator is aiming at a different list entirely, and an indicator
   // that ignored which would light up the canvas while somebody reordered pages.
+  // Only a drop aimed at an element list draws a line on the canvas. A page being
+  // dragged in the navigator is aiming at a different list entirely.
   const slot = placement?.activeSlot;
-  const activeSlot = slot?.list.of === 'elements' ? slot.index : undefined;
+  const activeSlot = slot?.list.of === 'elements' ? slot : undefined;
+  const decorate = useDesignerDecorator(surface, placement, activeSlot);
 
   return (
     <div
@@ -88,13 +91,12 @@ export function DesignSurfacePanel({
         handleCanvasKey(surface, event);
       }}
     >
-      <CanvasBody
-        surface={surface}
-        renderers={renderers}
-        placement={placement}
-        activeSlot={activeSlot}
-      />
-      {activeSlot !== undefined && activeSlot === (page?.elements.length ?? 0) ? (
+      <PageElementDecoratorProvider decorate={decorate}>
+        <CanvasBody surface={surface} renderers={renderers} />
+      </PageElementDecoratorProvider>
+      {activeSlot?.list.of === 'elements' &&
+      activeSlot.list.container === page?.name &&
+      activeSlot.index === (page?.elements.length ?? 0) ? (
         // The end of the list has no element to draw a line above, so it gets its own
         // marker. Without it the last position would be the one place a drop could not
         // be aimed at, which is also the most common place to add a question.
@@ -129,13 +131,9 @@ function joinClasses(base: string, extra: string | undefined): string {
 function CanvasBody({
   surface,
   renderers,
-  placement,
-  activeSlot,
 }: {
   readonly surface: DesignSurface;
   readonly renderers: PageElementRendererRegistry;
-  readonly placement: DesignerPlacement | undefined;
-  readonly activeSlot: number | undefined;
 }): ReactElement {
   const page = surface.page;
   if (page === undefined) {
@@ -149,20 +147,52 @@ function CanvasBody({
   return (
     <>
       <PageAdorner surface={surface} page={page} />
-      {page.elements.map((element, index) => (
+      {page.elements.map((element) => (
         <PageElementSlot key={element.name} element={element}>
-          <DesignedElement
-            surface={surface}
-            element={element}
-            index={index}
-            renderers={renderers}
-            placement={placement}
-            isDropTarget={activeSlot === index}
-          />
+          {renderers.render(surface.survey, element)}
         </PageElementSlot>
       ))}
     </>
   );
+}
+
+/**
+ * Wraps every page element in its adorner, at any depth — checklist K2's nesting.
+ *
+ * One function for the whole tree, because `PageElementSlot` is the one place every page
+ * element passes through in every container. A question inside a panel is adorned by
+ * exactly the same code as one on the page, and the panel renderer needed no change at
+ * all — which is the whole reason the decorator seam was worth adding rather than
+ * re-implementing panels for design mode.
+ */
+function useDesignerDecorator(
+  surface: DesignSurface,
+  placement: DesignerPlacement | undefined,
+  activeSlot: DropSlot | undefined,
+): PageElementDecorator {
+  return (element, children) => {
+    const at = surface.locate(element.name);
+    if (at === undefined || at.list.of !== 'elements') {
+      return children;
+    }
+    return (
+      <DesignedElement
+        surface={surface}
+        element={element}
+        index={at.index}
+        container={at.list.container}
+        placement={placement}
+        isDropTarget={
+          activeSlot !== undefined &&
+          activeSlot.list.of === 'elements' &&
+          activeSlot.list.container === at.list.container &&
+          activeSlot.index === at.index
+        }
+      >
+        {children}
+      </DesignedElement>
+    );
+  };
 }
 
 /**

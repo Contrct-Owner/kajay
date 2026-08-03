@@ -31,6 +31,16 @@ const DESIGNED = {
           title: 'Draft: how likely to recommend?',
           startWithNewLine: true,
         },
+        // A panel, so a drop *into* one is reachable at all — K2's last gap, and the
+        // reason the row stayed partial until the canvas could adorn what is inside it.
+        {
+          type: 'panel',
+          name: 'draftGroup',
+          title: 'Draft: extra details',
+          startWithNewLine: true,
+          elements: [{ type: 'text', name: 'draftRole', title: 'Draft: your role' }],
+        },
+        { type: 'panel', name: 'draftEmpty', title: 'Draft: nothing here yet', elements: [] },
       ],
     },
     { name: 'p2', elements: [{ type: 'comment', name: 'draftNotes', title: 'Draft: notes' }] },

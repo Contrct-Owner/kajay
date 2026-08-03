@@ -35,45 +35,33 @@ export function placementIntent(key: string): PlacementIntent | undefined {
 /**
  * The next slot in a direction, skipping the ones that would change nothing.
  *
- * **An element sits between two slots that mean the same thing.** A question at index 1
- * is both "after index 0" and "before index 2"; dropping it in either puts it back
- * exactly where it started. Stepping one slot at a time without knowing that would make
- * the first press of ArrowDown appear to do nothing at all, which reads as a broken
- * key rather than as a subtlety of indices.
+ * **A walk of a list of slots, not arithmetic on an index.** Once a panel became a place
+ * a drop could land, "one slot further down" stopped being "index + 1" — the slot after
+ * the one above a panel is the slot *inside* it. The Creator hands over every position on
+ * the page in the order they are on screen, and this steps through that.
  *
- * `origin` is `undefined` for something that is not on the canvas yet — nothing is a
- * no-op for a new element, because every slot is somewhere it is not.
+ * An element sits between two slots that mean the same place: a question at index 1 is
+ * both "after index 0" and "before index 2", and dropping it in either puts it back
+ * exactly where it started. Stepping without knowing that would make the first press of
+ * ArrowDown appear to do nothing at all, which reads as a broken key rather than as a
+ * subtlety of indices.
  */
-export function stepSlot(
-  slot: number,
+export function stepSlot<Slot>(
+  slots: readonly Slot[],
+  current: Slot | undefined,
   intent: PlacementIntent,
-  origin: number | undefined,
-  count: number,
-): number {
+  isSame: (left: Slot, right: Slot) => boolean,
+  isNoOp: (slot: Slot) => boolean,
+): Slot | undefined {
+  const at = current === undefined ? -1 : slots.findIndex((slot) => isSame(slot, current));
   const delta = intent === 'previous' ? -1 : 1;
-  const target = boundary(slot, intent, delta, count);
-  const skipped = isNoOp(target, origin) ? target + delta : target;
-  return Math.min(Math.max(skipped, 0), count);
-}
-
-function boundary(slot: number, intent: PlacementIntent, delta: number, count: number): number {
-  switch (intent) {
-    case 'first':
-      return 0;
-    case 'last':
-      return count;
-    default:
-      return slot + delta;
+  const from = intent === 'first' ? -1 : intent === 'last' ? slots.length : at;
+  const step = intent === 'first' ? 1 : intent === 'last' ? -1 : delta;
+  for (let next = from + step; next >= 0 && next < slots.length; next += step) {
+    const candidate = slots[next]!;
+    if (!isNoOp(candidate)) {
+      return candidate;
+    }
   }
-}
-
-/**
- * Whether a slot is one the item is already in.
- *
- * Exported because two things need it and they must agree: the arrow keys skip these
- * slots, and the drop indicator refuses to draw on one. An indicator that lit up where
- * nothing would happen is the interaction promising a move it is about to refuse.
- */
-export function isNoOp(slot: number, origin: number | undefined): boolean {
-  return origin !== undefined && (slot === origin || slot === origin + 1);
+  return current;
 }

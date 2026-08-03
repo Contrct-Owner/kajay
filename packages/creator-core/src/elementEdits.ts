@@ -19,7 +19,7 @@ export function copyFrom(surface: DesignSurface, name: string): SurveyDefinition
   if (page === undefined) {
     return undefined;
   }
-  return findByName(listOf(surface.definition, { of: 'elements', page: page.name }) ?? [], name);
+  return findByName(listOf(surface.definition, { of: 'elements', container: page.name }) ?? [], name);
 }
 
 /**
@@ -34,7 +34,7 @@ export function duplicateIn(surface: DesignSurface, name: string): boolean {
   if (page === undefined || fragment === undefined) {
     return false;
   }
-  const list: DropList = { of: 'elements', page: page.name };
+  const list: DropList = { of: 'elements', container: page.name };
   const at = (listOf(surface.definition, list) ?? []).findIndex(
     (element) => nameOf(element) === name,
   );
@@ -83,7 +83,7 @@ export function pasteInto(
 export function removeElementFrom(surface: DesignSurface, name: string): boolean {
   const page = surface.page;
   const before = surface.definition;
-  const list: DropList = { of: 'elements', page: page?.name ?? '' };
+  const list: DropList = { of: 'elements', container: page?.name ?? '' };
   const items = listOf(before, list);
   const at = items?.findIndex((element) => nameOf(element) === name) ?? -1;
   if (items === undefined || at < 0) {
@@ -117,7 +117,7 @@ export function convertIn(
 ): boolean {
   const page = surface.page;
   const before = surface.definition;
-  const list: DropList = { of: 'elements', page: page?.name ?? '' };
+  const list: DropList = { of: 'elements', container: page?.name ?? '' };
   const items = listOf(before, list);
   if (items === undefined) {
     return false;

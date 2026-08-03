@@ -12,9 +12,16 @@ function canvasOf(page: Page): Locator {
   return page.getByRole('region', { name: 'Design surface' }).locator('.kajay-designer');
 }
 
-function orderOn(page: Page): Promise<readonly string[]> {
+/**
+ * The elements at the top level of a container, in order.
+ *
+ * Scoped by container, because the canvas is a tree now: `[data-element-index]` matches
+ * a question inside a panel exactly as it matches one on the page, and an unscoped
+ * version quietly started reporting the whole survey flattened.
+ */
+function orderIn(page: Page, container = 'p1'): Promise<readonly string[]> {
   return canvasOf(page)
-    .locator('[data-element-index] .kajay-designer__select')
+    .locator(`[data-in-container="${container}"] > .kajay-designer__adorner > .kajay-designer__select`)
     .evaluateAll((nodes) =>
       nodes.map((node) => node.getAttribute('aria-label')?.replace('Select ', '') ?? ''),
     );
@@ -25,11 +32,13 @@ test('parity/K5-duplicate: a question is copied next to itself', async ({ page }
 
   await page.getByTestId('duplicate-draftTier').click();
 
-  expect(await orderOn(page)).toEqual([
+  expect(await orderIn(page)).toEqual([
     'draftName',
     'draftTier',
     'draftTier2',
     'draftScore',
+    'draftGroup',
+    'draftEmpty',
   ]);
   // The real renderer draws the copy, choices and all — nothing here knows what a radio
   // group is.
@@ -46,7 +55,7 @@ test('parity/K5-paste: copy on one page, paste on another', async ({ page }) => 
 
   // The clipboard holds a definition fragment, so it crosses a page change and two
   // re-parses without holding on to anything that stopped existing.
-  expect(await orderOn(page)).toEqual(['draftNotes', 'draftName2']);
+  expect(await orderIn(page, 'p2')).toEqual(['draftNotes', 'draftName2']);
 });
 
 test('parity/K5-convert: a question changes type in place', async ({ page }) => {
@@ -76,11 +85,11 @@ test('parity/K7-delete: a question goes, and comes back', async ({ page }) => {
   await page.getByTestId('select-draftTier').click();
 
   await page.getByTestId('delete-draftTier').click();
-  expect(await orderOn(page)).toEqual(['draftName', 'draftScore']);
+  expect(await orderIn(page)).toEqual(['draftName', 'draftScore', 'draftGroup', 'draftEmpty']);
   await expect(page.getByTestId('surface-json')).not.toContainText('bronze');
 
   await page.getByTestId('undo').click();
-  expect(await orderOn(page)).toEqual(['draftName', 'draftTier', 'draftScore']);
+  expect(await orderIn(page)).toEqual(['draftName', 'draftTier', 'draftScore', 'draftGroup', 'draftEmpty']);
 });
 
 test('parity/K7-delete: the Delete key removes the selection', async ({ page }) => {
@@ -88,7 +97,7 @@ test('parity/K7-delete: the Delete key removes the selection', async ({ page }) 
 
   await page.keyboard.press('Delete');
 
-  expect(await orderOn(page)).toEqual(['draftTier', 'draftScore']);
+  expect(await orderIn(page)).toEqual(['draftTier', 'draftScore', 'draftGroup', 'draftEmpty']);
   // The neighbour is selected, so the designer is still working where they were.
   await expect(page.getByTestId('surface-selected')).toHaveText('Selected draftTier.');
 });

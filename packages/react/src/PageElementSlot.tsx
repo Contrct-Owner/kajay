@@ -1,5 +1,6 @@
 import type { PageElement } from '@kajay/core';
 import type { CSSProperties, ReactElement, ReactNode } from 'react';
+import { usePageElementDecorator } from './PageElementDecoratorContext.js';
 import { useCssClass } from './SurveyCssContext.js';
 
 export interface PageElementSlotProps {
@@ -21,6 +22,10 @@ export interface PageElementSlotProps {
  */
 export function PageElementSlot({ element, children }: PageElementSlotProps): ReactElement {
   const className = useCssClass('element', 'kajay-element');
+  // Whatever a host has wrapped page elements in — nothing, for a respondent. This is
+  // how the Creator gets an adorner around an element inside a panel without any
+  // renderer knowing the Creator exists.
+  const decorate = usePageElementDecorator();
   const style: Record<string, string> = {};
   if (element.startWithNewLine) {
     style['gridColumnStart'] = '1';
@@ -39,7 +44,7 @@ export function PageElementSlot({ element, children }: PageElementSlotProps): Re
       data-title-location={element.titleLocation === 'default' ? undefined : element.titleLocation}
       style={style as CSSProperties}
     >
-      {children}
+      {decorate(element, children)}
     </div>
   );
 }

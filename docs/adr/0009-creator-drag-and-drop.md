@@ -46,8 +46,8 @@ drag system.
 
 ## Decision
 
-**Hand-rolled, on the terms below.** Four things are decided; the fifth records what is
-deliberately left out.
+**Hand-rolled, on the terms below.** Four things are decided; the fifth records the scope
+of a placement and what dropping into a panel turned out to need.
 
 ### 1 — No library
 
@@ -122,21 +122,27 @@ move is applied once on drop. Two reasons, and the first is decisive:
 Escape therefore costs nothing here, and does not have to undo anything: it abandons a
 pending placement rather than reversing a series of applied ones.
 
-### 5 — Placement is within one page, and into a panel is deferred
+### 5 — Placement is within one page
 
-K2's slots are the current page's own element list. Dropping *into* a panel is not
-supported, and this is a scope decision rather than an oversight: the design surface
-adorns only a page's top-level elements, because a panel is drawn by the respondent's
-own panel renderer and its children are inside markup the Creator does not own. Making a
-nested element individually addressable is a change to how the surface renders, not to
-how placement works, and it belongs with that work.
+K2's slots are the current page's containers: the page itself and any panel on it,
+including nested ones. Reordering *pages* is K4's, which owns page management.
 
-The slot model is written so that container-plus-index already reads correctly for a
-panel. It is *not* built to produce slots nothing can reach — the surface offers exactly
-the slots it draws, and the reason is the one E7 learned the expensive way: logic no
-test can reach is logic nobody has checked.
+**Dropping into a panel shipped after the rest of K2**, and the delay is worth
+recording, because it was never about placement. The model needed only to find a panel
+by name; what was missing was a way for the Creator to put an adorner around elements
+inside markup the respondent's own panel renderer had drawn. That turned out to be a
+decorator on `PageElementSlot` — already the one wrapper every page element passes
+through in every container — so the panel renderer needed no change at all.
 
-Reordering *pages* is K4's, which owns page management.
+The lesson generalises, and is the reason this ADR is worth re-reading before the next
+Creator row: when a piece of the Creator looks blocked by the runtime's rendering, the
+question to ask is which existing seam every element already passes through, not whether
+to build a design-mode copy of the renderer.
+
+The slot model was written so that container-plus-index already read correctly for a
+panel, and deliberately did *not* produce slots nothing could reach — the surface
+offered exactly the slots it drew. That is the one E7 learned the expensive way: logic
+no test can reach is logic nobody has checked.
 
 ## Consequences
 

@@ -7,10 +7,10 @@ import type {
 } from '@kajay/creator-core';
 import type { KeyboardEvent, PointerEvent } from 'react';
 import { useCallback, useRef, useState } from 'react';
-import { IDLE, placementActions } from './placementActions.js';
+import { IDLE, isNoOp, isSameSlot, placementActions } from './placementActions.js';
 import type { PlacementActions, PlacementState } from './placementActions.js';
 import { slotAtPoint } from './placementGeometry.js';
-import { isNoOp, placementIntent, stepSlot } from './placementKeys.js';
+import { placementIntent, stepSlot } from './placementKeys.js';
 import type { PlacementIntent } from './placementKeys.js';
 
 /** Pointer handlers for anything draggable: a toolbox item, an element, a page. */
@@ -60,8 +60,14 @@ export interface DesignerPlacement {
   readonly announcement: string;
   /** For a toolbox item: dragging it to a position, and clicking it to append. */
   readonly getItemProps: (item: ToolboxItem) => PlacementItemProps;
-  /** For an element already on the canvas: a drag, and the keyboard equivalent. */
-  readonly getHandleProps: (elementName: string, index: number) => PlacementHandleProps;
+  /**
+   * For an element already on the canvas — checklist K2.
+   *
+   * No index: where an element sits is something the model knows and a view would only
+   * be repeating. It stopped being a single number when a panel became a container, and
+   * a view passing one would have had to know which list it was counting in.
+   */
+  readonly getHandleProps: (elementName: string) => PlacementHandleProps;
   /** The same for a page in the page list — checklist K4. */
   readonly getPageHandleProps: (pageName: string, index: number) => PlacementHandleProps;
 }
@@ -75,15 +81,20 @@ interface Gesture {
 type ElementRef = { current: HTMLElement | null };
 
 interface PlacementContext {
+  readonly surface: DesignSurface;
   /** What a pointer position is measured against, for *this* list. */
   readonly measure: ElementRef;
   readonly gesture: { current: Gesture };
   readonly actions: PlacementActions;
   readonly state: PlacementState;
+  /** Every position this gesture may aim at, in the order they are on screen. */
+  readonly slots: readonly DropSlot[];
+  /** Fixed when the list cannot be read off the DOM — see {@link slotAtPoint}. */
+  readonly fixedList?: DropList | undefined;
 }
 
 /**
- * Dragging things onto the canvas, around it, and reordering pages — K2 and K4.
+ * Dragging things onto the canvas, around it, into panels, and reordering pages.
  *
  * The input adapter and nothing else
  * ([ADR-0009](../../../docs/adr/0009-creator-drag-and-drop.md) constraint 1): what a
@@ -92,9 +103,10 @@ interface PlacementContext {
  * whether a pointer or a keyboard reached it — which is what stops the canvas becoming
  * draggable but not keyboard-operable.
  *
- * **Reordering pages is the same gesture as reordering questions**, because a slot names
- * its list (K4). Two lists, one interaction, one off-by-one — and that off-by-one had
- * already survived a mutant once, which is reason enough not to keep a second copy.
+ * **Reordering pages, reordering questions and dropping into a panel are one gesture**,
+ * because a slot names its list. Three lists, one interaction, one off-by-one — and that
+ * off-by-one had already survived a mutant once, which is reason enough not to keep a
+ * second copy of it, let alone a third.
  *
  * **A drag previews and commits once**, the opposite of what C9's ranking does, and
  * deliberately. A structural edit re-parses the survey, so applying every intermediate
@@ -116,37 +128,36 @@ export function useDesignerPlacement(surface: DesignSurface): DesignerPlacement 
     pageList.current = element;
   }, []);
 
-  const elements = surface.page?.elements.length ?? 0;
-  const pages = surface.pages.length;
-  const elementList: DropList = { of: 'elements', page: surface.page?.name ?? '' };
-  const contextFor = (list: DropList, count: number, measure: ElementRef): PlacementContext => ({
-    measure,
+  const onCanvas: PlacementContext = {
+    surface,
+    measure: canvas,
     gesture,
-    actions: placementActions(surface, list, count, state, setState),
+    actions: placementActions(surface, state, setState),
     state,
-  });
+    slots: surface.slots,
+  };
+  const inPageList: PlacementContext = {
+    ...onCanvas,
+    measure: pageList,
+    slots: surface.pageSlots,
+    fixedList: { of: 'pages' },
+  };
 
   return {
     surfaceRef,
     pageListRef,
     source: state.source,
-    activeSlot: isNoOp(state.slot?.index ?? -1, state.origin) ? undefined : state.slot,
+    activeSlot: isNoOp(state.slot, state.origin) ? undefined : state.slot,
     announcement: state.announcement,
-    getItemProps: (item) =>
-      itemProps(contextFor(elementList, elements, canvas), surface, item, elements),
-    getHandleProps: (name, index) =>
-      handleProps(contextFor(elementList, elements, canvas), name, index, elements),
+    getItemProps: (item) => itemProps(onCanvas, item),
+    getHandleProps: (name) => handleProps(onCanvas, name),
     getPageHandleProps: (name, index) =>
-      handleProps(contextFor({ of: 'pages' }, pages, pageList), name, index, pages),
+      handleProps(inPageList, name, { list: { of: 'pages' }, index }),
   };
 }
 
-function itemProps(
-  context: PlacementContext,
-  surface: DesignSurface,
-  item: ToolboxItem,
-  count: number,
-): PlacementItemProps {
+function itemProps(context: PlacementContext, item: ToolboxItem): PlacementItemProps {
+  const { surface } = context;
   const page = surface.page;
   return {
     ...dragProps(context, { kind: 'new', item }),
@@ -156,7 +167,7 @@ function itemProps(
       if (!context.gesture.current.dragged && page !== undefined) {
         surface.place(
           { kind: 'new', item },
-          { list: { of: 'elements', page: page.name }, index: count },
+          { list: { of: 'elements', container: page.name }, index: page.elements.length },
         );
       }
     },
@@ -166,13 +177,13 @@ function itemProps(
 function handleProps(
   context: PlacementContext,
   name: string,
-  index: number,
-  count: number,
+  known?: DropSlot,
 ): PlacementHandleProps {
   const source: PlacementSource = { kind: 'move', name };
   const { state } = context;
+  const origin = known ?? context.surface.locate(name);
   return {
-    ...dragProps(context, source, index),
+    ...dragProps(context, source, origin),
     // Replaces "button" when the handle is announced. Calling it a button invites a
     // designer to press it and wait for something to happen.
     'aria-roledescription': 'Sortable item',
@@ -186,7 +197,7 @@ function handleProps(
       // Claimed, every one: space must not scroll the canvas, and the arrows must not
       // walk it while somebody is using them to aim.
       event.preventDefault();
-      applyIntent(context, intent, source, index, count);
+      applyIntent(context, intent, source, origin);
     },
   };
 }
@@ -202,7 +213,7 @@ function handleProps(
 function dragProps(
   context: PlacementContext,
   source: PlacementSource,
-  origin?: number,
+  origin?: DropSlot,
 ): PlacementDragProps {
   const { measure, gesture, actions, state } = context;
   return {
@@ -218,11 +229,18 @@ function dragProps(
         return;
       }
       gesture.current.dragged = true;
-      const index = slotAtPoint(measure.current, { x: event.clientX, y: event.clientY });
+      const slot = slotAtPoint(
+        measure.current,
+        { x: event.clientX, y: event.clientY },
+        context.fixedList,
+      );
+      if (slot === undefined) {
+        return;
+      }
       if (state.source === undefined) {
-        actions.begin(source, origin, index);
+        actions.begin(source, origin, slot);
       } else {
-        actions.aim(index);
+        actions.aim(slot);
       }
     },
     onPointerUp: () => {
@@ -240,23 +258,31 @@ function applyIntent(
   context: PlacementContext,
   intent: PlacementIntent,
   source: PlacementSource,
-  index: number,
-  count: number,
+  origin: DropSlot | undefined,
 ): void {
-  const { actions, state } = context;
+  const { actions, state, slots } = context;
   if (intent === 'cancel') {
     actions.abandon();
     return;
   }
   if (intent === 'toggle') {
     if (state.source === undefined) {
-      actions.begin(source, index, index);
+      const start = slots.find((slot) => isSameSlot(slot, origin)) ?? slots[0];
+      if (start !== undefined) {
+        actions.begin(source, origin, start);
+      }
     } else {
       actions.commit();
     }
     return;
   }
-  if (state.slot !== undefined) {
-    actions.aim(stepSlot(state.slot.index, intent, state.origin, count));
+  if (state.source === undefined) {
+    return;
+  }
+  const next = stepSlot(slots, state.slot, intent, isSameSlot, (slot) =>
+    isNoOp(slot, state.origin),
+  );
+  if (next !== undefined) {
+    actions.aim(next);
   }
 }

@@ -123,6 +123,7 @@ export { ItemValue } from './model/ItemValue.js';
 // --- Matrix family (§F) ----------------------------------------------------
 export { MatrixQuestion, matrixRowKey } from './model/MatrixQuestion.js';
 export { MatrixCellsBase } from './model/MatrixCellsBase.js';
+export { RepeatingQuestion } from './model/RepeatingQuestion.js';
 export { MatrixCellsQuestion } from './model/MatrixCellsQuestion.js';
 export { MatrixDynamicQuestion } from './model/MatrixDynamicQuestion.js';
 export { MatrixTotal } from './model/MatrixTotal.js';

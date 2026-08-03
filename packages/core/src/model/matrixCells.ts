@@ -3,6 +3,9 @@ import { scopeReferences } from '../expressions/scopeReferences.js';
 import { isEmptyValue } from '../expressions/expressionValues.js';
 import type { MetadataRegistry } from '../metadata/MetadataRegistry.js';
 import { copyElement } from './copyElement.js';
+import { collectElements } from './pageElements.js';
+import { PageElement } from './PageElement.js';
+import { Panel } from './Panel.js';
 import { Question } from './Question.js';
 import type { SurveyElement } from './SurveyElement.js';
 import type { ValueHost } from './ValueHost.js';
@@ -76,33 +79,63 @@ export class CellValueHost implements ValueHost {
   }
 }
 
+/** Which record an instance belongs to, and how its expressions should read it. */
+export interface RowContext {
+  readonly key: string;
+  readonly title: string;
+  readonly path: readonly PathSegment[];
+  /** The word the templates use for "this record": `row`, `panel`. */
+  readonly scope: string;
+}
+
 /**
- * Builds one cell from its column.
+ * Builds one instance of a template, for one record.
  *
- * The column's conditions are rewritten from the row's point of view as the copy is
- * made, so `{row.price}` becomes a real path into this row's answers. They are rewritten
- * **on the cell**, never on the column, which is what keeps the definition saying what
- * the author wrote — cells are not serialized.
+ * The template's expressions are rewritten from the record's point of view as the copy
+ * is made, so `{row.price}` becomes a real path into this row's answers. They are
+ * rewritten **on the instance**, never on the template, which is what keeps the
+ * definition saying what the author wrote — instances are not serialized.
+ *
+ * A matrix nested inside a template gets the same attachment, or its own cells would
+ * have no registry to be built from: `parseSurvey` can only reach the questions on a
+ * page, and this one was created long afterwards.
  */
-export function buildCell(
-  column: Question,
-  row: { readonly key: string; readonly title: string; readonly path: readonly PathSegment[] },
+export function buildInstance(
+  template: PageElement,
+  row: RowContext,
   attachment: CellAttachment,
-): Question {
-  const cell = copyElement(column, attachment.registry);
-  if (!(cell instanceof Question)) {
-    throw new TypeError(`A matrix column must be a question; "${column.type}" is not.`);
+): PageElement {
+  const instance = copyElement(template, attachment.registry);
+  if (!(instance instanceof PageElement)) {
+    throw new TypeError(`A template must be a page element; "${template.type}" is not.`);
   }
-  // The cell is named for its row *and* its column, because that is the question the
-  // cell is asking — "Documentation, Quality" — and because every renderer builds its
-  // label out of the title. A cell titled only "Quality" would give four identical
-  // labels in a four-row table, and one with no title at all would give an input nobody
-  // can name. Hiding it on screen is a theme's business; saying it is not.
-  cell.setPropertyValue('title', `${row.title} ${column.title}`.trim());
-  // Unique per cell, so the ids a renderer builds are unique too — see `instanceKey`.
-  cell.setInstanceKey(`${row.key}.${column.name}`);
-  scopeElementTree(cell, attachment.registry, row.path);
-  return cell;
+  if (instance instanceof Question) {
+    // The instance is named for its record *and* its own name, because that is the
+    // question being asked — "Documentation, Quality" — and because every renderer
+    // builds its label out of the title. A cell titled only "Quality" would give four
+    // identical labels in a four-row table, and one with no title at all would give an
+    // input nobody can name. Hiding it on screen is a theme's business; saying it is not.
+    instance.setPropertyValue('title', `${row.title} ${template.title}`.trim());
+    // Unique per instance, so the ids a renderer builds are unique too — see
+    // `instanceKey`.
+    instance.setInstanceKey(`${row.key}.${template.name}`);
+  }
+  scopeElementTree(instance, attachment.registry, row.scope, row.path);
+  for (const nested of nestedRepeaters(instance)) {
+    nested.attachCells(attachment);
+  }
+  return instance;
+}
+
+/** Every repeating question inside a built instance, itself included. */
+function nestedRepeaters(instance: PageElement): readonly RepeatingHost[] {
+  const elements = instance instanceof Panel ? [instance, ...collectElements(instance.elements)] : [instance];
+  return elements.filter((element): element is PageElement & RepeatingHost => 'attachCells' in element);
+}
+
+/** What a nested repeating question needs from the one that built it. */
+interface RepeatingHost {
+  attachCells: (attachment: CellAttachment) => void;
 }
 
 /**
@@ -119,6 +152,7 @@ export function buildCell(
 function scopeElementTree(
   element: SurveyElement,
   registry: MetadataRegistry,
+  scope: string,
   rowPath: readonly PathSegment[],
 ): void {
   for (const descriptor of registry.getProperties(element.type)) {
@@ -127,12 +161,12 @@ function scopeElementTree(
     }
     const expression = element.getPropertyValue(descriptor.name);
     if (typeof expression === 'string' && expression.length > 0) {
-      element.setPropertyValue(descriptor.name, scopeReferences(expression, ROW_SCOPE, rowPath));
+      element.setPropertyValue(descriptor.name, scopeReferences(expression, scope, rowPath));
     }
   }
   for (const collection of registry.getChildCollections(element.type)) {
     for (const child of element.getChildren(collection.property)) {
-      scopeElementTree(child, registry, rowPath);
+      scopeElementTree(child, registry, scope, rowPath);
     }
   }
 }

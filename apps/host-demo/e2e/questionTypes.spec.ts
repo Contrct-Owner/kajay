@@ -345,3 +345,17 @@ test('parity/E7-read-only', async ({ page }) => {
   await expect(reference).toHaveValue('KJ-12');
   await expect(page.getByTestId('survey-data')).toContainText('"reference": "KJ-12"');
 });
+
+test('parity/B2-async-functions', async ({ page }) => {
+  const note = page.locator('[data-element-name="deliveryNote"]');
+  await expect(note).toHaveCount(0);
+
+  await page.getByLabel('Delivery postcode').fill('SW1');
+  // The expression was evaluated the moment the answer changed and the lookup had no
+  // answer yet, so this appears on the re-evaluation the result triggers — not with
+  // the keystroke.
+  await expect(note).toContainText('we deliver to that postcode');
+
+  await page.getByLabel('Delivery postcode').fill('ZZ9');
+  await expect(note).toHaveCount(0);
+});

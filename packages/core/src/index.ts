@@ -28,11 +28,13 @@ export {
 export { collectReferences } from './expressions/collectReferences.js';
 export { createValueResolver, evaluateExpression } from './expressions/evaluateExpression.js';
 export type {
+  AsyncFunctionValues,
   EvaluationContext,
   EvaluationResult,
 } from './expressions/evaluateExpression.js';
 export type { ExpressionError } from './expressions/ExpressionError.js';
 export type {
+  AsyncExpressionFunction,
   ExpressionFunction,
   ExpressionFunctionContext,
 } from './expressions/ExpressionFunction.js';
@@ -54,6 +56,8 @@ export type {
   UnaryNode,
   UnaryOperator,
 } from './expressions/ExpressionNode.js';
+export { AsyncFunctionCache } from './expressions/AsyncFunctionCache.js';
+export type { AsyncFunctionCacheOptions } from './expressions/AsyncFunctionCache.js';
 export { FunctionRegistry } from './expressions/FunctionRegistry.js';
 export { parseExpression } from './expressions/parseExpression.js';
 export type { ParseExpressionResult } from './expressions/parseExpression.js';
@@ -130,6 +134,13 @@ export { Survey } from './model/Survey.js';
 export { HtmlCondition } from './model/HtmlCondition.js';
 export { readProgress, restoreProgress } from './model/SurveyProgress.js';
 export { shouldAdvanceAutomatically } from './model/autoAdvance.js';
+export {
+  collectEndpointDiagnostics,
+  isEndpointName,
+  resolveEndpoint,
+  undeclaredEndpoints,
+} from './model/endpoints.js';
+export type { Endpoints } from './model/endpoints.js';
 export { collectPreviewQuestions, toPreviewMode } from './model/previewQuestions.js';
 export {
   measureProgress,

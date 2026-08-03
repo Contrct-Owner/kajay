@@ -51,6 +51,22 @@ export const questionTypes: PageDefinition = {
       defaultValueExpression: "'KJ-' + {teamSize}",
     },
     {
+      // The argument to the host's asynchronous `isServed` lookup below.
+      type: 'text',
+      name: 'postcode',
+      title: 'Delivery postcode',
+      placeholder: 'SW1',
+    },
+    {
+      // Shown only once a lookup that leaves the process says so. The expression is
+      // evaluated synchronously and the answer arrives later, so this appears a moment
+      // after the postcode is typed rather than with it.
+      type: 'html',
+      name: 'deliveryNote',
+      visibleIf: 'isServed({postcode})',
+      html: '<p><strong>Good news:</strong> we deliver to that postcode.</p>',
+    },
+    {
       type: 'comment',
       name: 'feedback',
       title: 'Anything else we should know?',

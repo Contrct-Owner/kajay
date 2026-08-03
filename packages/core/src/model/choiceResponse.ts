@@ -3,6 +3,9 @@ import { collectReferences } from '../expressions/collectReferences.js';
 import { formatPath } from '../expressions/ExpressionNode.js';
 import { parseExpression } from '../expressions/parseExpression.js';
 import type { PropertyValue } from '../metadata/PropertyDescriptor.js';
+import type { Endpoints } from './endpoints.js';
+import { isEndpointName, resolveEndpoint } from './endpoints.js';
+
 import { interpolate, placeholderNames } from './interpolate.js';
 import { ItemValue } from './ItemValue.js';
 
@@ -33,8 +36,16 @@ export function createCacheKey(url: string, settings: ChoiceSettings): string {
  * HTML escaping there. Neither is optional — an unencoded answer in a URL is a broken
  * request, and an unescaped one in markup is an injection.
  */
-export function resolveUrl(template: string, resolve: (name: string) => unknown): string {
+export function resolveUrl(
+  template: string,
+  resolve: (name: string) => unknown,
+  endpoints: Endpoints = {},
+): string {
   return interpolate(template, (name) => {
+    const endpoint = resolveEndpoint(name, endpoints);
+    if (endpoint !== undefined) {
+      return endpoint;
+    }
     const value = resolve(name);
     return value === null || value === undefined ? '' : encodeURIComponent(String(value));
   });
@@ -93,11 +104,17 @@ export function choicesFromResponse(
   return toChoices(rows, settings);
 }
 
-/** `{question}` in a URL is a dependency exactly as it is in an expression. */
+/**
+ * `{question}` in a URL is a dependency exactly as it is in an expression.
+ *
+ * `{@name}` is not. An endpoint is constant for the session, so registering a
+ * dependency on it would add a graph node waiting for an answer nobody will ever
+ * supply — which is precisely the failure ADR-0017 wrote this filter down to prevent.
+ */
 export function placeholderDependencies(url: string): readonly DependencyPattern[] {
   const seen = new Set<string>();
   const reads: DependencyPattern[] = [];
-  for (const reference of placeholderNames(url)) {
+  for (const reference of placeholderNames(url).filter((name) => !isEndpointName(name))) {
     for (const path of collectReferences(parseExpression(`{${reference}}`).node)) {
       const formatted = formatPath(path);
       if (!seen.has(formatted)) {

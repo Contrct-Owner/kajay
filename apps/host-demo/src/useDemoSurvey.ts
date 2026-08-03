@@ -3,6 +3,7 @@ import type { Diagnostic, Survey, SurveyDefinition } from '@kajay/core';
 import { useEffect, useMemo } from 'react';
 import { loadChoicePage } from './choiceDirectory.js';
 import { fetchJson } from './fetchJson.js';
+import { createHostFunctions } from './hostFunctions.js';
 import { validateOnServer } from './hostValidators.js';
 import { clearProgress, readSavedProgress, saveProgress } from './savedProgress.js';
 import { surveyDefinition } from './surveyDefinition.js';
@@ -27,7 +28,11 @@ function stableStringify(value: unknown): string {
  */
 export function useDemoSurvey(): DemoSurvey {
   const demo = useMemo(() => {
-    const first = parseSurvey(surveyDefinition, { fetchJson, loadChoicePage });
+    const first = parseSurvey(surveyDefinition, {
+      fetchJson,
+      loadChoicePage,
+      functions: createHostFunctions(),
+    });
     first.survey.validation.setServerValidator(validateOnServer);
     const saved = readSavedProgress();
     if (saved !== undefined) {

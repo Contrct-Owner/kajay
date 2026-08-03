@@ -1,5 +1,7 @@
 import { valuesAreEqual } from '../expressions/expressionValues.js';
 import type { LogicRule } from '../logic/LogicRule.js';
+import type { Endpoints } from './endpoints.js';
+import { undeclaredEndpoints } from './endpoints.js';
 import type { ChoiceSettings } from './choiceResponse.js';
 import {
   choicesFromResponse,
@@ -58,9 +60,15 @@ export class ChoiceSourceController {
   readonly #generations: Map<string, number> = new Map();
   readonly #pending: Map<string, Promise<unknown>> = new Map();
   #fetchJson: ChoiceFetcher | undefined;
+  #endpoints: Endpoints = {};
 
   setFetcher(fetchJson: ChoiceFetcher | undefined): void {
     this.#fetchJson = fetchJson;
+  }
+
+  /** The origins `{@name}` resolves against. Constant for the session by design. */
+  setEndpoints(endpoints: Endpoints): void {
+    this.#endpoints = endpoints;
   }
 
   /** A failed load, malformed response, or URL configured without a fetcher. */
@@ -175,7 +183,11 @@ export class ChoiceSourceController {
     clear: () => void,
   ): void {
     const generation = this.#nextGeneration(source.key);
-    const url = resolveUrl(source.url, source.resolvePlaceholder);
+    if (this.#hasUnknownOrigin(source)) {
+      clear();
+      return;
+    }
+    const url = resolveUrl(source.url, source.resolvePlaceholder, this.#endpoints);
     if (url.trim().length === 0) {
       clear();
       return;
@@ -214,6 +226,25 @@ export class ChoiceSourceController {
         }
       },
     );
+  }
+
+  /**
+   * Whether the URL names an origin nobody supplied — and says so if it does.
+   *
+   * Such a URL is not fetched at all. Substituting the empty string would send it to
+   * the app's own origin, where it either 404s confusingly or succeeds against
+   * something never meant to answer it, and that is the failure ADR-0017 exists to
+   * prevent. The parse diagnostic tells an author; this stops the request.
+   */
+  #hasUnknownOrigin(source: UrlChoiceSource): boolean {
+    const missing = undeclaredEndpoints(source.url, this.#endpoints);
+    if (missing.length === 0) {
+      return false;
+    }
+    this.#errors.push(
+      `"${source.question.name}" loads choices from ${JSON.stringify(missing[0])}, which no endpoint supplies.`,
+    );
+    return true;
   }
 
   #nextGeneration(key: string): number {

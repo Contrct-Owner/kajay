@@ -9,8 +9,6 @@ import type {
   ValueChangedEvent,
 } from '../events/SurveyEvents.js';
 import type { LogicDiagnostics } from '../logic/LogicEngine.js';
-import type { ChoicePageLoader } from './ChoicePageLoader.js';
-import type { ChoiceFetcher } from './ChoiceSourceController.js';
 import type { SurveyOptions } from './SurveyOptions.js';
 import { clearHiddenAnswers } from './clearInvisibleAnswers.js';
 import { shouldAdvanceAutomatically } from './autoAdvance.js';
@@ -109,14 +107,16 @@ export class Survey extends SurveyProperties implements ValueHost {
   }
 
   /**
-   * Supplies the fetcher for `choicesByUrl`.
+   * Installs everything the host supplies: the choice fetcher, the page loader, the
+   * `{@name}` endpoints and the expression functions.
    *
-   * Set after construction because the registry builds the survey through a no-argument
-   * factory. `parseSurvey` applies it before logic first runs, so a host never has to
-   * remember to refresh.
+   * After construction because the metadata registry builds a survey through a
+   * no-argument factory, so `parseSurvey` — the path every host actually uses — has
+   * nowhere to pass them at construction. One call rather than four setters: they are
+   * one decision, and four of them is four chances to install three.
    */
-  setChoiceFetcher(fetchJson: ChoiceFetcher | undefined): void {
-    this.#logic.setChoiceFetcher(fetchJson);
+  configure(options: SurveyOptions): void {
+    this.#logic.configure(options);
   }
 
   /**
@@ -125,10 +125,6 @@ export class Survey extends SurveyProperties implements ValueHost {
    * Set before logic first runs, because a lazily-paged question asks for its first
    * page as soon as it is registered.
    */
-  setChoicePageLoader(load: ChoicePageLoader | undefined): void {
-    this.#logic.setChoicePageLoader(load);
-  }
-
   /** Messages from choice sources: a failed load, or a missing fetcher. */
   get choiceErrors(): readonly string[] {
     return this.#logic.choiceErrors;

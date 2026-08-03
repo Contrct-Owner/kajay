@@ -13,3 +13,16 @@ export type ExpressionFunction = (
   args: readonly unknown[],
   context: ExpressionFunctionContext,
 ) => unknown;
+
+/**
+ * A function whose answer arrives later — a lookup, a score, a permission check.
+ *
+ * A separate type rather than allowing a promise back from the synchronous one, because
+ * the two are used differently and confusing them is silent: an expression calling a
+ * promise-returning function registered as synchronous would compare a `Promise` object
+ * to a number and quietly decide the answer is no.
+ */
+export type AsyncExpressionFunction = (
+  args: readonly unknown[],
+  context: ExpressionFunctionContext,
+) => Promise<unknown>;

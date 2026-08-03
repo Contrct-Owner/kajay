@@ -2,9 +2,7 @@ import type { ElementStateChangedEvent, ValueChangedEvent } from '../events/Surv
 import type { PathSegment } from '../expressions/ExpressionNode.js';
 import { LogicEngine } from '../logic/LogicEngine.js';
 import type { LogicDiagnostics } from '../logic/LogicEngine.js';
-import type { ChoicePageLoader } from './ChoicePageLoader.js';
 import { ChoiceSourceController } from './ChoiceSourceController.js';
-import type { ChoiceFetcher } from './ChoiceSourceController.js';
 import { LazyChoiceController } from './LazyChoiceController.js';
 import { createPathResolver } from './createPathResolver.js';
 import { ElementStateController } from './ElementStateController.js';
@@ -67,8 +65,10 @@ export class SurveyLogicHost {
   constructor(answers: SurveyAnswers, options: SurveyOptions, announcer: LogicAnnouncer) {
     this.#answers = answers;
     this.#engine = new LogicEngine(options);
-    this.#choiceSources.setFetcher(options.fetchJson);
-    this.#lazyChoices.setLoader(options.loadChoicePage);
+    this.configure(options);
+    this.#engine.setAsyncSettledHandler(() => {
+      this.#reevaluate();
+    });
     this.#settle = new SettleCoordinator((values) => {
       announcer.beforeAnnounce();
       for (const event of values) {
@@ -96,12 +96,19 @@ export class SurveyLogicHost {
     return [...this.#choiceSources.errors, ...this.#lazyChoices.errors];
   }
 
-  setChoiceFetcher(fetchJson: ChoiceFetcher | undefined): void {
-    this.#choiceSources.setFetcher(fetchJson);
-  }
-
-  setChoicePageLoader(load: ChoicePageLoader | undefined): void {
-    this.#lazyChoices.setLoader(load);
+  /**
+   * Installs everything the host supplies, in one call.
+   *
+   * One call rather than four setters because they are one decision — what this survey
+   * is allowed to reach — and four of them is four chances to install three.
+   */
+  configure(options: SurveyOptions): void {
+    if (options.functions !== undefined) {
+      this.#engine.setFunctions(options.functions);
+    }
+    this.#choiceSources.setFetcher(options.fetchJson);
+    this.#choiceSources.setEndpoints(options.endpoints ?? {});
+    this.#lazyChoices.setLoader(options.loadChoicePage);
   }
 
   /**
@@ -150,6 +157,22 @@ export class SurveyLogicHost {
         this.#runAfterSettle();
       },
       ...hooks,
+    });
+  }
+
+  /**
+   * Runs every rule again, for a change that came from outside the graph.
+   *
+   * An asynchronous function's answer is not an answer *change* — no path was written,
+   * so there is nothing for the dependency graph to trace from. Re-evaluating
+   * everything is the honest response: it is rare, it is correct, and the alternative
+   * is a second dependency mechanism for a case that happens seldom.
+   */
+  #reevaluate(): void {
+    this.#settle.run(() => {
+      const result = this.#engine.evaluateAll(this.#resolvePath);
+      this.#runAfterSettle();
+      return result;
     });
   }
 

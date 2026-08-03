@@ -3,6 +3,7 @@ import { DependencyGraph } from '../dependencies/DependencyGraph.js';
 import { runDependencyTransaction } from '../dependencies/runDependencyTransaction.js';
 import { createDefaultFunctionRegistry } from '../expressions/builtInFunctions.js';
 import { collectReferences } from '../expressions/collectReferences.js';
+import { AsyncFunctionCache } from '../expressions/AsyncFunctionCache.js';
 import { evaluateExpression } from '../expressions/evaluateExpression.js';
 import { ExpressionCache } from '../expressions/ExpressionCache.js';
 import type { ExpressionError } from '../expressions/ExpressionError.js';
@@ -49,12 +50,33 @@ export class LogicEngine {
   readonly #graph: DependencyGraph = new DependencyGraph();
   readonly #cache: ExpressionCache = new ExpressionCache();
   readonly #rules: Map<string, LogicRule> = new Map();
-  readonly #functions: FunctionRegistry;
+  #functions: FunctionRegistry;
   readonly #now: () => Date;
+  readonly #asyncValues: AsyncFunctionCache;
+  #onAsyncSettled: (() => void) | undefined;
 
   constructor(options: LogicEngineOptions = {}) {
     this.#functions = options.functions ?? createDefaultFunctionRegistry();
     this.#now = options.now ?? ((): Date => new Date());
+    this.#asyncValues = new AsyncFunctionCache({
+      functions: () => this.#functions,
+      now: () => this.#now(),
+      onSettled: () => {
+        this.#onAsyncSettled?.();
+      },
+    });
+  }
+
+  /**
+   * Installs the host's function registry.
+   *
+   * After construction because the metadata registry builds a survey through a
+   * no-argument factory, so `parseSurvey` — the path every host actually uses — has
+   * nowhere to pass one at construction. Without this, a custom function was reachable
+   * only by calling the evaluator directly, which no host does.
+   */
+  setFunctions(functions: FunctionRegistry): void {
+    this.#functions = functions;
   }
 
   get ruleKeys(): readonly string[] {
@@ -141,12 +163,24 @@ export class LogicEngine {
    * that exists only to be ignored. It still goes through this engine's cache and
    * function registry, so a validator sees exactly the language a condition does.
    */
+  /**
+   * Installs what to do when an asynchronous function's answer arrives.
+   *
+   * The engine cannot re-run itself: it does not own the resolver or the settle, and a
+   * transaction started from inside a promise callback would have neither. So the
+   * arrival is announced and whoever owns those decides.
+   */
+  setAsyncSettledHandler(onSettled: () => void): void {
+    this.#onAsyncSettled = onSettled;
+  }
+
   evaluate(expression: string, resolve: ValueResolver): RuleEvaluation {
     const parsed = this.#cache.parse(expression);
     const evaluation = evaluateExpression(parsed.node, {
       getValue: resolve,
       functions: this.#functions,
       now: this.#now(),
+      asyncValues: this.#asyncValues,
     });
     return { value: evaluation.value, errors: [...parsed.errors, ...evaluation.errors] };
   }

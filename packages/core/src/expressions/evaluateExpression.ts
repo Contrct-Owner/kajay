@@ -1,5 +1,5 @@
 import type { ExpressionError } from './ExpressionError.js';
-import type { BinaryNode, ExpressionNode, PathSegment } from './ExpressionNode.js';
+import type { BinaryNode, CallNode, ExpressionNode, PathSegment } from './ExpressionNode.js';
 import { formatPath } from './ExpressionNode.js';
 import type { FunctionRegistry } from './FunctionRegistry.js';
 import {
@@ -17,6 +17,23 @@ export interface EvaluationContext {
   readonly functions: FunctionRegistry;
   /** Explicit clock, so date-dependent expressions are deterministic under test. */
   readonly now: Date;
+  /**
+   * Where an asynchronous function's answer comes from, when one is in play.
+   *
+   * Absent for a bare `evaluateExpression` call, which has nowhere to put pending work
+   * and no way to re-run itself — so an asynchronous call there is an error rather than
+   * a silent `undefined`.
+   */
+  readonly asyncValues?: AsyncFunctionValues;
+}
+
+/** The seam an evaluator reaches asynchronous results through. */
+export interface AsyncFunctionValues {
+  readonly request: (
+    name: string,
+    args: readonly unknown[],
+    report: (message: string) => void,
+  ) => unknown;
 }
 
 export interface EvaluationResult {
@@ -171,6 +188,9 @@ function evaluateNode(node: ExpressionNode, state: EvaluationState): unknown {
     case 'binary':
       return evaluateBinary(node, state);
     case 'call': {
+      if (state.context.functions.isAsync(node.name)) {
+        return evaluateAsyncCall(node, state);
+      }
       const implementation = state.context.functions.get(node.name);
       if (implementation === undefined) {
         state.errors.push({
@@ -184,6 +204,29 @@ function evaluateNode(node: ExpressionNode, state: EvaluationState): unknown {
       return implementation(args, { now: state.context.now });
     }
   }
+}
+
+/**
+ * Reads an asynchronous function's answer, or nothing yet.
+ *
+ * `undefined` while the work is outstanding, which every operator already treats as an
+ * unanswered question — so an expression half-way through a lookup behaves exactly like
+ * one waiting on an unanswered question, and no operator needed teaching a third state.
+ */
+function evaluateAsyncCall(node: CallNode, state: EvaluationState): unknown {
+  const values = state.context.asyncValues;
+  if (values === undefined) {
+    state.errors.push({
+      code: 'async-unavailable',
+      message: `${JSON.stringify(node.name)} answers asynchronously, which needs a survey to run in.`,
+      span: node.span,
+    });
+    return undefined;
+  }
+  const args = node.args.map((argument) => evaluateNode(argument, state));
+  return values.request(node.name, args, (message) => {
+    state.errors.push({ code: 'function-failed', message, span: node.span });
+  });
 }
 
 /**

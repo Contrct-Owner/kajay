@@ -126,6 +126,7 @@ closes it, and the exception is exhausted by this list:
 | D1 (matrix half) | Phase 2 | `isRequired` on a matrix row needs matrix rows. |
 | E3 (correct-answer bar) | Phase 2 | It counts `correctAnswer`, which is quiz scoring. |
 | E8 | Phase 2 | Quiz mode entire — see the decision below. |
+| C1 (`maskSettings`) | **undecided** | Not built and not scheduled. Input masking is a caret-management problem rather than a formatting one, and a half-mask that mangles mid-string editing is worse than none — so it was deliberately left out, but "deliberately left out" is not the same as *placed*. **Phase 1 cannot be declared met until this is either scheduled or dropped.** |
 
 A row on this list is green for Phase 1's purposes when everything *not* naming later
 surface is proven and the row states the remainder. Anything else is not.
@@ -136,9 +137,10 @@ requiring a demo scenario for it would make the row unprovable rather than rigor
 The bar that matters is unchanged: a named test through the public API, never an
 assertion in a document.
 
-**Progress (2026-08-02).** §A closed but for A4/A5/A7, which name Phase 2–3 surface.
-§B closed but for B2 (async function registration) and B11, which is scheduled. **§C
-closed** but for C1's `maskSettings`, which is not built and says so: input masking is a
+**Progress (2026-08-02).** **§B is closed** — B2 and B11 landed together, and building
+B2 turned up that a host had no way to register *any* expression function through
+`parseSurvey`, so both halves of that row are new. §A closed but for A4/A5/A7, which name
+Phase 2–3 surface. **§C closed** but for C1's `maskSettings`, which is not built and says so: input masking is a
 caret-management problem, and a half-mask that mangles mid-string editing is worse than
 none. §D closed but for D1's matrix half. **§E closed but for E3's correct-answer bar and
 E8**, both of which now belong to Phase 2: pages and panels, navigation and
@@ -147,6 +149,11 @@ policies, partial save and resume, read-only mode, preview before completing, th
 progress bar and contents list, autofocus and automatic advance are all proven by named
 tests. Preview, TOC and read-only were listed as Phase 2 work and landed here instead,
 because E4 needed E7 and both were cheaper than deferring them.
+
+**Every §A–§E row is now either green or on the exception list above.** The one that
+blocks declaring the phase met is C1's `maskSettings`, which is on that list only as an
+open question: it needs scheduling or dropping, and neither is a call this document can
+make for itself.
 
 **Out:** matrix family, dynamic panels, file/signature, quiz mode, theme JSON.
 

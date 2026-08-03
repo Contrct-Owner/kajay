@@ -1,11 +1,12 @@
-import type { ChoicePageLoader } from '../model/ChoicePageLoader.js';
-import type { ChoiceFetcher } from '../model/ChoiceSourceController.js';
+import { collectEndpointDiagnostics } from '../model/endpoints.js';
+import { SelectQuestion } from '../model/SelectQuestion.js';
 import type { ChildCollectionDescriptor } from '../metadata/ClassDescriptor.js';
 import { globalRegistry } from '../metadata/globalRegistry.js';
 import { MetadataRegistry } from '../metadata/MetadataRegistry.js';
 import { matchesPropertyType } from '../metadata/PropertyDescriptor.js';
 import type { PropertyDescriptor } from '../metadata/PropertyDescriptor.js';
 import { Survey } from '../model/Survey.js';
+import type { SurveyOptions } from '../model/SurveyOptions.js';
 import type { SurveyElement } from '../model/SurveyElement.js';
 import type { Diagnostic } from './Diagnostic.js';
 import { CURRENT_SCHEMA_VERSION, UnsupportedSchemaVersionError } from './schemaVersion.js';
@@ -48,12 +49,13 @@ function assertSupportedSchemaVersion(definition: Record<string, unknown>): void
   }
 }
 
-export interface ParseOptions {
-  /** Supplies `choicesByUrl` loading. Core is I/O-free, so the host provides it. */
-  readonly fetchJson?: ChoiceFetcher;
-  /** Supplies `choicesLazyLoadEnabled` paging, on the same terms. */
-  readonly loadChoicePage?: ChoicePageLoader;
-}
+/**
+ * What a host supplies alongside the definition.
+ *
+ * The survey's own options: parsing installs them, and a second type listing the same
+ * seams would be two places to add the next one.
+ */
+export type ParseOptions = SurveyOptions;
 
 /**
  * Reads a definition into a model.
@@ -88,14 +90,26 @@ export function parseSurvey(
   if (!(root instanceof Survey)) {
     throw new TypeError('The root of a definition must deserialize to a survey.');
   }
-  // Conditions can only be registered once the whole tree exists, so this runs here
-  // rather than as elements are added.
-  root.setChoiceFetcher(options.fetchJson);
-  // Before `refreshLogic`, not after: registering a lazily-paged question asks for its
-  // first page, and a loader arriving afterwards would be too late for it.
-  root.setChoicePageLoader(options.loadChoicePage);
+  // Everything the host supplies goes in before logic first runs: a lazily-paged
+  // question asks for its first page as it is registered, and a loader arriving
+  // afterwards would be too late for it. Conditions can only be registered once the
+  // whole tree exists, so this runs here rather than as elements are added.
+  root.configure(options);
   root.refreshLogic();
+  // After the tree exists, because it is a fact about the questions in it rather than
+  // about any one property as it is read.
+  context.diagnostics.push(
+    ...collectEndpointDiagnostics(urlQuestions(root), options.endpoints ?? {}),
+  );
   return { survey: root, diagnostics: context.diagnostics };
+}
+
+/** Every question that loads its choices from a URL. */
+function urlQuestions(survey: Survey): readonly { name: string; choicesByUrl: string }[] {
+  return survey.questions
+    .filter((question) => question instanceof SelectQuestion)
+    .map((question) => ({ name: question.name, choicesByUrl: question.choicesByUrl }))
+    .filter((question) => question.choicesByUrl.length > 0);
 }
 
 function readElement(

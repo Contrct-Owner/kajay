@@ -1,5 +1,6 @@
 import type { LogicEngineOptions } from '../logic/LogicEngine.js';
 import type { ChoicePageLoader } from './ChoicePageLoader.js';
+import type { Endpoints } from './endpoints.js';
 import type { ChoiceFetcher } from './ChoiceSourceController.js';
 
 /**
@@ -15,4 +16,12 @@ import type { ChoiceFetcher } from './ChoiceSourceController.js';
 export interface SurveyOptions extends LogicEngineOptions {
   readonly fetchJson?: ChoiceFetcher;
   readonly loadChoicePage?: ChoicePageLoader;
+  /**
+   * Origins a definition addresses as `{@name}` (ADR-0017).
+   *
+   * The host's, never the definition's: the artifact promoted to production is then
+   * the one that was tested, and a respondent can never influence where the survey
+   * fetches from.
+   */
+  readonly endpoints?: Endpoints;
 }

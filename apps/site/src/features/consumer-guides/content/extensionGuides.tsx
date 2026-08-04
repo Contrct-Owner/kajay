@@ -1,6 +1,11 @@
 import type { GuideSectionDefinition } from '../components/GuideContent';
 import { GuideNote, ResponsibilityList } from '../components/GuideContent';
-import { CUSTOM_LOGIC, CUSTOM_QUESTION, SURVEY_COMPONENTS } from '../examples/consumerExamples';
+import {
+  CUSTOM_LOGIC,
+  CUSTOM_PROPERTY,
+  CUSTOM_QUESTION,
+  SURVEY_COMPONENTS,
+} from '../examples/consumerExamples';
 
 export const themeSections: readonly GuideSectionDefinition[] = [
   {
@@ -36,6 +41,13 @@ export const questionExtensionSections: readonly GuideSectionDefinition[] = [
     body: <p>Clone <code>defaultPageElementRenderers</code> for one consumer and register the new renderer there. Do not mutate global defaults or import renderer internals.</p>,
   },
   {
+    id: 'add-custom-properties',
+    title: 'Add properties to existing types',
+    body: <p>Use <code>addProperty</code> when every question or one existing class needs host metadata. Pass the same registry to runtime and Creator so parsing, serialization, and authoring agree.</p>,
+    code: CUSTOM_PROPERTY,
+    codeLabel: 'A host property on every question',
+  },
+  {
     id: 'render-the-question-contract',
     title: 'Render the question contract',
     body: <ResponsibilityList><li>Use exported title, error, id-scope, and component helpers rather than inventing parallel semantics.</li><li>Write through the question model so events, logic, read-only state, and validation remain coherent.</li><li>Add contract, unit, and real-browser proofs for new observable behavior.</li></ResponsibilityList>,
@@ -61,4 +73,3 @@ export const logicExtensionSections: readonly GuideSectionDefinition[] = [
     body: <GuideNote><p>Return early when an async function has insufficient arguments: expressions run during initial settlement before every answer exists. Avoid process-global registrations where a per-survey registry can express the same behavior.</p></GuideNote>,
   },
 ];
-

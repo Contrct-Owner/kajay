@@ -143,6 +143,26 @@ renderers.registerQuestion('mood', function MoodRenderer({ survey, question }) {
 const { survey } = parseSurvey(definition, { registry });
 <Survey model={survey} renderers={renderers} />`;
 
+export const CUSTOM_PROPERTY = `import {
+  MetadataRegistry,
+  parseSurvey,
+  registerBuiltInTypes,
+} from '@kajay/core';
+import { CreatorWorkspace } from '@kajay/creator-core';
+
+const registry = new MetadataRegistry();
+registerBuiltInTypes(registry);
+
+registry.addProperty('question', {
+  name: 'helpUrl',
+  type: 'string',
+  description: 'A link to guidance for this question.',
+});
+
+// Use this same registry everywhere the definition travels.
+const { survey } = parseSurvey(definition, { registry });
+const workspace = new CreatorWorkspace({ definition, registry });`;
+
 export const CUSTOM_LOGIC = `import {
   AsyncValidator,
   createDefaultFunctionRegistry,

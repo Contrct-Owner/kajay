@@ -7,6 +7,7 @@ import { readOnlyAction, whenEditable } from './readOnly.js';
 import { useMatrixLayout } from './useMatrixLayout.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 interface MatrixRowProps {
   readonly question: MatrixQuestion;
@@ -26,6 +27,7 @@ interface MatrixRowProps {
  * model, which is why this is proven in a browser rather than a unit test.
  */
 function MatrixRow({ question, row, rowId, columnId, errors }: MatrixRowProps): ReactElement {
+  const { Radio } = useSurveyComponents();
   const errorId = `${rowId}-errors`;
   const hasErrors = errors.length > 0;
 
@@ -48,8 +50,7 @@ function MatrixRow({ question, row, rowId, columnId, errors }: MatrixRowProps): 
       </th>
       {question.visibleColumns.map((column, index) => (
         <td className="kajay-matrix__cell" key={String(column.value)}>
-          <input
-            type="radio"
+          <Radio
             name={rowId}
             value={String(column.value)}
             checked={question.isSelected(row, column)}
@@ -61,7 +62,7 @@ function MatrixRow({ question, row, rowId, columnId, errors }: MatrixRowProps): 
             // says it here, once per cell. `aria-disabled` leaves the radio focusable
             // and readable, which is the whole of E7's point.
             {...readOnlyAction(question.isReadOnly)}
-            onChange={whenEditable(question.isReadOnly, () => {
+            onCheckedChange={whenEditable(question.isReadOnly, () => {
               question.setRowValue(row, column.value);
             })}
           />
@@ -124,6 +125,7 @@ function MatrixTable({ question, base, columnId }: MatrixTableProps): ReactEleme
  * carries its text, which is the same question asked in a shape that fits.
  */
 function MatrixRadioList({ question }: { readonly question: MatrixQuestion }): ReactElement {
+  const { Radio } = useSurveyComponents();
   return (
     <div className="kajay-matrix-list">
       {question.visibleRows.map((row) => (
@@ -142,12 +144,11 @@ function MatrixRadioList({ question }: { readonly question: MatrixQuestion }): R
             ))}
           {question.visibleColumns.map((column) => (
             <label className="kajay-choice" key={String(column.value)}>
-              <input
-                type="radio"
-                name={`${matrixRowKey(row)}-list`}
+              <Radio
+                    name={`${matrixRowKey(row)}-list`}
                 value={String(column.value)}
                 checked={question.isSelected(row, column)}
-                onChange={whenEditable(question.isReadOnly, () => {
+                onCheckedChange={whenEditable(question.isReadOnly, () => {
                   question.setRowValue(row, column.value);
                 })}
               />

@@ -1,5 +1,13 @@
 import { createContext, useContext } from 'react';
-import type { ComponentType, KeyboardEvent, PointerEvent, ReactElement, ReactNode } from 'react';
+import type {
+  ComponentType,
+  CSSProperties,
+  KeyboardEvent,
+  PointerEvent,
+  ReactElement,
+  ReactNode,
+  Ref,
+} from 'react';
 
 /**
  * The primitives a survey is drawn from — [ADR-0022](../../../docs/adr/0022-design-system-primitives.md).
@@ -28,17 +36,26 @@ export interface SurveyComponents {
   // map conditionally — `{ Button: isFancy ? Fancy : undefined }` — and mean "use the
   // default" rather than being refused by the compiler.
   readonly Button?: ComponentType<SurveyButtonProps> | undefined;
+  readonly Input?: ComponentType<SurveyInputProps> | undefined;
+  readonly Textarea?: ComponentType<SurveyTextareaProps> | undefined;
+  readonly Checkbox?: ComponentType<SurveyChoiceProps> | undefined;
+  readonly Radio?: ComponentType<SurveyChoiceProps> | undefined;
 }
 
 /*
- * **Button first, and only Button so far.** Twenty-six of the forty-eight native controls
+ * **The five that earned their place.** Twenty-six of the forty-eight native controls
  * in this package are buttons, they are the most visually decisive thing a design system
  * owns, and every one of them is a plain action — so this is the conversion with the most
  * effect and the least behavioural risk.
  *
- * `Input`, `Textarea`, `Checkbox` and `Radio` are next and are deliberately *not* declared
- * here yet: a map entry nothing draws through is API a host can supply and watch do
- * nothing, which is worse than an absent one. They arrive with their conversions.
+ * `Input`, `Textarea`, `Checkbox` and `Radio` followed, and between them they account for
+ * every remaining control a design system actually ships. Each was declared only once
+ * something drew through it: a map entry nothing uses is API a host can supply and watch do
+ * nothing, which is worse than an absent one.
+ *
+ * **The file input stays native**, deliberately. `type="file"` has no value to hand a
+ * design system's Input — it carries a `FileList` and an `onChange` nobody's `Input`
+ * signature accepts — and §H1's drop zone is ours to draw out of the primitives anyway.
  *
  * The eight native `<select>`s are a separate decision. A shadcn Select is a button, a
  * portal and a listbox rather than a `<select>`, and this package's dropdown carries §C5
@@ -100,6 +117,121 @@ export interface SurveyButtonProps {
   readonly onBlur?: () => void;
 }
 
+/**
+ * A single-line answer, and the filter box above a long choice list.
+ *
+ * `type` carries §C1's eleven HTML input types through unchanged, because a `date` question
+ * and a `number` question differ by exactly this and a design system's Input almost always
+ * forwards it to the element underneath.
+ */
+export interface SurveyInputProps {
+  readonly value: string;
+  readonly onValueChange: (value: string) => void;
+  readonly type?: string;
+  readonly id?: string;
+  readonly className?: string;
+  readonly placeholder?: string;
+  readonly disabled?: boolean;
+  /**
+   * E7's rule: shown and readable, never `disabled`.
+   *
+   * Native, because this is the control HTML defines `readonly` for — the value stays
+   * selectable, focusable and announced, and only editing is refused.
+   */
+  readonly readOnly?: boolean;
+  readonly required?: boolean;
+  /** §C1's bounds. Strings because that is what the attributes take. */
+  readonly min?: string;
+  readonly max?: string;
+  readonly step?: number;
+  /** §C11 sizes a field in characters when the item asks for it. */
+  readonly size?: number;
+  readonly 'aria-required'?: boolean | undefined;
+  readonly 'aria-invalid'?: boolean | undefined;
+  readonly 'aria-describedby'?: string | undefined;
+}
+
+/**
+ * A multi-line answer — §C2's comment, and the long-text fallback.
+ *
+ * **`ref` is part of the contract**, which no other primitive needs. §C2's auto-grow
+ * measures the element's real scroll height and writes its height back; there is no way to
+ * do that without the element. A substituted Textarea that does not forward its ref leaves
+ * auto-grow silently doing nothing — the box simply never grows, and nothing errors.
+ */
+export interface SurveyTextareaProps {
+  readonly value: string;
+  readonly onValueChange: (value: string) => void;
+  readonly ref?: Ref<HTMLTextAreaElement>;
+  readonly id?: string;
+  readonly className?: string;
+  readonly placeholder?: string;
+  readonly rows?: number;
+  readonly disabled?: boolean;
+  readonly readOnly?: boolean;
+  readonly required?: boolean;
+  /** How §C2 turns off resizing when the author said not to. */
+  readonly style?: CSSProperties | undefined;
+  readonly 'aria-required'?: boolean | undefined;
+  readonly 'aria-invalid'?: boolean | undefined;
+  readonly 'aria-describedby'?: string | undefined;
+}
+
+/**
+ * One choice in a list — a checkbox or a radio.
+ *
+ * **One interface, two entries in the map**, because the *props* are identical and the
+ * components are not: a design system ships `Checkbox` and `RadioGroupItem` as different
+ * things with different keyboard behaviour, and folding them into one entry with a `type`
+ * prop would hand every host the branch we had just refused to write.
+ *
+ * `name` is what makes a native radio group a group, so it stays in the contract even
+ * though a Radix-based substitute ignores it and groups by its own container.
+ */
+export interface SurveyChoiceProps {
+  readonly checked: boolean;
+  readonly onCheckedChange: () => void;
+  readonly value?: string;
+  readonly name?: string;
+  readonly id?: string;
+  readonly className?: string;
+  readonly disabled?: boolean;
+  /**
+   * How a checkbox says it may not be changed — E7.
+   *
+   * A checkbox carries the state itself; a radio cannot, because ARIA does not define
+   * `aria-readonly` on `radio` — a single-select group says it on the `radiogroup` around
+   * them instead, which is why this is absent on radios rather than forgotten.
+   */
+  readonly 'aria-readonly'?: 'true' | undefined;
+  /**
+   * E7's answer where ARIA gives a control no read-only state at all.
+   *
+   * A radio has none, and neither does the `group` a matrix's fieldset is — so a read-only
+   * matrix says it here, once per cell. Unlike the HTML attribute it leaves the control
+   * focusable and announced, which is the whole of E7's point.
+   */
+  readonly 'aria-disabled'?: 'true' | undefined;
+  readonly 'aria-labelledby'?: string;
+  readonly 'aria-invalid'?: boolean | undefined;
+  readonly 'aria-describedby'?: string | undefined;
+  /**
+   * Whether picking the already-chosen option counts as choosing it — §C8 and §C10.
+   *
+   * **A native radio fires no change event for that**, and re-picking is exactly how a
+   * respondent takes back a rating or an image choice. The default therefore listens on
+   * click instead when this is set, which is a real behavioural difference and not a
+   * styling hint — a substituted primitive that ignores it leaves a respondent unable to
+   * clear an answer, with nothing on screen to suggest why.
+   *
+   * It is in the contract rather than solved by always listening on click because for
+   * every other choice in the library `onChange` is the right event, and a library that
+   * quietly changed which event fires would be harder to reason about than one that says
+   * which it means.
+   */
+  readonly reselect?: boolean;
+}
+
 function DefaultButton({
   type = 'button',
   children,
@@ -121,7 +253,68 @@ function DefaultButton({
  * scenarios the regression net for this change rather than work to be redone alongside it.
  * A test that goes red here is a real behaviour change.
  */
-const DEFAULTS = { Button: DefaultButton };
+function DefaultInput({ value, onValueChange, ...rest }: SurveyInputProps): ReactElement {
+  return (
+    <input
+      value={value}
+      onChange={(event) => {
+        onValueChange(event.target.value);
+      }}
+      {...rest}
+    />
+  );
+}
+
+function DefaultTextarea({ value, onValueChange, ...rest }: SurveyTextareaProps): ReactElement {
+  return (
+    <textarea
+      value={value}
+      onChange={(event) => {
+        onValueChange(event.target.value);
+      }}
+      {...rest}
+    />
+  );
+}
+
+/** React insists a controlled input have a change handler; `reselect` reports on click. */
+function noChange(): void {
+  /* handled by onClick, which also covers re-selecting the same option */
+}
+
+/**
+ * Checkbox and radio differ by one attribute here and by a whole keyboard contract in a
+ * design system, which is exactly why they are two entries in the map and one factory here.
+ */
+function choiceOfType(type: 'checkbox' | 'radio') {
+  return function DefaultChoice({
+    checked,
+    onCheckedChange,
+    ...rest
+  }: SurveyChoiceProps): ReactElement {
+    const { reselect, ...attributes } = rest;
+    return (
+      <input
+        type={type}
+        checked={checked}
+        // Click rather than change when `reselect` is set, so re-picking the option that
+        // is already chosen still reports — see the prop's own note.
+        {...(reselect === true
+          ? { onClick: onCheckedChange, onChange: noChange }
+          : { onChange: onCheckedChange })}
+        {...attributes}
+      />
+    );
+  };
+}
+
+const DEFAULTS = {
+  Button: DefaultButton,
+  Input: DefaultInput,
+  Textarea: DefaultTextarea,
+  Checkbox: choiceOfType('checkbox'),
+  Radio: choiceOfType('radio'),
+};
 
 const SurveyComponentsContext = createContext<SurveyComponents>({});
 

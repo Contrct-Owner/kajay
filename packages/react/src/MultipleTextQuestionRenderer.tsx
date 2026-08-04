@@ -6,6 +6,7 @@ import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionErrorId, questionId } from './questionId.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 interface ItemFieldProps {
   readonly question: MultipleTextQuestion;
@@ -22,6 +23,7 @@ interface ItemFieldProps {
  * itself.
  */
 function ItemField({ question, item, errors }: ItemFieldProps): ReactElement {
+  const { Input } = useSurveyComponents();
   const inputId = `${questionId(question)}-${item.name}`;
   const errorId = `${inputId}-errors`;
   const size = item.size > 0 ? item.size : question.itemSize;
@@ -36,7 +38,7 @@ function ItemField({ question, item, errors }: ItemFieldProps): ReactElement {
           </span>
         ) : null}
       </label>
-      <input
+      <Input
         id={inputId}
         className="kajay-question__input"
         type={item.inputType}
@@ -49,8 +51,8 @@ function ItemField({ question, item, errors }: ItemFieldProps): ReactElement {
         aria-describedby={errors.length > 0 ? errorId : undefined}
         {...(size > 0 ? { size } : {})}
         value={String(question.getItemValue(item.name) ?? '')}
-        onChange={(event) => {
-          question.setItemValue(item.name, event.target.value);
+        onValueChange={(next) => {
+          question.setItemValue(item.name, next);
         }}
       />
       {errors.length > 0 ? (

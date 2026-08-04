@@ -25,12 +25,12 @@ function ClearButton({ question }: { readonly question: RadiogroupQuestion }): R
 }
 
 function SelectAllChoice({ question }: { readonly question: CheckboxQuestion }): ReactElement {
+  const { Checkbox } = useSurveyComponents();
   return (
     <label className="kajay-choice kajay-choice--select-all">
-      <input
-        type="checkbox"
+      <Checkbox
         checked={question.isAllSelected}
-        onChange={() => {
+        onCheckedChange={() => {
           question.selectAll();
         }}
       />

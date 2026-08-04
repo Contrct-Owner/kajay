@@ -6,6 +6,7 @@ import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 interface ModeProps {
   readonly question: BooleanQuestion;
@@ -29,22 +30,23 @@ interface ModeProps {
  * question that wants the radio form, which is why both exist.
  */
 function SwitchInput({ question, inputId }: ModeProps): ReactElement {
+  const { Checkbox } = useSurveyComponents();
   return (
     <label className="kajay-boolean">
-      <input
+      <Checkbox
         id={inputId}
         className="kajay-boolean__switch"
-        type="checkbox"
         checked={question.checkedValue === true}
         disabled={!question.isEnabled}
         // A switch is a `checkbox` to ARIA, which does carry the state — so it says it
         // here rather than on the `<fieldset>` around it, where `group` cannot.
         {...readOnlyControl(question.isReadOnly)}
-        onChange={(event) => {
-          whenEditable(question.isReadOnly, () => {
-            question.setChecked(event.target.checked);
-          })();
-        }}
+        onCheckedChange={whenEditable(question.isReadOnly, () => {
+          // The control no longer reports its own new state — a design system's Checkbox
+          // has no `event.target`. The model already knows which way it is set, so the
+          // toggle is expressed against that rather than against the DOM.
+          question.setChecked(question.checkedValue !== true);
+        })}
       />
       <span className="kajay-boolean__label">{question.labelTrue}</span>
     </label>
@@ -53,16 +55,16 @@ function SwitchInput({ question, inputId }: ModeProps): ReactElement {
 
 /** The radio form: two options, and the unanswered state is simply neither of them. */
 function RadioInputs({ question, inputId }: ModeProps): ReactElement {
+  const { Radio } = useSurveyComponents();
   return (
     <div className="kajay-choices kajay-boolean__options">
       {[true, false].map((isTrue) => (
         <label key={String(isTrue)} className="kajay-choice">
-          <input
-            type="radio"
+          <Radio
             name={inputId}
             checked={question.checkedValue === isTrue}
             disabled={!question.isEnabled}
-            onChange={whenEditable(question.isReadOnly, () => {
+            onCheckedChange={whenEditable(question.isReadOnly, () => {
               question.setChecked(isTrue);
             })}
           />

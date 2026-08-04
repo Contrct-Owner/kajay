@@ -6,6 +6,7 @@ import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionErrorId, questionId } from './questionId.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 const SMILEYS = ['😖', '🙁', '😐', '🙂', '😄'];
 
@@ -51,26 +52,24 @@ function StepGlyph({
  * group, and the visible label is what the pointer lands on.
  */
 function RatingButtons({ question }: { readonly question: RatingQuestion }): ReactElement {
+  const { Radio } = useSurveyComponents();
   const groupName = questionId(question);
   return (
     <div className="kajay-rating" data-rate-type={question.rateType}>
       {question.rateValues.map((step, index) => (
         <label key={String(step.value)} className="kajay-rating__step">
-          <input
+          <Radio
             className="kajay-rating__input"
-            type="radio"
             name={groupName}
             value={String(step.value)}
             checked={question.isSelected(step.value)}
             disabled={!question.isEnabled}
             // `onClick`, not only `onChange`: picking the step already chosen is how a
             // respondent takes an answer back, and a radio fires no change for that.
-            onClick={whenEditable(question.isReadOnly, () => {
+            reselect
+            onCheckedChange={whenEditable(question.isReadOnly, () => {
               question.select(step.value);
             })}
-            onChange={() => {
-              /* handled by onClick, which also covers re-selecting the same step */
-            }}
           />
           <span className="kajay-rating__label">
             <StepGlyph question={question} position={index + 1} />

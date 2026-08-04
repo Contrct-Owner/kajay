@@ -1,5 +1,6 @@
 import type { SelectQuestion } from '@kajay/core';
-import type { ChangeEvent, ReactElement } from 'react';
+import { useSurveyComponents } from './SurveyComponents.js';
+import type { ReactElement } from 'react';
 import { useEffect, useState } from 'react';
 
 /** How long typing pauses before the term goes to the host. */
@@ -24,6 +25,7 @@ export interface ChoiceFilterFieldProps {
  * screen-reader-correct today, with no interaction code of its own.
  */
 export function ChoiceFilterField({ question, id }: ChoiceFilterFieldProps): ReactElement {
+  const { Input } = useSurveyComponents();
   const [term, setTerm] = useState(question.choiceFilter);
 
   useEffect(() => {
@@ -42,14 +44,12 @@ export function ChoiceFilterField({ question, id }: ChoiceFilterFieldProps): Rea
       <label className="kajay-choice-filter__label" htmlFor={id}>
         {question.uiText('filterOptions')}
       </label>
-      <input
+      <Input
         id={id}
         className="kajay-choice-filter__input"
         type="search"
         value={term}
-        onChange={(event: ChangeEvent<HTMLInputElement>) => {
-          setTerm(event.target.value);
-        }}
+        onValueChange={setTerm}
       />
     </div>
   );

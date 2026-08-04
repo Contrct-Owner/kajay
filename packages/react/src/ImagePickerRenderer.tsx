@@ -7,6 +7,7 @@ import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { readOnlyRadioGroup, whenEditable } from './readOnly.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 function tileStyle(question: ImagePickerQuestion): CSSProperties {
   return {
@@ -60,11 +61,15 @@ function ChoiceTile({
   readonly choice: ItemValue;
   readonly groupName: string;
 }): ReactElement {
+  const { Checkbox, Radio } = useSurveyComponents();
+  // C10's one type whose arity is a *property* rather than its type, so the branch is
+  // here rather than in the registry.
+  const Choice = question.multiSelect ? Checkbox : Radio;
+
   return (
     <label className="kajay-imagepicker__tile">
-      <input
+      <Choice
         className="kajay-imagepicker__input"
-        type={question.multiSelect ? 'checkbox' : 'radio'}
         name={groupName}
         value={String(choice.value)}
         checked={question.isSelected(choice.value)}
@@ -72,12 +77,10 @@ function ChoiceTile({
         // `onClick`, not only `onChange`: picking the chosen tile again is how a
         // single-select respondent takes it back, and a radio fires no change. Reading
         // cancels that same click, so the tiles stay focusable and unchangeable.
-        onClick={whenEditable(question.isReadOnly, () => {
+        reselect
+        onCheckedChange={whenEditable(question.isReadOnly, () => {
           question.select(choice.value);
         })}
-        onChange={() => {
-          /* handled by onClick, which also covers re-selecting the same tile */
-        }}
       />
       <span className="kajay-imagepicker__body">
         <ChoiceMedia question={question} choice={choice} />

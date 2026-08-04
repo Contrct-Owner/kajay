@@ -1,11 +1,12 @@
 import { TextQuestion } from '@kajay/core';
 import type { Question } from '@kajay/core';
-import type { ChangeEvent, ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useQuestionValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 /**
  * The bounds and granularity the browser also understands.
@@ -27,6 +28,7 @@ function boundAttributes(question: Question): Record<string, string | number> {
 }
 
 export function TextQuestionRenderer({ survey, question }: QuestionRendererProps): ReactElement {
+  const { Input } = useSurveyComponents();
   const value = useQuestionValue(survey, question);
   const inputId = questionId(question);
   const errorId = `${inputId}-errors`;
@@ -35,16 +37,16 @@ export function TextQuestionRenderer({ survey, question }: QuestionRendererProps
   const inputType = isTextQuestion ? question.inputType : 'text';
   const placeholder = isTextQuestion ? question.placeholder : '';
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
+  const handleChange = (next: string): void => {
     // Through the model, not `survey.setValue`: a `number` input reports a string like
     // every other input, and which type reaches `data` must not depend on the adapter.
     if (isTextQuestion) {
-      question.setInputValue(event.target.value);
+      question.setInputValue(next);
       return;
     }
     // Through the question for the same reason a cell reads through it: its answer may
     // live inside another question's.
-    question.value = event.target.value;
+    question.value = next;
   };
 
   return (
@@ -53,7 +55,7 @@ export function TextQuestionRenderer({ survey, question }: QuestionRendererProps
         <QuestionTitleContent question={question} />
       </label>
       <QuestionErrors survey={survey} question={question} at="top" id={errorId} />
-      <input
+      <Input
         id={inputId}
         className="kajay-question__input"
         type={inputType}
@@ -71,7 +73,7 @@ export function TextQuestionRenderer({ survey, question }: QuestionRendererProps
         // setValueExpression of `0` or a runexpression trigger's result — and those
         // rendered as an empty field.
         value={value === null || value === undefined ? '' : String(value)}
-        onChange={handleChange}
+        onValueChange={handleChange}
       />
       <QuestionErrors survey={survey} question={question} at="bottom" id={errorId} />
     </div>

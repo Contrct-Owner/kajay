@@ -30,8 +30,11 @@ export { SurveyComponentsProvider, useSurveyComponents } from './SurveyComponent
 export type {
   ResolvedSurveyComponents,
   SurveyButtonProps,
+  SurveyChoiceProps,
   SurveyComponents,
   SurveyComponentsProviderProps,
+  SurveyInputProps,
+  SurveyTextareaProps,
 } from './SurveyComponents.js';
 // Exported for the Creator's design surface (N5): a question that contains questions —
 // a matrix cell, a repeating panel's instance — looks its children up in the registry it

@@ -1,12 +1,13 @@
 import { CommentQuestion } from '@kajay/core';
 import type { Question } from '@kajay/core';
-import type { ChangeEvent, ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { useCallback, useLayoutEffect, useRef } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useQuestionValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 /**
  * Grows a textarea to fit what is in it.
@@ -73,6 +74,7 @@ export function CommentQuestionRenderer({
   survey,
   question,
 }: QuestionRendererProps): ReactElement {
+  const { Textarea } = useSurveyComponents();
   const value = useQuestionValue(survey, question);
   const isComment = question instanceof CommentQuestion;
   const autoGrow = useAutoGrow(isComment && question.autoGrow, value);
@@ -82,11 +84,11 @@ export function CommentQuestionRenderer({
   const counterId = `${inputId}-counter`;
   const remaining = isComment ? question.remainingCharacters : undefined;
 
-  const handleChange = (event: ChangeEvent<HTMLTextAreaElement>): void => {
+  const handleChange = (next: string): void => {
     // Through the question, not `survey.setValue(question.name, …)`: a matrix cell is a
     // question named for its column, and its answer lives inside the matrix's rather
     // than at a survey name — writing by name would put a stray key in the response.
-    question.value = event.target.value;
+    question.value = next;
   };
 
   return (
@@ -95,7 +97,7 @@ export function CommentQuestionRenderer({
         <QuestionTitleContent question={question} />
       </label>
       <QuestionErrors survey={survey} question={question} at="top" id={errorId} />
-      <textarea
+      <Textarea
         id={inputId}
         ref={autoGrow}
         className="kajay-question__textarea"
@@ -109,7 +111,7 @@ export function CommentQuestionRenderer({
         aria-describedby={describedBy(question.hasErrors, errorId, remaining, counterId)}
         style={isComment && !question.allowResize ? { resize: 'none' } : undefined}
         value={value === null || value === undefined ? '' : String(value)}
-        onChange={handleChange}
+        onValueChange={handleChange}
       />
       <CharacterCounter question={question} remaining={remaining} id={counterId} />
       <QuestionErrors survey={survey} question={question} at="bottom" id={errorId} />

@@ -1,11 +1,27 @@
 import type { SurveyDefinition } from '@kajay/core';
 import { listOf, sameList } from './definitionTree.js';
+import type { IsContainerType } from './definitionTree.js';
+import { dropSlotsFor, dropSlotsOn } from './placement.js';
 import type { DropSlot, PlacementSource } from './placement.js';
-import type {
-  PlacementDirection,
-  PlacementNarration,
-  PlacementNarrationKind,
-} from './PlacementSession.js';
+import type { PlacementDirection } from './PlacementSession.js';
+
+/** What a drag just did, as facts. A UI adapter decides how to turn them into words. */
+export type PlacementNarrationKind = 'grabbed' | 'moved' | 'dropped' | 'returned';
+
+/**
+ * Stable accessibility facts about a drag.
+ *
+ * Beside `placementNarration`, which is the only thing that builds one — a type declared
+ * away from its sole producer is a type the two files have to agree about by hand.
+ */
+export interface PlacementNarration {
+  readonly kind: PlacementNarrationKind;
+  readonly label: string;
+  /** Zero-based: the shared reorder formatter turns it into a spoken ordinal. */
+  readonly position: number;
+  readonly total: number;
+  readonly container: string | undefined;
+}
 
 export function sameSlot(left: DropSlot | undefined, right: DropSlot | undefined): boolean {
   return left !== undefined && right !== undefined &&
@@ -57,4 +73,30 @@ export function placementNarration(
         ? slot.list.container
         : undefined,
   };
+}
+
+/**
+ * Which slots a drag may be aimed at — checklist K2.
+ *
+ * **A question about the document, not about the drag**, which is why it lives here rather
+ * than on the session: given a definition and what is being carried, the answer is the same
+ * whoever asks. A page being moved is offered the page list; anything else is offered the
+ * positions on the page being designed, including inside its containers.
+ *
+ * Offering a slot is not the same as allowing a drop on it — see `placementRefusal` and
+ * `isRedundantPlacement`, which say whether one would be refused and whether it would
+ * change anything.
+ */
+export function offerableSlots(
+  definition: SurveyDefinition,
+  source: PlacementSource,
+  origin: DropSlot | undefined,
+  canvas: { readonly pageName: string | undefined; readonly isContainerType: IsContainerType },
+): readonly DropSlot[] {
+  if (source.kind === 'move' && origin?.list.of === 'pages') {
+    return dropSlotsFor({ of: 'pages' }, listOf(definition, { of: 'pages' })?.length ?? 0);
+  }
+  return canvas.pageName === undefined
+    ? []
+    : dropSlotsOn(definition, canvas.pageName, canvas.isContainerType);
 }

@@ -150,6 +150,33 @@ describe('parity/P5-refusal-reasons', () => {
     expect(designed.paste()?.kind).toBe('nothing-copied');
   });
 
+  test('a drop that changes nothing refuses nothing', () => {
+    const designed = surface();
+
+    // The reconciliation. `PlacementSession` used to answer `'refused'` for this *and* for
+    // a page dropped into a question, because `canPlace` asked one question for two
+    // things. A designer putting a question back where it came from is not being told
+    // "that cannot go there".
+    const where = designed.locate('where');
+    expect(where).toBeDefined();
+    expect(designed.place({ kind: 'move', name: 'where' }, where!)).toBeUndefined();
+  });
+
+  test('a drop that must not happen still says so', () => {
+    const designed = surface();
+
+    // The other half of the same split, and the reason it is worth having: this one would
+    // put a question in the survey's page list, not a designer changing their mind.
+    //
+    // **This case was allowed until the split.** The old `canPlace` guarded a *new* source
+    // against a non-elements list and never guarded a move, so the hole was invisible while
+    // one `false` covered everything — unreachable by dragging, because the session only
+    // offers slots of the matching kind, and wide open to anyone calling `place`.
+    expect(
+      designed.place({ kind: 'move', name: 'who' }, { list: { of: 'pages' }, index: 0 })?.kind,
+    ).toBe('not-placeable');
+  });
+
   test('a move that lands where it started is not a refusal', () => {
     const designed = surface();
     const who = questionIn(designed, 'who');

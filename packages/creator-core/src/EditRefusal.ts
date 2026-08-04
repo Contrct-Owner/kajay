@@ -39,6 +39,7 @@ export type EditRefusalKind =
   | 'not-found'
   | 'not-convertible'
   | 'not-placeable'
+  | 'drag-in-progress'
   | 'nothing-copied';
 
 /**
@@ -65,6 +66,7 @@ const REFUSAL_MESSAGES: Readonly<Record<EditRefusalKind, CreatorStringKey>> = {
   'not-found': 'refusalNotFound',
   'not-convertible': 'refusalNotConvertible',
   'not-placeable': 'refusalNotPlaceable',
+  'drag-in-progress': 'refusalDragInProgress',
   'nothing-copied': 'refusalNothingCopied',
 };
 

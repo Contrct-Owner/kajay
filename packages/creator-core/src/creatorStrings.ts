@@ -131,6 +131,7 @@ export const CREATOR_STRING_DEFINITIONS = [
   { key: 'refusalNotFound', en: '“{0}” is no longer in this survey.' },
   { key: 'refusalNotConvertible', en: '“{0}” cannot become that type.' },
   { key: 'refusalNotPlaceable', en: 'That cannot go there.' },
+  { key: 'refusalDragInProgress', en: 'Finish the move already in progress first.' },
   { key: 'refusalNothingCopied', en: 'Nothing has been copied yet.' },
 
   // --- The theme editor -----------------------------------------------------

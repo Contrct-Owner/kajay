@@ -1,63 +1,37 @@
 import type { SurveyDefinition } from '@kajay/core';
 import { isTypeAllowed } from './CreatorConfiguration.js';
 import type { CreatorConfiguration } from './CreatorConfiguration.js';
-import { listOf, locate } from './definitionTree.js';
-import { applyPlacement, canPlace, dropSlotsFor, dropSlotsOn, placedName } from './placement.js';
+import { locate } from './definitionTree.js';
+import {
+  applyPlacement,
+  canPlace,
+  isRedundantPlacement,
+  placedName,
+  placementRefusal,
+} from './placement.js';
 import type { DropSlot, PlacementSource } from './placement.js';
 import {
   containsSlot,
   nextPlacementSlot,
+  offerableSlots,
   placementNarration,
   sameSlot,
 } from './placementLifecycle.js';
 
+export type { PlacementNarration, PlacementNarrationKind } from './placementLifecycle.js';
+export type { PlacementCommand, PlacementSnapshot } from './placementProtocol.js';
+import type { PlacementNarration } from './placementLifecycle.js';
+import type { PlacementCommand, PlacementSnapshot } from './placementProtocol.js';
+
 export type PlacementDirection = 'previous' | 'next' | 'first' | 'last';
-export type PlacementNarrationKind = 'grabbed' | 'moved' | 'dropped' | 'returned';
 export type PlacementOutcome = 'updated' | 'committed' | 'refused' | 'ignored';
-
-/** Stable accessibility facts. A UI adapter decides how to turn them into words. */
-export interface PlacementNarration {
-  readonly kind: PlacementNarrationKind;
-  readonly label: string;
-  /** Zero-based: the shared reorder formatter turns it into a spoken ordinal. */
-  readonly position: number;
-  readonly total: number;
-  readonly container: string | undefined;
-}
-
-export type PlacementSnapshot =
-  | {
-      readonly kind: 'idle';
-      readonly source: undefined;
-      readonly origin: undefined;
-      readonly activeSlot: undefined;
-      readonly narration: PlacementNarration | undefined;
-    }
-  | {
-      readonly kind: 'preview';
-      readonly source: PlacementSource;
-      readonly origin: DropSlot | undefined;
-      /** Present only when committing this slot would change the definition. */
-      readonly activeSlot: DropSlot | undefined;
-      readonly narration: PlacementNarration;
-    };
-
-export type PlacementCommand =
-  | { readonly kind: 'place'; readonly source: PlacementSource; readonly slot: DropSlot }
-  | {
-      readonly kind: 'start';
-      readonly source: PlacementSource;
-      readonly slot?: DropSlot | undefined;
-    }
-  | { readonly kind: 'aim'; readonly slot: DropSlot | undefined }
-  | { readonly kind: 'step'; readonly direction: PlacementDirection }
-  | { readonly kind: 'finish'; readonly action: 'commit' | 'abandon' };
 
 export interface PlacementSession {
   readonly snapshot: PlacementSnapshot;
   readonly transition: (command: PlacementCommand) => PlacementOutcome;
   readonly subscribe: (listener: () => void) => () => void;
 }
+
 
 interface PlacementHost {
   readonly definition: () => SurveyDefinition;
@@ -135,8 +109,19 @@ export class PlacementSessionModel implements PlacementSession {
       return 'refused';
     }
     const before = this.#host.definition();
-    if (!this.#sourceAllowed(source) || !canPlace(before, source, slot)) {
+    if (
+      !this.#sourceAllowed(source) ||
+      placementRefusal(before, source, slot, this.#host.configuration()) !== undefined
+    ) {
       return 'refused';
+    }
+    // **A drop onto the position it already occupies is `ignored`, not `refused`.** Both
+    // used to be `!canPlace(…)`, so putting a question back where it came from answered
+    // the same way as dropping a page into a question — and `DesignSurface.place` had no
+    // choice but to report "that cannot go there" for a designer changing their mind
+    // (ADR-0023).
+    if (isRedundantPlacement(before, source, slot)) {
+      return 'ignored';
     }
     const after = applyPlacement(before, source, slot);
     const origin = source.kind === 'move' ? locate(before, source.name) : undefined;
@@ -296,10 +281,9 @@ export class PlacementSessionModel implements PlacementSession {
     origin: DropSlot | undefined,
     definition: SurveyDefinition,
   ): readonly DropSlot[] {
-    if (source.kind === 'move' && origin?.list.of === 'pages') {
-      return dropSlotsFor({ of: 'pages' }, listOf(definition, { of: 'pages' })?.length ?? 0);
-    }
-    const page = this.#host.pageName();
-    return page === undefined ? [] : dropSlotsOn(definition, page, this.#host.isContainerType);
+    return offerableSlots(definition, source, origin, {
+      pageName: this.#host.pageName(),
+      isContainerType: this.#host.isContainerType,
+    });
   }
 }

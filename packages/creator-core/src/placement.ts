@@ -12,6 +12,10 @@ import {
   withList,
 } from './definitionTree.js';
 import type { DropList, IsContainerType } from './definitionTree.js';
+import { isTypeAllowed } from './CreatorConfiguration.js';
+import type { CreatorConfiguration } from './CreatorConfiguration.js';
+import { refuse } from './EditRefusal.js';
+import type { EditRefusal } from './EditRefusal.js';
 
 /**
  * A position between items — checklist K2 and K4.
@@ -57,20 +61,36 @@ export function dropSlotsFor(list: DropList, count: number): readonly DropSlot[]
  * would report an edit, push an undo entry and re-parse the survey, all to arrive back
  * where it started.
  */
-export function canPlace(
+/**
+ * Why a placement must not happen — [ADR-0023](../../../docs/adr/0023-the-creator-says-what-happened.md).
+ *
+ * **Separate from "would this change anything", and that separation is the point.**
+ * `canPlace` used to answer both questions with one `false`, so dropping an element onto
+ * the position it already occupies looked exactly like dropping a page into a question.
+ * One is a designer changing their mind mid-drag; the other is a definition no parser
+ * could read. Telling them apart is what lets the first stay silent and the second speak.
+ *
+ * Read-only is **not** here: it is a fact about the deployment rather than about the drop,
+ * and it is minted at the two chokepoints so every edit inherits it.
+ */
+export function placementRefusal(
   definition: SurveyDefinition,
   source: PlacementSource,
   slot: DropSlot,
-): boolean {
+  configuration?: CreatorConfiguration | undefined,
+): EditRefusal | undefined {
   const items = listOf(definition, slot.list);
   if (items === undefined || slot.index < 0 || slot.index > items.length) {
-    return false;
+    return refuse('not-found', slot.list.of);
   }
   if (source.kind === 'new') {
+    if (!isTypeAllowed(source.item.type, configuration)) {
+      return refuse('type-not-allowed', source.item.type);
+    }
     // A toolbox item builds a *page element*. Dropping one into the survey's page list
     // would produce a survey whose pages are questions — nothing offers that, but the
     // type can express it, so it is refused here rather than left to produce nonsense.
-    return slot.list.of === 'elements';
+    return slot.list.of === 'elements' ? undefined : refuse('not-placeable', source.item.type);
   }
   if (
     slot.list.of === 'elements' &&
@@ -79,16 +99,66 @@ export function canPlace(
     // Into itself, or into one of its own descendants. That detaches the subtree from
     // the survey and leaves it pointing at itself — a definition no parser can make
     // sense of, rather than merely a page that looks wrong.
-    return false;
+    return refuse('not-placeable', source.name);
   }
   const at = locate(definition, source.name);
   if (at === undefined) {
+    return refuse('not-found', source.name);
+  }
+  // **A move cannot change what kind of thing something is.** A page belongs among pages
+  // and an element among elements; carrying one into the other's list would produce a
+  // survey whose pages are questions — the same nonsense the `new` branch above refuses,
+  // and until this row nothing refused it for a move. Unreachable by dragging, because the
+  // session only offers slots of the matching kind, and reachable by anyone calling
+  // `place` directly.
+  return at.list.of === slot.list.of ? undefined : refuse('not-placeable', source.name);
+}
+
+/**
+ * Whether this drop would leave the definition exactly as it is.
+ *
+ * **Not a refusal.** Nothing went wrong and there is nothing to tell anybody: a designer
+ * who picks a question up and puts it back has done what they meant to. It reports no
+ * change so the drop records no undo entry, which is the distinction the old single
+ * `false` could not draw.
+ *
+ * **The two slots that mean "where it already is" only exist within one list.** Moving
+ * across containers has no such pair, because removing the element does not shift
+ * anything in the list it is arriving in.
+ */
+export function isRedundantPlacement(
+  definition: SurveyDefinition,
+  source: PlacementSource,
+  slot: DropSlot,
+): boolean {
+  if (source.kind === 'new') {
     return false;
   }
-  // **The two slots that mean "where it already is" only exist within one list.** Moving
-  // across containers has no such pair, because removing the element does not shift
-  // anything in the list it is arriving in.
-  return !sameList(at.list, slot.list) || (slot.index !== at.index && slot.index !== at.index + 1);
+  const at = locate(definition, source.name);
+  return (
+    at !== undefined &&
+    sameList(at.list, slot.list) &&
+    (slot.index === at.index || slot.index === at.index + 1)
+  );
+}
+
+/**
+ * Whether a drop would land and change something.
+ *
+ * Kept, and now *defined* as the two questions above rather than asking them itself, so
+ * the slot a preview offers and the drop a commit accepts cannot come apart. Every caller
+ * here wants both halves: an inactive slot is one that is either forbidden or pointless,
+ * and a preview has no way to say which.
+ */
+export function canPlace(
+  definition: SurveyDefinition,
+  source: PlacementSource,
+  slot: DropSlot,
+): boolean {
+  return (
+    placementRefusal(definition, source, slot) === undefined &&
+    !isRedundantPlacement(definition, source, slot)
+  );
 }
 
 /**

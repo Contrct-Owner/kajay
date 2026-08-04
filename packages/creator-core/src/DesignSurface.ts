@@ -21,6 +21,7 @@ import {
   duplicateIn,
   removeElementFrom,
 } from './elementEdits.js';
+import { placementRefusal } from './placement.js';
 import type { DropSlot, PlacementSource } from './placement.js';
 import { DesignClipboard } from './DesignClipboard.js';
 import { collectionRowsFor } from './collectionGrid.js';
@@ -36,7 +37,6 @@ import type { PropertyGridOptions } from './propertyGridOptions.js';
 import type { PropertyGridCategory } from './propertyGrid.js';
 import { renameIn, setLocalizedOn, setPropertyOn } from './propertyEdits.js';
 import type { CreatorConfiguration } from './CreatorConfiguration.js';
-import { isTypeAllowed } from './CreatorConfiguration.js';
 import { refuse } from './EditRefusal.js';
 import type { EditRefusal } from './EditRefusal.js';
 import type { DesignSurfaceOptions, EditOptions } from './DesignSurfaceOptions.js';
@@ -330,17 +330,23 @@ export class DesignSurface {
 
   /** Puts a new element, or an existing one, at a slot — checklist K2 and K4. */
   place(source: PlacementSource, slot: DropSlot): EditRefusal | undefined {
-    // The restriction is checked here so the *specific* reason survives. `PlacementSession`
-    // answers with `'refused'` for several unrelated causes — a drag already in flight, a
-    // slot the rules forbid, a type this deployment turned off — and N2's is the one a
-    // designer can do something about, so it is asked first rather than flattened with the
-    // rest. Reconciling the two vocabularies is follow-up work; see ADR-0023.
-    if (source.kind === 'new' && !isTypeAllowed(source.item.type, this.#configuration)) {
-      return refuse('type-not-allowed', source.item.type);
+    if (this.isReadOnly) {
+      return refuse('read-only');
+    }
+    // **The same predicate the session guards with.** Asking it here is what turns the
+    // session's one-word `'refused'` back into a reason a designer can act on — and
+    // because it is one function rather than two, the drop this refuses and the drop the
+    // session refuses cannot come apart (ADR-0023).
+    const refusal = placementRefusal(this.definition, source, slot, this.#configuration);
+    if (refusal !== undefined) {
+      return refusal;
     }
     const outcome = this.#placementSession.transition({ kind: 'place', source, slot });
-    return outcome === 'refused' ? refuse('not-placeable') : undefined;
+    // `'ignored'` is a drop that changed nothing, which refuses nothing. Past the check
+    // above, `'refused'` can only be the session's own state: a drag already in flight.
+    return outcome === 'refused' ? refuse('drag-in-progress') : undefined;
   }
+
 
   /**
    * Swaps in an edited definition, remembering the state it replaced — K6.

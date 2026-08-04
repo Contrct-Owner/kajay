@@ -2,6 +2,7 @@ import { Survey } from '@kajay/react';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { CheckTimeline } from './CheckTimeline.js';
+import { CreatorEmbed } from './CreatorEmbed.js';
 import { DefinitionPanels } from './DefinitionPanels.js';
 import { Designer } from './Designer.js';
 import { EventLog } from './EventLog.js';
@@ -44,6 +45,9 @@ export function App(): ReactElement {
       <EventLog model={model} />
 
       {/* Phase 3 begins: the Creator's first piece, driven by the host — checklist K1. */}
+      {/* The whole Creator as one component — checklist N1. */}
+      <CreatorEmbed theme={variablesFor(theme)} />
+
       <Designer theme={variablesFor(theme)} />
 
       <DefinitionPanels

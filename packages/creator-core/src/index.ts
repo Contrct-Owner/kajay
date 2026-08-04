@@ -95,6 +95,8 @@ export type { JsonEditorProblem, JsonEditorSessionOptions } from './JsonEditorSe
 export { locationOf, syntaxErrorOffset } from './jsonLocation.js';
 export type { JsonLocation } from './jsonLocation.js';
 export { PreviewSession } from './PreviewSession.js';
+export { SaveController, sameDefinition } from './SaveController.js';
+export type { SaveState, SurveySaver } from './SaveController.js';
 export { ThemeEditorSession } from './ThemeEditorSession.js';
 export type { ThemeEditorSessionOptions, ThemeProblem } from './ThemeEditorSession.js';
 export { BUILT_IN_THEME_FIELDS, themeRowsFor, valueAt, withValueAt } from './themeFields.js';

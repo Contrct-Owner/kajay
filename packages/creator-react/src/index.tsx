@@ -4,6 +4,8 @@
 // These are the *pieces* (ADR-0021). The default assembly that arranges them lands with
 // the design surface, and will be built from nothing but what is exported here.
 
+export { CreatorTabs, DEFAULT_CREATOR_TABS } from './CreatorTabs.js';
+export type { CreatorTab, CreatorTabsProps } from './CreatorTabs.js';
 export { DesignSurfacePanel } from './DesignSurfacePanel.js';
 export type { DesignSurfacePanelProps } from './DesignSurfacePanel.js';
 export { HistoryPanel } from './HistoryPanel.js';
@@ -36,7 +38,13 @@ export { TranslationsField } from './TranslationsField.js';
 export type { TranslationsFieldProps } from './TranslationsField.js';
 export { ThemeEditorPanel, useThemeVersion } from './ThemeEditorPanel.js';
 export type { ThemeEditorPanelProps } from './ThemeEditorPanel.js';
+export { SaveButton, useSaveVersion } from './SaveButton.js';
+export type { SaveButtonProps } from './SaveButton.js';
+export { SurveyCreator } from './SurveyCreator.js';
+export type { CreatorModels, SurveyCreatorProps } from './SurveyCreator.js';
 export { ToolboxPanel } from './ToolboxPanel.js';
+export { useCreatorDocument } from './useCreatorDocument.js';
+export type { CreatorDocumentOptions } from './useCreatorDocument.js';
 export { TranslationsPanel, useTranslationVersion } from './TranslationsPanel.js';
 export type { TranslationsPanelProps } from './TranslationsPanel.js';
 export { useDesignerPlacement } from './useDesignerPlacement.js';

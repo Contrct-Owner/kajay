@@ -1916,3 +1916,51 @@
   margin: 0 0 var(--kajay-spacing);
   color: var(--kajay-color-danger);
 }
+
+/* The default assembly — checklist N1. A layout, because an assembly ships one; the pieces
+   inside it ship none (ADR-0021 constraint 4). */
+.kajay-creator__views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--kajay-spacing) / 2);
+}
+
+.kajay-creator__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--kajay-spacing) / 2);
+  align-items: center;
+  border-block-end: 1px solid var(--kajay-color-border);
+  padding-block-end: calc(var(--kajay-spacing) / 2);
+  margin-block-end: var(--kajay-spacing);
+}
+
+.kajay-creator__tab[aria-current='page'] {
+  border-color: var(--kajay-color-accent);
+  background: var(--kajay-color-accent);
+  color: var(--kajay-color-on-accent);
+}
+
+.kajay-creator__save {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--kajay-spacing) / 2);
+}
+
+.kajay-creator__save-state[data-state='failed'] {
+  color: var(--kajay-color-danger);
+}
+
+.kajay-creator__designer {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) minmax(0, 3fr) minmax(12rem, 1fr);
+  gap: var(--kajay-spacing);
+  align-items: start;
+}
+
+@media (width < 60rem) {
+  .kajay-creator__designer {
+    grid-template-columns: 1fr;
+  }
+}

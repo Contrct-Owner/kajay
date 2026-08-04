@@ -22,5 +22,12 @@ export interface EditOptions {
 
 export interface DesignSurfaceOptions {
   readonly definition: SurveyDefinition;
-  readonly registry?: MetadataRegistry;
+  /**
+   * `| undefined` explicitly, under `exactOptionalPropertyTypes`.
+   *
+   * So a caller building the options conditionally — which the default assembly does, from
+   * its own optional prop — can pass `undefined` and mean "the global registry" rather than
+   * being refused by the compiler. The same reason `CreatorComponents` spells it out.
+   */
+  readonly registry?: MetadataRegistry | undefined;
 }

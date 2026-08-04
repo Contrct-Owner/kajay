@@ -3,7 +3,7 @@
 - Area: React adapters (`@kajay/react`, `@kajay/creator-react`)
 - Status: accepted
 - Owner: Jarod
-- Last updated: 2026-08-03
+- Last updated: 2026-08-04
 
 ## Context
 
@@ -97,6 +97,101 @@ them is real work with real regression risk, and pretending otherwise here is ho
 would get done badly. It is a row, sized and scheduled, and until it lands the
 renderer's answer to "style it however you choose" is the token contract — which is
 honest, and less than this.
+
+**That row landed as §P2** (2026-08-04), after the reference application made the gap
+visible: a shadcn host had a Creator built from their components and a survey built from
+ours, in the same frame. Forty-eight native controls became five primitives, the defaults
+render byte-identical markup, and the existing suites were the regression net. What the
+conversion *found* is the amendment below.
+
+## Amendment (2026-08-04): the set admits leaves, not containers
+
+Written after the first real integration — `apps/site` supplying shadcn components to
+both packages — because the admission rule above turned out to be necessary and not
+sufficient.
+
+### What the rule missed
+
+The rule said a primitive is in the set only if the library needs it in more than one
+place *and* a design system almost certainly already has it. A radio passes both. It is
+still not admissible as written, and the reason is a distinction the original decision
+never drew.
+
+**A design system does not ship "a radio". It ships a `RadioGroup` and a
+`RadioGroupItem`** — a container that owns the value and the roving-tabindex focus, and
+an item that is meaningless outside it. Radix, and therefore shadcn and ReUI, all work
+this way. That is a *container* primitive, and every entry in this set is a **leaf**: a
+control that draws itself, reports its own value, and shares no state with its siblings.
+
+The difference is not stylistic. A container changes three things at once: the value
+moves up from the item to the group, two map entries become one indivisible unit, and
+the map stops being safely partial — supplying a `RadioGroup` without a matching
+`RadioGroupItem` is broken in a way that supplying `Button` without `Input` is not.
+
+### Why a container cannot be admitted here
+
+The matrix settles it. §F1 draws a radio group **across a table row**:
+
+```html
+<tr>
+  <td>row label</td>
+  <td><input type="radio" name="row-1"></td>
+  <td><input type="radio" name="row-1"></td>
+</tr>
+```
+
+Native radios group by the `name` attribute, which requires **no wrapping element at
+all**. That is precisely why one mechanism serves a table row, a rating scale and a tile
+grid alike. A container primitive requires an element, and there is no legal element
+between `<tr>` and `<td>` to put it in. Radix's escape hatch is `asChild`, which this ADR
+already rejected for tying the contract to one library's implementation.
+
+A primitive that serves some of the places the library draws it and not others is not a
+primitive. So: **the set is closed to containers**, and `RadioGroup` is not admitted.
+
+### `Radio` stays, as the one entry a host writes rather than re-exports
+
+The tempting conclusion is that `Radio` should leave the set too. It does not, and the
+reason is what a survey looks like: §C3 and §C4 put a radio group and a checkbox list in
+the same form routinely. Shipping a seam that makes the checkboxes theirs and leaves the
+radios ours produces a form that is *more* obviously wrong than one drawn entirely in
+either — mixed chrome reads as a bug, consistent chrome reads as a choice.
+
+So `Radio` remains a leaf entry, with the cost stated rather than hidden: it is the one
+primitive a shadcn host **writes** — a dozen lines putting their own classes on a native
+input — instead of re-exporting. The reference application carries that adapter as
+evidence that a dozen lines is what it costs.
+
+This narrows the claim made under "Props follow the conventions the target ecosystem
+already uses". A shadcn adapter is *mostly* a re-export: `Checkbox` exactly, `Button`
+nearly, `Input` and `Textarea` through a three-line `onChange` shim. `Radio` is not, and
+neither is the Creator's `Select`, which has to build a trigger, a portal and an item per
+option from an `options` array.
+
+### `Select` is not admitted, for the sibling reason
+
+It fails the *second* half of the rule rather than this new third one. A design system
+ships a select; it does not ship one carrying §C5 and §C6's lazy paging, its search box
+and its "other" row. Those are this library's semantics, not a control's, and a host who
+wants their own dropdown wants their whole dropdown.
+
+### The revised rule
+
+A primitive is admitted only if all three hold:
+
+1. the library needs it in **more than one place**;
+2. a design system **almost certainly already has it**; and
+3. it is a **leaf** — it draws itself, reports its own value, and owns no state shared
+   with its siblings.
+
+### Where the rejected cases go instead
+
+To [ADR-0019](./0019-deep-runtime-modules-and-rendering-seam.md)'s rendering seam, which
+already exists and already handles the matrix correctly, because a replaced renderer
+draws its own markup end to end. A host who wants their group semantics and their
+keyboard contract is not asking to restyle a control — they are replacing a question
+type, and this ADR drew that line in "It is a different seam from the renderer registry"
+before there was a case to test it against. There is one now.
 
 ## Consequences
 

@@ -10,6 +10,7 @@ import { Button as ShadcnButton } from '@/components/ui/button';
 import { Checkbox as ShadcnCheckbox } from '@/components/ui/checkbox';
 import { Input as ShadcnInput } from '@/components/ui/input';
 import { Textarea as ShadcnTextarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 
 /**
  * The *survey* drawn with this application's design system — checklist P2.
@@ -70,22 +71,45 @@ function Checkbox({
 }
 
 /**
- * **The one that stayed native, and the finding.**
+ * **The one primitive this design system cannot re-export**, and the evidence behind
+ * [ADR-0022](../../../../docs/adr/0022-design-system-primitives.md)'s 2026-08-04 amendment.
  *
- * shadcn's radio is `RadioGroupItem` — an item that only works inside a `RadioGroup` that
- * owns the value and the roving focus. Kajay draws each choice independently, because a
- * choice list is built from a model that also has to serve matrices, image pickers and
- * ratings, where the group is a row or a scale rather than a component.
+ * shadcn's radio is `RadioGroupItem`, which only works inside a `RadioGroup` owning the
+ * value and the roving focus — a *container*. Kajay draws each choice independently,
+ * because the choice list is built from a model that also serves matrices, image pickers
+ * and ratings, where the "group" is a table row or a scale rather than a component. A
+ * matrix's radio group spans several `<td>`s inside a `<tr>`, and there is no legal element
+ * to wrap them in.
  *
- * So a real adapter would have to invert the rendering: the library would need to hand out
- * the *group*, not the item. That is a genuine gap in the primitive set rather than a
- * shortcoming of either library — and it is exactly the sort of thing that only shows up
- * when somebody tries. Recorded rather than papered over; the native radio the default
- * supplies is styled by the token contract in the meantime.
+ * So this is written rather than re-exported: a native input carrying the same Tailwind
+ * classes this application's own `RadioGroupItem` uses. **A dozen lines** — which is the
+ * whole of what the amendment claims the exception costs, sitting here so the claim is
+ * checkable rather than asserted.
  */
+function Radio({
+  onCheckedChange,
+  reselect: _reselect,
+  ...props
+}: SurveyChoiceProps): ReactElement {
+  return (
+    <input
+      type="radio"
+      className={cn(
+        'border-input text-primary size-4 shrink-0 rounded-full border shadow-xs outline-none',
+        'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
+        'disabled:cursor-not-allowed disabled:opacity-50',
+        props.className,
+      )}
+      {...props}
+      onChange={onCheckedChange}
+    />
+  );
+}
+
 export const KAJAY_SURVEY_COMPONENTS: SurveyComponents = {
   Button,
   Input,
   Textarea,
   Checkbox,
+  Radio,
 };

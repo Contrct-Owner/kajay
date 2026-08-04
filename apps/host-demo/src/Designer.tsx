@@ -1,7 +1,8 @@
-import { DesignSurface, PreviewSession, Toolbox } from '@kajay/creator-core';
+import { DesignSurface, JsonEditorSession, PreviewSession, Toolbox } from '@kajay/creator-core';
 import { HistoryPanel, PageNavigatorPanel, useDesignerPlacement } from '@kajay/creator-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties, ReactElement } from 'react';
+import { DesignerJson } from './DesignerJson.js';
 import { DesignerPreview } from './DesignerPreview.js';
 import { DesignerProperties } from './DesignerProperties.js';
 import { DesignerSurface } from './DesignerSurface.js';
@@ -85,6 +86,13 @@ export function Designer({ theme }: DesignerProps): ReactElement {
     },
     [session],
   );
+  const json = useMemo(() => new JsonEditorSession(surface), [surface]);
+  useEffect(
+    () => () => {
+      json.dispose();
+    },
+    [json],
+  );
   const [tab, setTab] = useState<DesignerTab>('design');
 
   return (
@@ -107,14 +115,20 @@ export function Designer({ theme }: DesignerProps): ReactElement {
               the grid (L4) belongs with the host rather than beside the assembly. */}
           <DesignerProperties theme={theme} surface={surface} />
         </>
-      ) : (
-        <DesignerPreview theme={theme} session={session} />
-      )}
+      ) : null}
+      {tab === 'preview' ? <DesignerPreview theme={theme} session={session} /> : null}
+      {tab === 'json' ? <DesignerJson theme={theme} session={json} /> : null}
     </>
   );
 }
 
-type DesignerTab = 'design' | 'preview';
+type DesignerTab = 'design' | 'preview' | 'json';
+
+const TAB_TITLES: Readonly<Record<DesignerTab, string>> = {
+  design: 'Design',
+  preview: 'Preview',
+  json: 'JSON',
+};
 
 /**
  * Design or preview, one at a time — checklist M3's word for it.
@@ -138,7 +152,7 @@ function DesignerTabs({
   return (
     <section className="host-demo__panel" aria-label="Designer tabs" style={theme as CSSProperties}>
       <div role="tablist" aria-label="Creator">
-        {(['design', 'preview'] as const).map((name) => (
+        {(['design', 'preview', 'json'] as const).map((name) => (
           <button
             key={name}
             type="button"
@@ -149,7 +163,7 @@ function DesignerTabs({
               onChange(name);
             }}
           >
-            {name === 'design' ? 'Design' : 'Preview'}
+            {TAB_TITLES[name]}
           </button>
         ))}
       </div>

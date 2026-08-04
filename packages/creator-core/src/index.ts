@@ -73,6 +73,10 @@ export {
 export { canPlace, applyPlacement, dropSlotsFor, dropSlotsOn } from './placement.js';
 export type { DropSlot, PlacementSource } from './placement.js';
 export { addPage, pageAfterRemoving, removePage } from './pageEdits.js';
+export { JsonEditorSession } from './JsonEditorSession.js';
+export type { JsonEditorProblem, JsonEditorSessionOptions } from './JsonEditorSession.js';
+export { locationOf, syntaxErrorOffset } from './jsonLocation.js';
+export type { JsonLocation } from './jsonLocation.js';
 export { PreviewSession } from './PreviewSession.js';
 export type { PreviewData, PreviewSessionOptions } from './PreviewSession.js';
 export {

@@ -12,6 +12,8 @@ export { historyShortcut, isTextEntry } from './historyShortcut.js';
 export type { HistoryIntent, HistoryKey } from './historyShortcut.js';
 export { PageNavigatorPanel } from './PageNavigatorPanel.js';
 export type { PageNavigatorPanelProps } from './PageNavigatorPanel.js';
+export { JsonEditorPanel, useJsonEditorVersion } from './JsonEditorPanel.js';
+export type { JsonEditorPanelProps } from './JsonEditorPanel.js';
 export { PreviewPanel, usePreviewVersion } from './PreviewPanel.js';
 export type { PreviewPanelProps } from './PreviewPanel.js';
 export { PropertyGridPanel } from './PropertyGridPanel.js';

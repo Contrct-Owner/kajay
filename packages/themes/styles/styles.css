@@ -1783,3 +1783,44 @@
   margin-block: 0 var(--kajay-spacing);
   color: var(--kajay-color-danger);
 }
+
+/* The JSON editor — checklist M2. A plain textarea on purpose: everything the row
+   promises is in the model, so a host who wants CodeMirror binds it to `text`. */
+.kajay-json {
+  display: grid;
+  gap: calc(var(--kajay-spacing) / 2);
+}
+
+.kajay-json__controls {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 2);
+}
+
+.kajay-json__text {
+  min-height: 18rem;
+  font-family: var(--kajay-font-mono, ui-monospace, monospace);
+  font-size: 0.85em;
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  padding: calc(var(--kajay-spacing) / 2);
+}
+
+.kajay-json__text[aria-invalid='true'] {
+  border-color: var(--kajay-color-danger);
+}
+
+.kajay-json__problem,
+.kajay-json__stale {
+  margin: 0;
+  color: var(--kajay-color-danger);
+}
+
+.kajay-json__diagnostics {
+  margin: 0;
+  padding-inline-start: var(--kajay-spacing);
+  font-size: 0.9em;
+}
+
+.kajay-json__diagnostic[data-severity='error'] {
+  color: var(--kajay-color-danger);
+}

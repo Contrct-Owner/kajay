@@ -14,6 +14,8 @@ export { PageNavigatorPanel } from './PageNavigatorPanel.js';
 export type { PageNavigatorPanelProps } from './PageNavigatorPanel.js';
 export { JsonEditorPanel, useJsonEditorVersion } from './JsonEditorPanel.js';
 export type { JsonEditorPanelProps } from './JsonEditorPanel.js';
+export { LogicPanel, useLogicVersion } from './LogicPanel.js';
+export type { LogicPanelProps } from './LogicPanel.js';
 export { PreviewPanel, usePreviewVersion } from './PreviewPanel.js';
 export type { PreviewPanelProps } from './PreviewPanel.js';
 export { PropertyGridPanel } from './PropertyGridPanel.js';

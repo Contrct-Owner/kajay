@@ -73,7 +73,24 @@ export {
 export { canPlace, applyPlacement, dropSlotsFor, dropSlotsOn } from './placement.js';
 export type { DropSlot, PlacementSource } from './placement.js';
 export { addPage, pageAfterRemoving, removePage } from './pageEdits.js';
+export {
+  CONDITION_OPERATORS,
+  conditionOf,
+  isUnaryOperator,
+  printCondition,
+  valueNodeOf,
+} from './conditionTerms.js';
+export type {
+  Condition,
+  ConditionJoin,
+  ConditionOperator,
+  ConditionTerm,
+} from './conditionTerms.js';
 export { JsonEditorSession } from './JsonEditorSession.js';
+export { LOGIC_TEMPLATES, LogicSession } from './LogicSession.js';
+export type { LogicRuleTemplate } from './LogicSession.js';
+export { collectLogicRules } from './logicRules.js';
+export type { LogicActionKind, LogicRule, LogicSite } from './logicRules.js';
 export type { JsonEditorProblem, JsonEditorSessionOptions } from './JsonEditorSession.js';
 export { locationOf, syntaxErrorOffset } from './jsonLocation.js';
 export type { JsonLocation } from './jsonLocation.js';

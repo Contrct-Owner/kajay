@@ -10,6 +10,7 @@ import {
 } from '@kajay/creator-core';
 import type {
   CreatorConfiguration,
+  CreatorStringDictionary,
   MachineTranslator,
   SurveySaver,
   ThemeDocument,
@@ -17,7 +18,8 @@ import type {
 import type { MetadataRegistry, ParseOptions, SurveyDefinition } from '@kajay/core';
 import type { PageElementRendererRegistry } from '@kajay/react';
 import { useEffect, useRef, useState } from 'react';
-import type { ReactElement } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
+import { CreatorStringsProvider } from './CreatorStringsContext.js';
 import { CreatorTabs, DEFAULT_CREATOR_TABS } from './CreatorTabs.js';
 import type { CreatorTab } from './CreatorTabs.js';
 import { useCreatorDocument } from './useCreatorDocument.js';
@@ -52,6 +54,29 @@ export interface SurveyCreatorProps {
   readonly parse?: ParseOptions | undefined;
   readonly translate?: MachineTranslator | undefined;
   readonly theme?: ThemeDocument | undefined;
+  /**
+   * The Creator's own words — checklist N3.
+   *
+   * Absent means English. A host registers over the built-ins rather than replacing them,
+   * so renaming one button does not blank the other eighty.
+   */
+  readonly strings?: CreatorStringDictionary | undefined;
+  /**
+   * Which language the Creator's own chrome is in — checklist N3.
+   *
+   * **Separate from the survey's own locale**, deliberately: a designer working in German
+   * on a survey written in French wants German chrome and French content, and tying the
+   * two together would make that impossible to say.
+   */
+  readonly locale?: string | undefined;
+  /**
+   * CSS custom properties for the Creator's **own** chrome — checklist N3.
+   *
+   * Distinct from `theme`, which is the survey being designed. A white-labelled Creator
+   * that had to look like the survey it edits would be no use to anybody: an agency's tool
+   * is their brand and their client's survey is the client's.
+   */
+  readonly creatorTheme?: Readonly<Record<string, string>> | undefined;
   readonly className?: string;
 }
 
@@ -80,6 +105,9 @@ export function SurveyCreator({
   parse,
   translate,
   theme,
+  strings,
+  locale,
+  creatorTheme,
   className,
 }: SurveyCreatorProps): ReactElement {
   const models = useCreatorModels({ value, configuration, registry, parse, translate, theme });
@@ -92,8 +120,8 @@ export function SurveyCreator({
   });
   const [tab, setTab] = useState<CreatorTab>(tabs[0] ?? 'design');
 
-  return (
-    <div className={joinClasses('kajay-creator', className)}>
+  const body = (
+    <div className={joinClasses('kajay-creator', className)} style={creatorTheme as CSSProperties}>
       <CreatorTabs
         models={models}
         configuration={configuration}
@@ -104,6 +132,16 @@ export function SurveyCreator({
         renderers={renderers}
       />
     </div>
+  );
+
+  // The provider only when a host supplied words. A piece rendered with none gets English
+  // and works, which is what keeps the pieces usable alone (ADR-0021).
+  return strings === undefined ? (
+    body
+  ) : (
+    <CreatorStringsProvider dictionary={strings} locale={locale}>
+      {body}
+    </CreatorStringsProvider>
   );
 }
 

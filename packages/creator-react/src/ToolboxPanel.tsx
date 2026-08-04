@@ -2,6 +2,9 @@ import type { Toolbox, ToolboxItem } from '@kajay/creator-core';
 import { useCallback, useSyncExternalStore } from 'react';
 import type { ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
+import type { CreatorStringKey } from '@kajay/creator-core';
+import { useCreatorText } from './CreatorStringsContext.js';
+import type { CreatorText } from './CreatorStringsContext.js';
 import type { PlacementItemProps } from './useDesignerPlacement.js';
 
 /**
@@ -68,6 +71,7 @@ export function ToolboxPanel({
   className,
 }: ToolboxPanelProps): ReactElement {
   const { Input } = useCreatorComponents();
+  const text = useCreatorText();
   useToolboxVersion(toolbox);
   const categories = toolbox.categories;
 
@@ -80,8 +84,8 @@ export function ToolboxPanel({
         onValueChange={(value) => {
           toolbox.setSearch(value);
         }}
-        placeholder="Search"
-        aria-label="Search the toolbox"
+        placeholder={text('toolboxSearchPlaceholder')}
+        aria-label={text('toolboxSearch')}
       />
 
       {categories.length === 0 ? (
@@ -89,13 +93,13 @@ export function ToolboxPanel({
         // broken toolbox, and a respondent — or here a designer — cannot tell the two
         // apart without being told.
         <p className="kajay-toolbox__empty" role="status">
-          {`Nothing matches “${toolbox.search}”.`}
+          {text('toolboxNoMatches', toolbox.search)}
         </p>
       ) : null}
 
       {categories.map((category) => (
-        <section className="kajay-toolbox__category" key={category.name}>
-          <h3 className="kajay-toolbox__category-title">{category.name}</h3>
+        <section className="kajay-toolbox__category" key={categoryTitle(text, category.name)}>
+          <h3 className="kajay-toolbox__category-title">{categoryTitle(text, category.name)}</h3>
           <ul className="kajay-toolbox__list">
             {category.items.map((item) => (
               <ToolboxEntry
@@ -151,3 +155,26 @@ function ToolboxEntry({
 function joinClasses(base: string, extra: string | undefined): string {
   return extra === undefined || extra.length === 0 ? base : `${base} ${extra}`;
 }
+
+/**
+ * A built-in category's name in the designer's language — checklist N3.
+ *
+ * A *fallback*, not a lookup: a category the catalogue has never heard of keeps the word
+ * the toolbox table gave it, which is how a host's own drawer keeps its own name. K1 said
+ * these strings would stay English until this row; this is that promise kept without
+ * taking away the host's ability to name a drawer whatever they like.
+ */
+function categoryTitle(text: CreatorText, name: string): string {
+  const key = CATEGORY_KEYS[name];
+  return key === undefined ? name : text(key);
+}
+
+const CATEGORY_KEYS: Readonly<Record<string, CreatorStringKey | undefined>> = {
+  Text: 'categoryText',
+  Choice: 'categoryChoice',
+  Matrix: 'categoryMatrix',
+  Panels: 'categoryPanels',
+  Media: 'categoryMedia',
+  Display: 'categoryDisplay',
+  Other: 'categoryOther',
+};

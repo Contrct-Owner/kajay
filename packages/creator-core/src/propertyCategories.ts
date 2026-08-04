@@ -15,7 +15,8 @@
  * would mean this table had to name every property of every type to stay useful. That is
  * exactly the coupling K1 refused.
  *
- * These strings are English until N3, which owns localizing the Creator's own words.
+ * N3 localized these: a section name now comes from the Creator's string catalogue, with
+ * the word below as the fallback for a section a host's own table invented (§L4).
  */
 
 /** Where anything unclassified goes, and the first section a designer reads. */

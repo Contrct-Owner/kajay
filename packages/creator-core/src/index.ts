@@ -6,6 +6,13 @@ export type { DesignSurfaceOptions, EditOptions } from './DesignSurfaceOptions.j
 export { addPageTo, placeOn, removePageFrom } from './designerEdits.js';
 export { allowedToolboxItems, isTypeAllowed } from './CreatorConfiguration.js';
 export type { CreatorConfiguration } from './CreatorConfiguration.js';
+export { CreatorStringDictionary } from './CreatorStringDictionary.js';
+export {
+  CREATOR_STRING_DEFINITIONS,
+  EN_CREATOR_STRINGS,
+  formatCreatorString,
+} from './creatorStrings.js';
+export type { CreatorStringKey, CreatorStrings } from './creatorStrings.js';
 export { DesignSelection } from './DesignSelection.js';
 export {
   canConvert,

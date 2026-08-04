@@ -2,6 +2,7 @@ import type { ThemeEditorSession, ThemeRow } from '@kajay/creator-core';
 import { useCallback, useSyncExternalStore } from 'react';
 import type { CSSProperties, ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
+import { useCreatorText } from './CreatorStringsContext.js';
 
 export interface ThemeEditorPanelProps {
   readonly session: ThemeEditorSession;
@@ -92,6 +93,7 @@ function ThemeFieldControl({
   readonly id: string;
 }): ReactElement {
   const { Input, Select } = useCreatorComponents();
+  const text = useCreatorText();
   const describedBy = row.description === undefined ? undefined : `${id}-hint`;
 
   if (row.kind === 'choice') {
@@ -105,7 +107,7 @@ function ThemeFieldControl({
         // The empty option is what puts a field back to unset. Without it a choice, once
         // made, could never be taken back — and "the theme does not name this" is a value.
         options={[
-          { value: NOT_SET, label: '(not set)' },
+          { value: NOT_SET, label: text('themeNotSet') },
           ...(row.choices ?? []).map((choice) => ({ value: choice, label: choice })),
         ]}
         onValueChange={(value) => {
@@ -121,8 +123,8 @@ function ThemeFieldControl({
       data-testid={`theme-${row.path}`}
       aria-describedby={describedBy}
       value={row.text}
-      onValueChange={(text) => {
-        session.setValue(row.path, text);
+      onValueChange={(value) => {
+        session.setValue(row.path, value);
       }}
     />
   );
@@ -131,6 +133,7 @@ function ThemeFieldControl({
 /** Putting the theme back, and taking it away as a file. */
 function ThemeControls({ session }: { readonly session: ThemeEditorSession }): ReactElement {
   const { Button } = useCreatorComponents();
+  const text = useCreatorText();
 
   return (
     <div className="kajay-theme__controls">
@@ -142,7 +145,7 @@ function ThemeControls({ session }: { readonly session: ThemeEditorSession }): R
           session.reset();
         }}
       >
-        Reset
+        {text('themeReset')}
       </Button>
     </div>
   );

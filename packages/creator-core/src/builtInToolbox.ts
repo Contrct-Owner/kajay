@@ -13,8 +13,11 @@ import { OTHER_CATEGORY } from './ToolboxItem.js';
  * *appears*, in {@link OTHER_CATEGORY} under a fallback title. Auto-population is not a
  * courtesy extended to types we listed.
  *
- * These strings are English and will stay English until N3, which owns localizing the
- * Creator's own words. A host may override any of them today by replacing the item.
+ * **N3 localized the categories, not the titles.** A category is one of the Creator's own
+ * words and now comes from its string catalogue, with the word below as the fallback for a
+ * drawer the catalogue has never heard of. An item's *title* stayed here: K1 made it
+ * host-curatable data — replaced by re-adding the item — and putting it in the catalogue
+ * too would have made the two mechanisms fight over the same string.
  */
 export interface BuiltInEntry {
   readonly title: string;

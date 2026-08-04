@@ -2,6 +2,7 @@ import type { DesignSurface, PropertyGridOptions } from '@kajay/creator-core';
 import type { SurveyElement } from '@kajay/core';
 import type { ReactElement } from 'react';
 import { CollectionEditor } from './CollectionEditor.js';
+import { useCreatorText } from './CreatorStringsContext.js';
 import { PropertySection } from './PropertyFields.js';
 import { useSurfaceVersion } from './useSurfaceVersion.js';
 
@@ -38,6 +39,7 @@ export function PropertyGridPanel({
   grid,
   className,
 }: PropertyGridPanelProps): ReactElement {
+  const text = useCreatorText();
   useSurfaceVersion(surface);
   const selected = surface.selected;
 
@@ -47,7 +49,7 @@ export function PropertyGridPanel({
         // Deliberately not a live region. The canvas already has one for placement, and
         // K2 learned the expensive way that a second announcing element on the page is
         // something every test that looks one up has to start disambiguating.
-        <p className="kajay-properties__empty">Select a question or a page to edit it.</p>
+        <p className="kajay-properties__empty">{text('nothingSelected')}</p>
       ) : (
         <SelectedElement surface={surface} element={selected} grid={grid} />
       )}

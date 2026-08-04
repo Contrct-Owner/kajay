@@ -6,6 +6,9 @@ import type { ReactElement } from 'react';
 import { readOnlyAction } from '@kajay/react';
 import type { ComponentType } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
+import type { CreatorStringKey } from '@kajay/creator-core';
+import { useCreatorText } from './CreatorStringsContext.js';
+import type { CreatorText } from './CreatorStringsContext.js';
 import { ExpressionField } from './ExpressionField.js';
 import { TranslationsField } from './TranslationsField.js';
 import { usePropertyEditor } from './PropertyEditors.js';
@@ -38,6 +41,7 @@ export function PropertySection({
   category,
   scope,
 }: PropertySectionProps): ReactElement {
+  const text = useCreatorText();
   return (
     <fieldset
       className="kajay-properties__section"
@@ -45,7 +49,7 @@ export function PropertySection({
       // General section, and an unscoped hook found two of them.
       data-testid={`properties-${scope}-${category.name}`}
     >
-      <legend className="kajay-properties__legend">{category.name}</legend>
+      <legend className="kajay-properties__legend">{sectionTitle(text, category.name)}</legend>
       {category.rows.map((row) => (
         // Keyed on the scope as well as the property, so moving to a different element —
         // or a different choice — starts every field again rather than carrying a
@@ -284,3 +288,23 @@ function PlainField({
     />
   );
 }
+
+/**
+ * A built-in section's name in the designer's language — checklist N3.
+ *
+ * The same fallback the toolbox uses: a section a host's own table invented keeps its own
+ * name, because §L4 lets them name one and taking that away here would make the two
+ * features contradict each other.
+ */
+function sectionTitle(text: CreatorText, name: string): string {
+  const key = SECTION_KEYS[name];
+  return key === undefined ? name : text(key);
+}
+
+const SECTION_KEYS: Readonly<Record<string, CreatorStringKey | undefined>> = {
+  General: 'sectionGeneral',
+  Logic: 'sectionLogic',
+  Validation: 'sectionValidation',
+  Layout: 'sectionLayout',
+  Data: 'sectionData',
+};

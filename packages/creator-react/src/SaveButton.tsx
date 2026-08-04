@@ -1,7 +1,13 @@
-import type { DesignSurface, SaveController, SaveState } from '@kajay/creator-core';
+import type {
+  CreatorStringKey,
+  DesignSurface,
+  SaveController,
+  SaveState,
+} from '@kajay/creator-core';
 import { useCallback, useSyncExternalStore } from 'react';
 import type { ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
+import { useCreatorText } from './CreatorStringsContext.js';
 
 export interface SaveButtonProps {
   readonly surface: DesignSurface;
@@ -9,12 +15,12 @@ export interface SaveButtonProps {
   readonly className?: string;
 }
 
-/** What the button says, and what a screen reader hears afterwards. */
-const SAVE_LABELS: Readonly<Record<SaveState, string>> = {
-  idle: 'Save',
-  saving: 'Saving…',
-  saved: 'Saved',
-  failed: 'Save failed — try again',
+/** What the button says, and what a screen reader hears afterwards — checklist N3. */
+const SAVE_KEYS: Readonly<Record<SaveState, CreatorStringKey>> = {
+  idle: 'save',
+  saving: 'saving',
+  saved: 'saved',
+  failed: 'saveFailed',
 };
 
 /**
@@ -30,6 +36,7 @@ const SAVE_LABELS: Readonly<Record<SaveState, string>> = {
 export function SaveButton({ surface, saver, className }: SaveButtonProps): ReactElement {
   useSaveVersion(saver);
   const { Button } = useCreatorComponents();
+  const text = useCreatorText();
   const state = saver.state;
 
   return (
@@ -42,7 +49,7 @@ export function SaveButton({ surface, saver, className }: SaveButtonProps): Reac
           saver.request(surface.definition);
         }}
       >
-        {SAVE_LABELS[state]}
+        {text(SAVE_KEYS[state])}
       </Button>
       <span
         className="kajay-creator__save-state"
@@ -51,7 +58,7 @@ export function SaveButton({ surface, saver, className }: SaveButtonProps): Reac
         aria-live="polite"
         aria-atomic="true"
       >
-        {state === 'idle' ? '' : SAVE_LABELS[state]}
+        {state === 'idle' ? '' : text(SAVE_KEYS[state])}
       </span>
     </span>
   );

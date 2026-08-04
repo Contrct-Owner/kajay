@@ -105,3 +105,27 @@ test('parity/N2-config: turning the restriction off gives everything back', asyn
   await expect(embed(page).getByTestId('toolbox-file')).toBeVisible();
   await expect(embed(page).getByTestId('creator-tab-json')).toBeVisible();
 });
+
+test('parity/N3-strings: a white-labelled deployment says the host’s own words', async ({
+  page,
+}) => {
+  await page.getByTestId('toggle-whitelabel').check();
+
+  // Renaming rather than translating: the same language, a different vocabulary. The
+  // eight words the host registered change and the other eighty do not.
+  await expect(embed(page).getByTestId('creator-tab-design')).toHaveText('Build');
+  await expect(embed(page).getByTestId('undo')).toHaveText('Step back');
+  await expect(embed(page).getByLabel('Find a field')).toBeVisible();
+  await expect(embed(page).getByTestId('creator-tab-json')).toHaveText('JSON');
+});
+
+test('parity/N3-theme: the tool’s colours are not the survey’s', async ({ page }) => {
+  await page.getByTestId('toggle-whitelabel').check();
+
+  // An agency's tool is their brand and their client's survey is the client's, so the
+  // Creator's own chrome is themed apart from what it edits.
+  await expect(embed(page).locator('.kajay-creator')).toHaveCSS(
+    '--kajay-color-accent',
+    '#7a3ea1',
+  );
+});

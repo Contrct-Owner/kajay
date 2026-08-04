@@ -2,6 +2,7 @@ import type { DesignSurface, DropSlot } from '@kajay/creator-core';
 import { defaultPageElementRenderers, PageElementDecoratorProvider, PageElementSlot } from '@kajay/react';
 import type { PageElementDecorator, PageElementRendererRegistry } from '@kajay/react';
 import type { KeyboardEvent, ReactElement } from 'react';
+import { useCreatorText } from './CreatorStringsContext.js';
 import { DesignedElement } from './DesignedElement.js';
 import { historyShortcut, isTextEntry } from './historyShortcut.js';
 import { PageAdorner } from './PageAdorner.js';
@@ -135,11 +136,12 @@ function CanvasBody({
   readonly surface: DesignSurface;
   readonly renderers: PageElementRendererRegistry;
 }): ReactElement {
+  const text = useCreatorText();
   const page = surface.page;
   if (page === undefined) {
     return (
       <p className="kajay-designer__empty" role="status">
-        This survey has no pages yet.
+        {text('emptySurvey')}
       </p>
     );
   }

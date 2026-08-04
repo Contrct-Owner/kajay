@@ -2,6 +2,7 @@ import { CONDITION_OPERATORS, isUnaryOperator } from '@kajay/creator-core';
 import type { Condition, ConditionTerm, LogicRule, LogicSession } from '@kajay/creator-core';
 import type { ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
+import { useCreatorText } from './CreatorStringsContext.js';
 
 interface BuilderProps {
   readonly session: LogicSession;
@@ -22,6 +23,7 @@ export function ConditionBuilder({
   condition,
 }: BuilderProps): ReactElement {
   const { Button } = useCreatorComponents();
+  const text = useCreatorText();
   const write = (terms: readonly ConditionTerm[]): void => {
     session.setCondition(rule, { terms, join: condition.join });
   };
@@ -54,7 +56,7 @@ export function ConditionBuilder({
           write([...condition.terms, { left: first, operator: 'notempty', right: '' }]);
         }}
       >
-        Add condition
+        {text('logicAddCondition')}
       </Button>
     </div>
   );
@@ -134,6 +136,7 @@ function TermRow({ session, rule, term, index, onChange, onRemove }: TermRowProp
  */
 function JoinPicker({ session, rule, condition }: BuilderProps): ReactElement {
   const { Select } = useCreatorComponents();
+  const text = useCreatorText();
 
   return (
     <Select
@@ -142,8 +145,8 @@ function JoinPicker({ session, rule, condition }: BuilderProps): ReactElement {
       data-testid={`logic-join-${rule.id}`}
       value={condition.join}
       options={[
-        { value: 'and', label: 'all of these' },
-        { value: 'or', label: 'any of these' },
+        { value: 'and', label: text('logicAll') },
+        { value: 'or', label: text('logicAny') },
       ]}
       onValueChange={(join) => {
         session.setCondition(rule, {

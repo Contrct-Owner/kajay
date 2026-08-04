@@ -1,8 +1,9 @@
-import type { CreatorConfiguration } from '@kajay/creator-core';
+import type { CreatorConfiguration, CreatorStringKey } from '@kajay/creator-core';
 import type { SaveController } from '@kajay/creator-core';
 import type { PageElementRendererRegistry } from '@kajay/react';
 import type { ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
+import { useCreatorText } from './CreatorStringsContext.js';
 import { DesignSurfacePanel } from './DesignSurfacePanel.js';
 import { HistoryPanel } from './HistoryPanel.js';
 import { JsonEditorPanel } from './JsonEditorPanel.js';
@@ -29,14 +30,14 @@ export const DEFAULT_CREATOR_TABS: readonly CreatorTab[] = [
   'theme',
 ];
 
-/** What each tab is called. English until N3, which owns the Creator's own words. */
-const TAB_TITLES: Readonly<Record<CreatorTab, string>> = {
-  design: 'Design',
-  preview: 'Preview',
-  logic: 'Logic',
-  json: 'JSON',
-  translations: 'Translations',
-  theme: 'Theme',
+/** The catalogue key each tab is named by — checklist N3. */
+const TAB_KEYS: Readonly<Record<CreatorTab, CreatorStringKey>> = {
+  design: 'tabDesign',
+  preview: 'tabPreview',
+  logic: 'tabLogic',
+  json: 'tabJson',
+  translations: 'tabTranslations',
+  theme: 'tabTheme',
 };
 
 export interface CreatorTabsProps {
@@ -72,6 +73,7 @@ export function CreatorTabs({
   renderers,
 }: CreatorTabsProps): ReactElement {
   const { Button } = useCreatorComponents();
+  const text = useCreatorText();
 
   return (
     <>
@@ -82,7 +84,7 @@ export function CreatorTabs({
             and a role that promises one without keeping it is worse than no role. These are
             views of one document, which is what `aria-current` says. An axe sweep found the
             first version claiming the role and not keeping it. */}
-        <nav className="kajay-creator__views" aria-label="Creator views">
+        <nav className="kajay-creator__views" aria-label={text('creatorViews')}>
           {tabs.map((name) => (
             <Button
               key={name}
@@ -93,7 +95,7 @@ export function CreatorTabs({
                 onTabChange(name);
               }}
             >
-              {TAB_TITLES[name]}
+              {text(TAB_KEYS[name])}
             </Button>
           ))}
         </nav>

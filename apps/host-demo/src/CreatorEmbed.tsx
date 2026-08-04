@@ -1,3 +1,4 @@
+import { CreatorStringDictionary } from '@kajay/creator-core';
 import { SurveyCreator } from '@kajay/creator-react';
 import type { SurveyDefinition } from '@kajay/core';
 import { useState } from 'react';
@@ -19,6 +20,31 @@ const DESIGNED: SurveyDefinition = {
       ],
     },
   ],
+};
+
+/**
+ * A white-labelled deployment — checklist N3.
+ *
+ * Renaming rather than translating, which is the commoner half of white labelling: the same
+ * language, a different vocabulary. Registering over the built-ins means these eight words
+ * change and the other eighty do not.
+ */
+const WHITE_LABEL = new CreatorStringDictionary();
+WHITE_LABEL.register('en', {
+  tabDesign: 'Build',
+  tabPreview: 'Try it',
+  undo: 'Step back',
+  redo: 'Step forward',
+  addPage: 'Add a section',
+  surveySettings: 'Form settings',
+  toolboxSearch: 'Find a field',
+  nothingSelected: 'Pick a field to edit it.',
+});
+
+/** And the tool's own colours, which are not the survey's — checklist N3. */
+const WHITE_LABEL_THEME: Readonly<Record<string, string>> = {
+  '--kajay-color-accent': '#7a3ea1',
+  '--kajay-color-on-accent': '#ffffff',
 };
 
 /**
@@ -58,6 +84,7 @@ export function CreatorEmbed({ theme }: CreatorEmbedProps): ReactElement {
   // same props, a different configuration: three question types, no JSON or theme tab, and
   // the logic section of the property grid turned off.
   const [isRestricted, setRestricted] = useState(false);
+  const [isWhiteLabelled, setWhiteLabelled] = useState(false);
 
   return (
     <section
@@ -66,31 +93,18 @@ export function CreatorEmbed({ theme }: CreatorEmbedProps): ReactElement {
       style={theme as CSSProperties}
     >
       <h2>Embedded creator</h2>
-      <button
-        type="button"
-        data-testid="toggle-embed"
-        aria-expanded={isShown}
-        onClick={() => {
-          setShown(!isShown);
-        }}
-      >
-        {isShown ? 'Hide the embedded creator' : 'Show the embedded creator'}
-      </button>
-      <label htmlFor="restrict-embed">
-        <input
-          id="restrict-embed"
-          type="checkbox"
-          data-testid="toggle-restricted"
-          checked={isRestricted}
-          onChange={(event) => {
-            setRestricted(event.target.checked);
-          }}
-        />
-        {' Restrict this deployment'}
-      </label>
+      <EmbedControls
+        isShown={isShown}
+        onShown={setShown}
+        isRestricted={isRestricted}
+        onRestricted={setRestricted}
+        isWhiteLabelled={isWhiteLabelled}
+        onWhiteLabelled={setWhiteLabelled}
+      />
       {isShown ? (
         <EmbeddedCreator
           isRestricted={isRestricted}
+          isWhiteLabelled={isWhiteLabelled}
           value={value}
           onChange={setValue}
           onSaved={() => {
@@ -103,14 +117,92 @@ export function CreatorEmbed({ theme }: CreatorEmbedProps): ReactElement {
   );
 }
 
+/** The three switches this page uses to show off one component three ways. */
+function EmbedControls({
+  isShown,
+  onShown,
+  isRestricted,
+  onRestricted,
+  isWhiteLabelled,
+  onWhiteLabelled,
+}: {
+  readonly isShown: boolean;
+  readonly onShown: (shown: boolean) => void;
+  readonly isRestricted: boolean;
+  readonly onRestricted: (restricted: boolean) => void;
+  readonly isWhiteLabelled: boolean;
+  readonly onWhiteLabelled: (labelled: boolean) => void;
+}): ReactElement {
+  return (
+    <>
+      <button
+        type="button"
+        data-testid="toggle-embed"
+        aria-expanded={isShown}
+        onClick={() => {
+          onShown(!isShown);
+        }}
+      >
+        {isShown ? 'Hide the embedded creator' : 'Show the embedded creator'}
+      </button>
+      <DeploymentSwitch
+        id="restrict-embed"
+        testId="toggle-restricted"
+        label=" Restrict this deployment"
+        checked={isRestricted}
+        onChange={onRestricted}
+      />
+      <DeploymentSwitch
+        id="whitelabel-embed"
+        testId="toggle-whitelabel"
+        label=" White-label this deployment"
+        checked={isWhiteLabelled}
+        onChange={onWhiteLabelled}
+      />
+    </>
+  );
+}
+
+/** One switch. Three of these is what turns one component into three deployments. */
+function DeploymentSwitch({
+  id,
+  testId,
+  label,
+  checked,
+  onChange,
+}: {
+  readonly id: string;
+  readonly testId: string;
+  readonly label: string;
+  readonly checked: boolean;
+  readonly onChange: (checked: boolean) => void;
+}): ReactElement {
+  return (
+    <label htmlFor={id}>
+      <input
+        id={id}
+        type="checkbox"
+        data-testid={testId}
+        checked={checked}
+        onChange={(event) => {
+          onChange(event.target.checked);
+        }}
+      />
+      {label}
+    </label>
+  );
+}
+
 function EmbeddedCreator({
   value,
   onChange,
   onSaved,
   saves,
   isRestricted,
+  isWhiteLabelled,
 }: {
   readonly isRestricted: boolean;
+  readonly isWhiteLabelled: boolean;
   readonly value: SurveyDefinition;
   readonly onChange: (definition: SurveyDefinition) => void;
   readonly onSaved: () => void;
@@ -123,10 +215,13 @@ function EmbeddedCreator({
         // models are built — see `useCreatorModels`, and the trap it exists to avoid. A
         // host changing which deployment they are showing is showing a *different* Creator,
         // and `key` is React's own way of saying so.
-        key={isRestricted ? 'restricted' : 'full'}
+        key={`${isRestricted ? 'restricted' : 'full'}-${isWhiteLabelled ? 'labelled' : 'plain'}`}
         value={value}
         onChange={onChange}
         {...(isRestricted ? RESTRICTED : {})}
+        {...(isWhiteLabelled
+          ? { strings: WHITE_LABEL, creatorTheme: WHITE_LABEL_THEME }
+          : {})}
         isAutoSave
         save={(definition) => {
           onSaved();

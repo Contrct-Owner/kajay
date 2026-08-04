@@ -3,6 +3,7 @@ import type { Diagnostic } from '@kajay/core';
 import type { ReactElement } from 'react';
 import { useCallback, useSyncExternalStore } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
+import { useCreatorText } from './CreatorStringsContext.js';
 
 export interface JsonEditorPanelProps {
   readonly session: JsonEditorSession;
@@ -25,6 +26,7 @@ export interface JsonEditorPanelProps {
  */
 export function JsonEditorPanel({ session, className }: JsonEditorPanelProps): ReactElement {
   useJsonEditorVersion(session);
+  const text = useCreatorText();
 
   return (
     <div className={joinClasses('kajay-json', className)}>
@@ -36,11 +38,11 @@ export function JsonEditorPanel({ session, className }: JsonEditorPanelProps): R
           aria-atomic="true"
           data-testid="json-stale"
         >
-          The designer has changed since you started editing. Applying will replace it.
+          {text('jsonStale')}
         </p>
       ) : null}
       <label className="kajay-json__label" htmlFor="kajay-json-text">
-        Survey definition
+        {text('jsonDefinition')}
       </label>
       <textarea
         id="kajay-json-text"
@@ -63,6 +65,7 @@ export function JsonEditorPanel({ session, className }: JsonEditorPanelProps): R
 /** Applying the draft, and throwing it away. */
 function EditorControls({ session }: { readonly session: JsonEditorSession }): ReactElement {
   const { Button } = useCreatorComponents();
+  const text = useCreatorText();
 
   return (
     <div className="kajay-json__controls">
@@ -76,7 +79,7 @@ function EditorControls({ session }: { readonly session: JsonEditorSession }): R
           session.apply();
         }}
       >
-        Apply
+        {text('jsonApply')}
       </Button>
       <Button
         className="kajay-json__revert"
@@ -86,7 +89,7 @@ function EditorControls({ session }: { readonly session: JsonEditorSession }): R
           session.revert();
         }}
       >
-        Revert
+        {text('jsonRevert')}
       </Button>
     </div>
   );

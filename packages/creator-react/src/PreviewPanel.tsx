@@ -1,10 +1,11 @@
 import { PREVIEW_DEVICES } from '@kajay/creator-core';
-import type { PreviewSession } from '@kajay/creator-core';
+import type { CreatorStringKey, PreviewSession } from '@kajay/creator-core';
 import { Survey } from '@kajay/react';
 import type { SurveyProps } from '@kajay/react';
 import type { CSSProperties, ReactElement } from 'react';
 import { useCallback, useSyncExternalStore } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
+import { useCreatorText } from './CreatorStringsContext.js';
 
 export interface PreviewPanelProps {
   readonly session: PreviewSession;
@@ -70,19 +71,33 @@ function frameStyle(session: PreviewSession): CSSProperties {
   };
 }
 
+/** The catalogue key each shipped device is named by — checklist N3. */
+const DEVICE_KEYS: Readonly<Record<string, CreatorStringKey | undefined>> = {
+  responsive: 'deviceResponsive',
+  phone: 'devicePhone',
+  tablet: 'deviceTablet',
+  desktop: 'deviceDesktop',
+};
+
 /** Which device, which way round, and starting again. */
 function PreviewControls({ session }: { readonly session: PreviewSession }): ReactElement {
   const { Button, Select } = useCreatorComponents();
+  const text = useCreatorText();
   const isPortrait = session.orientation === 'portrait';
 
   return (
     <div className="kajay-preview__controls">
       <Select
         className="kajay-preview__device"
-        aria-label="Preview device"
+        aria-label={text('previewDevice')}
         data-testid="preview-device"
         value={session.device.name}
-        options={PREVIEW_DEVICES.map((device) => ({ value: device.name, label: device.title }))}
+        // Device names are the Creator's own words, so they come from the catalogue —
+        // the shipped `title` is the fallback for a host's own device that has no key.
+        options={PREVIEW_DEVICES.map((device) => ({
+          value: device.name,
+          label: DEVICE_KEYS[device.name] === undefined ? device.title : text(DEVICE_KEYS[device.name]!),
+        }))}
         onValueChange={(name) => {
           session.setDevice(name);
         }}
@@ -98,7 +113,7 @@ function PreviewControls({ session }: { readonly session: PreviewSession }): Rea
           session.setOrientation(isPortrait ? 'landscape' : 'portrait');
         }}
       >
-        Rotate
+        {text('previewRotate')}
       </Button>
       <Button
         className="kajay-preview__restart"
@@ -107,7 +122,7 @@ function PreviewControls({ session }: { readonly session: PreviewSession }): Rea
           session.restart();
         }}
       >
-        Restart
+        {text('previewRestart')}
       </Button>
     </div>
   );
@@ -121,6 +136,7 @@ function PreviewControls({ session }: { readonly session: PreviewSession }): Rea
  * needs to decide rather than be told.
  */
 function StaleNotice({ session }: { readonly session: PreviewSession }): ReactElement | null {
+  const text = useCreatorText();
   if (!session.isStale) {
     return null;
   }
@@ -134,7 +150,7 @@ function StaleNotice({ session }: { readonly session: PreviewSession }): ReactEl
       aria-atomic="true"
       data-testid="preview-stale"
     >
-      The design has changed since this run started. Restart to see it.
+      {text('previewStale')}
     </p>
   );
 }

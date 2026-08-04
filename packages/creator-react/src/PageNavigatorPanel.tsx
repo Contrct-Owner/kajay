@@ -2,6 +2,7 @@ import type { DesignSurface } from '@kajay/creator-core';
 import type { Page } from '@kajay/core';
 import type { ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
+import { useCreatorText } from './CreatorStringsContext.js';
 import { ELEMENT_INDEX_ATTRIBUTE } from './placementGeometry.js';
 import { useSurfaceVersion } from './useSurfaceVersion.js';
 import type { DesignerPlacement } from './useDesignerPlacement.js';
@@ -32,6 +33,7 @@ export function PageNavigatorPanel({
 }: PageNavigatorPanelProps): ReactElement {
   useSurfaceVersion(surface);
   const { Button } = useCreatorComponents();
+  const text = useCreatorText();
   const slot = placement?.activeSlot;
   const activeSlot = slot?.list.of === 'pages' ? slot.index : undefined;
   const pages = surface.pages;
@@ -63,7 +65,7 @@ export function PageNavigatorPanel({
           surface.addPage();
         }}
       >
-        Add page
+        {text('addPage')}
       </Button>
     </div>
   );
@@ -82,6 +84,7 @@ export function PageNavigatorPanel({
  */
 function SurveyEntry({ surface }: { readonly surface: DesignSurface }): ReactElement {
   const { Button } = useCreatorComponents();
+  const text = useCreatorText();
 
   return (
     <Button
@@ -92,7 +95,7 @@ function SurveyEntry({ surface }: { readonly surface: DesignSurface }): ReactEle
         surface.selectSurvey();
       }}
     >
-      Survey
+      {text('surveySettings')}
     </Button>
   );
 }
@@ -162,13 +165,14 @@ function PageControls({
   label,
 }: PageEntryProps & { readonly label: string }): ReactElement {
   const { Button } = useCreatorComponents();
+  const text = useCreatorText();
 
   return (
     <>
       {placement === undefined ? null : (
         <Button
           className="kajay-pages__handle"
-          aria-label={`Move ${label}`}
+          aria-label={text('moveElement', label)}
           data-testid={`move-page-${page.name}`}
           {...placement.getPageHandleProps(page.name, index)}
         >
@@ -177,7 +181,7 @@ function PageControls({
       )}
       <Button
         className="kajay-pages__remove"
-        aria-label={`Delete ${label}`}
+        aria-label={text('deleteElement', label)}
         data-testid={`remove-${page.name}`}
         onClick={() => {
           surface.removePage(page.name);

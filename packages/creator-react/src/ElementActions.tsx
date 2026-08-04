@@ -2,6 +2,7 @@ import type { DesignSurface } from '@kajay/creator-core';
 import type { PageElement } from '@kajay/core';
 import type { ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
+import { useCreatorText } from './CreatorStringsContext.js';
 
 export interface ElementActionsProps {
   readonly surface: DesignSurface;
@@ -21,6 +22,7 @@ export interface ElementActionsProps {
  */
 export function ElementActions({ surface, element }: ElementActionsProps): ReactElement {
   const { Button } = useCreatorComponents();
+  const text = useCreatorText();
   const name = element.name;
 
   return (
@@ -32,7 +34,7 @@ export function ElementActions({ surface, element }: ElementActionsProps): React
           surface.duplicate(name);
         }}
       >
-        Duplicate
+        {text('duplicate')}
       </Button>
       <Button
         className="kajay-designer__action"
@@ -41,7 +43,7 @@ export function ElementActions({ surface, element }: ElementActionsProps): React
           surface.copy(name);
         }}
       >
-        Copy
+        {text('copy')}
       </Button>
       <Button
         className="kajay-designer__action"
@@ -51,7 +53,7 @@ export function ElementActions({ surface, element }: ElementActionsProps): React
           surface.paste();
         }}
       >
-        Paste
+        {text('paste')}
       </Button>
       <Button
         className="kajay-designer__action kajay-designer__delete"
@@ -61,7 +63,7 @@ export function ElementActions({ surface, element }: ElementActionsProps): React
           surface.removeElement(name);
         }}
       >
-        Delete
+        {text('delete')}
       </Button>
       <TypePicker surface={surface} element={element} />
     </span>
@@ -76,11 +78,12 @@ export function ElementActions({ surface, element }: ElementActionsProps): React
  */
 function TypePicker({ surface, element }: ElementActionsProps): ReactElement {
   const { Select } = useCreatorComponents();
+  const text = useCreatorText();
 
   return (
     <Select
       className="kajay-designer__type"
-      aria-label={`Type of ${element.name}`}
+      aria-label={text('typeOf', element.name)}
       data-testid={`type-${element.name}`}
       value={element.type}
       options={surface.convertibleTypes.map((type) => ({ value: type, label: type }))}

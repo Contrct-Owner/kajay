@@ -2,6 +2,7 @@ import type { DesignSurface } from '@kajay/creator-core';
 import type { PageElement } from '@kajay/core';
 import type { ReactElement, ReactNode } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
+import { useCreatorText } from './CreatorStringsContext.js';
 import { ElementActions } from './ElementActions.js';
 import {
   CONTAINER_ATTRIBUTE,
@@ -95,12 +96,13 @@ function Adorner({
   placement,
 }: Pick<DesignedElementProps, 'surface' | 'element' | 'placement'>): ReactElement {
   const { Button, Input } = useCreatorComponents();
+  const text = useCreatorText();
 
   return (
     <div className="kajay-designer__adorner">
       <Button
         className="kajay-designer__select"
-        aria-label={`Select ${element.name}`}
+        aria-label={text('selectElement', element.name)}
         data-testid={`select-${element.name}`}
         onClick={() => {
           surface.select(element);
@@ -111,7 +113,7 @@ function Adorner({
       {placement === undefined ? null : (
         <Button
           className="kajay-designer__handle"
-          aria-label={`Move ${element.name}`}
+          aria-label={text('moveElement', element.name)}
           data-testid={`move-${element.name}`}
           {...placement.getHandleProps(element.name)}
         >
@@ -126,7 +128,7 @@ function Adorner({
             onValueChange={(value) => {
               surface.setTitle(element, value);
             }}
-            aria-label={`Title of ${element.name}`}
+            aria-label={text('titleOf', element.name)}
           />
           <ElementActions surface={surface} element={element} />
         </>

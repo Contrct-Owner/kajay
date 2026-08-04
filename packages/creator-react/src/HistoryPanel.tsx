@@ -1,6 +1,7 @@
 import type { DesignSurface } from '@kajay/creator-core';
 import type { ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
+import { useCreatorText } from './CreatorStringsContext.js';
 import { useSurfaceVersion } from './useSurfaceVersion.js';
 
 export interface HistoryPanelProps {
@@ -21,6 +22,7 @@ export interface HistoryPanelProps {
 export function HistoryPanel({ surface, className }: HistoryPanelProps): ReactElement {
   useSurfaceVersion(surface);
   const { Button } = useCreatorComponents();
+  const text = useCreatorText();
 
   return (
     <div className={className === undefined ? 'kajay-history' : `kajay-history ${className}`}>
@@ -33,7 +35,7 @@ export function HistoryPanel({ surface, className }: HistoryPanelProps): ReactEl
           surface.undo();
         }}
       >
-        Undo
+        {text('undo')}
       </Button>
       <Button
         className="kajay-history__redo"
@@ -44,7 +46,7 @@ export function HistoryPanel({ surface, className }: HistoryPanelProps): ReactEl
           surface.redo();
         }}
       >
-        Redo
+        {text('redo')}
       </Button>
     </div>
   );

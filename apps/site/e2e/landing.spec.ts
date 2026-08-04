@@ -66,3 +66,29 @@ test('parity/P8-landing: the playground is one click away', async ({ page }) => 
   await expect(page).toHaveURL(/\/playground/u);
   await expect(page.getByTestId('live-survey')).toBeVisible();
 });
+
+test('parity/P8-landing: the designer is shown running, not described', async ({ page }) => {
+  await page.goto('/');
+
+  // The section was a paragraph, which failed this row's own standard — the hero
+  // demonstrates the survey half and the designer half was asserted. A drag-and-drop
+  // canvas is the one claim a screenshot cannot make.
+  const demo = page.getByTestId('designer-demo');
+  await expect(demo.getByTestId('select-company')).toBeVisible();
+  await expect(demo.getByTestId('toolbox-rating')).toBeVisible();
+
+  await demo.getByTestId('toolbox-rating').click();
+  await expect(demo.getByTestId('select-rating1')).toBeVisible();
+});
+
+test('parity/P8-landing: the survey is served and the designer is not', async ({ page }) => {
+  const html = (await (await page.goto('/'))?.text()) ?? '';
+
+  // Two halves, two answers, and the difference is real rather than an oversight. A survey
+  // is content and belongs in the document the server sent — P1 made that possible. A
+  // design surface measures before it draws, so there is nothing a server render would be
+  // right about.
+  expect(html).toContain('What are you building?');
+  expect(html).not.toContain('data-testid="designer-demo"');
+  await expect(page.getByTestId('designer-demo')).toBeVisible();
+});

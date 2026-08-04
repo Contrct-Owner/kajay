@@ -3,6 +3,8 @@ import type { ReactElement, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { HeroSurvey } from '@/landing/HeroSurvey';
+import { ClientOnly } from '@/components/ClientOnly';
+import { DesignerDemo } from '@/landing/DesignerDemo';
 
 export const Route = createFileRoute('/')({ component: Landing });
 
@@ -162,6 +164,27 @@ function Designer(): ReactElement {
         you arrange yourself. Restrict which question types it offers, rename every word it
         says, and give it your components.
       </p>
+      {/*
+        **Client-only, and the hero above is not.** A survey is content — it should be in
+        the document the server sends, and P1 made sure it can be. A design surface has to
+        measure things before it can draw them, so there is nothing a server render would
+        be right about. The two halves of this page answer that question differently
+        because they are genuinely different questions.
+      */}
+      <div className="mt-8">
+        <ClientOnly
+          fallback={
+            <div
+              className="border-border text-muted-foreground rounded-lg border p-6 text-sm"
+              data-testid="designer-demo-loading"
+            >
+              Loading the designer…
+            </div>
+          }
+        >
+          <DesignerDemo />
+        </ClientOnly>
+      </div>
       <div className="mt-6">
         <Button asChild variant="outline">
           <Link to="/playground">Build something in it</Link>

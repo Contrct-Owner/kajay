@@ -58,6 +58,8 @@ export type {
   CreatorComponentsProviderProps,
   CreatorInputProps,
   CreatorSelectOption,
+  CreatorMenuItem,
+  CreatorMenuProps,
   CreatorSelectProps,
   CreatorTextareaProps,
   ResolvedCreatorComponents,

@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react';
+import { DefaultMenu } from './DefaultMenu.js';
 import type {
   ComponentType,
   KeyboardEvent,
@@ -110,6 +111,46 @@ export interface CreatorTextareaProps {
   readonly onBlur?: () => void;
 }
 
+/** One thing a {@link CreatorMenuProps} can do. */
+export interface CreatorMenuItem {
+  /** Unique within the menu, and the item's `data-testid` — actions are addressed by name. */
+  readonly id: string;
+  readonly label: string;
+  readonly isDisabled?: boolean | undefined;
+  /**
+   * Deleting, and anything else that cannot be walked back without undo.
+   *
+   * A flag rather than a colour, because which colour that is belongs to the host's design
+   * system. Ours draws it in the danger token; theirs will have its own idea.
+   */
+  readonly isDestructive?: boolean | undefined;
+}
+
+/**
+ * A button that opens a list of things to do — checklist P4.
+ *
+ * **The sixth primitive, and it is a leaf.** ADR-0022's amendment admits a component only
+ * when the library hands over everything inside it: the items are *data*, the host's
+ * component composes the whole tree, and nothing of ours goes between them. That is
+ * `Select`'s shape, and it is why a menu qualifies where a radio group did not.
+ *
+ * It earned its place the way the ADR asks. K5's adorner drew Duplicate, Copy, Paste and
+ * Delete as a row of buttons, which is as wide as its actions while the canvas is as wide
+ * as the host's layout gave it — the row ran over the element's edge in any layout that
+ * put the canvas in a column. Four buttons became one.
+ *
+ * **The contract is behavioural**, per the ADR: Escape closes and returns focus, arrows
+ * walk the list, clicking away dismisses it, and the trigger reports what it controls.
+ */
+export interface CreatorMenuProps {
+  /** Names the trigger *and* the list — a menu with no accessible name is an ellipsis. */
+  readonly label: string;
+  readonly items: readonly CreatorMenuItem[];
+  readonly onSelect: (id: string) => void;
+  readonly className?: string;
+  readonly 'data-testid'?: string;
+}
+
 /** One choice in a {@link CreatorSelectProps}. */
 export interface CreatorSelectOption {
   readonly value: string;
@@ -200,6 +241,7 @@ export interface CreatorComponents {
   readonly Select?: ComponentType<CreatorSelectProps> | undefined;
   readonly Checkbox?: ComponentType<CreatorCheckboxProps> | undefined;
   readonly Textarea?: ComponentType<CreatorTextareaProps> | undefined;
+  readonly Menu?: ComponentType<CreatorMenuProps> | undefined;
 }
 
 /**
@@ -314,6 +356,7 @@ function DefaultTextarea({
 
 const DEFAULTS = {
   Button: DefaultButton,
+  Menu: DefaultMenu,
   Input: DefaultInput,
   Select: DefaultSelect,
   Checkbox: DefaultCheckbox,

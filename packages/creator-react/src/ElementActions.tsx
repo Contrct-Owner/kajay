@@ -2,7 +2,9 @@ import type { DesignSurface } from '@kajay/creator-core';
 import type { PageElement } from '@kajay/core';
 import type { ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
+import type { CreatorMenuItem } from './CreatorComponents.js';
 import { useCreatorText } from './CreatorStringsContext.js';
+import type { CreatorText } from './CreatorStringsContext.js';
 
 export interface ElementActionsProps {
   readonly surface: DesignSurface;
@@ -10,86 +12,74 @@ export interface ElementActionsProps {
 }
 
 /**
- * Duplicate, copy, paste, delete and change type — checklists K5 and K7.
+ * Duplicate, copy, paste and delete — checklists K5, K7 and P4.
  *
- * Shown only on the selected element, like K3's title editor and for the same reason:
- * four more controls on every question would bury the survey the designer is looking at
- * under the tools for editing it.
+ * **One menu, not four buttons.** They were a row, and a row is as wide as its actions
+ * while the canvas is as wide as the host's layout gave it: in the reference application's
+ * two-column playground the row ran straight over the element's right edge and across the
+ * panel beside it. Collapsing them is the change; the actions are the same four.
+ *
+ * Shown only on the selected element, like K3's title editor and for the same reason: a
+ * control on every question would bury the survey under the tools for editing it.
  *
  * They all act on the selection, which is what makes "paste" answerable — a paste has to
- * land somewhere, and the selected element is the only thing on screen that says where
- * the designer is working.
+ * land somewhere, and the selected element is the only thing on screen that says where the
+ * designer is working.
  */
 export function ElementActions({ surface, element }: ElementActionsProps): ReactElement {
-  const { Button } = useCreatorComponents();
+  const { Menu } = useCreatorComponents();
   const text = useCreatorText();
   const name = element.name;
 
   return (
-    <span className="kajay-designer__actions">
-      <Button
-        className="kajay-designer__action"
-        data-testid={`duplicate-${name}`}
-        onClick={() => {
-          surface.duplicate(name);
-        }}
-      >
-        {text('duplicate')}
-      </Button>
-      <Button
-        className="kajay-designer__action"
-        data-testid={`copy-${name}`}
-        onClick={() => {
-          surface.copy(name);
-        }}
-      >
-        {text('copy')}
-      </Button>
-      <Button
-        className="kajay-designer__action"
-        data-testid={`paste-${name}`}
-        disabled={!surface.canPaste}
-        onClick={() => {
-          surface.paste();
-        }}
-      >
-        {text('paste')}
-      </Button>
-      <Button
-        className="kajay-designer__action kajay-designer__delete"
-        data-testid={`delete-${name}`}
-        title="Delete (Del)"
-        onClick={() => {
-          surface.removeElement(name);
-        }}
-      >
-        {text('delete')}
-      </Button>
-      <TypePicker surface={surface} element={element} />
-    </span>
+    <Menu
+      className="kajay-designer__menu"
+      label={text('elementActions', name)}
+      data-testid={`actions-${name}`}
+      items={actionsFor(text, surface, name)}
+      onSelect={(id) => {
+        run(surface, name, id);
+      }}
+    />
   );
 }
 
 /**
- * What the question is, and what it could be — checklist K5's conversion.
+ * What the menu offers, in the order a designer reaches for it.
  *
- * Its own control because it is the one that is not a verb: the others do something to
- * the question, this one says what the question *is* and changes it by being changed.
+ * The ids carry the element name so they stay the `data-testid`s the suites already
+ * address — `duplicate-who` is the same thing it was when it was a button, which is what
+ * makes this a change of shape rather than of vocabulary.
  */
-function TypePicker({ surface, element }: ElementActionsProps): ReactElement {
-  const { Select } = useCreatorComponents();
-  const text = useCreatorText();
+function actionsFor(
+  text: CreatorText,
+  surface: DesignSurface,
+  name: string,
+): readonly CreatorMenuItem[] {
+  return [
+    { id: `duplicate-${name}`, label: text('duplicate') },
+    { id: `copy-${name}`, label: text('copy') },
+    // Still listed while there is nothing to paste, and disabled. Hiding it would make the
+    // menu a different length depending on history, which is how a designer loses the item
+    // they were reaching for.
+    { id: `paste-${name}`, label: text('paste'), isDisabled: !surface.canPaste },
+    { id: `delete-${name}`, label: text('delete'), isDestructive: true },
+  ];
+}
 
-  return (
-    <Select
-      className="kajay-designer__type"
-      aria-label={text('typeOf', element.name)}
-      data-testid={`type-${element.name}`}
-      value={element.type}
-      options={surface.convertibleTypes.map((type) => ({ value: type, label: type }))}
-      onValueChange={(type) => {
-        surface.convert(element.name, type);
-      }}
-    />
-  );
+function run(surface: DesignSurface, name: string, id: string): void {
+  const action = id.slice(0, id.length - name.length - 1);
+  switch (action) {
+    case 'duplicate':
+      surface.duplicate(name);
+      return;
+    case 'copy':
+      surface.copy(name);
+      return;
+    case 'paste':
+      surface.paste();
+      return;
+    default:
+      surface.removeElement(name);
+  }
 }

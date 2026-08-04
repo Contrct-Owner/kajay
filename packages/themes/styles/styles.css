@@ -610,14 +610,28 @@
 }
 
 .kajay-designer__adorner {
+  /* A grip rail down the left and everything else beside it — checklist P4. It used to be
+     one wrapping flex row, which is as wide as its controls while the canvas is as wide as
+     the host's layout gave it; the row ran over the element's edge in any layout that put
+     the canvas in a column. */
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: calc(var(--kajay-spacing) / 2);
+  align-items: stretch;
+}
+
+/* The bar is what the rail sits beside: the chip, the title, and the one menu button. */
+.kajay-designer__bar {
   display: flex;
-  /* Wraps, because the adorner is as wide as its actions and the canvas is as wide as the
-     host's layout gave it. Without this the row runs off the element's right edge and over
-     whatever is beside it — which happens in any host that puts the canvas in a column
-     rather than full-bleed, so it was never a narrow-window edge case. */
-  flex-wrap: wrap;
   gap: calc(var(--kajay-spacing) / 2);
   align-items: center;
+  min-width: 0;
+}
+
+/* The menu is pushed to the far edge, so the actions are always in the same place however
+   long the title is. */
+.kajay-designer__menu {
+  margin-inline-start: auto;
 }
 
 .kajay-designer__select {
@@ -833,17 +847,83 @@
 }
 
 .kajay-designer__handle {
-  padding: 0 calc(var(--kajay-spacing) / 3);
-  border: 1px solid var(--kajay-color-border);
+  /* Full height of the element, because it is the *element* that moves. Narrow, quiet, and
+     out of the way until wanted — the same reason a drag rail sits on the edge everywhere
+     else it appears. */
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  padding: 0 calc(var(--kajay-spacing) / 4);
+  border: 0;
   border-radius: var(--kajay-radius);
-  background: var(--kajay-color-surface);
+  background: transparent;
   color: var(--kajay-color-muted);
   font: inherit;
   cursor: grab;
+  line-height: 1;
   /* Or a drag on a touch screen scrolls the canvas instead of moving the question.
      The pointer events are ours from the first move; this stops the browser claiming
-     them first. */
+     them first. Dropped once by the P4 rewrite, which took every drag scenario with it. */
   touch-action: none;
+}
+
+.kajay-designer__handle:hover {
+  background: var(--kajay-color-border);
+  color: var(--kajay-color-text);
+}
+
+.kajay-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.kajay-menu__trigger {
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: transparent;
+  color: var(--kajay-color-text);
+  padding: 0 calc(var(--kajay-spacing) / 2);
+  cursor: pointer;
+  line-height: 1.6;
+}
+
+.kajay-menu__list {
+  position: absolute;
+  z-index: 2;
+  inset-inline-end: 0;
+  top: calc(100% + 2px);
+  display: flex;
+  flex-direction: column;
+  min-width: 9rem;
+  padding: calc(var(--kajay-spacing) / 4);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 25%);
+}
+
+.kajay-menu__item {
+  border: 0;
+  border-radius: var(--kajay-radius);
+  background: transparent;
+  color: var(--kajay-color-text);
+  padding: calc(var(--kajay-spacing) / 3) calc(var(--kajay-spacing) / 2);
+  text-align: start;
+  cursor: pointer;
+}
+
+.kajay-menu__item:hover:not(:disabled),
+.kajay-menu__item:focus-visible {
+  background: var(--kajay-color-border);
+}
+
+.kajay-menu__item:disabled {
+  color: var(--kajay-color-muted);
+  cursor: default;
+}
+
+.kajay-menu__item--danger {
+  color: var(--kajay-color-danger);
 }
 
 .kajay-designer__handle[data-grabbed='true'] {

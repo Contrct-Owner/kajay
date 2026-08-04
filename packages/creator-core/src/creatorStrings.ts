@@ -55,6 +55,7 @@ export const CREATOR_STRING_DEFINITIONS = [
   { key: 'delete', en: 'Delete' },
   { key: 'selectElement', en: 'Select {0}' },
   { key: 'moveElement', en: 'Move {0}' },
+  { key: 'elementActions', en: 'Actions for {0}' },
   { key: 'deleteElement', en: 'Delete {0}' },
   { key: 'titleOf', en: 'Title of {0}' },
   { key: 'typeOf', en: 'Type of {0}' },

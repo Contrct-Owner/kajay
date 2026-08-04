@@ -100,21 +100,17 @@ function Adorner({
   element,
   placement,
 }: Pick<DesignedElementProps, 'surface' | 'element' | 'placement'>): ReactElement {
-  const { Button, Input } = useCreatorComponents();
+  const { Button } = useCreatorComponents();
   const text = useCreatorText();
 
   return (
     <div className="kajay-designer__adorner">
-      <Button
-        className="kajay-designer__select"
-        aria-label={text('selectElement', element.name)}
-        data-testid={`select-${element.name}`}
-        onClick={() => {
-          surface.select(element);
-        }}
-      >
-        {element.type}
-      </Button>
+      {/*
+        **The grip is a rail down the left, not a button in the row** — checklist P4. It is
+        the whole element that moves, so the handle reads better as the element's own edge
+        than as one more control competing with the actions; and taking it out of the row is
+        half of what stopped the row overflowing.
+      */}
       {placement === undefined ? null : (
         <Button
           className="kajay-designer__handle"
@@ -125,19 +121,74 @@ function Adorner({
           ⠿
         </Button>
       )}
-      {surface.isSelected(element) ? (
-        <>
-          <Input
-            className="kajay-designer__title"
-            value={element.title}
-            onValueChange={(value) => {
-              surface.setTitle(element, value);
-            }}
-            aria-label={text('titleOf', element.name)}
-          />
-          <ElementActions surface={surface} element={element} />
-        </>
-      ) : null}
+      <div className="kajay-designer__bar">
+        {/*
+          **The chip stays on the selected element too.** Replacing it with the type picker
+          was tempting — both say the same word — but selecting is not only something you do
+          to an *un*selected element: a host, a keyboard walk and this repo's own scenarios
+          all address the element by it. Losing it on selection broke ten of them, which is
+          the chip earning its place rather than an accident.
+        */}
+        <Button
+          className="kajay-designer__select"
+          aria-label={text('selectElement', element.name)}
+          data-testid={`select-${element.name}`}
+          onClick={() => {
+            surface.select(element);
+          }}
+        >
+          {/*
+            **The type when it is the only thing saying it, the name when it is not.** On the
+            selected element the picker beside this says the type, and two chips saying
+            `text` was the most visible waste left in the row. The name is the better second
+            word anyway: it is what logic and the results refer to, and it is the one fact
+            about a question that is nowhere else on the canvas.
+          */}
+          {surface.isSelected(element) ? element.name : element.type}
+        </Button>
+        {surface.isSelected(element) ? (
+          <SelectedBar surface={surface} element={element} />
+        ) : null}
+      </div>
     </div>
+  );
+}
+
+/**
+ * The selected element's own controls: what it is, what it is called, what to do to it.
+ *
+ * Its own component because it is a different thing from the chip an unselected element
+ * shows — and because the two together outgrew the function-length limit, which is usually
+ * the file saying the same thing.
+ */
+function SelectedBar({
+  surface,
+  element,
+}: Pick<DesignedElementProps, 'surface' | 'element'>): ReactElement {
+  const { Input, Select } = useCreatorComponents();
+  const text = useCreatorText();
+
+  return (
+    <>
+      <Select
+        className="kajay-designer__type"
+        aria-label={text('typeOf', element.name)}
+        data-testid={`type-${element.name}`}
+        value={element.type}
+        options={surface.convertibleTypes.map((type) => ({ value: type, label: type }))}
+        onValueChange={(type) => {
+          surface.convert(element.name, type);
+        }}
+      />
+      <Input
+        className="kajay-designer__title"
+        value={element.title}
+        onValueChange={(value) => {
+          surface.setTitle(element, value);
+        }}
+        aria-label={text('titleOf', element.name)}
+      />
+      <ElementActions surface={surface} element={element} />
+    </>
   );
 }

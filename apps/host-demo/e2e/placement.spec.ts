@@ -48,7 +48,7 @@ function canvasOf(page: Page): Locator {
  */
 function orderIn(page: Page, container = 'p1'): Promise<readonly string[]> {
   return canvasOf(page)
-    .locator(`[data-in-container="${container}"] > .kajay-designer__adorner > .kajay-designer__select`)
+    .locator(`[data-in-container="${container}"] > .kajay-designer__adorner > .kajay-designer__bar > .kajay-designer__select`)
     .evaluateAll((nodes) =>
       nodes.map((node) => node.getAttribute('aria-label')?.replace('Select ', '') ?? ''),
     );

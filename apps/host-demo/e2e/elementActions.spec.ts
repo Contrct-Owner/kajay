@@ -21,7 +21,7 @@ function canvasOf(page: Page): Locator {
  */
 function orderIn(page: Page, container = 'p1'): Promise<readonly string[]> {
   return canvasOf(page)
-    .locator(`[data-in-container="${container}"] > .kajay-designer__adorner > .kajay-designer__select`)
+    .locator(`[data-in-container="${container}"] > .kajay-designer__adorner > .kajay-designer__bar > .kajay-designer__select`)
     .evaluateAll((nodes) =>
       nodes.map((node) => node.getAttribute('aria-label')?.replace('Select ', '') ?? ''),
     );
@@ -30,6 +30,7 @@ function orderIn(page: Page, container = 'p1'): Promise<readonly string[]> {
 test('parity/K5-duplicate: a question is copied next to itself', async ({ page }) => {
   await page.getByTestId('select-draftTier').click();
 
+  await openActions(page, 'draftTier');
   await page.getByTestId('duplicate-draftTier').click();
 
   expect(await orderIn(page)).toEqual([
@@ -47,10 +48,12 @@ test('parity/K5-duplicate: a question is copied next to itself', async ({ page }
 
 test('parity/K5-paste: copy on one page, paste on another', async ({ page }) => {
   await page.getByTestId('select-draftName').click();
+  await openActions(page, 'draftName');
   await page.getByTestId('copy-draftName').click();
 
   await page.getByTestId('go-to-p2').click();
   await page.getByTestId('select-draftNotes').click();
+  await openActions(page, 'draftNotes');
   await page.getByTestId('paste-draftNotes').click();
 
   // The clipboard holds a definition fragment, so it crosses a page change and two
@@ -84,6 +87,7 @@ test('parity/K5-convert: it is undoable like everything else', async ({ page }) 
 test('parity/K7-delete: a question goes, and comes back', async ({ page }) => {
   await page.getByTestId('select-draftTier').click();
 
+  await openActions(page, 'draftTier');
   await page.getByTestId('delete-draftTier').click();
   expect(await orderIn(page)).toEqual(['draftName', 'draftScore', 'draftGroup', 'draftEmpty']);
   await expect(page.getByTestId('surface-json')).not.toContainText('bronze');
@@ -112,3 +116,14 @@ test('parity/K5-actions: the adorner passes the same accessibility bar', async (
 
   expect(results.violations.map((violation: Result) => violation.id)).toEqual([]);
 });
+
+/**
+ * Opens an element's action menu — checklist P4.
+ *
+ * The four verbs moved from a row of buttons in the adorner to items behind one trigger.
+ * The ids are unchanged, so this is the one extra step and nothing else about these
+ * scenarios moved.
+ */
+async function openActions(page: Page, name: string): Promise<void> {
+  await page.getByTestId(`actions-${name}`).click();
+}

@@ -12,7 +12,10 @@ export default defineConfig({
         test: {
           name: 'unit',
           environment: 'node',
-          include: ['packages/*/test/unit/**/*.test.ts'],
+          // Applications too, not only packages: the reference application has pure logic
+          // of its own — a share link's codec — and a proof has to be able to live beside
+          // the thing it proves.
+          include: ['{packages,apps}/*/test/unit/**/*.test.ts'],
           // The metadata registry is process-global by design. Tests that register
           // types use unique names and clean up; isolate keeps a leak in one file from
           // being able to reach another.

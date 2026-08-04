@@ -1,13 +1,22 @@
 import type { SurveyDefinition } from '@kajay/core';
-import { SurveyCreator } from '@kajay/creator-react';
+import { CreatorComponentsProvider, useCreatorWorkspace, usePreviewVersion } from '@kajay/creator-react';
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
+import { Button } from '@/components/ui/button';
 import { ClientOnly } from '@/components/ClientOnly';
 import { KAJAY_CREATOR_COMPONENTS } from '@/kajay/creatorComponents';
-import { KAJAY_SURVEY_COMPONENTS } from '@/kajay/surveyComponents';
+import { EditorPane, LivePane } from '@/playground/PlaygroundPanes';
+import type { EditorMode } from '@/playground/PlaygroundPanes';
+import { DEFINITION_PARAM, decodeDefinition, shareLink } from '@/playground/usePlaygroundDocument';
 
-export const Route = createFileRoute('/playground')({ component: Playground });
+export const Route = createFileRoute('/playground')({
+  component: Playground,
+  validateSearch: (search: Record<string, unknown>): { readonly d?: string } => {
+    const value = search[DEFINITION_PARAM];
+    return typeof value === 'string' ? { d: value } : {};
+  },
+});
 
 const STARTER: SurveyDefinition = {
   title: 'Customer feedback',
@@ -29,35 +38,78 @@ const STARTER: SurveyDefinition = {
 };
 
 /**
- * Slice 0's measurement, not slice 3's playground.
+ * Design on the left, the running survey on the right — checklist P3.
  *
- * The full three-pane layout — Creator and JSON editor beside a live renderer — is slice 3.
- * What this route is for right now is one question: with a real design system supplied
- * through `components`, does the Creator read as part of this application or as a guest in
- * it? That is worth looking at before committing to converting twenty-odd renderers.
+ * **The two panes are one document.** The designer, the JSON editor and the live survey all
+ * come off a single `CreatorWorkspace`, so a question dragged onto the canvas is answerable
+ * on the right without anything being wired between them: M3's preview session already
+ * watches the surface, and it parses its own survey so answers can never reach the thing
+ * being designed.
+ *
+ * Client-only, deliberately. A designer with an undo stack, a drag gesture and a selection
+ * is not a document a server has anything true to say about — unlike the survey by itself,
+ * which P1 made server-renderable and the marketing pages use.
  */
 function Playground(): ReactElement {
-  const [definition, setDefinition] = useState<SurveyDefinition>(STARTER);
-
   return (
     <main className="flex min-h-svh flex-col gap-4 p-6">
-      <header className="flex items-baseline gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Playground</h1>
-        <p className="text-muted-foreground text-sm">
-          The Creator, drawn with this site&rsquo;s own shadcn components.
-        </p>
-      </header>
-      <div className="border-border rounded-lg border p-4">
-        <ClientOnly fallback={<p className="text-muted-foreground text-sm">Loading the designer…</p>}>
-          <SurveyCreator
-            value={definition}
-            onChange={setDefinition}
-            // Two maps, one look: the Creator's own chrome and the survey it previews.
-            components={KAJAY_CREATOR_COMPONENTS}
-            surveyComponents={KAJAY_SURVEY_COMPONENTS}
-          />
-        </ClientOnly>
-      </div>
+      <ClientOnly fallback={<p className="text-muted-foreground text-sm">Loading the playground…</p>}>
+        <Workbench />
+      </ClientOnly>
     </main>
+  );
+}
+
+function Workbench(): ReactElement {
+  const { d } = Route.useSearch();
+  // Read once: a share link is where the document *came from*, not a binding. Re-reading
+  // would fight every edit, and writing on every keystroke would fill the history with a
+  // hundred entries nobody wants to walk back through.
+  const [opened] = useState<SurveyDefinition>(() => decodeDefinition(d) ?? STARTER);
+  const workspace = useCreatorWorkspace({ definition: opened });
+  const [mode, setMode] = useState<EditorMode>('design');
+  usePreviewVersion(workspace.preview);
+
+  return (
+    <CreatorComponentsProvider components={KAJAY_CREATOR_COMPONENTS}>
+      <PlaygroundHeader definition={workspace.surface.definition} />
+      <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+        <EditorPane workspace={workspace} mode={mode} onModeChange={setMode} />
+        <LivePane
+          workspace={workspace}
+          onRestart={() => {
+            workspace.preview.restart();
+          }}
+        />
+      </div>
+    </CreatorComponentsProvider>
+  );
+}
+
+/** The title, and the one button that turns this session into something you can send. */
+function PlaygroundHeader({ definition }: { readonly definition: SurveyDefinition }): ReactElement {
+  const [copied, setCopied] = useState(false);
+
+  return (
+    <header className="flex flex-wrap items-baseline gap-3">
+      <h1 className="text-2xl font-semibold tracking-tight">Playground</h1>
+      <p className="text-muted-foreground text-sm">
+        Design on the left, answer it on the right. Nothing is saved anywhere.
+      </p>
+      <Button
+        size="sm"
+        variant="outline"
+        className="ml-auto"
+        data-testid="share-link"
+        onClick={() => {
+          const link = shareLink(definition, globalThis.location.origin, '/playground');
+          globalThis.history.replaceState(undefined, '', link);
+          void globalThis.navigator.clipboard?.writeText(link);
+          setCopied(true);
+        }}
+      >
+        {copied ? 'Link copied' : 'Copy share link'}
+      </Button>
+    </header>
   );
 }

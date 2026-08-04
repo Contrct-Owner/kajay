@@ -58,6 +58,11 @@ export const PUBLIC_RUNTIME_SURFACE = Object.freeze({
     'PageElementRendererRegistry',
     'PageElementSlot',
     'QuestionRenderersProvider',
+    'QuestionErrors',
+    'QuestionTitleContent',
+    'questionErrorId',
+    'questionId',
+    'useIdScope',
     'Survey',
     // ADR-0022's primitive seam for the renderer — checklist P2.
     'SurveyComponentsProvider',

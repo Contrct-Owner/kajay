@@ -23,6 +23,19 @@ export type {
   ReadonlyPageElementRendererRegistry,
 } from './PageElementRendererRegistry.js';
 export type { QuestionRendererProps } from './QuestionRendererProps.js';
+// **What a custom renderer needs, and did not have** — checklist P9.
+//
+// ADR-0019 makes replacing a question type a supported seam, and every one of our own
+// renderers builds its ids and draws its title and errors with these five. A host's could
+// not: it had `QuestionRendererProps` and had to invent the rest. Inventing ids is not a
+// style choice — after P7 they must carry the survey's scope or two surveys on a page
+// collide again, which is the defect P7 had just removed everywhere except here.
+export { questionErrorId, questionId } from './questionId.js';
+export { useIdScope } from './idScope.js';
+export { QuestionErrors } from './QuestionErrors.js';
+export type { QuestionErrorsProps } from './QuestionErrors.js';
+export { QuestionTitleContent } from './QuestionTitleContent.js';
+export type { QuestionTitleContentProps } from './QuestionTitleContent.js';
 // The renderer's own primitive seam — ADR-0022's second half, checklist P2. Separate from
 // the Creator's map because `@kajay/react` cannot import `@kajay/creator-react` without
 // inverting the dependency direction; a host who wants one object spreads theirs into both.

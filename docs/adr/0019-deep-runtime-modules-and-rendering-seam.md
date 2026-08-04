@@ -60,3 +60,32 @@ Runtime modules are deepened around observable responsibilities:
 - Custom question rendering is browser-proven by
   `parity/A4-custom-question-renderer`; A4 remains partial until the Creator property grid
   is built.
+
+## Amendment (2026-08-04) — an extension point exports what its own implementations use
+
+**Found by auditing the public surface after three separate hosts hit the same wall.**
+
+The seam above was public from the day it shipped. What was not public was most of what a
+renderer actually needs: of the eight modules every built-in question renderer imports,
+**four were private** — `questionId`, `useIdScope`, `QuestionErrors` and
+`QuestionTitleContent`. A host could register a renderer and could not give its input an
+id the label agreed with, could not draw the title block, and could not render the errors
+D5 validates into.
+
+The reason nothing noticed is instructive: A4's proof of this seam draws a bare
+`<button>`. It proved a custom type reaches the registry, which is real, and it exercised
+none of the furniture — so the gap was invisible to the one test whose job was to look at
+it.
+
+**The rule this establishes.** When a seam is declared, its public surface must include
+everything the library's own implementations of that seam use. The test is mechanical and
+worth running: list what the built-in implementation imports, and check each against the
+entry point. Anything private is either a deliberate exclusion with a reason, or a gap.
+
+This was the fourth finding of one shape in one week — the `Menu` primitive, the missing
+panels in the reference application, `useSurfaceVersion`, and now this. All four came from
+the same cause: **the public surface was drawn from what the default assembly needed**, and
+the default assembly is a privileged consumer that imports whatever it likes. A host is
+not. See §P9 for the audit, and ADR-0021, whose composition claim has the same exposure
+and was checked at the same time — the Creator's property-editor seam passed, with two
+specialised sub-editors noted as deliberate exclusions.

@@ -8,11 +8,14 @@ import { useTextRenderer } from './TextRendererContext.js';
  * A fragment rather than an element, so each question type keeps whatever wrapper its
  * markup needs — a `label` for a single input, a `legend` for a group.
  */
+/** Public from P9: a custom renderer draws the same title block the built-ins do. */
+export interface QuestionTitleContentProps {
+  readonly question: Question;
+}
+
 export function QuestionTitleContent({
   question,
-}: {
-  readonly question: Question;
-}): ReactElement {
+}: QuestionTitleContentProps): ReactElement {
   const renderText = useTextRenderer();
   return (
     <>

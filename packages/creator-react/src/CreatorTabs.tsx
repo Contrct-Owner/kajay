@@ -4,7 +4,7 @@ import type {
   CreatorWorkspace,
 } from '@kajay/creator-core';
 import type { SaveController } from '@kajay/creator-core';
-import type { PageElementRendererResolver } from '@kajay/react';
+import type { PageElementRendererResolver, SurveyComponents } from '@kajay/react';
 import type { ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
 import { useCreatorText } from './CreatorStringsContext.js';
@@ -14,6 +14,7 @@ import { JsonEditorPanel } from './JsonEditorPanel.js';
 import { LogicPanel } from './LogicPanel.js';
 import { PageNavigatorPanel } from './PageNavigatorPanel.js';
 import { PreviewPanel } from './PreviewPanel.js';
+import type { PreviewPanelProps } from './PreviewPanel.js';
 import { PropertyGridPanel } from './PropertyGridPanel.js';
 import { SaveButton } from './SaveButton.js';
 import { ThemeEditorPanel } from './ThemeEditorPanel.js';
@@ -52,6 +53,14 @@ export interface CreatorTabsProps {
   readonly onTabChange: (tab: CreatorTab) => void;
   readonly saver?: SaveController | undefined;
   readonly renderers?: PageElementRendererResolver | undefined;
+  /**
+   * The host's primitives for the *survey* — P2, distinct from `components`.
+   *
+   * Two maps because they are two audiences and two packages: `components` dresses the
+   * Creator's own chrome, this dresses the survey being previewed. A host who wants one
+   * look supplies both, which the reference application does in one object literal.
+   */
+  readonly surveyComponents?: SurveyComponents | undefined;
 }
 
 /**
@@ -74,6 +83,7 @@ export function CreatorTabs({
   onTabChange,
   saver,
   renderers,
+  surveyComponents,
 }: CreatorTabsProps): ReactElement {
   const { Button } = useCreatorComponents();
   const text = useCreatorText();
@@ -109,6 +119,7 @@ export function CreatorTabs({
           workspace={workspace}
           tab={tab}
           renderers={renderers}
+          surveyComponents={surveyComponents}
           configuration={configuration}
         />
       </div>
@@ -120,11 +131,13 @@ function TabBody({
   workspace,
   tab,
   renderers,
+  surveyComponents,
   configuration,
 }: {
   readonly workspace: CreatorWorkspace;
   readonly tab: CreatorTab;
   readonly renderers: PageElementRendererResolver | undefined;
+  readonly surveyComponents: SurveyComponents | undefined;
   readonly configuration: CreatorConfiguration | undefined;
 }): ReactElement {
   switch (tab) {
@@ -140,7 +153,11 @@ function TabBody({
       return (
         <PreviewPanel
           session={workspace.preview}
-          {...(renderers === undefined ? {} : { surveyProps: { renderers } })}
+          // The preview is the *real* `<Survey>`, so it takes the host's real survey props
+          // — including P2's primitive map. A preview drawn with our controls beside a
+          // designer drawn with theirs would be the two-design-systems problem again, one
+          // tab apart.
+          {...surveyPropsFor(renderers, surveyComponents)}
         />
       );
     case 'logic':
@@ -190,4 +207,22 @@ function DesignTab({
       />
     </div>
   );
+}
+
+/**
+ * What the preview's `<Survey>` is given.
+ *
+ * Built rather than spread inline because `exactOptionalPropertyTypes` makes "absent" and
+ * "present and undefined" different things, and the passthrough must not turn one into the
+ * other — a `renderers: undefined` reaching `<Survey>` would override its default.
+ */
+function surveyPropsFor(
+  renderers: PageElementRendererResolver | undefined,
+  components: SurveyComponents | undefined,
+): Pick<PreviewPanelProps, 'surveyProps'> {
+  const surveyProps = {
+    ...(renderers === undefined ? {} : { renderers }),
+    ...(components === undefined ? {} : { components }),
+  };
+  return Object.keys(surveyProps).length === 0 ? {} : { surveyProps };
 }

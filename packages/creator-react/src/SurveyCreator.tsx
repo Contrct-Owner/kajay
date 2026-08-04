@@ -7,7 +7,7 @@ import type {
   ThemeDocument,
 } from '@kajay/creator-core';
 import type { MetadataRegistry, ParseOptions, SurveyDefinition } from '@kajay/core';
-import type { PageElementRendererResolver } from '@kajay/react';
+import type { PageElementRendererResolver, SurveyComponents } from '@kajay/react';
 import { useRef, useState } from 'react';
 import type { CSSProperties, ReactElement } from 'react';
 import { CreatorComponentsProvider } from './CreatorComponents.js';
@@ -17,6 +17,7 @@ import { CreatorTabs, DEFAULT_CREATOR_TABS } from './CreatorTabs.js';
 import type { CreatorTab } from './CreatorTabs.js';
 import { useCreatorDocument } from './useCreatorDocument.js';
 import { useCreatorWorkspace } from './useCreatorWorkspace.js';
+import type { CreatorWorkspaceOptions } from '@kajay/creator-core';
 
 export interface SurveyCreatorProps {
   /**
@@ -73,6 +74,14 @@ export interface SurveyCreatorProps {
   readonly creatorTheme?: Readonly<Record<string, string>> | undefined;
   /** The host's design-system primitives, shared by every piece in this assembly. */
   readonly components?: CreatorComponents | undefined;
+  /**
+   * The host's primitives for the *survey* the preview renders — checklist P2.
+   *
+   * Separate from `components`, which dresses the Creator's own chrome. Two maps because
+   * they are two packages with two audiences; a host who wants one consistent look passes
+   * both, which is a line of code rather than a design problem.
+   */
+  readonly surveyComponents?: SurveyComponents | undefined;
   readonly className?: string;
 }
 
@@ -105,16 +114,12 @@ export function SurveyCreator({
   locale,
   creatorTheme,
   components,
+  surveyComponents,
   className,
 }: SurveyCreatorProps): ReactElement {
-  const workspace = useCreatorWorkspace({
-    definition: value ?? {},
-    registry,
-    configuration,
-    preview: { parse },
-    translations: { translate },
-    themeEditor: { theme },
-  });
+  const workspace = useCreatorWorkspace(
+    workspaceOptions({ value, registry, configuration, parse, translate, theme }),
+  );
   const saver = useSaveController(save);
   useCreatorDocument({
     surface: workspace.surface,
@@ -133,6 +138,7 @@ export function SurveyCreator({
         onTabChange={setTab}
         saver={saver}
         renderers={renderers}
+        surveyComponents={surveyComponents}
       />
     </div>
   );
@@ -188,4 +194,32 @@ function useSaveController(save: SurveySaver | undefined): SaveController | unde
 
 function joinClasses(base: string, extra: string | undefined): string {
   return extra === undefined || extra.length === 0 ? base : `${base} ${extra}`;
+}
+
+/**
+ * The workspace's options, gathered.
+ *
+ * Lifted out of the component only for its length limit, and it earns the move: what a
+ * workspace is built *from* is a value, and the component above is then about assembling
+ * the Creator rather than about restating its own props.
+ */
+function workspaceOptions({
+  value,
+  registry,
+  configuration,
+  parse,
+  translate,
+  theme,
+}: Pick<
+  SurveyCreatorProps,
+  'value' | 'registry' | 'configuration' | 'parse' | 'translate' | 'theme'
+>): CreatorWorkspaceOptions {
+  return {
+    definition: value ?? {},
+    registry,
+    configuration,
+    preview: { parse },
+    translations: { translate },
+    themeEditor: { theme },
+  };
 }

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { ClientOnly } from '@/components/ClientOnly';
 import { KAJAY_CREATOR_COMPONENTS } from '@/kajay/creatorComponents';
+import { KAJAY_SURVEY_COMPONENTS } from '@/kajay/surveyComponents';
 
 export const Route = createFileRoute('/playground')({ component: Playground });
 
@@ -51,7 +52,9 @@ function Playground(): ReactElement {
           <SurveyCreator
             value={definition}
             onChange={setDefinition}
+            // Two maps, one look: the Creator's own chrome and the survey it previews.
             components={KAJAY_CREATOR_COMPONENTS}
+            surveyComponents={KAJAY_SURVEY_COMPONENTS}
           />
         </ClientOnly>
       </div>

@@ -8,6 +8,14 @@
   shadcn ships a token layer between them. Three systems that must not fight.
 */
 @import '@kajay/themes/styles.css';
+/*
+  Kajay's own dark preset, which keys off `[data-kajay-theme="dark"]` rather than a class.
+  That difference is the whole integration: shadcn's dark mode is `.dark` on the root and
+  Kajay's is an attribute on the root, so one toggle sets two things on one element and
+  neither library needs to know the other exists. No bridging code, no synchronised
+  variables — see `ThemeToggle`.
+*/
+@import '@kajay/themes/themes/dark.css';
 
 @custom-variant dark (&:is(.dark *));
 

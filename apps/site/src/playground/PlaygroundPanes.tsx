@@ -8,6 +8,12 @@ import {
 } from '@kajay/creator-react';
 import { Survey } from '@kajay/react';
 import type { ReactElement } from 'react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { KAJAY_SURVEY_COMPONENTS } from '@/kajay/surveyComponents';
 
@@ -58,11 +64,11 @@ export function EditorPane({
         ))}
       </div>
       {mode === 'design' ? (
-        <div className="grid min-w-0 grid-cols-[10rem_minmax(0,1fr)_14rem] gap-3">
-          <ToolboxPanel toolbox={workspace.toolbox} getItemProps={placement.getItemProps} />
-          <DesignSurfacePanel surface={workspace.surface} placement={placement} />
-          <PropertyGridPanel surface={workspace.surface} />
-        </div>
+        // **The canvas takes the width; the two side panels stack.** A toolbox is read
+        // top-to-bottom and a property grid is a column of labelled fields — neither wants
+        // horizontal room, and the canvas wants all of it, because what is on it is the
+        // survey at the width a respondent will see.
+        <DesignerLayout workspace={workspace} placement={placement} />
       ) : (
         <JsonEditorPanel session={workspace.json} />
       )}
@@ -107,5 +113,57 @@ export function LivePane({
         />
       </div>
     </section>
+  );
+}
+
+/**
+ * The canvas, and the two panels beside it.
+ *
+ * Its own component for the file's function-length limit, and it reads better for it: the
+ * pane above is about *which* editor is showing, this is about how the designer is laid out.
+ *
+ * **`items-start` matters more than it looks.** Without it the canvas column stretches to
+ * the sidebar's height, and the designer's own element grid then spreads that slack across
+ * its rows — which reads as huge gaps between questions and looks like a defect in the
+ * library rather than in this layout. It was one, briefly.
+ */
+function DesignerLayout({
+  workspace,
+  placement,
+}: {
+  readonly workspace: CreatorWorkspace;
+  readonly placement: ReturnType<typeof useDesignerPlacement>;
+}): ReactElement {
+  return (
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_15rem] items-start gap-3">
+          <DesignSurfacePanel surface={workspace.surface} placement={placement} />
+          <Accordion
+            type="multiple"
+            // Both open by default, and `multiple` rather than `single` because these are
+            // not alternatives: a designer drags from the toolbox *and* reads the grid, and
+            // a panel that closed the other every time would be a worse toolbox than a
+            // list. Collapsing is for reclaiming height on a laptop, not for choosing.
+            defaultValue={['toolbox', 'properties']}
+            className="min-w-0"
+          >
+            <AccordionItem value="toolbox">
+              <AccordionTrigger data-testid="pane-toolbox">Toolbox</AccordionTrigger>
+              {/*
+                Capped and scrolled: twenty-one types is a long list, and an uncapped one
+                pushes Properties below the fold — which makes "both open at once" a promise
+                the layout breaks rather than keeps.
+              */}
+              <AccordionContent className="max-h-80 overflow-y-auto">
+                <ToolboxPanel toolbox={workspace.toolbox} getItemProps={placement.getItemProps} />
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="properties">
+              <AccordionTrigger data-testid="pane-properties">Properties</AccordionTrigger>
+              <AccordionContent>
+                <PropertyGridPanel surface={workspace.surface} />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
   );
 }

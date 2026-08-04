@@ -5,6 +5,7 @@ import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { Button } from '@/components/ui/button';
 import { ClientOnly } from '@/components/ClientOnly';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { KAJAY_CREATOR_COMPONENTS } from '@/kajay/creatorComponents';
 import { EditorPane, LivePane } from '@/playground/PlaygroundPanes';
 import type { EditorMode } from '@/playground/PlaygroundPanes';
@@ -73,7 +74,12 @@ function Workbench(): ReactElement {
   return (
     <CreatorComponentsProvider components={KAJAY_CREATOR_COMPONENTS}>
       <PlaygroundHeader definition={workspace.surface.definition} />
-      <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+      {/*
+        Not an even split. The editor holds a canvas, a toolbox and a property grid; the
+        live pane holds one survey at the width a respondent reads it. Giving them equal
+        room makes the canvas the most cramped thing on a page about designing.
+      */}
+      <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <EditorPane workspace={workspace} mode={mode} onModeChange={setMode} />
         <LivePane
           workspace={workspace}
@@ -96,10 +102,12 @@ function PlaygroundHeader({ definition }: { readonly definition: SurveyDefinitio
       <p className="text-muted-foreground text-sm">
         Design on the left, answer it on the right. Nothing is saved anywhere.
       </p>
+      <span className="ml-auto flex items-center gap-2">
+        <ThemeToggle />
+      </span>
       <Button
         size="sm"
         variant="outline"
-        className="ml-auto"
         data-testid="share-link"
         onClick={() => {
           const link = shareLink(definition, globalThis.location.origin, '/playground');

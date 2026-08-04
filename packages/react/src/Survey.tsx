@@ -1,7 +1,9 @@
 import type { Survey as SurveyModel } from '@kajay/core';
+import { useId } from 'react';
 import type { CSSProperties, FormEvent, ReactElement, ReactNode, RefObject } from 'react';
 import { defaultPageElementRenderers } from './defaultPageElementRenderers.js';
 import { HtmlSanitizerProvider } from './HtmlSanitizerContext.js';
+import { IdScopeContext, toIdScope } from './idScope.js';
 import type { HtmlSanitizer } from './HtmlSanitizerContext.js';
 import { QuestionRenderersProvider } from './QuestionRenderersContext.js';
 import { SurveyComponentsProvider } from './SurveyComponents.js';
@@ -145,12 +147,20 @@ function SurveyScope({
   readonly theme: Readonly<Record<string, string>> | undefined;
   readonly children: ReactNode;
 }): ReactElement {
+  // **Every id below this belongs to *this* survey** — checklist P7. Two of them on one
+  // page render the same question names, and without a per-survey prefix the second one's
+  // labels point at the first one's inputs. `useId` is React's own answer and matches
+  // between server and client, so P1's server-rendered markup still hydrates.
+  const scope = toIdScope(useId());
+
   // React types `style` as known CSS properties; custom ones are legal at runtime and
   // this is the documented way to pass them.
   return (
-    <div className="kajay-theme" dir={survey.direction} style={theme as CSSProperties | undefined}>
-      {children}
-    </div>
+    <IdScopeContext.Provider value={scope}>
+      <div className="kajay-theme" dir={survey.direction} style={theme as CSSProperties | undefined}>
+        {children}
+      </div>
+    </IdScopeContext.Provider>
   );
 }
 

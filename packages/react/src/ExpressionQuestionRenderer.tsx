@@ -3,6 +3,7 @@ import type { ReactElement } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
+import { useIdScope } from './idScope.js';
 
 /**
  * A computed value, shown rather than asked.
@@ -15,13 +16,14 @@ export function ExpressionQuestionRenderer({
   survey,
   question,
 }: QuestionRendererProps): ReactElement {
+  const scope = useIdScope();
   useSurveyValue(survey, question.name);
 
   if (!(question instanceof ExpressionQuestion)) {
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const outputId = questionId(question);
+  const outputId = questionId(question, scope);
   return (
     <div className="kajay-question kajay-question--expression" data-question-name={question.name}>
       <label className="kajay-question__title" htmlFor={outputId}>

@@ -8,6 +8,7 @@ import { useMatrixLayout } from './useMatrixLayout.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
 import { useSurveyComponents } from './SurveyComponents.js';
+import { useIdScope } from './idScope.js';
 
 interface MatrixRowProps {
   readonly question: MatrixQuestion;
@@ -169,6 +170,7 @@ function MatrixRadioList({ question }: { readonly question: MatrixQuestion }): R
  * as nested lists of radios would look identical and say nothing.
  */
 export function MatrixQuestionRenderer({ survey, question }: QuestionRendererProps): ReactElement {
+  const scope = useIdScope();
   useSurveyValue(survey, question.name);
   const layout = useMatrixLayout(
     question instanceof MatrixQuestion ? question.mobileMode : 'table',
@@ -178,7 +180,7 @@ export function MatrixQuestionRenderer({ survey, question }: QuestionRendererPro
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const base = questionId(question);
+  const base = questionId(question, scope);
   const columnId = (index: number): string => `${base}-column-${String(index)}`;
 
   return (

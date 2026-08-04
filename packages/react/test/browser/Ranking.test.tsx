@@ -108,7 +108,10 @@ test('parity/C9-ranking: a row says what it is and how to move it', async () => 
   await expect
     .element(screen.getByText(/Press space to pick this up/u))
     .toBeInTheDocument();
-  expect(row.element().getAttribute('aria-describedby')).toBe(
+  // Suffix, not the whole id: P7 gave each rendered survey its own prefix, and pinning the
+  // literal would pin the prefix — which is generated and none of this test's business.
+  // What matters is that the row points at *its own* hint.
+  expect(row.element().getAttribute('aria-describedby')).toContain(
     'kajay-question-priorities-ranked-hint',
   );
 });

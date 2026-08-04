@@ -3,6 +3,7 @@ import type { ReactElement, ReactNode } from 'react';
 import { QuestionErrors } from './QuestionErrors.js';
 import { questionErrorId } from './questionId.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
+import { useIdScope } from './idScope.js';
 
 export interface MatrixFrameProps {
   readonly survey: SurveyModel;
@@ -28,7 +29,8 @@ export function MatrixFrame({
   className,
   children,
 }: MatrixFrameProps): ReactElement {
-  const errorId = questionErrorId(question);
+  const scope = useIdScope();
+  const errorId = questionErrorId(question, scope);
   const own = question.errors.filter((error) => error.path === undefined);
 
   return (

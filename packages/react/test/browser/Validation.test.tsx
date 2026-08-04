@@ -41,7 +41,7 @@ test('parity/D1-required: a refused move shows the message and marks the field',
   await expect.element(field).toHaveAttribute('aria-invalid', 'true');
   await expect
     .element(field)
-    .toHaveAttribute('aria-describedby', 'kajay-question-second-errors');
+    .toHaveAttribute('aria-describedby', expect.stringContaining('kajay-question-second-errors'));
   expect(model.isCompleted).toBe(false);
 });
 

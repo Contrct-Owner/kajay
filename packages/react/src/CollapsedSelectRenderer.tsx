@@ -9,6 +9,7 @@ import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
+import { useIdScope } from './idScope.js';
 
 function currentSelection(question: SelectQuestion): string | string[] {
   return question instanceof MultiSelectQuestion
@@ -93,13 +94,14 @@ export function CollapsedSelectRenderer({
   survey,
   question,
 }: QuestionRendererProps): ReactElement {
+  const scope = useIdScope();
   useSurveyValue(survey, question.name);
 
   if (!(question instanceof SelectQuestion)) {
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const inputId = questionId(question);
+  const inputId = questionId(question, scope);
   const errorId = `${inputId}-errors`;
 
   return (

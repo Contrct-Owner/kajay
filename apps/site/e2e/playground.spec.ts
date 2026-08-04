@@ -58,12 +58,11 @@ test('parity/P3-playground: answering the live survey never reaches what is bein
 }) => {
   await page.goto(PLAYGROUND);
 
-  // **Not `getByLabel`**, which cannot find it: the designer and the live survey are two
-  // parses of one definition, so both render `id="kajay-question-name"` and every
-  // `<label for>` resolves to whichever came first. That is a real defect this scenario
-  // found — see §P7 — and it is not what this scenario is about, which is where an answer
-  // goes.
-  await live(page).locator('input[type="text"]').first().fill('Ada');
+  // By label, which is how a respondent finds it. This scenario could not do that until
+  // P7: the designer and the live survey are two parses of one definition, and both used
+  // to emit `id="kajay-question-name"`, so every `<label for>` here resolved to the
+  // designer's input.
+  await live(page).getByLabel('What is your name?').fill('Ada');
 
   // The preview parses its own survey, so an answer is a *response* and cannot become part
   // of the definition. Switching to the JSON is the shortest way to see that it did not.

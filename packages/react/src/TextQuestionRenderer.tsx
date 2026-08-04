@@ -7,6 +7,7 @@ import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useQuestionValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
 import { useSurveyComponents } from './SurveyComponents.js';
+import { useIdScope } from './idScope.js';
 
 /**
  * The bounds and granularity the browser also understands.
@@ -28,9 +29,10 @@ function boundAttributes(question: Question): Record<string, string | number> {
 }
 
 export function TextQuestionRenderer({ survey, question }: QuestionRendererProps): ReactElement {
+  const scope = useIdScope();
   const { Input } = useSurveyComponents();
   const value = useQuestionValue(survey, question);
-  const inputId = questionId(question);
+  const inputId = questionId(question, scope);
   const errorId = `${inputId}-errors`;
 
   const isTextQuestion = question instanceof TextQuestion;

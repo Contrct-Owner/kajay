@@ -3,6 +3,7 @@ import type { ReactElement } from 'react';
 import { MatrixCell } from './MatrixCell.js';
 import { questionId } from './questionId.js';
 import { useSurveyComponents } from './SurveyComponents.js';
+import { useIdScope } from './idScope.js';
 
 export interface MatrixRowDetailProps {
   readonly survey: SurveyModel;
@@ -24,9 +25,15 @@ export interface MatrixDetailToggleProps {
   readonly onToggle: () => void;
 }
 
-/** The id the toggle and the panel it controls agree on. */
-function detailId(question: MatrixCellsBase, rowKey: string): string {
-  return `${questionId(question)}-detail-${rowKey}`;
+/**
+ * The id the toggle and the panel it controls agree on.
+ *
+ * Takes the scope rather than reading it: this is a plain function, not a component, and
+ * a hook here would be a hook in the wrong place. Its two callers are components and
+ * already have one.
+ */
+function detailId(question: MatrixCellsBase, rowKey: string, scope: string): string {
+  return `${questionId(question, scope)}-detail-${rowKey}`;
 }
 
 /**
@@ -41,6 +48,7 @@ export function MatrixDetailToggle({
   rowKey,
   onToggle,
 }: MatrixDetailToggleProps): ReactElement {
+  const scope = useIdScope();
   const { Button } = useSurveyComponents();
   const isExpanded = question.isRowExpanded(rowKey);
   return (
@@ -48,7 +56,7 @@ export function MatrixDetailToggle({
       type="button"
       className="kajay-matrix__detail-toggle"
       aria-expanded={isExpanded}
-      aria-controls={detailId(question, rowKey)}
+      aria-controls={detailId(question, rowKey, scope)}
       onClick={() => {
         question.setRowExpanded(rowKey, !isExpanded);
         onToggle();
@@ -65,11 +73,12 @@ export function MatrixRowDetail({
   question,
   rowKey,
 }: MatrixRowDetailProps): ReactElement | null {
+  const scope = useIdScope();
   if (!question.isRowExpanded(rowKey)) {
     return null;
   }
   return (
-    <div className="kajay-matrix__detail" id={detailId(question, rowKey)}>
+    <div className="kajay-matrix__detail" id={detailId(question, rowKey, scope)}>
       {question.detailCellsFor(rowKey).map((cell) => (
         <MatrixCell key={cell.name} survey={survey} cell={cell} />
       ))}

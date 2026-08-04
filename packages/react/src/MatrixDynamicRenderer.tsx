@@ -12,6 +12,7 @@ import { whenEditable } from './readOnly.js';
 import { useMatrixLayout } from './useMatrixLayout.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { useSurveyComponents } from './SurveyComponents.js';
+import { useIdScope } from './idScope.js';
 
 interface RemoveButtonProps {
   readonly question: MatrixDynamicQuestion;
@@ -128,8 +129,9 @@ function DynamicTable({
   columns,
   onToggleDetail,
 }: DynamicBodyProps): ReactElement {
+  const scope = useIdScope();
   return (
-    <table className="kajay-matrix kajay-matrix--dynamic" id={questionId(question)}>
+    <table className="kajay-matrix kajay-matrix--dynamic" id={questionId(question, scope)}>
       <thead>
         <tr>
           <td className="kajay-matrix__corner" />

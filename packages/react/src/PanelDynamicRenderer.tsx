@@ -8,6 +8,7 @@ import { questionId } from './questionId.js';
 import { whenEditable } from './readOnly.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { useSurveyComponents } from './SurveyComponents.js';
+import { useIdScope } from './idScope.js';
 
 interface PanelNavProps {
   readonly question: PanelDynamicQuestion;
@@ -138,6 +139,7 @@ function AddPanelButton({
  * what it objects to belong to the questions inside it.
  */
 export function PanelDynamicRenderer({ survey, question }: QuestionRendererProps): ReactElement {
+  const scope = useIdScope();
   useSurveyValue(survey, question.name);
   // Which instance is on screen is a fact about this view, not an answer, so nothing on
   // the survey's event channel carries it and the component that moved redraws itself.
@@ -153,7 +155,7 @@ export function PanelDynamicRenderer({ survey, question }: QuestionRendererProps
   return (
     <MatrixFrame survey={survey} question={question} className="kajay-question--paneldynamic">
       <PanelNav question={question} onMove={redraw} />
-      <div className="kajay-paneldynamic" id={questionId(question)}>
+      <div className="kajay-paneldynamic" id={questionId(question, scope)}>
         {question.visiblePanelKeys.map((rowKey) => (
           <PanelInstance
             key={rowKey}

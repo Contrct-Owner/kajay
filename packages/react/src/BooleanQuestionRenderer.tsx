@@ -7,6 +7,7 @@ import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
 import { useSurveyComponents } from './SurveyComponents.js';
+import { useIdScope } from './idScope.js';
 
 interface ModeProps {
   readonly question: BooleanQuestion;
@@ -79,13 +80,14 @@ export function BooleanQuestionRenderer({
   survey,
   question,
 }: QuestionRendererProps): ReactElement {
+  const scope = useIdScope();
   useSurveyValue(survey, question.name);
 
   if (!(question instanceof BooleanQuestion)) {
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const inputId = questionId(question);
+  const inputId = questionId(question, scope);
   const errorId = `${inputId}-errors`;
   const isRadio = question.renderAs === 'radio';
 

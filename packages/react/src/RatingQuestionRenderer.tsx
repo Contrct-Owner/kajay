@@ -7,6 +7,7 @@ import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionErrorId, questionId } from './questionId.js';
 import { useSurveyComponents } from './SurveyComponents.js';
+import { useIdScope } from './idScope.js';
 
 const SMILEYS = ['😖', '🙁', '😐', '🙂', '😄'];
 
@@ -52,8 +53,9 @@ function StepGlyph({
  * group, and the visible label is what the pointer lands on.
  */
 function RatingButtons({ question }: { readonly question: RatingQuestion }): ReactElement {
+  const scope = useIdScope();
   const { Radio } = useSurveyComponents();
-  const groupName = questionId(question);
+  const groupName = questionId(question, scope);
   return (
     <div className="kajay-rating" data-rate-type={question.rateType}>
       {question.rateValues.map((step, index) => (
@@ -106,7 +108,8 @@ function RateDescriptions({ question }: { readonly question: RatingQuestion }): 
  * legend names the fieldset and nothing inside it.
  */
 function RatingDropdown({ survey, question }: RatingProps): ReactElement {
-  const inputId = questionId(question);
+  const scope = useIdScope();
+  const inputId = questionId(question, scope);
   const errorId = `${inputId}-errors`;
 
   const handleChange = (event: ChangeEvent<HTMLSelectElement>): void => {
@@ -151,7 +154,8 @@ function RatingDropdown({ survey, question }: RatingProps): ReactElement {
 }
 
 function RatingGroup({ survey, question }: RatingProps): ReactElement {
-  const errorId = questionErrorId(question);
+  const scope = useIdScope();
+  const errorId = questionErrorId(question, scope);
   return (
     <fieldset
       className="kajay-question kajay-question--rating"

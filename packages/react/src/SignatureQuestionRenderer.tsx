@@ -8,6 +8,7 @@ import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { whenEditable } from './readOnly.js';
 import { useQuestionValue } from './useSurveyState.js';
 import { useSurveyComponents } from './SurveyComponents.js';
+import { useIdScope } from './idScope.js';
 
 /** The MIME type a format is exported as. SVG is not a canvas format; PNG stands in. */
 function mimeTypeOf(format: string): string {
@@ -81,10 +82,11 @@ interface StrokeHandlers {
 }
 
 function SignaturePad({ question, canvasRef, signature, errorId }: PadProps): ReactElement {
+  const scope = useIdScope();
   const isDrawing = useRef(false);
   return (
     <canvas
-      id={questionId(question)}
+      id={questionId(question, scope)}
       ref={canvasRef}
       className="kajay-signature"
       width={question.signatureWidth}
@@ -160,6 +162,7 @@ export function SignatureQuestionRenderer({
   survey,
   question,
 }: QuestionRendererProps): ReactElement {
+  const scope = useIdScope();
   useQuestionValue(survey, question);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -177,11 +180,11 @@ export function SignatureQuestionRenderer({
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const errorId = questionErrorId(question);
+  const errorId = questionErrorId(question, scope);
 
   return (
     <div className="kajay-question kajay-question--signature" data-question-name={question.name}>
-      <label className="kajay-question__title" htmlFor={questionId(question)}>
+      <label className="kajay-question__title" htmlFor={questionId(question, scope)}>
         <QuestionTitleContent question={question} />
       </label>
 

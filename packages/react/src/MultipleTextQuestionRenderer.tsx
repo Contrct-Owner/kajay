@@ -7,6 +7,7 @@ import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionErrorId, questionId } from './questionId.js';
 import { useSurveyComponents } from './SurveyComponents.js';
+import { useIdScope } from './idScope.js';
 
 interface ItemFieldProps {
   readonly question: MultipleTextQuestion;
@@ -23,8 +24,9 @@ interface ItemFieldProps {
  * itself.
  */
 function ItemField({ question, item, errors }: ItemFieldProps): ReactElement {
+  const scope = useIdScope();
   const { Input } = useSurveyComponents();
-  const inputId = `${questionId(question)}-${item.name}`;
+  const inputId = `${questionId(question, scope)}-${item.name}`;
   const errorId = `${inputId}-errors`;
   const size = item.size > 0 ? item.size : question.itemSize;
 
@@ -79,13 +81,14 @@ export function MultipleTextQuestionRenderer({
   survey,
   question,
 }: QuestionRendererProps): ReactElement {
+  const scope = useIdScope();
   useSurveyValue(survey, question.name);
 
   if (!(question instanceof MultipleTextQuestion)) {
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const errorId = questionErrorId(question);
+  const errorId = questionErrorId(question, scope);
   const own = question.errors.filter((error) => error.path === undefined);
 
   return (

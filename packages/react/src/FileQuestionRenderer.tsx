@@ -10,6 +10,7 @@ import { readFiles } from './readFiles.js';
 import { whenEditable } from './readOnly.js';
 import { useQuestionValue } from './useSurveyState.js';
 import { useSurveyComponents } from './SurveyComponents.js';
+import { useIdScope } from './idScope.js';
 
 /** Bytes as a respondent reads them, beside the name of the thing they attached. */
 function describeSize(bytes: number): string {
@@ -151,6 +152,7 @@ function UploadStatus({ question }: { readonly question: FileQuestion }): ReactE
  * is an addition to it, never a replacement.
  */
 export function FileQuestionRenderer({ survey, question }: QuestionRendererProps): ReactElement {
+  const scope = useIdScope();
   useQuestionValue(survey, question);
   const [isOver, setOver] = useState(false);
 
@@ -158,8 +160,9 @@ export function FileQuestionRenderer({ survey, question }: QuestionRendererProps
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const inputId = questionId(question);
-  const errorId = questionErrorId(question);
+  // One line for the pair: they are one fact — a control and the message about it — and
+  // this renderer is at its length limit, which P7's extra `scope` line pushed it over.
+  const [inputId, errorId] = [questionId(question, scope), questionErrorId(question, scope)];
   const attach = (files: readonly File[]): void => {
     // Nothing awaits it: reading and storing are asynchronous, and a change handler that
     // returned a promise would be one nobody handles. The model reports what happened.

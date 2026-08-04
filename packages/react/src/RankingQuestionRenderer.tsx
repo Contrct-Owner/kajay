@@ -11,6 +11,7 @@ import type { ReorderItemProps } from './useReorder.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
 import { useSurveyComponents } from './SurveyComponents.js';
+import { useIdScope } from './idScope.js';
 
 function rankingHeading(question: RankingQuestion): string {
   if (question.isReadOnly || question.selectToRankEnabled) {
@@ -69,8 +70,9 @@ function RankedRow({
 }
 
 function RankedList({ question }: { readonly question: RankingQuestion }): ReactElement {
+  const scope = useIdScope();
   const ranked = question.rankedChoices;
-  const listId = `${questionId(question)}-ranked`;
+  const listId = `${questionId(question, scope)}-ranked`;
   const reorder = useReorder({
     itemCount: ranked.length,
     onMove: (from, to) => question.moveRanked(from, to),
@@ -147,7 +149,8 @@ function PoolChoice({
 
 /** The choices nobody has placed yet. Only `selectToRankEnabled` has one. */
 function RankingPool({ question }: { readonly question: RankingQuestion }): ReactElement {
-  const poolId = `${questionId(question)}-pool`;
+  const scope = useIdScope();
+  const poolId = `${questionId(question, scope)}-pool`;
   const unranked = question.unrankedChoices;
   return (
     <div className="kajay-ranking__area" role="group" aria-labelledby={`${poolId}-heading`}>
@@ -199,13 +202,14 @@ function UnrankButton({
  * the same place.
  */
 export function RankingQuestionRenderer({ survey, question }: QuestionRendererProps): ReactElement {
+  const scope = useIdScope();
   useSurveyValue(survey, question.name);
 
   if (!(question instanceof RankingQuestion)) {
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const groupName = questionId(question);
+  const groupName = questionId(question, scope);
   const errorId = `${groupName}-errors`;
 
   return (

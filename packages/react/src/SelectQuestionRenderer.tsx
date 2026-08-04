@@ -8,6 +8,7 @@ import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
 import { useSurveyComponents } from './SurveyComponents.js';
+import { useIdScope } from './idScope.js';
 
 function ClearButton({ question }: { readonly question: RadiogroupQuestion }): ReactElement {
   const { Button } = useSurveyComponents();
@@ -79,6 +80,7 @@ function ChoiceGrid({ question, groupName, columns }: ChoiceGridProps): ReactEle
  * view: it reports a click and re-reads the answer.
  */
 export function SelectQuestionRenderer({ survey, question }: QuestionRendererProps): ReactElement {
+  const scope = useIdScope();
   // Subscribed so a change made anywhere — logic, a trigger, another question —
   // re-renders the options.
   useSurveyValue(survey, question.name);
@@ -87,7 +89,7 @@ export function SelectQuestionRenderer({ survey, question }: QuestionRendererPro
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const groupName = questionId(question);
+  const groupName = questionId(question, scope);
   const errorId = `${groupName}-errors`;
   const columns = question.colCount > 0 ? question.colCount : 1;
   const isMultiple = question instanceof CheckboxQuestion;

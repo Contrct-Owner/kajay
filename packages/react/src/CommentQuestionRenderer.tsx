@@ -8,6 +8,7 @@ import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useQuestionValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
 import { useSurveyComponents } from './SurveyComponents.js';
+import { useIdScope } from './idScope.js';
 
 /**
  * Grows a textarea to fit what is in it.
@@ -74,12 +75,13 @@ export function CommentQuestionRenderer({
   survey,
   question,
 }: QuestionRendererProps): ReactElement {
+  const scope = useIdScope();
   const { Textarea } = useSurveyComponents();
   const value = useQuestionValue(survey, question);
   const isComment = question instanceof CommentQuestion;
   const autoGrow = useAutoGrow(isComment && question.autoGrow, value);
 
-  const inputId = questionId(question);
+  const inputId = questionId(question, scope);
   const errorId = `${inputId}-errors`;
   const counterId = `${inputId}-counter`;
   const remaining = isComment ? question.remainingCharacters : undefined;

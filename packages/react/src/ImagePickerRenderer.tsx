@@ -8,6 +8,7 @@ import { readOnlyRadioGroup, whenEditable } from './readOnly.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
 import { useSurveyComponents } from './SurveyComponents.js';
+import { useIdScope } from './idScope.js';
 
 function tileStyle(question: ImagePickerQuestion): CSSProperties {
   return {
@@ -102,13 +103,14 @@ function ChoiceTile({
  * sound different to a screen reader as well as behave differently.
  */
 export function ImagePickerRenderer({ survey, question }: QuestionRendererProps): ReactElement {
+  const scope = useIdScope();
   useSurveyValue(survey, question.name);
 
   if (!(question instanceof ImagePickerQuestion)) {
     return <div className="kajay-question kajay-question--unsupported" />;
   }
 
-  const groupName = questionId(question);
+  const groupName = questionId(question, scope);
   const errorId = `${groupName}-errors`;
 
   return (

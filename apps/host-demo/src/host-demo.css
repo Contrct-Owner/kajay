@@ -81,3 +81,19 @@ body {
   background: #f4f4f5;
   overflow-x: auto;
 }
+
+/* The translation import/export controls — checklist M4. The host owns these: a download
+   is an anchor with an object URL and an upload is a file input, neither of which the
+   library may assume about a browser. */
+.host-demo__sheet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-block-end: 1rem;
+}
+
+.host-demo__sheet p {
+  flex-basis: 100%;
+  margin: 0;
+}

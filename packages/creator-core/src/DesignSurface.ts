@@ -37,23 +37,7 @@ import { propertyRowsFor } from './propertyGrid.js';
 import type { PropertyGridOptions } from './propertyGridOptions.js';
 import type { PropertyGridCategory } from './propertyGrid.js';
 import { renameIn, setLocalizedOn, setPropertyOn } from './propertyEdits.js';
-
-/** What an edit wants restored once its definition has been parsed. */
-export interface EditOptions {
-  /** The element or page to select. Nothing, by default. */
-  readonly select?: string | undefined;
-  /** The page to show. The one already open, by default. */
-  readonly goTo?: string | undefined;
-  /** Edits sharing a key coalesce into one undo entry — see {@link UndoHistory}. */
-  readonly undoKey?: string | undefined;
-  /** The definition being replaced, when the caller has already computed it. */
-  readonly from?: SurveyDefinition | undefined;
-}
-
-export interface DesignSurfaceOptions {
-  readonly definition: SurveyDefinition;
-  readonly registry?: MetadataRegistry;
-}
+import type { DesignSurfaceOptions, EditOptions } from './DesignSurfaceOptions.js';
 
 /**
  * The survey being designed, and what is selected in it — checklist K3.
@@ -87,6 +71,17 @@ export class DesignSurface {
 
   get survey(): Survey {
     return this.#document.survey;
+  }
+
+  /**
+   * The registry this document was parsed with — checklist M4.
+   *
+   * Exposed because a session built *beside* the surface has to introspect the same types
+   * it holds: a translation table walks child collections, and one asking a different
+   * registry would miss a host's own type or find one this survey was never parsed with.
+   */
+  get registry(): MetadataRegistry {
+    return this.#document.registry;
   }
 
   /** What was wrong with the definition it was given. Never thrown away silently. */

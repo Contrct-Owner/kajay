@@ -2,7 +2,7 @@
 // private, and there are no subpath entries (ADR-0010) — this file *is* the package.
 
 export { DesignSurface } from './DesignSurface.js';
-export type { DesignSurfaceOptions, EditOptions } from './DesignSurface.js';
+export type { DesignSurfaceOptions, EditOptions } from './DesignSurfaceOptions.js';
 export { addPageTo, placeOn, removePageFrom } from './designerEdits.js';
 export { DesignSelection } from './DesignSelection.js';
 export {
@@ -78,6 +78,17 @@ export type { JsonEditorProblem, JsonEditorSessionOptions } from './JsonEditorSe
 export { locationOf, syntaxErrorOffset } from './jsonLocation.js';
 export type { JsonLocation } from './jsonLocation.js';
 export { PreviewSession } from './PreviewSession.js';
+export { TranslationSession } from './TranslationSession.js';
+export type {
+  MachineTranslator,
+  TranslationRequest,
+  TranslationRunResult,
+  TranslationSessionOptions,
+} from './TranslationSession.js';
+export { collectTranslations, DEFAULT_LOCALE, localesUsed } from './translations.js';
+export type { TranslationEntry } from './translations.js';
+export { fromCsv, toCsv, translationCells, translationRows } from './translationSheet.js';
+export type { TranslationCell } from './translationSheet.js';
 export type { PreviewData, PreviewSessionOptions } from './PreviewSession.js';
 export {
   DEFAULT_PREVIEW_DEVICE,

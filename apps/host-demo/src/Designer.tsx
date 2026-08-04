@@ -1,9 +1,16 @@
-import { DesignSurface, JsonEditorSession, PreviewSession, Toolbox } from '@kajay/creator-core';
+import {
+  DesignSurface,
+  JsonEditorSession,
+  PreviewSession,
+  Toolbox,
+  TranslationSession,
+} from '@kajay/creator-core';
 import { HistoryPanel, PageNavigatorPanel, useDesignerPlacement } from '@kajay/creator-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties, ReactElement } from 'react';
 import { DesignerJson } from './DesignerJson.js';
 import { DesignerPreview } from './DesignerPreview.js';
+import { DesignerTranslations } from './DesignerTranslations.js';
 import { DesignerProperties } from './DesignerProperties.js';
 import { DesignerSurface } from './DesignerSurface.js';
 import { DesignerToolbox } from './DesignerToolbox.js';
@@ -70,29 +77,49 @@ export interface DesignerProps {
  * canvas is one gesture crossing both: the placement is created here and handed to each.
  * Two copies would be two gestures, one of which never finishes.
  */
+/**
+ * The sessions a host owns beside the surface — checklists M2, M3, M4.
+ *
+ * One hook because they share a lifetime and a reason: each follows the design surface's
+ * changes, each is unmounted every time a designer switches tab, and each would take a
+ * half-written definition or a half-filled run with it if it were built inside one.
+ */
+function useCreatorSessions(surface: DesignSurface): {
+  readonly preview: PreviewSession;
+  readonly json: JsonEditorSession;
+  readonly translations: TranslationSession;
+} {
+  const sessions = useMemo(
+    () => ({
+      preview: new PreviewSession(surface),
+      json: new JsonEditorSession(surface),
+      // A pretend translation service, so the seam is exercised rather than described. A
+      // real host calls whichever vendor they have an account with; nothing ships.
+      translations: new TranslationSession(surface, {
+        translate: (request) =>
+          Promise.resolve(request.texts.map((text) => `[${request.to}] ${text}`)),
+      }),
+    }),
+    [surface],
+  );
+  useEffect(
+    () => () => {
+      sessions.preview.dispose();
+      sessions.json.dispose();
+      sessions.translations.dispose();
+    },
+    [sessions],
+  );
+  return sessions;
+}
+
 export function Designer({ theme }: DesignerProps): ReactElement {
   // Built once: they hold the selection and the search term, and rebuilding them per
   // render would drop what the designer had picked or typed on every keystroke.
   const surface = useMemo(() => new DesignSurface({ definition: DESIGNED }), []);
   const toolbox = useMemo(() => new Toolbox(), []);
   const placement = useDesignerPlacement(surface);
-  // Built here rather than inside the preview tab, so a run survives switching away to
-  // change a title and back again. It follows the surface's changes, so it is disposed
-  // when the whole Creator goes.
-  const session = useMemo(() => new PreviewSession(surface), [surface]);
-  useEffect(
-    () => () => {
-      session.dispose();
-    },
-    [session],
-  );
-  const json = useMemo(() => new JsonEditorSession(surface), [surface]);
-  useEffect(
-    () => () => {
-      json.dispose();
-    },
-    [json],
-  );
+  const sessions = useCreatorSessions(surface);
   const [tab, setTab] = useState<DesignerTab>('design');
 
   return (
@@ -116,18 +143,22 @@ export function Designer({ theme }: DesignerProps): ReactElement {
           <DesignerProperties theme={theme} surface={surface} />
         </>
       ) : null}
-      {tab === 'preview' ? <DesignerPreview theme={theme} session={session} /> : null}
-      {tab === 'json' ? <DesignerJson theme={theme} session={json} /> : null}
+      {tab === 'preview' ? <DesignerPreview theme={theme} session={sessions.preview} /> : null}
+      {tab === 'json' ? <DesignerJson theme={theme} session={sessions.json} /> : null}
+      {tab === 'translations' ? (
+        <DesignerTranslations theme={theme} session={sessions.translations} />
+      ) : null}
     </>
   );
 }
 
-type DesignerTab = 'design' | 'preview' | 'json';
+type DesignerTab = 'design' | 'preview' | 'json' | 'translations';
 
 const TAB_TITLES: Readonly<Record<DesignerTab, string>> = {
   design: 'Design',
   preview: 'Preview',
   json: 'JSON',
+  translations: 'Translations',
 };
 
 /**
@@ -152,7 +183,7 @@ function DesignerTabs({
   return (
     <section className="host-demo__panel" aria-label="Designer tabs" style={theme as CSSProperties}>
       <div role="tablist" aria-label="Creator">
-        {(['design', 'preview', 'json'] as const).map((name) => (
+        {(['design', 'preview', 'json', 'translations'] as const).map((name) => (
           <button
             key={name}
             type="button"

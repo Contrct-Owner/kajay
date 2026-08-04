@@ -1824,3 +1824,47 @@
 .kajay-json__diagnostic[data-severity='error'] {
   color: var(--kajay-color-danger);
 }
+
+/* The translation table — checklist M4. A real table, because a screen reader announces
+   "row 4, column French" from one and nothing at all from a grid of divs. */
+.kajay-translations-panel__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--kajay-spacing) / 2);
+  align-items: center;
+  margin-block-end: var(--kajay-spacing);
+}
+
+.kajay-translations-panel__table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.kajay-translations-panel__table th,
+.kajay-translations-panel__table td {
+  border: 1px solid var(--kajay-color-border);
+  padding: calc(var(--kajay-spacing) / 4);
+  text-align: start;
+  vertical-align: top;
+}
+
+.kajay-translations-panel__context {
+  font-weight: normal;
+  font-size: 0.85em;
+}
+
+.kajay-translations-panel__missing {
+  font-weight: normal;
+  font-size: 0.8em;
+  opacity: 0.7;
+}
+
+.kajay-translations-panel__input {
+  width: 100%;
+  min-width: 8rem;
+}
+
+.kajay-translations-panel__report {
+  margin: 0;
+  flex-basis: 100%;
+}

@@ -33,6 +33,8 @@ export type { ExpressionFieldProps } from './ExpressionField.js';
 export { TranslationsField } from './TranslationsField.js';
 export type { TranslationsFieldProps } from './TranslationsField.js';
 export { ToolboxPanel } from './ToolboxPanel.js';
+export { TranslationsPanel, useTranslationVersion } from './TranslationsPanel.js';
+export type { TranslationsPanelProps } from './TranslationsPanel.js';
 export { useDesignerPlacement } from './useDesignerPlacement.js';
 export type {
   DesignerPlacement,

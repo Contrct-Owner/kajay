@@ -1,0 +1,39 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    // **`bundler`, overriding the workspace's `nodenext`.** The published packages must be
+    // `nodenext` — that is what makes their `exports` map real for consumers (ADR-0010).
+    // An application built by Vite is the opposite case, and it has to be: shadcn generates
+    // `import { cn } from "@/lib/utils"` with no file extension, which `nodenext` rejects
+    // outright. A registry that pastes source into your repo and a resolver that demands
+    // extensions cannot both be satisfied, so the app takes the resolver its bundler uses.
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    // Emit is discarded: Vite builds the app. This project exists so the site is
+    // type-checked under both compilers like everything else — which is most of the
+    // point, since the site is the first consumer written the way an adopter writes one.
+    "outDir": "../../.tsbuild/site",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "types": [],
+    "jsx": "react-jsx",
+    // shadcn generates its components importing from `@/…`, and rewriting every one of
+    // them to relative paths would mean the registry's own output no longer pastes in.
+    // That is the alias earning its place rather than a preference.
+    //
+    // **Without `baseUrl`, which TypeScript 6 removed** — every shadcn guide still writes
+    // `"baseUrl": "."` beside this, and on TS 6 that is a hard error rather than a warning.
+    // Relative `./src/*` is the replacement, and it is worth knowing before we tell anyone
+    // to add Kajay to their shadcn project.
+    "paths": { "@/*": ["./src/*"] },
+    "tsBuildInfoFile": "../../.tsbuild/site.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "references": [
+    { "path": "../../packages/core" },
+    { "path": "../../packages/creator-core" },
+    { "path": "../../packages/creator-react" },
+    { "path": "../../packages/react" },
+    { "path": "../../packages/themes" }
+  ]
+}

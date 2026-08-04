@@ -76,6 +76,36 @@ export const WORKSPACE_PACKAGE_POLICIES = Object.freeze([
       'react-dom',
     ],
   }),
+  definePackage({
+    name: '@kajay/site',
+    directory: 'apps/site',
+    role: 'application',
+    published: false,
+    // An application's list is long because an application's list *is* long — this one
+    // brings a router, a CSS engine and the Radix primitives its design system is built
+    // from. Enumerating it is the cost of the exact-match rule, and it is worth paying
+    // here for the same reason it is worth paying for a package: the moment a dependency
+    // arrives without anybody deciding to add it, this file says so.
+    dependencies: [
+      '@kajay/core',
+      '@kajay/creator-core',
+      '@kajay/creator-react',
+      '@kajay/react',
+      '@kajay/themes',
+      '@tanstack/react-router',
+      '@tanstack/react-start',
+      'class-variance-authority',
+      'clsx',
+      'lucide-react',
+      // One package, not one per primitive: shadcn's generated components import from
+      // the unified `radix-ui` re-export, so adding a component adds no dependency. That
+      // is what keeps this list from growing every time the site gains a control.
+      'radix-ui',
+      'react',
+      'react-dom',
+      'tailwind-merge',
+    ],
+  }),
 ]);
 
 export const PUBLISHED_PACKAGE_POLICIES = Object.freeze(

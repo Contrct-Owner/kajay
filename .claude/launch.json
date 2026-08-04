@@ -3,9 +3,15 @@
   "configurations": [
     {
       "name": "host-demo",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--workspace", "@kajay/host-demo"],
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@kajay/host-demo", "run", "dev"],
       "port": 5173
+    },
+    {
+      "name": "site",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@kajay/site", "run", "dev"],
+      "port": 5174
     }
   ]
 }

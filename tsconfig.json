@@ -8,6 +8,7 @@
     { "path": "./packages/creator-react" },
     { "path": "./packages/themes" },
     { "path": "./apps/host-demo" },
+    { "path": "./apps/site" },
     { "path": "./tsconfig.tests.json" }
   ]
 }

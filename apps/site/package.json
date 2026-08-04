@@ -1,0 +1,33 @@
+{
+  "name": "@kajay/site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "kajay.io \u2014 the reference application. Proves the packages are pleasant to build with, not merely capable, by consuming them the way an adopter does: through public exports, with the adopter's own design system supplying the chrome.",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@kajay/core": "workspace:*",
+    "@kajay/creator-core": "workspace:*",
+    "@kajay/creator-react": "workspace:*",
+    "@kajay/react": "workspace:*",
+    "@kajay/themes": "workspace:*",
+    "@tanstack/react-router": "^1.170.18",
+    "@tanstack/react-start": "^1.168.35",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.28.0",
+    "radix-ui": "^1.6.7",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "tailwind-merge": "^3.4.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^6.0.5",
+    "tailwindcss": "^4.3.3"
+  }
+}

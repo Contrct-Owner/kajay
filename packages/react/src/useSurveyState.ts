@@ -7,6 +7,20 @@ import { useCallback, useEffect, useReducer, useSyncExternalStore } from 'react'
  * `useSyncExternalStore` over the core event surface is the whole integration: core
  * owns the state, React only reads it. That is what keeps the renderer swappable —
  * another framework's adapter subscribes to the same events.
+ *
+ * **Every hook in this file passes `getSnapshot` twice**, and the second one is the reason
+ * a survey can be server-rendered at all. Without a server snapshot React does not warn —
+ * it throws `Missing getServerSnapshot` and reverts the *entire page* to client rendering,
+ * so a host on Next or TanStack Start gets a blank first paint, no indexable content, and
+ * nothing that looks broken. The reference application found it the only way it could be
+ * found: by putting a survey on a server-rendered route.
+ *
+ * The same function serves both because these snapshots are **already the same on both
+ * sides**. Each reads synchronous state off a model built from the definition, and server
+ * and client build that model from the same definition — so there is no client-only value
+ * to diverge from, and nothing to hydrate around. Where that is *not* true the answer is a
+ * different function, which is what `useMatrixLayout` does: a media query has no server
+ * answer, so it states one.
  */
 export function useSurveyValue(survey: Survey, name: string): unknown {
   const subscribe = useCallback(
@@ -14,7 +28,7 @@ export function useSurveyValue(survey: Survey, name: string): unknown {
     [survey],
   );
   const getSnapshot = useCallback((): unknown => survey.getValue(name), [survey, name]);
-  return useSyncExternalStore(subscribe, getSnapshot);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 /**
@@ -37,7 +51,7 @@ export function useQuestionValue(survey: Survey, question: Question): unknown {
     [survey],
   );
   const getSnapshot = useCallback((): unknown => question.value, [question]);
-  return useSyncExternalStore(subscribe, getSnapshot);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 /**
@@ -75,7 +89,7 @@ export function useSurveyLocale(survey: Survey): string {
     [survey],
   );
   const getSnapshot = useCallback((): string => survey.locale, [survey]);
-  return useSyncExternalStore(subscribe, getSnapshot);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 /**
@@ -91,7 +105,7 @@ export function useSurveyLogicState(survey: Survey): number {
     [survey],
   );
   const getSnapshot = useCallback((): number => survey.logicVersion, [survey]);
-  return useSyncExternalStore(subscribe, getSnapshot);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 /**
@@ -107,7 +121,7 @@ export function useSurveyCurrentPageNo(survey: Survey): number {
     [survey],
   );
   const getSnapshot = useCallback((): number => survey.currentPageNo, [survey]);
-  return useSyncExternalStore(subscribe, getSnapshot);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 /**
@@ -123,7 +137,7 @@ export function useSurveyValidating(survey: Survey): boolean {
     [survey],
   );
   const getSnapshot = useCallback((): boolean => survey.validation.isValidating, [survey]);
-  return useSyncExternalStore(subscribe, getSnapshot);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 /**
@@ -148,7 +162,7 @@ export function useSurveyStatus(survey: Survey): SurveyState {
     [survey],
   );
   const getSnapshot = useCallback((): SurveyState => survey.status.state, [survey]);
-  return useSyncExternalStore(subscribe, getSnapshot);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 export function useSurveyCompleted(survey: Survey): boolean {
@@ -157,5 +171,5 @@ export function useSurveyCompleted(survey: Survey): boolean {
     [survey],
   );
   const getSnapshot = useCallback((): boolean => survey.isCompleted, [survey]);
-  return useSyncExternalStore(subscribe, getSnapshot);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

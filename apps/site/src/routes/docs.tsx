@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import type { ReactElement } from 'react';
-import { DocsShell, docsHomePage } from '@/features/docs-shell';
+import { DocumentationPage } from '@/features/docs-catalog';
 
 export const Route = createFileRoute('/docs')({
   component: DocsHome,
@@ -8,6 +8,6 @@ export const Route = createFileRoute('/docs')({
 });
 
 function DocsHome(): ReactElement {
-  return <DocsShell page={docsHomePage} pages={[docsHomePage]} />;
+  return <DocumentationPage slug="" />;
 }
 

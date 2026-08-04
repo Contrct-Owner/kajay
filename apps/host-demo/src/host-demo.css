@@ -97,3 +97,18 @@ body {
   flex-basis: 100%;
   margin: 0;
 }
+
+/* The theme tab — checklist M5. Editor and live preview side by side, because the point of
+   the row is watching the second change as you edit the first. */
+.host-demo__theme {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (width < 60rem) {
+  .host-demo__theme {
+    grid-template-columns: 1fr;
+  }
+}

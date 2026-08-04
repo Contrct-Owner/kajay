@@ -1868,3 +1868,51 @@
   margin: 0;
   flex-basis: 100%;
 }
+
+/* The theme editor — checklist M5. A form over the theme JSON, with the unset state drawn
+   because "the theme does not name this" is a different answer from "empty". */
+.kajay-theme__controls {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 2);
+  margin-block-end: var(--kajay-spacing);
+}
+
+.kajay-theme__fields {
+  display: grid;
+  gap: calc(var(--kajay-spacing) / 2);
+}
+
+.kajay-theme__row {
+  display: grid;
+  grid-template-columns: minmax(8rem, 1fr) 2fr auto;
+  gap: calc(var(--kajay-spacing) / 2);
+  align-items: center;
+}
+
+.kajay-theme__label {
+  opacity: 0.7;
+}
+
+.kajay-theme__row[data-set='true'] .kajay-theme__label {
+  opacity: 1;
+  font-weight: 600;
+}
+
+.kajay-theme__swatch {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+}
+
+.kajay-theme__hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.85em;
+  opacity: 0.75;
+}
+
+.kajay-theme__problem {
+  margin: 0 0 var(--kajay-spacing);
+  color: var(--kajay-color-danger);
+}

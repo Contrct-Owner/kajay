@@ -2,6 +2,7 @@ import {
   DesignSurface,
   JsonEditorSession,
   PreviewSession,
+  ThemeEditorSession,
   Toolbox,
   TranslationSession,
 } from '@kajay/creator-core';
@@ -10,6 +11,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties, ReactElement } from 'react';
 import { DesignerJson } from './DesignerJson.js';
 import { DesignerPreview } from './DesignerPreview.js';
+import { DesignerTheme } from './DesignerTheme.js';
 import { DesignerTranslations } from './DesignerTranslations.js';
 import { DesignerProperties } from './DesignerProperties.js';
 import { DesignerSurface } from './DesignerSurface.js';
@@ -88,6 +90,7 @@ function useCreatorSessions(surface: DesignSurface): {
   readonly preview: PreviewSession;
   readonly json: JsonEditorSession;
   readonly translations: TranslationSession;
+  readonly theme: ThemeEditorSession;
 } {
   const sessions = useMemo(
     () => ({
@@ -99,6 +102,9 @@ function useCreatorSessions(surface: DesignSurface): {
         translate: (request) =>
           Promise.resolve(request.texts.map((text) => `[${request.to}] ${text}`)),
       }),
+      // No survey and no surface: a theme is a fact about one deployment rather than part
+      // of the document, which is why it is not on the survey's undo stack either.
+      theme: new ThemeEditorSession({ theme: { name: 'demo', palette: { accent: '#3355ff' } } }),
     }),
     [surface],
   );
@@ -148,17 +154,21 @@ export function Designer({ theme }: DesignerProps): ReactElement {
       {tab === 'translations' ? (
         <DesignerTranslations theme={theme} session={sessions.translations} />
       ) : null}
+      {tab === 'theme' ? (
+        <DesignerTheme session={sessions.theme} preview={sessions.preview} />
+      ) : null}
     </>
   );
 }
 
-type DesignerTab = 'design' | 'preview' | 'json' | 'translations';
+type DesignerTab = 'design' | 'preview' | 'json' | 'translations' | 'theme';
 
 const TAB_TITLES: Readonly<Record<DesignerTab, string>> = {
   design: 'Design',
   preview: 'Preview',
   json: 'JSON',
   translations: 'Translations',
+  theme: 'Theme',
 };
 
 /**
@@ -183,7 +193,7 @@ function DesignerTabs({
   return (
     <section className="host-demo__panel" aria-label="Designer tabs" style={theme as CSSProperties}>
       <div role="tablist" aria-label="Creator">
-        {(['design', 'preview', 'json', 'translations'] as const).map((name) => (
+        {(['design', 'preview', 'json', 'translations', 'theme'] as const).map((name) => (
           <button
             key={name}
             type="button"

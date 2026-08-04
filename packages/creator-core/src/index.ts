@@ -78,6 +78,10 @@ export type { JsonEditorProblem, JsonEditorSessionOptions } from './JsonEditorSe
 export { locationOf, syntaxErrorOffset } from './jsonLocation.js';
 export type { JsonLocation } from './jsonLocation.js';
 export { PreviewSession } from './PreviewSession.js';
+export { ThemeEditorSession } from './ThemeEditorSession.js';
+export type { ThemeEditorSessionOptions, ThemeProblem } from './ThemeEditorSession.js';
+export { BUILT_IN_THEME_FIELDS, themeRowsFor, valueAt, withValueAt } from './themeFields.js';
+export type { ThemeDocument, ThemeField, ThemeFieldKind, ThemeRow } from './themeFields.js';
 export { TranslationSession } from './TranslationSession.js';
 export type {
   MachineTranslator,

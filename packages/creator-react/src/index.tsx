@@ -32,6 +32,8 @@ export { ExpressionField } from './ExpressionField.js';
 export type { ExpressionFieldProps } from './ExpressionField.js';
 export { TranslationsField } from './TranslationsField.js';
 export type { TranslationsFieldProps } from './TranslationsField.js';
+export { ThemeEditorPanel, useThemeVersion } from './ThemeEditorPanel.js';
+export type { ThemeEditorPanelProps } from './ThemeEditorPanel.js';
 export { ToolboxPanel } from './ToolboxPanel.js';
 export { TranslationsPanel, useTranslationVersion } from './TranslationsPanel.js';
 export type { TranslationsPanelProps } from './TranslationsPanel.js';

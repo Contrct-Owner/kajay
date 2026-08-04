@@ -8,6 +8,7 @@ import { findByName, freshenFragment, takenNames } from './fragments.js';
 import type { DropSlot } from './placement.js';
 import { refuse } from './EditRefusal.js';
 import type { EditRefusal } from './EditRefusal.js';
+import { notice } from './CreatorNotice.js';
 
 /**
  * Copy, paste, duplicate and convert — checklist K5.
@@ -61,13 +62,20 @@ export function pasteInto(
   if (items === undefined || slot.index < 0 || slot.index > items.length) {
     return refuse('not-found', 'container' in slot.list ? slot.list.container : '');
   }
-  const fresh = freshenFragment(fragment, takenNames(before));
+  const { fragment: fresh, renames } = freshenFragment(fragment, takenNames(before));
   const after = withList(before, slot.list, [
     ...items.slice(0, slot.index),
     fresh,
     ...items.slice(slot.index),
   ]);
-  return surface.applyEdit(after, { select: nameOf(fresh), from: before });
+  const refusal = surface.applyEdit(after, { select: nameOf(fresh), from: before });
+  // Announced only after the edit took, and only when something was actually renumbered:
+  // a paste into a survey with no clashes reads exactly as it was written, and saying so
+  // would be a message about nothing (ADR-0023).
+  if (refusal === undefined && renames.size > 0) {
+    surface.notify(notice('renamed-on-paste', { count: renames.size }));
+  }
+  return refusal;
 }
 
 /**
@@ -97,10 +105,18 @@ export function removeElementFrom(
     return refuse('not-found', name);
   }
   const remaining = items.filter((_unused, index) => index !== at);
-  return surface.applyEdit(withList(before, list, remaining), {
+  // What is about to disappear with it. Deleting a panel is one gesture and can remove a
+  // page's worth of work; K7 made that the operation rather than a side effect, which is
+  // exactly why it is worth saying out loud.
+  const inside = descendantCount(items[at]);
+  const outcome = surface.applyEdit(withList(before, list, remaining), {
     select: nameOf(remaining[Math.min(at, remaining.length - 1)] ?? {}),
     from: before,
   });
+  if (outcome === undefined && inside > 0) {
+    surface.notify(notice('removed-with-children', { subject: name, count: inside }));
+  }
+  return outcome;
 }
 
 /**
@@ -141,7 +157,13 @@ export function convertIn(
     return refuse('type-not-allowed', type);
   }
   const converted = convertDefinition(element, type, registry);
-  return surface.applyEdit(
+  // Counted before the edit, because afterwards the old element is gone and nothing can
+  // work out what it used to carry. Conversion is the one edit here that loses a
+  // designer's typing, so it is the one that most needs to say so.
+  const dropped = Object.keys(element).filter(
+    (key) => key !== 'type' && !(key in converted),
+  ).length;
+  const outcome = surface.applyEdit(
     withList(
       before,
       list,
@@ -149,6 +171,10 @@ export function convertIn(
     ),
     { select: name, from: before },
   );
+  if (outcome === undefined && dropped > 0) {
+    surface.notify(notice('properties-dropped', { subject: name, count: dropped }));
+  }
+  return outcome;
 }
 
 /**
@@ -210,4 +236,16 @@ function convertDefinition(
     }
   }
   return output;
+}
+
+/** How many elements a container holds, all the way down. What a delete takes with it. */
+function descendantCount(element: SurveyDefinition | undefined): number {
+  const children = element?.['elements'];
+  if (!Array.isArray(children)) {
+    return 0;
+  }
+  return children.reduce<number>(
+    (total, child) => total + 1 + descendantCount(child as SurveyDefinition),
+    0,
+  );
 }

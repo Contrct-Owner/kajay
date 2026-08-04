@@ -3,6 +3,7 @@ import type { Diagnostic, MetadataRegistry, SurveyDefinition } from '@kajay/core
 import type { DesignSurface } from './DesignSurface.js';
 import { locationOf, syntaxErrorOffset } from './jsonLocation.js';
 import type { JsonLocation } from './jsonLocation.js';
+import { notice } from './CreatorNotice.js';
 
 /**
  * Why a draft cannot become a survey at all.
@@ -136,7 +137,11 @@ export class JsonEditorSession {
       return false;
     }
     const before = this.#surface.definition;
-    this.#surface.applyEdit(definition, { from: before });
+    const refusal = this.#surface.applyEdit(definition, { from: before });
+    if (refusal !== undefined) {
+      return false;
+    }
+    this.#surface.notify(notice('survey-replaced'));
     // Re-seeded from what the *surface* now holds rather than from the draft: applying a
     // definition canonicalises it (ADR-0002), so the text a designer typed and the text
     // that survived are not the same string, and calling the draft clean without saying

@@ -46,21 +46,27 @@ function elementOf(designed: DesignSurface, name: string): SurveyDefinition {
 
 describe('parity/K5-freshen', () => {
   test('a name already free is kept', () => {
-    const fresh = freshenFragment({ type: 'text', name: 'who' }, new Set(['other']));
+    const { fragment, renames } = freshenFragment({ type: 'text', name: 'who' }, new Set(['other']));
 
     // A fragment pasted into a different survey should read exactly as it was written.
-    expect(fresh['name']).toBe('who');
+    expect(fragment['name']).toBe('who');
+    // And nothing to announce, because nothing was renumbered (ADR-0023).
+    expect(renames.size).toBe(0);
   });
 
   test('a name that is taken is numbered from its stem', () => {
-    const fresh = freshenFragment({ type: 'text', name: 'who2' }, new Set(['who2', 'who3']));
+    const { fragment, renames } = freshenFragment(
+      { type: 'text', name: 'who2' },
+      new Set(['who2', 'who3']),
+    );
 
     // `who4`, not `who21` — the second reads as a typo and sorts nowhere sensible.
-    expect(fresh['name']).toBe('who4');
+    expect(fragment['name']).toBe('who4');
+    expect(renames.get('who2')).toBe('who4');
   });
 
   test('a reference inside the copy follows the copy', () => {
-    const fresh = freshenFragment(
+    const { fragment: fresh } = freshenFragment(
       {
         type: 'panel',
         name: 'group',
@@ -80,7 +86,7 @@ describe('parity/K5-freshen', () => {
   });
 
   test('a reference out of the copy is left alone', () => {
-    const fresh = freshenFragment(
+    const { fragment: fresh } = freshenFragment(
       { type: 'text', name: 'who', visibleIf: '{consent} = true' },
       new Set(['who']),
     );
@@ -90,7 +96,7 @@ describe('parity/K5-freshen', () => {
   });
 
   test('references are rewritten in every string, not only expressions', () => {
-    const fresh = freshenFragment(
+    const { fragment: fresh } = freshenFragment(
       {
         type: 'panel',
         name: 'group',
@@ -110,7 +116,7 @@ describe('parity/K5-freshen', () => {
   });
 
   test('a longer name that starts the same is not rewritten', () => {
-    const fresh = freshenFragment(
+    const { fragment: fresh } = freshenFragment(
       {
         type: 'panel',
         name: 'group',

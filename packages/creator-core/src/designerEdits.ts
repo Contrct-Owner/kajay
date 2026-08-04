@@ -1,5 +1,8 @@
 import type { DesignSurface } from './DesignSurface.js';
 import { addPage, pageAfterRemoving, removePage } from './pageEdits.js';
+import { notice } from './CreatorNotice.js';
+import { placementRefusal } from './placement.js';
+import type { DropSlot, PlacementSource } from './placement.js';
 import { refuse } from './EditRefusal.js';
 import type { EditRefusal } from './EditRefusal.js';
 
@@ -53,4 +56,48 @@ function newestPage(definition: Record<string, unknown>): string | undefined {
   const last: unknown = pages.at(-1);
   const name = (last as Record<string, unknown> | undefined)?.['name'];
   return typeof name === 'string' ? name : undefined;
+}
+
+/**
+ * Puts a new element, or an existing one, at a slot — checklists K2 and K4.
+ *
+ * A free function beside the other structural edits, and back here after the placement
+ * state machine took the mechanics: what is left is the part that is about *surveys* —
+ * which refusals a drop can carry, and what is worth saying afterwards.
+ *
+ * **The reason comes from the same predicate the session guards with.** Asking
+ * `placementRefusal` here is what turns the session's one-word `'refused'` back into
+ * something a designer can act on, and because it is one function rather than two, the
+ * drop this refuses and the drop the session refuses cannot come apart (ADR-0023).
+ */
+export function placeOn(
+  surface: DesignSurface,
+  source: PlacementSource,
+  slot: DropSlot,
+): EditRefusal | undefined {
+  if (surface.isReadOnly) {
+    return refuse('read-only');
+  }
+  const refusal = placementRefusal(surface.definition, source, slot, surface.configuration);
+  if (refusal !== undefined) {
+    return refusal;
+  }
+  const outcome = surface.placement.transition({ kind: 'place', source, slot });
+  // `'ignored'` is a drop that changed nothing, which refuses nothing. Past the check
+  // above, `'refused'` can only be the session's own state: a drag already in flight.
+  if (outcome === 'refused') {
+    return refuse('drag-in-progress');
+  }
+  // N5 gave the toolbox starter choices, rows and template elements so a dropped question
+  // is answerable straight away. That is content a designer did not type appearing in their
+  // survey, and only the items carrying any say so (ADR-0023).
+  if (outcome === 'committed' && source.kind === 'new' && hasStarterContent(source.item)) {
+    surface.notify(notice('starter-content', { subject: surface.selection.name ?? source.item.type }));
+  }
+  return undefined;
+}
+
+/** Whether a toolbox item brings anything beyond its type and a name. */
+function hasStarterContent(item: { readonly defaults: Readonly<Record<string, unknown>> }): boolean {
+  return Object.keys(item.defaults).length > 0;
 }

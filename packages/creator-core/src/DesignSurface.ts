@@ -13,7 +13,7 @@ import { locate } from './definitionTree.js';
 import { SurveyDocument } from './SurveyDocument.js';
 import { DesignHistory } from './DesignHistory.js';
 import type { HistorySnapshot } from './UndoHistory.js';
-import { addPageTo, removePageFrom } from './designerEdits.js';
+import { addPageTo, placeOn, removePageFrom } from './designerEdits.js';
 import { DesignSelection } from './DesignSelection.js';
 import {
   convertibleTypes,
@@ -21,7 +21,6 @@ import {
   duplicateIn,
   removeElementFrom,
 } from './elementEdits.js';
-import { placementRefusal } from './placement.js';
 import type { DropSlot, PlacementSource } from './placement.js';
 import { DesignClipboard } from './DesignClipboard.js';
 import { collectionRowsFor } from './collectionGrid.js';
@@ -38,6 +37,7 @@ import type { PropertyGridCategory } from './propertyGrid.js';
 import { renameIn, setLocalizedOn, setPropertyOn } from './propertyEdits.js';
 import type { CreatorConfiguration } from './CreatorConfiguration.js';
 import { refuse } from './EditRefusal.js';
+import type { CreatorNotice } from './CreatorNotice.js';
 import type { EditRefusal } from './EditRefusal.js';
 import type { DesignSurfaceOptions, EditOptions } from './DesignSurfaceOptions.js';
 import { PlacementSessionModel } from './PlacementSession.js';
@@ -71,6 +71,28 @@ export class DesignSurface {
   #placementRevision = 0;
 
   readonly onChanged: EventEmitter<number> = new EventEmitter();
+
+  /**
+   * What the Creator did that nobody asked for — ADR-0023's other half.
+   *
+   * **A stream rather than state**, and separate from `onChanged`: a notice is a thing that
+   * happened once, not a property of the document, and a view that re-read it on every
+   * render would announce a paste again every time something else changed. A host may
+   * route these into their own notification system; the default assembly renders them into
+   * a polite live region.
+   */
+  readonly onNotice: EventEmitter<CreatorNotice> = new EventEmitter();
+
+  /**
+   * Announces something the Creator did on its own initiative.
+   *
+   * Public for the reason `change` and `applyEdit` are: a host — and K5's own edits — will
+   * do things this class does not name, and the alternative is an edit that quietly reshapes
+   * a survey with nothing able to say so.
+   */
+  notify(what: CreatorNotice): void {
+    this.onNotice.emit(what);
+  }
 
   constructor(options: DesignSurfaceOptions) {
     this.#document = new SurveyDocument(options.definition, options.registry);
@@ -330,22 +352,9 @@ export class DesignSurface {
 
   /** Puts a new element, or an existing one, at a slot — checklist K2 and K4. */
   place(source: PlacementSource, slot: DropSlot): EditRefusal | undefined {
-    if (this.isReadOnly) {
-      return refuse('read-only');
-    }
-    // **The same predicate the session guards with.** Asking it here is what turns the
-    // session's one-word `'refused'` back into a reason a designer can act on — and
-    // because it is one function rather than two, the drop this refuses and the drop the
-    // session refuses cannot come apart (ADR-0023).
-    const refusal = placementRefusal(this.definition, source, slot, this.#configuration);
-    if (refusal !== undefined) {
-      return refusal;
-    }
-    const outcome = this.#placementSession.transition({ kind: 'place', source, slot });
-    // `'ignored'` is a drop that changed nothing, which refuses nothing. Past the check
-    // above, `'refused'` can only be the session's own state: a drag already in flight.
-    return outcome === 'refused' ? refuse('drag-in-progress') : undefined;
+    return placeOn(this, source, slot);
   }
+
 
 
   /**
@@ -497,3 +506,4 @@ export class DesignSurface {
     this.onChanged.emit(this.#version);
   }
 }
+

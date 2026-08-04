@@ -3,7 +3,7 @@
 - Area: `creator-core`, `creator-react`
 - Status: accepted
 - Owner: Jarod
-- Last updated: 2026-08-04
+- Last updated: 2026-08-04 (amended)
 
 ## Context
 
@@ -55,6 +55,22 @@ Anything the Creator does that the designer did not ask for — starter defaults
 a selection moved by undo, a document replaced by applying JSON, an edit dropped because
 the deployment is read-only — says so. **Where it happened**, not in a corner: D5 settled
 this for the runtime's validation errors and the argument is the same one.
+
+> **Amendment (P6).** Building this half showed the rule needs a second clause, because
+> "where it happened" has no answer for most of these. A paste that renumbered two names, a
+> conversion that dropped a setting, a delete that took five questions — none has a control
+> a message can hang from, which is the case the *Alternatives* section below already
+> allowed a notification surface for. So: **a refusal lands on the control; a notice goes to
+> one polite live region.** `role="status"`, not `alert` — these announce things that
+> worked, and cutting across a screen reader to confirm a success is how announcements get
+> turned off.
+>
+> **Not every automatic act qualifies.** The test is whether a designer would be confused or
+> lose work if it happened quietly. Undo moving the selection fails it — undo is *expected*
+> to change things, and a message on every press is one people learn to skip. Renaming their
+> `who` to `who1` passes: they will go looking for `who`. Five acts passed; announcing an
+> edit that was *refused* is excluded outright, because it would describe a survey the
+> designer does not have.
 
 ### The words are the Creator's own
 

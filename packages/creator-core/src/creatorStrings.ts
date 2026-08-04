@@ -134,6 +134,16 @@ export const CREATOR_STRING_DEFINITIONS = [
   { key: 'refusalDragInProgress', en: 'Finish the move already in progress first.' },
   { key: 'refusalNothingCopied', en: 'Nothing has been copied yet.' },
 
+  // --- What the Creator did unasked (ADR-0023) -----------------------------
+  // Past tense and specific. Each says what changed and, where something was lost, how
+  // much — a designer who reads "some settings were dropped" still has to go and look.
+  { key: 'noticeRenamedOnPaste', en: '{0} pasted names were already in use and have been renumbered.' },
+  { key: 'noticePropertiesDropped', en: 'Changed “{0}” — {1} settings the new type has no place for were dropped.' },
+  { key: 'noticeRemovedWithChildren', en: 'Deleted “{0}” and the {1} elements inside it.' },
+  { key: 'noticeStarterContent', en: 'Added “{0}” with starter content — replace it with your own.' },
+  { key: 'noticeSurveyReplaced', en: 'The designer now shows the JSON you applied.' },
+  { key: 'creatorNotices', en: 'Creator activity' },
+
   // --- The theme editor -----------------------------------------------------
   { key: 'themeReset', en: 'Reset' },
   { key: 'themeNotSet', en: '(not set)' },

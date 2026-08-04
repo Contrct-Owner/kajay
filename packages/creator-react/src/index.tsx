@@ -4,6 +4,8 @@
 // These are the *pieces* (ADR-0021). The default assembly that arranges them lands with
 // the design surface, and will be built from nothing but what is exported here.
 
+export { CreatorNotices, useLatestNotice } from './CreatorNotices.js';
+export type { CreatorNoticesProps } from './CreatorNotices.js';
 export { CreatorStringsProvider, useCreatorText } from './CreatorStringsContext.js';
 export type { CreatorStringsProviderProps, CreatorText } from './CreatorStringsContext.js';
 export { CreatorTabs, DEFAULT_CREATOR_TABS } from './CreatorTabs.js';

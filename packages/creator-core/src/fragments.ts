@@ -29,7 +29,7 @@ export type RenameMap = ReadonlyMap<string, string>;
 export function freshenFragment(
   fragment: SurveyDefinition,
   taken: ReadonlySet<string>,
-): SurveyDefinition {
+): { readonly fragment: SurveyDefinition; readonly renames: ReadonlyMap<string, string> } {
   const claimed = new Set(taken);
   const renames = new Map<string, string>();
   for (const name of collectNames(fragment)) {
@@ -43,7 +43,10 @@ export function freshenFragment(
     claimed.add(fresh);
     renames.set(name, fresh);
   }
-  return rewrite(fragment, renames) as SurveyDefinition;
+  // The renames come back rather than being thrown away. They are the whole of what a
+  // designer needs to hear — their `who` is now `who1`, and they will go looking for
+  // `who` — and this is the only moment anything knows it (ADR-0023).
+  return { fragment: rewrite(fragment, renames) as SurveyDefinition, renames };
 }
 
 /**

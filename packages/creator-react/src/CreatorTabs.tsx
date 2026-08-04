@@ -16,6 +16,7 @@ import { PageNavigatorPanel } from './PageNavigatorPanel.js';
 import { PreviewPanel } from './PreviewPanel.js';
 import type { PreviewPanelProps } from './PreviewPanel.js';
 import { PropertyGridPanel } from './PropertyGridPanel.js';
+import { CreatorNotices } from './CreatorNotices.js';
 import { SaveButton } from './SaveButton.js';
 import { ThemeEditorPanel } from './ThemeEditorPanel.js';
 import { ToolboxPanel } from './ToolboxPanel.js';
@@ -114,6 +115,12 @@ export function CreatorTabs({
         </nav>
         {saver === undefined ? null : <SaveButton surface={workspace.surface} saver={saver} />}
       </div>
+      {/*
+        Above the body rather than beside a tab: what the Creator just did to the survey is
+        true whichever view is showing, and a notice that vanished on switching to JSON
+        would be one a designer never got to read.
+      */}
+      <CreatorNotices surface={workspace.surface} />
       <div className="kajay-creator__body">
         <TabBody
           workspace={workspace}

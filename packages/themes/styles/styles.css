@@ -952,6 +952,16 @@
   font-size: var(--kajay-font-size-sm);
 }
 
+/* What the Creator did unasked (ADR-0023). Muted and one line: it confirms rather than
+   warns, and it is empty far more often than not — so it must not leave a gap. */
+.kajay-creator__notices {
+  margin: 0;
+  min-height: 1.25em;
+  padding: 0 var(--kajay-spacing);
+  color: var(--kajay-color-muted);
+  font-size: var(--kajay-font-size-sm);
+}
+
 @media (max-width: 40rem) {
   .kajay-properties__row {
     grid-template-columns: 1fr;

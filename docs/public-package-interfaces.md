@@ -38,7 +38,7 @@ operations are reached through `survey.timer` and `survey.strings`.
 | Intentional extension seams | `PageElementRendererRegistry`, `SurveyComponentsProvider`, `defaultPageElementRenderers`, `useQuestionRenderers`, `useQuestionValue`, `useReorder`, `useSurveyComponents`, `useSurveyValue` | Custom renderer registration and isolation, nested renderer resolution, custom question controls, and the shared accessible reorder grammar. The default registry is statically readonly; `clone()` returns a mutable registry. `SurveyComponentsProvider`/`useSurveyComponents` are [ADR-0022](./adr/0022-design-system-primitives.md)'s primitive seam for the renderer (P2) — a host supplies their own Button and the survey draws with it; the provider is public because a host arranging pieces themselves needs to establish the map without `<Survey>`. |
 | Maintained Creator-adapter requirements | `PageElementDecoratorProvider`, `PageElementSlot`, `QuestionRenderersProvider`, `readOnlyAction`, `reorderAnnouncement` | Creator adorners, nested container rendering, property actions, and placement narration import these through the public package seam. |
 
-## `@kajay/creator-core` — 29 values
+## `@kajay/creator-core` — 31 values
 
 | Category | Values | Concrete evidence |
 | --- | --- | --- |
@@ -46,18 +46,20 @@ operations are reached through `survey.timer` and `survey.strings`.
 | Stable configuration and vocabulary | `CONDITION_OPERATORS`, `DEFAULT_LOCALE`, `LOGIC_TEMPLATES`, `PREVIEW_DEVICES`, `isUnaryOperator`, `previewDevice` | Creator UI adapters draw stable condition controls, logic templates, locales, and preview devices without copying catalogues. Creator wording is extended through `CreatorStringDictionary`; its backing catalogue and formatter remain package-local. |
 | Maintained React-adapter requirements | `applySuggestion`, `childLabel`, `expressionSuggestions`, `fastEntryText`, `localesOf`, `localizedTextIn`, `matchingSuggestions`, `parseEditorText`, `sameDefinition`, `tokenAt` | Property, collection, expression, translation, and controlled-document adapters call these through the root. Their semantics remain headless and reusable by a second framework adapter. |
 | Why an edit was refused ([ADR-0023](./adr/0023-the-creator-says-what-happened.md)) | `nameRefusal`, `refuse`, `refusalMessageKey` | Every edit answers with `EditRefusal | undefined` rather than a boolean, so a host drawing their own property grid can say *why* an edit did not take. `nameRefusal` is the shared predicate the rename guards with and a field asks before committing — one rule, two callers, so a view cannot promise an edit the document then refuses. `refusalMessageKey` maps a reason to the N3 catalogue, keeping the words translatable and white-labelled. |
+| What the Creator did unasked ([ADR-0023](./adr/0023-the-creator-says-what-happened.md)) | `notice`, `noticeMessageKey` | The other half of a refusal. `DesignSurface.onNotice` carries what the Creator did on its own initiative — a paste that renumbered names, a conversion that dropped settings, a delete that took a container's children — so a host can route them into their own notification system instead of the shipped live region. `notify` is public for the same reason `change` and `applyEdit` are: a host's own edits reshape a survey too, and should be able to say so. |
 
 Free placement/tree/edit algorithms are private. Consumers use `DesignSurface.place`
 or the deep `DesignSurface.placement` controller; translation/theme/logic consumers use
 their sessions rather than raw traversal and codec functions.
 
-## `@kajay/creator-react` — 25 values
+## `@kajay/creator-react` — 27 values
 
 | Category | Values | Concrete evidence |
 | --- | --- | --- |
 | Default assembly and composition controllers | `CreatorTabs`, `DEFAULT_CREATOR_TABS`, `SurveyCreator`, `useCreatorDocument`, `useCreatorWorkspace`, `useDesignerPlacement` | The assembled Creator and host-owned arrangement share the same public workspace, controlled-document, and placement lifetime paths. |
 | Top-level pieces promised by ADR-0021 | `DesignSurfacePanel`, `HistoryPanel`, `JsonEditorPanel`, `LogicPanel`, `PageNavigatorPanel`, `PreviewPanel`, `PropertyGridPanel`, `SaveButton`, `ThemeEditorPanel`, `ToolboxPanel`, `TranslationsPanel` | Default and non-default host layouts render these pieces through public imports; browser and host E2E suites cover both arrangements. |
 | Host design-system, text, editor, and session seams | `CreatorComponentsProvider`, `CreatorStringsProvider`, `PropertyEditorProvider`, `useCreatorComponents`, `useCreatorText`, `usePreviewVersion`, `usePropertyEditor`, `useThemeVersion` | Host primitive replacement, white-label strings, custom property editors, and custom preview/theme panels use these seams without internal imports. |
+| Saying what the Creator did ([ADR-0023](./adr/0023-the-creator-says-what-happened.md)) | `CreatorNotices`, `useLatestNotice` | The default assembly renders the shipped polite live region; a host who would rather route notices into their own notification system subscribes with the hook and draws nothing. Browser scenarios cover both the shipped region and a white-labelled message. |
 
 Nested fields, shortcuts, panel-internal version counters, and element-action widgets
 are private implementation details of the top-level pieces. Public version hooks remain

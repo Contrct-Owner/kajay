@@ -100,6 +100,9 @@ export const PUBLIC_RUNTIME_SURFACE = Object.freeze({
     // them. Public because a host drawing their own property grid needs both to say
     // anything at all.
     'nameRefusal',
+    // ADR-0023's other half: what the Creator did unasked, and the words for it.
+    'notice',
+    'noticeMessageKey',
     'parseEditorText',
     'previewDevice',
     'refusalMessageKey',
@@ -109,6 +112,9 @@ export const PUBLIC_RUNTIME_SURFACE = Object.freeze({
   ]),
   '@kajay/creator-react': Object.freeze([
     'CreatorComponentsProvider',
+    // ADR-0023's notice surface: the shipped live region, and the hook for a host who
+    // would rather route notices into their own.
+    'CreatorNotices',
     'CreatorStringsProvider',
     'CreatorTabs',
     'DEFAULT_CREATOR_TABS',
@@ -128,6 +134,7 @@ export const PUBLIC_RUNTIME_SURFACE = Object.freeze({
     'useCreatorComponents',
     'useCreatorDocument',
     'useCreatorText',
+    'useLatestNotice',
     'useCreatorWorkspace',
     'useDesignerPlacement',
     'usePreviewVersion',

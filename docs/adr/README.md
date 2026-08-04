@@ -3,7 +3,7 @@
 - Area: Decision record index
 - Status: established
 - Owner: Jarod
-- Last updated: 2026-08-03
+- Last updated: 2026-08-04
 
 Non-trivial decisions get an ADR. An ADR states the context, the decision, and the
 consequences that follow from it — including the costs accepted. Reversals are
@@ -27,11 +27,11 @@ recorded here (status `superseded`) **and** in the
 | [0002](./0002-round-trip-fixed-point.md) | Round-trip bar is fixed-point equivalence, not byte stability | accepted | 2026-08-02 |
 | [0003](./0003-hand-rolled-expression-parser.md) | Expression language: hand-rolled tokenizer + Pratt parser | accepted | 2026-08-02 |
 | [0004](./0004-explicit-dependency-graph.md) | Core reactivity: explicit dependency graph, no signals library | accepted | 2026-08-02 |
-| [0005](./0005-single-version-train.md) | Single version train released with changesets | accepted | 2026-08-02 |
+| [0005](./0005-single-version-train.md) | Single version train released with changesets | deferred | 2026-08-02; deferred 2026-08-04 |
 | [0006](./0006-npm-scope.md) | npm scope `@kajay/*` | proposed | 2026-08-02 |
 | [0007](./0007-license-and-repo-posture.md) | Private repo, unlicensed, decision deferred to Phase 2 exit | accepted | 2026-08-02 |
 | [0008](./0008-no-surveyjs-theme-import.md) | No SurveyJS theme-JSON import; own token namespace | accepted | 2026-08-02 |
-| [0009](./0009-creator-drag-and-drop.md) | Creator drag-and-drop implementation | deferred | 2026-08-02 |
+| [0009](./0009-creator-drag-and-drop.md) | Creator drag-and-drop implementation | accepted | 2026-08-03 |
 | [0010](./0010-package-manifest-and-distribution.md) | Package manifest shape, Node floor, and CSS distribution | accepted | 2026-08-02 |
 | [0011](./0011-contract-identity-and-format-version.md) | Contract identity and definition-format versioning | accepted | 2026-08-02 |
 | [0012](./0012-typescript-dual-check.md) | TypeScript 6 primary, TypeScript 7 as the second checker | accepted | 2026-08-02 |
@@ -45,9 +45,12 @@ recorded here (status `superseded`) **and** in the
 | [0020](./0020-versioned-cross-language-runtime-contract.md) | Versioned cross-language runtime contract | accepted | 2026-08-03 |
 | [0021](./0021-creator-composition.md) | Creator composition: pieces, with a default assembly on top | accepted | 2026-08-03 |
 | [0022](./0022-design-system-primitives.md) | The host's design system draws the chrome | accepted | 2026-08-03 |
+| [0023](./0023-retain-parse-survey-calling-modes.md) | Retain both `parseSurvey` calling modes | accepted | 2026-08-04 |
+| [0024](./0024-publication-hold.md) | Publication hold pending an explicit release walkthrough | accepted | 2026-08-04 |
 
 ## Parent and related links
 
+- [Project context](../../CONTEXT.md)
 - [North Star](../NORTH_STAR.md)
 - [Delivery roadmap](../delivery-roadmap.md)
 - [Feature-parity checklist](../feature-parity-checklist.md)

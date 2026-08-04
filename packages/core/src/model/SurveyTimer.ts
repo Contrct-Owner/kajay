@@ -1,3 +1,5 @@
+import type { Survey } from './Survey.js';
+
 /** Where the timer panel is drawn, if at all. */
 export type TimerPanelLocation = 'none' | 'top' | 'bottom';
 
@@ -23,18 +25,6 @@ export interface TimerReading {
 
 const NOT_STARTED: TimerReading = { elapsed: 0, limit: 0, remaining: undefined };
 
-/** What the timer needs from the survey, and what it does when a clock runs out. */
-export interface TimerHost {
-  readonly now: () => Date;
-  /** Seconds allowed for the whole survey. 0 for no limit. */
-  readonly surveyLimit: () => number;
-  /** Seconds allowed for the page the respondent is on. 0 for no limit. */
-  readonly pageLimit: () => number;
-  readonly isCompleted: () => boolean;
-  readonly onPageExpired: () => void;
-  readonly onSurveyExpired: () => void;
-}
-
 /**
  * The survey's clocks — checklist E8.
  *
@@ -53,12 +43,16 @@ export interface TimerHost {
  * own — so a host that already handles completion needs to learn nothing new.
  */
 export class SurveyTimer {
-  readonly #host: TimerHost;
+  readonly #survey: Survey;
+  readonly #now: () => Date;
+  readonly #advance: () => void;
   #surveyStartedAt: number | undefined;
   #pageStartedAt: number | undefined;
 
-  constructor(host: TimerHost) {
-    this.#host = host;
+  constructor(survey: Survey, now: () => Date, advance: () => void) {
+    this.#survey = survey;
+    this.#now = now;
+    this.#advance = advance;
   }
 
   /**
@@ -72,7 +66,7 @@ export class SurveyTimer {
     if (this.isRunning) {
       return;
     }
-    const startedAt = this.#host.now().getTime();
+    const startedAt = this.#now().getTime();
     this.#surveyStartedAt = startedAt;
     this.#pageStartedAt = startedAt;
   }
@@ -89,16 +83,16 @@ export class SurveyTimer {
   /** Begins the page clock again, leaving the survey clock alone. */
   restartPage(): void {
     if (this.isRunning) {
-      this.#pageStartedAt = this.#host.now().getTime();
+      this.#pageStartedAt = this.#now().getTime();
     }
   }
 
   get surveyTime(): TimerReading {
-    return this.#read(this.#surveyStartedAt, this.#host.surveyLimit());
+    return this.#read(this.#surveyStartedAt, this.#survey.maxTimeToFinish);
   }
 
   get pageTime(): TimerReading {
-    return this.#read(this.#pageStartedAt, this.#host.pageLimit());
+    return this.#read(this.#pageStartedAt, this.#pageTimeLimit());
   }
 
   /**
@@ -114,12 +108,12 @@ export class SurveyTimer {
    * handed in as it stands. That is what a deadline means.
    */
   tick(): void {
-    if (!this.isRunning || this.#host.isCompleted()) {
+    if (!this.isRunning || this.#survey.isCompleted) {
       return;
     }
     if (hasExpired(this.surveyTime)) {
       this.stop();
-      this.#host.onSurveyExpired();
+      this.#survey.complete();
       return;
     }
     if (hasExpired(this.pageTime)) {
@@ -128,7 +122,7 @@ export class SurveyTimer {
       // not turn a page (the preview, and completion) leave no page being answered, so
       // the limit stops applying at all. A restart here as well would be a line no test
       // could reach.
-      this.#host.onPageExpired();
+      this.#advance();
     }
   }
 
@@ -138,12 +132,27 @@ export class SurveyTimer {
     }
     // Floored, so a clock reads 0 for the whole of its first second rather than
     // rounding up to 1 the instant it starts.
-    const elapsed = Math.max(0, Math.floor((this.#host.now().getTime() - startedAt) / 1000));
+    const elapsed = Math.max(0, Math.floor((this.#now().getTime() - startedAt) / 1000));
     return {
       elapsed,
       limit,
       remaining: limit > 0 ? Math.max(0, limit - elapsed) : undefined,
     };
+  }
+
+  /**
+   * This page's own allowance, or the survey default for pages that state none.
+   *
+   * Zero unless the respondent is actually on a page. A preview is not being answered,
+   * so its old page limit must not submit the survey while somebody reviews it. The
+   * survey clock deliberately keeps running through that review.
+   */
+  #pageTimeLimit(): number {
+    if (this.#survey.status.state !== 'running') {
+      return 0;
+    }
+    const own = this.#survey.currentPage?.maxTimeToFinish ?? 0;
+    return own > 0 ? own : this.#survey.maxTimeToFinishPage;
   }
 }
 

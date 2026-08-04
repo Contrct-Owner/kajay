@@ -1,6 +1,7 @@
-import { parseSurvey, resolveTextDirection } from '@kajay/core';
+import { parseSurvey } from '@kajay/core';
 import type { Survey } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
+import { resolveTextDirection } from '../../src/model/textDirection.js';
 import { createTestRegistry } from '../support/createTestRegistry.js';
 
 /** Right-to-left support — checklist J3. */

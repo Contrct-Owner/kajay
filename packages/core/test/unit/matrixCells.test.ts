@@ -1,5 +1,5 @@
-import { MatrixCellsQuestion, parseSurvey, serializeSurvey } from '@kajay/core';
-import type { Survey } from '@kajay/core';
+import { parseSurvey, serializeSurvey } from '@kajay/core';
+import type { MatrixCellsQuestion, Survey } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
 import { createTestRegistry } from '../support/createTestRegistry.js';
 
@@ -42,10 +42,10 @@ function build(overrides: Readonly<Record<string, unknown>> = {}): Survey {
 
 function matrix(survey: Survey, name = 'review'): MatrixCellsQuestion {
   const question = survey.getQuestionByName(name);
-  if (!(question instanceof MatrixCellsQuestion)) {
+  if (question?.type !== 'matrixcells') {
     throw new TypeError('expected a cell matrix');
   }
-  return question;
+  return question as MatrixCellsQuestion;
 }
 
 function answer(survey: Survey, row: string, column: string, value: unknown): void {

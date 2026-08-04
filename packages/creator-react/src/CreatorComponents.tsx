@@ -99,6 +99,7 @@ export interface CreatorTextareaProps {
   readonly value: string;
   readonly onValueChange: (value: string) => void;
   readonly rows?: number;
+  readonly spellCheck?: boolean;
   readonly disabled?: boolean;
   readonly className?: string;
   readonly id?: string;

@@ -1,7 +1,8 @@
 import { MetadataRegistry, registerBuiltInTypes } from '@kajay/core';
 import type { SurveyDefinition } from '@kajay/core';
-import { applyPlacement, canPlace, DesignSurface, dropSlotsOn } from '@kajay/creator-core';
+import { DesignSurface } from '@kajay/creator-core';
 import type { DropList, PlacementSource } from '@kajay/creator-core';
+import { applyPlacement, canPlace, dropSlotsOn } from '../../src/placement.js';
 import { describe, expect, test } from 'vitest';
 
 /** Dropping into a panel — checklist K2's last gap. */

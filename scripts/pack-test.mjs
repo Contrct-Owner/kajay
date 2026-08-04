@@ -14,14 +14,23 @@
  * repo's node_modules, because that is what a consumer actually has.
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, join, resolve } from 'node:path';
+import { basename, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CREATOR_TSX, SMOKE_TS } from './pack-fixtures.mjs';
+import { PUBLIC_RUNTIME_SURFACE } from './lib/publicRuntimeSurface.mjs';
+import { PUBLISHED_PACKAGE_POLICIES } from './lib/workspacePolicy.mjs';
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const PACKAGES = ['core', 'react', 'creator-core', 'creator-react', 'themes'];
 
 /**
  * Supported consumer TypeScript versions, oldest first (ADR-0014).
@@ -47,6 +56,110 @@ function describeError(error) {
   return parts.trim() || error.message;
 }
 
+const CSS_RESOLVER = `const specifiers = JSON.parse(process.argv[2] ?? '[]');
+const resolved = specifiers.map((specifier) => ({ specifier, url: import.meta.resolve(specifier) }));
+process.stdout.write(JSON.stringify(resolved));
+`;
+
+function resolveCssSubpaths(scratch, specifiers) {
+  const resolver = join(scratch, 'resolve-css-subpaths.mjs');
+  writeFileSync(resolver, CSS_RESOLVER, 'utf8');
+  return JSON.parse(run('node', [basename(resolver), JSON.stringify(specifiers)], scratch));
+}
+
+function publishedCssSubpaths(scratch) {
+  const themeDir = join(scratch, 'node_modules', '@kajay', 'themes', 'styles', 'themes');
+  const presets = readdirSync(themeDir)
+    .filter((file) => file.endsWith('.css'))
+    .toSorted()
+    .map((file) => ({
+      specifier: `@kajay/themes/themes/${file}`,
+      expected: join(themeDir, file),
+    }));
+  return [
+    {
+      specifier: '@kajay/themes/styles.css',
+      expected: join(scratch, 'node_modules', '@kajay', 'themes', 'styles', 'styles.css'),
+    },
+    ...presets,
+  ];
+}
+
+function verifyPublishedCss(scratch) {
+  const published = publishedCssSubpaths(scratch);
+  const resolutions = resolveCssSubpaths(
+    scratch,
+    published.map(({ specifier }) => specifier),
+  );
+  const themeRoot = realpathSync(resolve(scratch, 'node_modules', '@kajay', 'themes'));
+  const contents = new Map();
+
+  for (const item of published) {
+    const resolution = resolutions.find(({ specifier }) => specifier === item.specifier);
+    const resolvedPath = resolution === undefined ? '' : resolve(fileURLToPath(resolution.url));
+    if (resolvedPath.length === 0 || !existsSync(resolvedPath)) {
+      throw new Error(`${item.specifier} resolved to ${resolvedPath || '(nothing)'}, which is not a file.`);
+    }
+    const installedPath = realpathSync(resolvedPath);
+    const fromPackage = relative(themeRoot, installedPath);
+    if (fromPackage.startsWith('..') || isAbsolute(fromPackage)) {
+      throw new Error(`${item.specifier} did not resolve inside the installed @kajay/themes tarball.`);
+    }
+    const expectedPath = realpathSync(resolve(item.expected));
+    if (installedPath !== expectedPath) {
+      throw new Error(`${item.specifier} resolved to ${installedPath}, expected ${expectedPath}.`);
+    }
+    const content = readFileSync(installedPath, 'utf8');
+    if (!content.includes('--kajay-')) {
+      throw new Error(`Packed stylesheet ${item.specifier} does not contain Kajay tokens.`);
+    }
+    contents.set(item.specifier, content);
+    console.log(`  stylesheet resolves: ${item.specifier}`);
+  }
+  return contents;
+}
+
+function proveBrokenCssExportFails(scratch) {
+  const manifestPath = join(scratch, 'node_modules', '@kajay', 'themes', 'package.json');
+  const original = readFileSync(manifestPath, 'utf8');
+  const manifest = JSON.parse(original);
+  const brokenExports = { ...manifest.exports };
+  delete brokenExports['./styles.css'];
+  writeFileSync(manifestPath, `${JSON.stringify({ ...manifest, exports: brokenExports }, null, 2)}\n`, 'utf8');
+  try {
+    try {
+      resolveCssSubpaths(scratch, ['@kajay/themes/styles.css']);
+    } catch (error) {
+      const detail = describeError(error);
+      if (detail.includes('ERR_PACKAGE_PATH_NOT_EXPORTED')) {
+        console.log('  broken stylesheet export is rejected');
+        return;
+      }
+      throw new Error(`The broken stylesheet export failed for the wrong reason: ${detail}`, {
+        cause: error,
+      });
+    }
+    throw new Error('A package with a missing ./styles.css export still resolved that subpath.');
+  } finally {
+    writeFileSync(manifestPath, original, 'utf8');
+  }
+}
+
+function verifyInstalledRuntimeSurface(scratch) {
+  const probe = `const expected = ${JSON.stringify(PUBLIC_RUNTIME_SURFACE)};
+for (const [packageName, expectedValues] of Object.entries(expected)) {
+  const actual = Object.keys(await import(packageName)).toSorted();
+  const wanted = [...expectedValues].toSorted();
+  if (JSON.stringify(actual) !== JSON.stringify(wanted)) {
+    throw new Error(packageName + ' runtime surface\\nexpected: ' + wanted.join(', ') + '\\nactual: ' + actual.join(', '));
+  }
+  console.log('  runtime surface: ' + packageName + ' (' + actual.length + ' values)');
+}`;
+  const path = join(scratch, 'check-runtime-surface.mjs');
+  writeFileSync(path, probe, 'utf8');
+  process.stdout.write(run('node', [basename(path)], scratch));
+}
+
 const scratch = mkdtempSync(join(tmpdir(), 'kajay-pack-'));
 const failures = [];
 
@@ -59,12 +172,12 @@ try {
   // below would reject the unrewritten specifier — which is the point of packing with
   // one tool and consuming with another.
   const tarballs = [];
-  for (const pkg of PACKAGES) {
-    const dir = join(repoRoot, 'packages', pkg);
+  for (const pkg of PUBLISHED_PACKAGE_POLICIES) {
+    const dir = join(repoRoot, pkg.directory);
     const output = run('pnpm', ['pack', '--pack-destination', scratch], dir);
     const file = output.trim().split('\n').pop().trim();
     tarballs.push(file.startsWith('/') ? file : join(scratch, file));
-    console.log(`  packed ${pkg} -> ${basename(file)}`);
+    console.log(`  packed ${pkg.name} -> ${basename(file)}`);
   }
 
   writeFileSync(
@@ -112,6 +225,7 @@ try {
   console.log('\nInstalling tarballs as a third-party consumer would...');
   run('npm', ['install', '--no-audit', '--no-fund', '--silent'], scratch);
   run('npm', ['install', '--no-audit', '--no-fund', '--silent', ...tarballs], scratch);
+  verifyInstalledRuntimeSurface(scratch);
 
   // skipLibCheck stays FALSE: the point is to deep-check the declarations we ship.
   // A pack test with skipLibCheck on would pass while shipping unusable types.
@@ -166,25 +280,18 @@ try {
     }
   }
 
-  // The stylesheets must actually be inside the tarball. A `files` field that omits
-  // them is invisible in a workspace build and breaks every consumer.
+  // Resolve the public CSS subpaths from the installed package. Reading the internal
+  // path alone proves `files`, but not that Node's package resolver can reach it through
+  // the published interface a bundler consumes.
   console.log('');
-  for (const asset of ['styles/styles.css', 'styles/themes/dark.css']) {
-    const content = readFileSync(join(scratch, 'node_modules', '@kajay', 'themes', asset), 'utf8');
-    if (!content.includes('--kajay-')) {
-      throw new Error(`Packed stylesheet ${asset} does not contain Kajay tokens.`);
-    }
-    console.log(`  stylesheet present: ${asset}`);
-  }
+  const stylesheets = verifyPublishedCss(scratch);
+  proveBrokenCssExportFails(scratch);
 
   // The Creator's *own* chrome ships too — checklist N4. The designer, the property grid
   // and the assembly's layout all live in the same stylesheet as the survey's, and a
   // consumer who installed the Creator and got an unstyled one would have no way to tell
   // whether that was the library or their own build.
-  const shipped = readFileSync(
-    join(scratch, 'node_modules', '@kajay', 'themes', 'styles/styles.css'),
-    'utf8',
-  );
+  const shipped = stylesheets.get('@kajay/themes/styles.css') ?? '';
   for (const rule of ['.kajay-creator__', '.kajay-designer__', '.kajay-properties__']) {
     if (!shipped.includes(rule)) {
       throw new Error(`Packed stylesheet is missing the Creator's ${rule} rules.`);

@@ -14,10 +14,9 @@ export interface LogicWiring {
 /**
  * Builds the survey's logic host and wires it back to the survey.
  *
- * A factory beside `createSurveyTimer` and for the same reason: this is four decisions
- * about *ordering* — when pages are clamped, when values are announced, when hidden
- * answers are cleared — and they read as ordering rather than as a constructor once they
- * are somewhere with room to say why.
+ * A factory because this is four decisions about *ordering* — when pages are clamped,
+ * when values are announced, when hidden answers are cleared — and they read as
+ * ordering rather than as a constructor once they are somewhere with room to say why.
  */
 export function createSurveyLogic(
   survey: Survey,

@@ -1,22 +1,12 @@
 import type { ClassMetadataDefinition } from './ClassDescriptor.js';
-import { CORE_TYPE_DEFINITIONS } from './coreTypeDefinitions.js';
-import { DISPLAY_TYPE_DEFINITIONS } from './displayTypeDefinitions.js';
+import { BUILT_IN_TYPE_DEFINITIONS } from './builtInTypeDefinitions.js';
 import type { PropertyDescriptor, PropertyValue } from './PropertyDescriptor.js';
 import { normalizePropertyDefinition } from './PropertyDescriptor.js';
-import { QUESTION_TYPE_DEFINITIONS } from './questionTypeDefinitions.js';
-import { SELECT_TYPE_DEFINITIONS } from './selectTypeDefinitions.js';
-import { TRIGGER_TYPE_DEFINITIONS } from './triggerTypeDefinitions.js';
-import { VALIDATOR_TYPE_DEFINITIONS } from './validatorTypeDefinitions.js';
 
 const defaultsByElement: WeakMap<object, ReadonlyMap<string, PropertyValue>> = new WeakMap();
-const BUILT_IN_CLASS_DEFINITIONS: readonly ClassMetadataDefinition[] = [
-  ...Object.values(CORE_TYPE_DEFINITIONS),
-  ...Object.values(DISPLAY_TYPE_DEFINITIONS),
-  ...Object.values(QUESTION_TYPE_DEFINITIONS),
-  ...Object.values(SELECT_TYPE_DEFINITIONS),
-  ...Object.values(TRIGGER_TYPE_DEFINITIONS),
-  ...Object.values(VALIDATOR_TYPE_DEFINITIONS),
-];
+const builtInDefinitionsByName: ReadonlyMap<string, ClassMetadataDefinition> = new Map(
+  BUILT_IN_TYPE_DEFINITIONS.map((definition) => [definition.name, definition]),
+);
 
 /** Attaches the resolved descriptor defaults that apply to one model element. */
 export function attachPropertyDefaults(
@@ -51,7 +41,7 @@ function getBuiltInPropertyDefault(
   className: string,
   propertyName: string,
 ): PropertyValue | undefined {
-  let current = BUILT_IN_CLASS_DEFINITIONS.find((definition) => definition.name === className);
+  let current = builtInDefinitionsByName.get(className);
   while (current !== undefined) {
     const property = current.properties?.find((candidate) => candidate.name === propertyName);
     if (property !== undefined) {
@@ -61,7 +51,7 @@ function getBuiltInPropertyDefault(
     current =
       parent === undefined
         ? undefined
-        : BUILT_IN_CLASS_DEFINITIONS.find((definition) => definition.name === parent);
+        : builtInDefinitionsByName.get(parent);
   }
   return undefined;
 }

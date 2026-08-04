@@ -1,14 +1,12 @@
 import {
-  DesignSurface,
-  JsonEditorSession,
-  LogicSession,
-  PreviewSession,
-  ThemeEditorSession,
-  Toolbox,
-  TranslationSession,
-} from '@kajay/creator-core';
-import { HistoryPanel, PageNavigatorPanel, useDesignerPlacement } from '@kajay/creator-react';
-import { useEffect, useMemo, useState } from 'react';
+  HistoryPanel,
+  PageNavigatorPanel,
+  useCreatorDocument,
+  useCreatorWorkspace,
+  useDesignerPlacement,
+} from '@kajay/creator-react';
+import type { SurveyDefinition } from '@kajay/core';
+import { useState } from 'react';
 import type { CSSProperties, ReactElement } from 'react';
 import { DesignerJson } from './DesignerJson.js';
 import { DesignerLogic } from './DesignerLogic.js';
@@ -81,56 +79,26 @@ export interface DesignerProps {
  * canvas is one gesture crossing both: the placement is created here and handed to each.
  * Two copies would be two gestures, one of which never finishes.
  */
-/**
- * The sessions a host owns beside the surface — checklists M2, M3, M4.
- *
- * One hook because they share a lifetime and a reason: each follows the design surface's
- * changes, each is unmounted every time a designer switches tab, and each would take a
- * half-written definition or a half-filled run with it if it were built inside one.
- */
-function useCreatorSessions(surface: DesignSurface): {
-  readonly preview: PreviewSession;
-  readonly json: JsonEditorSession;
-  readonly translations: TranslationSession;
-  readonly theme: ThemeEditorSession;
-  readonly logic: LogicSession;
-} {
-  const sessions = useMemo(
-    () => ({
-      preview: new PreviewSession(surface),
-      json: new JsonEditorSession(surface),
+export function Designer({ theme }: DesignerProps): ReactElement {
+  // One public lifecycle owner keeps every headless model on the same registry, document,
+  // and mount. It also preserves selection and toolbox search across host re-renders.
+  const workspace = useCreatorWorkspace({
+    definition: DESIGNED,
+    translations: {
       // A pretend translation service, so the seam is exercised rather than described. A
       // real host calls whichever vendor they have an account with; nothing ships.
-      translations: new TranslationSession(surface, {
-        translate: (request) =>
-          Promise.resolve(request.texts.map((text) => `[${request.to}] ${text}`)),
-      }),
-      // No survey and no surface: a theme is a fact about one deployment rather than part
-      // of the document, which is why it is not on the survey's undo stack either.
-      theme: new ThemeEditorSession({ theme: { name: 'demo', palette: { accent: '#3355ff' } } }),
-      logic: new LogicSession(surface),
-    }),
-    [surface],
-  );
-  useEffect(
-    () => () => {
-      sessions.preview.dispose();
-      sessions.json.dispose();
-      sessions.translations.dispose();
-      sessions.logic.dispose();
+      translate: (request) =>
+        Promise.resolve(request.texts.map((text) => `[${request.to}] ${text}`)),
     },
-    [sessions],
-  );
-  return sessions;
-}
-
-export function Designer({ theme }: DesignerProps): ReactElement {
-  // Built once: they hold the selection and the search term, and rebuilding them per
-  // render would drop what the designer had picked or typed on every keystroke.
-  const surface = useMemo(() => new DesignSurface({ definition: DESIGNED }), []);
-  const toolbox = useMemo(() => new Toolbox(), []);
-  const placement = useDesignerPlacement(surface);
-  const sessions = useCreatorSessions(surface);
+    // No survey and no surface: a theme is a fact about one deployment rather than part
+    // of the document, which is why it is not on the survey's undo stack either.
+    themeEditor: { theme: { name: 'demo', palette: { accent: '#3355ff' } } },
+  });
+  // Seed the controlled value from the workspace's canonical definition. Passing the raw
+  // input here would look like a host correction and correctly create an undo entry.
+  const [document, setDocument] = useState<SurveyDefinition>(() => workspace.surface.definition);
+  useCreatorDocument({ surface: workspace.surface, value: document, onChange: setDocument });
+  const placement = useDesignerPlacement(workspace.surface);
   const [tab, setTab] = useState<DesignerTab>('design');
 
   return (
@@ -140,29 +108,31 @@ export function Designer({ theme }: DesignerProps): ReactElement {
         <>
           <DesignerToolbox
             theme={theme}
-            toolbox={toolbox}
+            toolbox={workspace.toolbox}
             getItemProps={placement.getItemProps}
           />
-          <DesignerSurface theme={theme} surface={surface} placement={placement}>
-            <HistoryPanel surface={surface} />
-            <PageNavigatorPanel surface={surface} placement={placement} />
+          <DesignerSurface theme={theme} surface={workspace.surface} placement={placement}>
+            <HistoryPanel surface={workspace.surface} />
+            <PageNavigatorPanel surface={workspace.surface} placement={placement} />
           </DesignerSurface>
           {/* Its own section rather than a strip inside the canvas — a property grid is
               the piece most likely to live somewhere the host already had a sidebar (L1)
               — and its own *file*, because everything this deployment has changed about
               the grid (L4) belongs with the host rather than beside the assembly. */}
-          <DesignerProperties theme={theme} surface={surface} />
+          <DesignerProperties theme={theme} surface={workspace.surface} />
         </>
       ) : null}
-      {tab === 'preview' ? <DesignerPreview theme={theme} session={sessions.preview} /> : null}
-      {tab === 'json' ? <DesignerJson theme={theme} session={sessions.json} /> : null}
+      {tab === 'preview' ? (
+        <DesignerPreview theme={theme} session={workspace.preview} />
+      ) : null}
+      {tab === 'json' ? <DesignerJson theme={theme} session={workspace.json} /> : null}
       {tab === 'translations' ? (
-        <DesignerTranslations theme={theme} session={sessions.translations} />
+        <DesignerTranslations theme={theme} session={workspace.translations} />
       ) : null}
       {tab === 'theme' ? (
-        <DesignerTheme session={sessions.theme} preview={sessions.preview} />
+        <DesignerTheme session={workspace.themeEditor} preview={workspace.preview} />
       ) : null}
-      {tab === 'logic' ? <DesignerLogic theme={theme} session={sessions.logic} /> : null}
+      {tab === 'logic' ? <DesignerLogic theme={theme} session={workspace.logic} /> : null}
     </>
   );
 }

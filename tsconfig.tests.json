@@ -1,28 +1,9 @@
 {
-  "//": "Type-checks tests and tool configs. Emit is discarded; this project exists so test code is held to the same compiler settings as shipped code.",
-  "extends": "./tsconfig.base.json",
-  "compilerOptions": {
-    "rootDir": ".",
-    "outDir": ".tsbuild/tests-out",
-    "lib": ["es2023", "dom", "dom.iterable"],
-    "types": ["node"],
-    "jsx": "react-jsx",
-    "isolatedDeclarations": false,
-    "tsBuildInfoFile": ".tsbuild/tests.tsbuildinfo"
-  },
-  "include": [
-    "packages/*/test/**/*.ts",
-    "packages/*/test/**/*.tsx",
-    "apps/host-demo/e2e/**/*.ts",
-    "vitest.config.ts",
-    "playwright.config.ts",
-    "apps/host-demo/vite.config.ts"
-  ],
+  "//": "Solution wrapper for the three test environments. Holds no sources of its own.",
+  "files": [],
   "references": [
-    { "path": "./packages/core" },
-    { "path": "./packages/react" },
-    { "path": "./packages/creator-core" },
-    { "path": "./packages/creator-react" },
-    { "path": "./packages/themes" }
+    { "path": "./tsconfig.tests.unit.json" },
+    { "path": "./tsconfig.tests.browser.json" },
+    { "path": "./tsconfig.tests.e2e.json" }
   ]
 }

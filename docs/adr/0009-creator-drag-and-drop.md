@@ -3,7 +3,7 @@
 - Area: Creator interaction
 - Status: accepted
 - Owner: Jarod
-- Last updated: 2026-08-03
+- Last updated: 2026-08-04
 
 ## Context
 
@@ -144,6 +144,29 @@ panel, and deliberately did *not* produce slots nothing could reach — the surf
 offered exactly the slots it drew. That is the one E7 learned the expensive way: logic
 no test can reach is logic nobody has checked.
 
+### 6 — The complete placement lifecycle belongs to the design surface
+
+`DesignSurface.placement` owns a closed headless session with three entry points: an
+immutable `snapshot`, a semantic `transition` command, and a placement-specific
+`subscribe` signal. The command grammar covers atomic placement, preview start, aiming,
+keyboard stepping, commit, and abandon. Source discovery, origin, valid traversal,
+no-op and refusal policy, active slot, stale-preview invalidation, history/selection
+coordination, and structured narration facts are model behavior.
+
+The placement signal is deliberately separate from `DesignSurface.onChanged`. Pointer
+aiming changes a preview, not the authored definition; publishing it as a document
+change would make persistence and preview subscribers react to pointer motion. A
+successful commit installs the final idle placement snapshot and the edited definition
+atomically, then publishes one surface change followed by one placement change.
+Narration positions and totals are computed from the pre-edit definition so a new or
+cross-container item is counted exactly once.
+
+The React adapter retains only browser concerns: pointer capture, DOM geometry,
+key-to-command translation, focus, ARIA state, drop-indicator drawing, and formatting
+the structured narration facts into localized text. `DesignSurface.place` remains a
+compatibility facade over the same atomic placement command; it is not a second
+implementation.
+
 ## Consequences
 
 - Phase 1's ranking work carried a small extra design obligation (generalize the reorder
@@ -156,6 +179,9 @@ no test can reach is logic nobody has checked.
   itself, now exported for it. A designer who has used a ranking question already knows
   this interaction. That, not shared code, was what constraint 3 was protecting.
 - `creator-core` gains no dependency, and `creator-react` gains none either.
+- A second framework adapter can reuse the entire placement lifecycle without copying
+  React state. Its remaining work is geometry, input translation, focus/ARIA, drawing,
+  and narration wording.
 - If a library is ever adopted after all, it is a dependency of `creator-react` only —
   permitted, since UI packages may carry dependencies while core packages may not — and
   it replaces the input adapter without touching the placement model.

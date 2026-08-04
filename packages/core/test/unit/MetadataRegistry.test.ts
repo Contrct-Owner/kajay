@@ -1,12 +1,12 @@
 import {
-  DropdownQuestion,
   MetadataRegistry,
+  type PropertyValue,
   SurveyElement,
-  TagboxQuestion,
   TextQuestion,
   globalRegistry,
 } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
+import { BUILT_IN_TYPE_DEFINITIONS } from '../../src/metadata/builtInTypeDefinitions.js';
 import { createTestRegistry } from '../support/createTestRegistry.js';
 
 class DefaultedElement extends SurveyElement {
@@ -17,6 +17,19 @@ class DefaultedElement extends SurveyElement {
   get label(): string {
     return this.getStringProperty('label');
   }
+}
+
+function getFalsyOverride(value: PropertyValue): PropertyValue | undefined {
+  if (typeof value === 'string') {
+    return value.length === 0 ? undefined : '';
+  }
+  if (typeof value === 'number') {
+    return value === 0 ? undefined : 0;
+  }
+  if (typeof value === 'boolean') {
+    return value ? false : undefined;
+  }
+  return undefined;
 }
 
 describe('parity/A3-metadata-registry', () => {
@@ -86,28 +99,52 @@ describe('parity/A3-metadata-registry', () => {
     expect(element.label).toBe('From metadata');
   });
 
-  test('public constructors resolve defaults from the built-in metadata', () => {
-    const text = new TextQuestion();
-    const dropdown = new DropdownQuestion();
-    const tagbox = new TagboxQuestion();
+  test('direct constructors resolve every inherited and own built-in default', () => {
+    const registry = createTestRegistry();
 
-    expect(text.inputType).toBe('text');
-    expect(dropdown.searchEnabled).toBe(true);
-    expect([dropdown.otherText, dropdown.noneText]).toEqual(['Other', 'None']);
-    expect(dropdown.choicesFromQuestionMode).toBe('all');
-    expect(tagbox.selectAllText).toBe('Select all');
+    expect(registry.getClassNames()).toEqual(
+      BUILT_IN_TYPE_DEFINITIONS.map((definition) => definition.name).toSorted(),
+    );
 
-    // ADR-0016's distinction: an explicitly empty value is not an unset one, so it
-    // must not fall back to the descriptor default.
-    //
-    // Read through `getResolvedProperty` — the same lookup the typed accessors use —
-    // because `inputType` narrows an unknown value to `text` at the accessor. That set
-    // is closed because the renderer hands it straight to the DOM; the raw property
-    // still records the empty string, which is what the round-trip reads.
-    dropdown.setPropertyValue('otherText', '');
-    expect(dropdown.otherText).toBe('');
-    text.setPropertyValue('inputType', '');
-    expect(text.getResolvedProperty('inputType')).toBe('');
+    for (const definition of BUILT_IN_TYPE_DEFINITIONS) {
+      const descriptor = registry.getClass(definition.name);
+      if (descriptor?.create === undefined) {
+        continue;
+      }
+
+      const direct = descriptor.create();
+      const registered = registry.createInstance(definition.name);
+      for (const property of registry.getProperties(definition.name)) {
+        expect(direct.getResolvedProperty(property.name)).toEqual(property.defaultValue);
+        expect(registered.getResolvedProperty(property.name)).toEqual(property.defaultValue);
+      }
+    }
+  });
+
+  test('explicit falsy values override every non-falsy built-in default', () => {
+    const registry = createTestRegistry();
+    let overridesProved = 0;
+
+    for (const definition of BUILT_IN_TYPE_DEFINITIONS) {
+      const create = registry.getClass(definition.name)?.create;
+      if (create === undefined) {
+        continue;
+      }
+
+      const direct = create();
+      for (const property of registry.getProperties(definition.name)) {
+        const override = getFalsyOverride(property.defaultValue);
+        if (override === undefined) {
+          continue;
+        }
+        direct.setPropertyValue(property.name, override);
+        expect(direct.hasPropertyValue(property.name)).toBe(true);
+        expect(direct.getResolvedProperty(property.name)).toEqual(override);
+        overridesProved += 1;
+      }
+    }
+
+    expect(overridesProved).toBeGreaterThan(0);
   });
 
   test('a creating registry overrides the built-in fallback for the same class name', () => {

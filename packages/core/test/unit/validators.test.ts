@@ -1,5 +1,5 @@
-import { parseSurvey, RegexValidator } from '@kajay/core';
-import type { Survey } from '@kajay/core';
+import { parseSurvey } from '@kajay/core';
+import type { RegexValidator, Survey } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
 import { createTestRegistry } from '../support/createTestRegistry.js';
 
@@ -93,8 +93,8 @@ describe('parity/D2-built-in-validators', () => {
     expect(messagesFor(survey, 'anything')).toEqual([]);
 
     const [validator] = survey.getQuestionByName('q')?.validators ?? [];
-    expect(validator).toBeInstanceOf(RegexValidator);
-    expect(validator instanceof RegexValidator && validator.hasInvalidPattern).toBe(true);
+    expect(validator?.type).toBe('regexvalidator');
+    expect((validator as RegexValidator | undefined)?.hasInvalidPattern).toBe(true);
   });
 
   test('email catches the typo without being clever about it', () => {

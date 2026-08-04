@@ -2,10 +2,10 @@ import { MetadataRegistry, Question, registerBuiltInTypes } from '@kajay/core';
 import type { SurveyDefinition, SurveyElement } from '@kajay/core';
 import {
   DesignSurface,
-  humanizePropertyName,
-  orderPropertyCategories,
   parseEditorText,
 } from '@kajay/creator-core';
+import { humanizePropertyName } from '../../src/propertyGrid.js';
+import { orderPropertyCategories } from '../../src/propertyCategories.js';
 import { describe, expect, test } from 'vitest';
 
 /**

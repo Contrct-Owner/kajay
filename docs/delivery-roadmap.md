@@ -1,9 +1,9 @@
 # Delivery Roadmap and Phases
 
 - Area: Phased delivery plan from foundation to full parity
-- Status: proposed
+- Status: active
 - Owner: Jarod
-- Last updated: 2026-08-03
+- Last updated: 2026-08-04
 
 This is the single index that sequences the work into **delivery phases** with explicit
 entry and exit gates, so work has an order and each milestone has a definition of done.
@@ -19,7 +19,8 @@ proven by the host application and the parity checklist. Phase 4 is horizon.
   workstreams inside a phase can run in parallel.
 - Each phase lists its **primary docs** and what is **explicitly out** so scope does
   not creep.
-- Status vocabulary: **Established / Proposed / Open.**
+- Status vocabulary distinguishes **complete/delivered**, **publication hold**, and
+  **horizon** work.
 - The [feature-parity checklist](./feature-parity-checklist.md) is the acceptance
   ledger; phases reference its sections rather than restating features.
 
@@ -30,7 +31,7 @@ proven by the host application and the parity checklist. Phase 4 is horizon.
 | **0 — Foundation** | Monorepo + metadata kernel + one question end-to-end | A JSON definition renders in host-demo via public API only, round-trips, and all CI gates are green | **complete (2026-08-02)** |
 | **1 — Runtime core** | Expression engine, core question types, logic, validation, flow | Checklist §A–§E green via host-demo scenarios, less the rows that name later-phase surface | **complete (2026-08-02)** |
 | **2 — Form Library parity** | Matrix family, dynamic panels, quiz, theming, localization, a11y | Checklist §A–§J (all Form Library sections) green | **delivered 2026-08-03**, but for A4/A5 (Phase 3) |
-| **3 — Creator parity** ⭐ | Drag-drop designer, property grid, logic/JSON/translation/theme editors | Checklist §K–§N green; build→render→round-trip proven in host-demo | proposed (overall AC) |
+| **3 — Creator parity** ⭐ | Drag-drop designer, property grid, logic/JSON/translation/theme editors | Checklist §K–§N green; build→render→round-trip proven in host-demo | **functional exit proof delivered 2026-08-04; publication on hold** |
 | **4 — Horizon** | PDF, dashboard, other frameworks/runtimes, SSR | Opportunity-driven | horizon |
 
 ## Phase 0 — Foundation & scaffolding
@@ -45,7 +46,8 @@ features without re-plumbing.
   `react`, `creator-core` (stub), `creator-react` (stub), `themes` (stub),
   `apps/host-demo`.
 - TS ~6.0 strict configs (`verbatimModuleSyntax`, `erasableSyntaxOnly`,
-  `isolatedDeclarations` on published packages); CI type-checks with tsc **and** tsgo.
+  `isolatedDeclarations` on published packages); CI type-checks with stable TypeScript
+  7 and TypeScript 6 `tsc`.
 - **Metadata registry + serializer kernel**: class registration, property
   descriptors, JSON round-trip — proven with `text` question, page, and survey.
 - **Contract pipeline**: `contracts/survey-schema.json` generated from the registry,
@@ -309,6 +311,12 @@ seen.
 
 **Goal:** the drag-and-drop designer, embeddable like SurveyJS Survey Creator.
 
+**Current state:** the checklist and N5 host-demo exit proof are green. Functional
+acceptance is delivered; publication is explicitly on hold under
+[ADR-0024](./adr/0024-publication-hold.md). Packages remain private at `0.0.0` while
+the brand/scope, license, first version, version train, and release tooling await an
+owner walkthrough. See the [project context](../CONTEXT.md).
+
 **In scope**
 
 - `creator-core`: design-surface tree + selection model, toolbox model, drag-drop
@@ -359,7 +367,9 @@ TypeScript implementation. Each starts with its own ADR and checklist section.
 
 ## Open questions
 
-All three roadmap-level open questions were resolved on 2026-08-02.
+Two roadmap-level questions remain resolved. The earlier release-policy answer was
+returned to deferred status on 2026-08-04 pending the explicit walkthrough in
+[ADR-0024](./adr/0024-publication-hold.md).
 
 - [x] **Round-trip bar** — fixed-point equivalence, not byte stability
       ([ADR-0002](./adr/0002-round-trip-fixed-point.md)).
@@ -367,8 +377,10 @@ All three roadmap-level open questions were resolved on 2026-08-02.
       phases. The definition format is our own by decision
       ([ADR-0001](./adr/0001-own-definition-format.md)), so there is no compatibility
       to pull forward; an import converter stays Phase 4 and opportunity-driven.
-- [x] **Versioning/release policy** — single version train with changesets, `1.0.0`
-      cut at Phase 3 exit ([ADR-0005](./adr/0005-single-version-train.md)).
+- [ ] **Versioning/release policy** — the previous proposal was a single version
+      train with Changesets and `1.0.0` at Phase 3 exit; the first version, train, and
+      tooling now require explicit reconfirmation
+      ([ADR-0005](./adr/0005-single-version-train.md)).
 
 Remaining open items now live in [North Star §11](./NORTH_STAR.md#11-decisions).
 
@@ -383,18 +395,22 @@ Remaining open items now live in [North Star §11](./NORTH_STAR.md#11-decisions)
   The parity checklist's SurveyJS property names are now illustrative rather than
   normative, and are restated per-PR as registry properties are declared — not as a
   standalone Phase 0 task.
-- **Phase 0 is gated on one external action**: claiming the `kajay` npm organization
-  ([ADR-0006](./adr/0006-npm-scope.md)).
+- **Publication remains gated on one external action**: claiming the `kajay` npm
+  organization ([ADR-0006](./adr/0006-npm-scope.md)). Phase 0 scaffolding is already
+  complete.
 - **Phase 1 gains** a generalized, keyboard-operable reorder interaction built with
   the ranking question (C9) rather than ranking-specific drag code, so Phase 3's
   Creator drag-drop extends a proven primitive
   ([ADR-0009](./adr/0009-creator-drag-and-drop.md)).
-- **Phase 2 exit gains** a licensing revisit
-  ([ADR-0007](./adr/0007-license-and-repo-posture.md)).
+- **The Phase 2 licensing revisit remains an owner decision**
+  ([ADR-0007](./adr/0007-license-and-repo-posture.md)); Phase 2 delivery did not resolve
+  it implicitly.
 
 ## Parent and related links
 
+- [Project context](../CONTEXT.md)
 - [North Star](./NORTH_STAR.md)
+- [Architecture remediation plan](./architecture-remediation-plan.md)
 - [Library development guidelines](./library-development-guidelines-details.md)
 - [Feature-parity checklist](./feature-parity-checklist.md)
 - [Architecture decision records](./adr/README.md)

@@ -283,13 +283,4 @@ describe('parity/K2-place', () => {
     expect(designed.page?.name).toBe('p2');
   });
 
-  test('the slots offered are the ones the page has', () => {
-    const designed = surface();
-
-    expect(designed.slots).toEqual([
-      { list: P1, index: 0 },
-      { list: P1, index: 1 },
-      { list: P1, index: 2 },
-    ]);
-  });
 });

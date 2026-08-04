@@ -1,14 +1,15 @@
 import type { ExpressionError } from './ExpressionError.js';
 import type { ExpressionErrorCode } from './ExpressionErrorCode.js';
-import type { BinaryOperator, ExpressionNode, SourceSpan, UnaryOperator } from './ExpressionNode.js';
+import type { ExpressionNode, SourceSpan } from './ExpressionNode.js';
 import {
-  BINARY_PRECEDENCE,
-  KEYWORD_OPERATORS,
   LOWEST_PRECEDENCE,
-  POSTFIX_OPERATORS,
-  POWER_PRECEDENCE,
-  PUNCTUATION_OPERATORS,
+  binaryOperatorFor,
+  binaryOperatorSyntax,
+  postfixOperatorFor,
+  unaryOperatorFor,
+  unaryOperatorSyntax,
 } from './operators.js';
+import type { BinaryOperator } from './operators.js';
 import { parseReferencePath } from './parseReferencePath.js';
 import type { Token } from './Token.js';
 import { tokenize } from './tokenize.js';
@@ -75,13 +76,10 @@ class Parser {
 
   #readBinaryOperator(): BinaryOperator | undefined {
     const token = this.#peek();
-    if (token.kind === 'punctuation') {
-      return PUNCTUATION_OPERATORS[token.text];
+    if (token.kind !== 'punctuation' && token.kind !== 'identifier') {
+      return;
     }
-    if (token.kind === 'identifier') {
-      return KEYWORD_OPERATORS[token.text.toLowerCase()];
-    }
-    return undefined;
+    return binaryOperatorFor(token.text.toLowerCase());
   }
 
   #parseBinary(minPrecedence: number): ExpressionNode {
@@ -92,13 +90,13 @@ class Parser {
       if (operator === undefined) {
         break;
       }
-      const precedence = BINARY_PRECEDENCE[operator];
+      const syntax = binaryOperatorSyntax(operator);
+      const precedence = syntax.parsePrecedence;
       if (precedence < minPrecedence) {
         break;
       }
       this.#advance();
-      // `^` is right-associative; everything else is left-associative.
-      const nextMinimum = operator === '^' ? precedence : precedence + 1;
+      const nextMinimum = syntax.associativity === 'right' ? precedence : precedence + 1;
       const right = this.#parseBinary(nextMinimum);
       left = { kind: 'binary', span: span(left.span, right.span), operator, left, right };
     }
@@ -108,17 +106,15 @@ class Parser {
 
   #parseUnary(): ExpressionNode {
     const token = this.#peek();
-    const isNot =
-      (token.kind === 'identifier' && token.text.toLowerCase() === 'not') ||
-      (token.kind === 'punctuation' && token.text === '!');
-    const isNegate = token.kind === 'punctuation' && token.text === '-';
+    const operator = token.kind === 'identifier' || token.kind === 'punctuation'
+      ? unaryOperatorFor(token.text.toLowerCase())
+      : undefined;
 
-    if (isNot || isNegate) {
+    if (operator !== undefined) {
       this.#advance();
-      const operator: UnaryOperator = isNot ? 'not' : '-';
       // Parsing the operand at power precedence makes `-{a}^2` mean `-({a}^2)`,
       // matching ordinary mathematical convention.
-      const operand = this.#parseBinary(POWER_PRECEDENCE);
+      const operand = this.#parseBinary(unaryOperatorSyntax(operator).parseOperandPrecedence);
       return { kind: 'unary', span: span(token.span, operand.span), operator, operand };
     }
 
@@ -129,10 +125,10 @@ class Parser {
     let operand = this.#parsePrimary();
     for (;;) {
       const token = this.#peek();
-      if (token.kind !== 'identifier') {
+      if (token.kind !== 'identifier' && token.kind !== 'punctuation') {
         break;
       }
-      const operator = POSTFIX_OPERATORS[token.text.toLowerCase()];
+      const operator = postfixOperatorFor(token.text.toLowerCase());
       if (operator === undefined) {
         break;
       }

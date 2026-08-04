@@ -1,6 +1,8 @@
-import { collectReferences, formatPath, parseExpression } from '@kajay/core';
+import { parseExpression } from '@kajay/core';
 import type { PathSegment } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
+import { collectReferences } from '../../src/expressions/collectReferences.js';
+import { formatPath } from '../../src/expressions/ExpressionNode.js';
 // Internal: the engine is reached through Survey by every host. These tests drive it
 // directly because the behaviour under test — what happens when a rule writes somewhere
 // it never declared — has no production rule yet, so no survey definition can provoke

@@ -13,7 +13,7 @@ import { locate } from './definitionTree.js';
 import { SurveyDocument } from './SurveyDocument.js';
 import { DesignHistory } from './DesignHistory.js';
 import type { HistorySnapshot } from './UndoHistory.js';
-import { addPageTo, placeOn, removePageFrom } from './designerEdits.js';
+import { addPageTo, removePageFrom } from './designerEdits.js';
 import { DesignSelection } from './DesignSelection.js';
 import {
   convertibleTypes,
@@ -21,7 +21,6 @@ import {
   duplicateIn,
   removeElementFrom,
 } from './elementEdits.js';
-import { dropSlotsFor, dropSlotsOn } from './placement.js';
 import type { DropSlot, PlacementSource } from './placement.js';
 import { DesignClipboard } from './DesignClipboard.js';
 import { collectionRowsFor } from './collectionGrid.js';
@@ -38,6 +37,8 @@ import type { PropertyGridCategory } from './propertyGrid.js';
 import { renameIn, setLocalizedOn, setPropertyOn } from './propertyEdits.js';
 import type { CreatorConfiguration } from './CreatorConfiguration.js';
 import type { DesignSurfaceOptions, EditOptions } from './DesignSurfaceOptions.js';
+import { PlacementSessionModel } from './PlacementSession.js';
+import type { PlacementSession } from './PlacementSession.js';
 
 /**
  * The survey being designed, and what is selected in it — checklist K3.
@@ -63,18 +64,30 @@ export class DesignSurface {
   readonly #clipboard: DesignClipboard = new DesignClipboard();
   readonly #history: DesignHistory = new DesignHistory();
   readonly #configuration: CreatorConfiguration | undefined;
+  readonly #placementSession: PlacementSessionModel;
+  #placementRevision = 0;
 
   readonly onChanged: EventEmitter<number> = new EventEmitter();
 
   constructor(options: DesignSurfaceOptions) {
     this.#document = new SurveyDocument(options.definition, options.registry);
     this.#configuration = options.configuration;
+    this.#placementSession = new PlacementSessionModel({
+      definition: () => this.definition,
+      revision: () => this.#placementRevision,
+      pageName: () => this.page?.name,
+      isContainerType: this.#isContainerType,
+      isReadOnly: () => this.isReadOnly,
+      configuration: () => this.configuration,
+      commit: (definition, before, select) => this.#commitPlacement(definition, before, select),
+    });
   }
 
+  /** The headless source, preview, commit, abandon and narration lifecycle. */
+  get placement(): PlacementSession { return this.#placementSession; }
+
   /** What this deployment has turned off — checklist N2. */
-  get configuration(): CreatorConfiguration | undefined {
-    return this.#configuration;
-  }
+  get configuration(): CreatorConfiguration | undefined { return this.#configuration; }
 
   /**
    * Whether the survey can be changed at all — checklist N2.
@@ -82,13 +95,9 @@ export class DesignSurface {
    * A read-only Creator is a **viewer**, not a hidden one: the canvas, the grid and the
    * JSON are all still there to read. A reviewer needs to see the logic to comment on it.
    */
-  get isReadOnly(): boolean {
-    return this.#configuration?.isReadOnly === true;
-  }
+  get isReadOnly(): boolean { return this.#configuration?.isReadOnly === true; }
 
-  get survey(): Survey {
-    return this.#document.survey;
-  }
+  get survey(): Survey { return this.#document.survey; }
 
   /**
    * The registry this document was parsed with — checklist M4.
@@ -97,14 +106,10 @@ export class DesignSurface {
    * it holds: a translation table walks child collections, and one asking a different
    * registry would miss a host's own type or find one this survey was never parsed with.
    */
-  get registry(): MetadataRegistry {
-    return this.#document.registry;
-  }
+  get registry(): MetadataRegistry { return this.#document.registry; }
 
   /** What was wrong with the definition it was given. Never thrown away silently. */
-  get diagnostics(): readonly Diagnostic[] {
-    return this.#document.diagnostics;
-  }
+  get diagnostics(): readonly Diagnostic[] { return this.#document.diagnostics; }
 
   /**
    * Advances on every change, so a view can snapshot it.
@@ -113,18 +118,12 @@ export class DesignSurface {
    * — the selection, the element list — is rebuilt per read, and a subscriber comparing
    * snapshots by identity would never settle.
    */
-  get version(): number {
-    return this.#version;
-  }
+  get version(): number { return this.#version; }
 
   /** The page a designer is looking at. {@link goToPage} changes it. */
-  get page(): Page | undefined {
-    return this.#document.page;
-  }
+  get page(): Page | undefined { return this.#document.page; }
 
-  get selected(): SurveyElement | undefined {
-    return this.#selection.in(this.survey);
-  }
+  get selected(): SurveyElement | undefined { return this.#selection.in(this.survey); }
 
   /**
    * The selection itself: what it is by name, and whether it is the survey — L5.
@@ -133,17 +132,11 @@ export class DesignSurface {
    * "the selection is called `who`" are one fact with two shapes, and the survey having no
    * name is the reason it needs both — see {@link DesignSelection}.
    */
-  get selection(): DesignSelection {
-    return this.#selection;
-  }
+  get selection(): DesignSelection { return this.#selection; }
 
-  isSelected(element: SurveyElement): boolean {
-    return this.selected === element;
-  }
+  isSelected(element: SurveyElement): boolean { return this.selected === element; }
 
-  select(element: SurveyElement): void {
-    this.#changeSelection(() => this.#selection.select(element));
-  }
+  select(element: SurveyElement): void { this.#changeSelection(() => this.#selection.select(element)); }
 
   /**
    * Selects the survey itself — checklist L5.
@@ -152,9 +145,7 @@ export class DesignSurface {
    * deliberately, and `select(survey)` would be a call the type system allows and the
    * name-based restoration cannot honour.
    */
-  selectSurvey(): void {
-    this.#changeSelection(() => this.#selection.selectSurvey());
-  }
+  selectSurvey(): void { this.#changeSelection(() => this.#selection.selectSurvey()); }
 
   /**
    * Selects nothing.
@@ -163,9 +154,7 @@ export class DesignSurface {
    * designer does deliberately — clicking the background — and reads as one at the call
    * site, where `undefined` reads as a value somebody forgot to compute.
    */
-  clearSelection(): void {
-    this.#changeSelection(() => this.#selection.select());
-  }
+  clearSelection(): void { this.#changeSelection(() => this.#selection.select()); }
 
   #changeSelection(apply: () => boolean): void {
     if (!apply()) {
@@ -187,9 +176,7 @@ export class DesignSurface {
    * coalescing undo key — now happens for *every* property, which is what stops
    * `description` and `placeholder` behaving differently from `title`.
    */
-  setTitle(element: PageElement | Page, title: string): void {
-    this.setProperty(element, 'title', title);
-  }
+  setTitle(element: PageElement | Page, title: string): void { this.setProperty(element, 'title', title); }
 
   /**
    * Every property of an element, grouped and ordered — checklist L1.
@@ -233,9 +220,7 @@ export class DesignSurface {
   }
 
   /** Renames an element or page and every reference to it — checklist L1. */
-  rename(from: string, to: string): boolean {
-    return renameIn(this, from, to);
-  }
+  rename(from: string, to: string): boolean { return renameIn(this, from, to); }
 
   /**
    * The child collections an element holds, ready to edit — checklist L2.
@@ -274,20 +259,7 @@ export class DesignSurface {
   }
 
   /** The canonical JSON of what is on the canvas right now — ADR-0002's round trip. */
-  get definition(): SurveyDefinition {
-    return this.#document.definition;
-  }
-
-  /**
-   * Every position a drop could land in on the page being designed — checklist K2.
-   *
-   * Flattened across containers and in the order they are on screen, so a keyboard walk
-   * goes into a panel and out again without a second gesture to learn.
-   */
-  get slots(): readonly DropSlot[] {
-    const page = this.page;
-    return page === undefined ? [] : dropSlotsOn(this.definition, page.name, this.#isContainerType);
-  }
+  get definition(): SurveyDefinition { return this.#document.definition; }
 
   /**
    * Whether an element is one a drop can land *inside* — checklist K2's nesting.
@@ -296,27 +268,16 @@ export class DesignSurface {
    * type is a drop target with no registration — the same argument K1 made about the
    * toolbox, which lists nothing by name either.
    */
-  isContainer(element: PageElement): boolean {
-    return this.#isContainerType(element.type);
-  }
+  isContainer(element: PageElement): boolean { return this.#isContainerType(element.type); }
 
   readonly #isContainerType = (type: string): boolean =>
     this.#document.registry.getChildCollection(type, 'elements') !== undefined;
 
   /** Where an element sits: which container holds it, and at what index. */
-  locate(name: string): DropSlot | undefined {
-    return locate(this.definition, name);
-  }
-
-  /** Every position a page could be dragged to — checklist K4. */
-  get pageSlots(): readonly DropSlot[] {
-    return dropSlotsFor({ of: 'pages' }, this.pages.length);
-  }
+  locate(name: string): DropSlot | undefined { return locate(this.definition, name); }
 
   /** The pages a designer can switch between. */
-  get pages(): readonly Page[] {
-    return this.#document.pages;
-  }
+  get pages(): readonly Page[] { return this.#document.pages; }
 
   /**
    * Looks at another page — checklist K4.
@@ -332,25 +293,24 @@ export class DesignSurface {
     }
     // Navigating is not an edit, so it records nothing — but the designer's attention
     // has moved, so whatever was coalescing has ended.
+    const invalidated = this.#placementSession.invalidate();
     this.#history.breakRun();
     this.#document.replace(this.definition, name);
+    this.#placementRevision += 1;
     this.#selection.select();
     this.#announce();
+    this.#publishPlacement(invalidated);
   }
 
   /** Adds an empty page at the end and moves to it — checklist K4. */
-  addPage(): void {
-    addPageTo(this);
-  }
+  addPage(): void { addPageTo(this); }
 
   /** Removes a page and everything on it — checklist K4. Says whether it was there. */
-  removePage(name: string): boolean {
-    return removePageFrom(this, name);
-  }
+  removePage(name: string): boolean { return removePageFrom(this, name); }
 
   /** Puts a new element, or an existing one, at a slot — checklist K2 and K4. */
   place(source: PlacementSource, slot: DropSlot): boolean {
-    return placeOn(this, source, slot);
+    return this.#placementSession.transition({ kind: 'place', source, slot }) === 'committed';
   }
 
   /**
@@ -367,23 +327,31 @@ export class DesignSurface {
    */
   applyEdit(definition: SurveyDefinition, options: EditOptions = {}): void {
     if (this.isReadOnly) { return; }
+    const invalidated = this.#placementSession.invalidate();
     this.#history.record(this, options.from ?? this.definition, options.undoKey);
     // An edit that names nothing to select leaves the selection where it was, which for
     // the survey (§L5) is the only way it *can* survive — it has no name to hand back.
     // One that names something means it, so the survey gives way.
     const keepSurvey = options.select === undefined && this.#selection.isSurvey;
     this.#reparse(definition, options.select, options.goTo ?? this.page?.name, keepSurvey);
+    this.#publishPlacement(invalidated);
+  }
+
+  /** Commits a placement after its final idle snapshot has already been installed. */
+  #commitPlacement(
+    definition: SurveyDefinition,
+    before: SurveyDefinition,
+    select: string | undefined,
+  ): void {
+    this.#history.record(this, before);
+    this.#reparse(definition, select, this.page?.name);
   }
 
   /** Removes an element, and everything inside it — checklist K7. */
-  removeElement(name: string): boolean {
-    return removeElementFrom(this, name);
-  }
+  removeElement(name: string): boolean { return removeElementFrom(this, name); }
 
   /** Puts a copy of an element straight after it — checklist K5. */
-  duplicate(name: string): boolean {
-    return duplicateIn(this, name);
-  }
+  duplicate(name: string): boolean { return duplicateIn(this, name); }
 
   /**
    * Remembers an element so it can be pasted — checklist K5.
@@ -401,18 +369,12 @@ export class DesignSurface {
   }
 
   /** What was copied, if anything — see {@link DesignClipboard}. */
-  get clipboard(): SurveyDefinition | undefined {
-    return this.#clipboard.fragment;
-  }
+  get clipboard(): SurveyDefinition | undefined { return this.#clipboard.fragment; }
 
-  get canPaste(): boolean {
-    return this.#clipboard.fragment !== undefined && this.page !== undefined;
-  }
+  get canPaste(): boolean { return this.#clipboard.fragment !== undefined && this.page !== undefined; }
 
   /** Pastes what was copied, after the selection — checklist K5. */
-  paste(slot?: DropSlot): boolean {
-    return this.#clipboard.paste(this, slot);
-  }
+  paste(slot?: DropSlot): boolean { return this.#clipboard.paste(this, slot); }
 
   /** Changes a question's type in place, keeping what the new type understands — K5. */
   convert(name: string, type: string): boolean {
@@ -420,9 +382,7 @@ export class DesignSurface {
   }
 
   /** The types a question can be turned into. */
-  get convertibleTypes(): readonly string[] {
-    return convertibleTypes(this.#document.registry, this.#configuration);
-  }
+  get convertibleTypes(): readonly string[] { return convertibleTypes(this.#document.registry, this.#configuration); }
 
   /**
    * Swaps in a survey parsed from an edited definition.
@@ -435,17 +395,14 @@ export class DesignSurface {
    */
   #reparse(definition: SurveyDefinition, name?: string, page?: string, isSurvey = false): void {
     this.#document.replace(definition, page);
+    this.#placementRevision += 1;
     this.#selection.restore(name, this.pages, this.page, isSurvey);
     this.#announce();
   }
 
-  get canUndo(): boolean {
-    return this.#history.canUndo;
-  }
+  get canUndo(): boolean { return this.#history.canUndo; }
 
-  get canRedo(): boolean {
-    return this.#history.canRedo;
-  }
+  get canRedo(): boolean { return this.#history.canRedo; }
 
   /**
    * Takes back the last edit — checklist K6. Says whether there was one.
@@ -454,20 +411,18 @@ export class DesignSurface {
    * [ADR-0009](../../../docs/adr/0009-creator-drag-and-drop.md) decision 3: no operation
    * has to know how to invert itself, so no future operation can forget to.
    */
-  undo(): boolean {
-    return this.#travel(this.#history.undo(this));
-  }
+  undo(): boolean { return this.#travel(this.#history.undo(this)); }
 
   /** Puts back what {@link undo} took — checklist K6. */
-  redo(): boolean {
-    return this.#travel(this.#history.redo(this));
-  }
+  redo(): boolean { return this.#travel(this.#history.redo(this)); }
 
   #travel(snapshot: HistorySnapshot | undefined): boolean {
     if (snapshot === undefined) {
       return false;
     }
+    const invalidated = this.#placementSession.invalidate();
     this.#reparse(snapshot.definition, snapshot.selected, snapshot.page, snapshot.isSurveySelected);
+    this.#publishPlacement(invalidated);
     return true;
   }
 
@@ -483,9 +438,16 @@ export class DesignSurface {
     // them nothing reaches the survey, so read-only is enforced once rather than on every
     // button. A disabled button is a suggestion; this is the rule.
     if (this.isReadOnly) { return; }
+    const invalidated = this.#placementSession.invalidate();
     this.#history.record(this, this.definition, undoKey);
     edit();
+    this.#placementRevision += 1;
     this.#announce();
+    this.#publishPlacement(invalidated);
+  }
+
+  #publishPlacement(invalidated: boolean): void {
+    if (invalidated) { this.#placementSession.publish(); }
   }
 
   #announce(): void {
@@ -493,4 +455,3 @@ export class DesignSurface {
     this.onChanged.emit(this.#version);
   }
 }
-

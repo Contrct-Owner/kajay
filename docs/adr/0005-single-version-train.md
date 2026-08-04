@@ -1,9 +1,9 @@
 # ADR-0005 — Single version train released with changesets
 
 - Area: Release policy
-- Status: accepted
+- Status: deferred
 - Owner: Jarod
-- Last updated: 2026-08-02
+- Last updated: 2026-08-04
 
 ## Context
 
@@ -28,6 +28,17 @@ runs a lockstep train for the same structural reason.
   green and the host-demo scenario passes.
 - React is declared `peerDependencies: { "react": "^19" }` in UI packages, never a
   dependency.
+
+## Publication-hold amendment (2026-08-04)
+
+The owner returned this release policy to **deferred** status pending the explicit
+walkthrough required by [ADR-0024](./0024-publication-hold.md). The single version
+train, `1.0.0` starting point, and Changesets fixed mode remain the prior proposal;
+none is authorized for implementation or publication until it is explicitly
+reconfirmed.
+
+Changesets remains an inert root development dependency. There is intentionally no
+configuration, release script, or publishing workflow while the hold is active.
 
 ## Consequences
 

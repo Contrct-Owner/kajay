@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": ".tsbuild/tests-browser-out",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "types": ["node"],
+    "jsx": "react-jsx",
+    "isolatedDeclarations": false,
+    "tsBuildInfoFile": ".tsbuild/tests-browser.tsbuildinfo"
+  },
+  "include": [
+    "packages/*/test/browser/**/*.ts",
+    "packages/*/test/browser/**/*.tsx",
+    "vitest.config.ts"
+  ],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/react" },
+    { "path": "./packages/creator-core" },
+    { "path": "./packages/creator-react" },
+    { "path": "./packages/themes" }
+  ]
+}

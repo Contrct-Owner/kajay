@@ -1,47 +1,21 @@
-import type { BinaryOperator, ExpressionNode, LiteralValue } from './ExpressionNode.js';
+import type { ExpressionNode, LiteralValue } from './ExpressionNode.js';
 import { formatPath } from './ExpressionNode.js';
+import {
+  binaryOperatorSyntax,
+  postfixOperatorSyntax,
+  unaryOperatorSyntax,
+} from './operators.js';
 
-/**
- * Printing precedences, on a scale of their own rather than the parser's.
- *
- * Unary sits *below* `^` so that `(-{a})^2` keeps its parentheses: the parser reads
- * `-{a}^2` as `-({a}^2)`, and printing without the parentheses would silently change
- * the expression's meaning.
- */
-const BINARY_PRECEDENCE: Readonly<Record<BinaryOperator, number>> = {
-  or: 10,
-  and: 20,
-  '==': 30,
-  '!=': 30,
-  '>': 30,
-  '>=': 30,
-  '<': 30,
-  '<=': 30,
-  contains: 30,
-  notcontains: 30,
-  anyof: 30,
-  allof: 30,
-  '+': 40,
-  '-': 40,
-  '*': 50,
-  '/': 50,
-  '%': 50,
-  '^': 60,
-};
-
-const POWER_PRECEDENCE = 60;
-const UNARY_PRECEDENCE = 55;
-const POSTFIX_PRECEDENCE = 70;
 const PRIMARY_PRECEDENCE = 100;
 
 function precedenceOf(node: ExpressionNode): number {
   switch (node.kind) {
     case 'binary':
-      return BINARY_PRECEDENCE[node.operator];
+      return binaryOperatorSyntax(node.operator).printPrecedence;
     case 'unary':
-      return UNARY_PRECEDENCE;
+      return unaryOperatorSyntax(node.operator).printPrecedence;
     case 'postfix':
-      return POSTFIX_PRECEDENCE;
+      return postfixOperatorSyntax(node.operator).printPrecedence;
     default:
       return PRIMARY_PRECEDENCE;
   }
@@ -84,14 +58,18 @@ export function printExpression(node: ExpressionNode): string {
     case 'call':
       return `${node.name}(${node.args.map((argument) => printExpression(argument)).join(', ')})`;
     case 'unary': {
-      const operand = wrap(node.operand, POWER_PRECEDENCE);
-      return node.operator === 'not' ? `not ${operand}` : `-${operand}`;
+      const syntax = unaryOperatorSyntax(node.operator);
+      const operand = wrap(node.operand, syntax.printOperandPrecedence);
+      return `${node.operator}${syntax.separator}${operand}`;
     }
-    case 'postfix':
-      return `${wrap(node.operand, POSTFIX_PRECEDENCE)} ${node.operator}`;
+    case 'postfix': {
+      const syntax = postfixOperatorSyntax(node.operator);
+      return `${wrap(node.operand, syntax.printPrecedence)} ${node.operator}`;
+    }
     case 'binary': {
-      const precedence = BINARY_PRECEDENCE[node.operator];
-      const isRightAssociative = node.operator === '^';
+      const syntax = binaryOperatorSyntax(node.operator);
+      const precedence = syntax.printPrecedence;
+      const isRightAssociative = syntax.associativity === 'right';
       const left = wrap(node.left, isRightAssociative ? precedence + 1 : precedence);
       const right = wrap(node.right, isRightAssociative ? precedence : precedence + 1);
       return `${left} ${node.operator} ${right}`;

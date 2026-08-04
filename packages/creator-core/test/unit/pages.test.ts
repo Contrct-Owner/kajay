@@ -1,6 +1,8 @@
 import { MetadataRegistry, registerBuiltInTypes } from '@kajay/core';
 import type { SurveyDefinition } from '@kajay/core';
-import { addPage, applyPlacement, DesignSurface, pageAfterRemoving, removePage } from '@kajay/creator-core';
+import { DesignSurface } from '@kajay/creator-core';
+import { addPage, pageAfterRemoving, removePage } from '../../src/pageEdits.js';
+import { applyPlacement } from '../../src/placement.js';
 import { describe, expect, test } from 'vitest';
 
 /** Page management — checklist K4. */

@@ -1,10 +1,7 @@
 import {
   CheckboxQuestion,
-  DropdownQuestion,
   MultiSelectQuestion,
   RadiogroupQuestion,
-  SingleSelectQuestion,
-  TagboxQuestion,
   parseSurvey,
   serializeSurvey,
 } from '@kajay/core';
@@ -32,7 +29,7 @@ function selectQuestion(question: Readonly<Record<string, unknown>>): SelectQues
 describe('parity/C5-dropdown', () => {
   test('is single-select: choosing replaces the answer', () => {
     const question = selectQuestion({ type: 'dropdown' });
-    expect(question).toBeInstanceOf(DropdownQuestion);
+    expect(question.type).toBe('dropdown');
     question.select('Apple');
     question.select('Cherry');
     expect(question.value).toBe('Cherry');
@@ -53,7 +50,7 @@ describe('parity/C5-dropdown', () => {
 describe('parity/C6-tagbox', () => {
   test('is multi-select: choices accumulate', () => {
     const question = selectQuestion({ type: 'tagbox' });
-    expect(question).toBeInstanceOf(TagboxQuestion);
+    expect(question.type).toBe('tagbox');
     question.select('Apple');
     question.select('Banana');
     expect(question.value).toEqual(['Apple', 'Banana']);
@@ -76,9 +73,11 @@ describe('parity/C6-tagbox', () => {
 });
 
 describe('selection semantics follow arity, not widget', () => {
-  test('radiogroup and dropdown share the single-select base', () => {
-    expect(selectQuestion({ type: 'radiogroup' })).toBeInstanceOf(SingleSelectQuestion);
-    expect(selectQuestion({ type: 'dropdown' })).toBeInstanceOf(SingleSelectQuestion);
+  test.each(['radiogroup', 'dropdown'])('%s uses single-select semantics', (type) => {
+    const question = selectQuestion({ type });
+    question.select('Apple');
+    question.select('Banana');
+    expect(question.value).toBe('Banana');
   });
 
   test('checkbox and tagbox share the multi-select base', () => {
@@ -88,7 +87,7 @@ describe('selection semantics follow arity, not widget', () => {
 
   test('the two bases are distinct', () => {
     expect(selectQuestion({ type: 'radiogroup' })).not.toBeInstanceOf(MultiSelectQuestion);
-    expect(selectQuestion({ type: 'checkbox' })).not.toBeInstanceOf(SingleSelectQuestion);
+    expect(selectQuestion({ type: 'dropdown' })).not.toBeInstanceOf(MultiSelectQuestion);
   });
 
   test('radiogroup keeps its own showClearButton, not shared with dropdown', () => {

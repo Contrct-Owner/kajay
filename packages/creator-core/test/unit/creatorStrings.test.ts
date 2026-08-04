@@ -1,10 +1,10 @@
+import { describe, expect, test } from 'vitest';
+import { CreatorStringDictionary } from '../../src/CreatorStringDictionary.js';
 import {
   CREATOR_STRING_DEFINITIONS,
-  CreatorStringDictionary,
   EN_CREATOR_STRINGS,
   formatCreatorString,
-} from '@kajay/creator-core';
-import { describe, expect, test } from 'vitest';
+} from '../../src/creatorStrings.js';
 
 /** The Creator's own words — checklist N3. */
 describe('parity/N3-strings', () => {

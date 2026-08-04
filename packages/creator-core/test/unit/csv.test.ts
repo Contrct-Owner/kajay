@@ -1,4 +1,4 @@
-import { fromCsv, toCsv } from '@kajay/creator-core';
+import { fromCsv, toCsv } from '../../src/translationSheet.js';
 import { describe, expect, test } from 'vitest';
 
 /**

@@ -1,5 +1,5 @@
-import { conditionOf, printCondition } from '@kajay/creator-core';
 import type { Condition } from '@kajay/creator-core';
+import { conditionOf, printCondition } from '../../src/conditionTerms.js';
 import { describe, expect, test } from 'vitest';
 
 /**

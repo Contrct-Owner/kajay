@@ -4,6 +4,7 @@ import type { ReactElement, ReactNode } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
 import { useCreatorText } from './CreatorStringsContext.js';
 import { ElementActions } from './ElementActions.js';
+import { DropEndIndicator } from './DropEndIndicator.js';
 import {
   CONTAINER_ATTRIBUTE,
   ELEMENT_INDEX_ATTRIBUTE,
@@ -23,6 +24,8 @@ export interface DesignedElementProps {
   readonly placement?: DesignerPlacement | undefined;
   /** Whether a drop would land immediately before this element. */
   readonly isDropTarget: boolean;
+  /** Whether a drop would land after this container's final child. */
+  readonly isDropAtEnd: boolean;
 }
 
 /**
@@ -51,6 +54,7 @@ export function DesignedElement({
   children,
   placement,
   isDropTarget,
+  isDropAtEnd,
 }: DesignedElementProps): ReactElement {
   const isSelected = surface.isSelected(element);
   // A container with nothing in it has no child to aim at, so it says so itself —
@@ -79,6 +83,7 @@ export function DesignedElement({
     >
       <Adorner surface={surface} element={element} placement={placement} />
       {children}
+      {isDropAtEnd ? <DropEndIndicator container={element.name} /> : null}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { CreatorStringDictionary } from '@kajay/creator-core';
 import { SurveyCreator } from '@kajay/creator-react';
 import type { SurveyDefinition } from '@kajay/core';
+import { HOST_CREATOR_COMPONENTS } from './creatorComponents.js';
 import { everyTypeSurvey } from './everyTypeSurvey.js';
 import { useState } from 'react';
 import type { CSSProperties, ReactElement } from 'react';
@@ -229,12 +230,13 @@ function EmbeddedCreator({
     <>
       <SurveyCreator
         // **Keyed on the deployment.** A configuration is read once, when the Creator's
-        // models are built — see `useCreatorModels`, and the trap it exists to avoid. A
-        // host changing which deployment they are showing is showing a *different* Creator,
-        // and `key` is React's own way of saying so.
+        // workspace is built — see public `useCreatorWorkspace`, and the trap its
+        // lifetime contract exists to avoid. A host changing which deployment they are
+        // showing is showing a *different* Creator, and `key` is React's way of saying so.
         key={`${isRestricted ? 'restricted' : 'full'}-${isWhiteLabelled ? 'labelled' : 'plain'}`}
         value={value}
         onChange={onChange}
+        components={HOST_CREATOR_COMPONENTS}
         {...(isRestricted ? RESTRICTED : {})}
         {...(isWhiteLabelled
           ? { strings: WHITE_LABEL, creatorTheme: WHITE_LABEL_THEME }

@@ -1,7 +1,4 @@
-import {
-  collectReferences,
-  parseExpression,
-} from '@kajay/core';
+import { parseExpression } from '@kajay/core';
 import { DependencyGraph } from '../../src/dependencies/DependencyGraph.js';
 import {
   ANY_INDEX,
@@ -10,6 +7,7 @@ import {
   pathMatchesPattern,
 } from '../../src/dependencies/DependencyPattern.js';
 import type { DependencyPattern } from '../../src/dependencies/DependencyPattern.js';
+import { collectReferences } from '../../src/expressions/collectReferences.js';
 import type { PathSegment } from '../../src/expressions/ExpressionNode.js';
 import { describe, expect, test } from 'vitest';
 

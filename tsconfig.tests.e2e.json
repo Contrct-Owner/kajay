@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": ".tsbuild/tests-e2e-out",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "types": ["node"],
+    "jsx": "react-jsx",
+    "isolatedDeclarations": false,
+    "tsBuildInfoFile": ".tsbuild/tests-e2e.tsbuildinfo"
+  },
+  "include": [
+    "apps/host-demo/e2e/**/*.ts",
+    "playwright.config.ts",
+    "apps/host-demo/vite.config.ts"
+  ],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/react" },
+    { "path": "./packages/creator-core" },
+    { "path": "./packages/creator-react" },
+    { "path": "./packages/themes" }
+  ]
+}

@@ -1,6 +1,7 @@
-import { generateContract, parseSurvey, serializeSurvey } from '@kajay/core';
+import { parseSurvey, serializeSurvey } from '@kajay/core';
 import type { Survey, SurveyDefinition, ValueChangedEvent } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
+import { generateContract } from '../../src/contract/generateContract.js';
 import { createTestRegistry } from '../support/createTestRegistry.js';
 
 function build(definition: Readonly<Record<string, unknown>>): Survey {

@@ -9,8 +9,9 @@ import type { TranslationEntry } from './translations.js';
  * binary format library that a core package may not carry (the architecture check would
  * refuse it, and it would be right to). So the library produces and consumes the
  * *rectangle*, ships the CSV codec because that is thirty lines of string handling, and a
- * host that wants XLSX hands {@link translationRows} to whichever library they already
- * have. That is the whole of the seam, and it is smaller than an interface would be.
+ * host that wants XLSX hands `TranslationSession.toRows()` to whichever library it
+ * already has and returns rows through `applyRows()`. The algorithms below remain owned
+ * by that session rather than becoming a second public spreadsheet interface.
  */
 
 /** The first two columns, before the languages. */

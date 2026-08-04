@@ -1,6 +1,6 @@
 import type { SurveyDefinition } from '@kajay/core';
-import { applyPlacement, canPlace, dropSlotsFor } from '@kajay/creator-core';
 import type { DropList, PlacementSource, ToolboxItem } from '@kajay/creator-core';
+import { applyPlacement, canPlace, dropSlotsFor } from '../../src/placement.js';
 import { describe, expect, test } from 'vitest';
 
 /** The headless half of drag-and-drop — checklist K2, ADR-0009 constraint 1. */

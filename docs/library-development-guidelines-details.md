@@ -1,9 +1,9 @@
 # Library Development and Testing Guidelines
 
 - Area: Package architecture, TypeScript configuration, and automated testing
-- Status: proposed
+- Status: active
 - Owner: Jarod
-- Last updated: 2026-08-03
+- Last updated: 2026-08-04
 
 These guidelines define the default shape of code and tests in this repository. A
 change is acceptable only when it preserves package ownership and dependency
@@ -20,8 +20,8 @@ packaged artifacts*.
 
 - **TypeScript ~6.0, strict, ESM-only.** Published packages additionally compile
   under `isolatedDeclarations` and `erasableSyntaxOnly` — no `namespace`, no runtime
-  `enum`, no parameter properties — so the code is tsgo (TypeScript 7)-clean by
-  construction. CI type-checks with both `tsc -b` and `tsgo`.
+  `enum`, no parameter properties — so the code is TypeScript 7-clean by construction.
+  CI type-checks with stable TypeScript 7 first and TypeScript 6 `tsc -b` last for emit.
 - **pnpm workspaces + project references.** Each package owns exactly one publishable
   API, declared in its `package.json` `exports` map. There is no other public
   surface: anything not exported is private, and deep imports
@@ -103,7 +103,8 @@ real consumer uses.
   reference checklist IDs (e.g. `parity/B3-visible-if`).
 - The **pack test** is part of this category: CI runs `pnpm pack` on every package,
   installs the tarballs into a scratch project outside the workspace, compiles it
-  under tsc and tsgo, and runs a smoke scenario. This catches broken `exports` maps,
+  under TypeScript 5.5, 6, and 7, and runs a smoke scenario. This catches broken
+  `exports` maps,
   missing files, accidental workspace-symlink reliance, and type-emit errors that
   workspace builds hide.
 - Refactoring internals must not break a passing scenario unless public behavior or
@@ -148,7 +149,7 @@ via `AGENTS.md`.
 - **Contract drift check** as described above.
 - **Cross-language conformance:** canonical definitions, expression behavior, stable
   errors, value semantics, and lifecycle event order run through the public core seam.
-- **CI gates:** lint/typecheck (tsc + tsgo), architecture, unit, rendering
+- **CI gates:** lint/typecheck (TypeScript 7 + TypeScript 6), architecture, unit, rendering
   integration, host E2E, contract, conformance, pack test — separate jobs behind the single
   required `survey-checks` gate.
 
@@ -157,7 +158,7 @@ response is to correct the design, not suppress the failure.
 
 ## Acceptance criteria
 
-- Packages compile under TS ~6.0 strict and tsgo with identical results.
+- Packages compile under TS ~6.0 strict and stable TypeScript 7 with identical results.
 - Every package's public surface is exactly its `exports` map; the dependency graph
   matches North Star §4 and is mechanically enforced.
 - Unit tests are pure logic with no environment substitutes; DOM behavior is proven
@@ -169,6 +170,7 @@ response is to correct the design, not suppress the failure.
 
 ## Parent and related links
 
+- [Project context](../CONTEXT.md)
 - [North Star](./NORTH_STAR.md)
 - [Delivery roadmap](./delivery-roadmap.md)
 - [Feature-parity checklist](./feature-parity-checklist.md)

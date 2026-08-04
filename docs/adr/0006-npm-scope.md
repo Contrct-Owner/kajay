@@ -1,9 +1,9 @@
 # ADR-0006 — npm scope `@kajay/*`
 
 - Area: Packaging and naming
-- Status: accepted
+- Status: proposed
 - Owner: Jarod
-- Last updated: 2026-08-02
+- Last updated: 2026-08-04
 
 ## Context
 
@@ -36,6 +36,11 @@ Package names: `@kajay/core`, `@kajay/react`, `@kajay/creator-core`,
 
 ## Open action
 
+[ADR-0024](./0024-publication-hold.md) places publication on hold. Do not claim an npm
+organization during the hold: `@kajay/*` is the working source-code scope, not a final
+brand decision or a claim of ownership. The explicit release walkthrough decides
+whether to retain this scope before the action below becomes eligible.
+
 Claim the org at **https://www.npmjs.com/org/create** (Free tier). This is web-only —
 there is no CLI path. `npm org` manages members of an org that already exists; it
 cannot create one. The creation form is also the authoritative availability check,
@@ -49,8 +54,8 @@ Until it succeeds this ADR stays `proposed`; promote it to `accepted` and record
 date once `npm org ls kajay` resolves.
 
 Zero search hits makes a conflict unlikely, but the `survey` result is the standing
-proof that an empty scope can still be owned — claim it before scaffolding rather
-than after.
+proof that an empty scope can still be owned — verify and claim the selected scope
+before publication rather than after.
 
 **Fallback if `kajay` is taken:** an npm username is automatically a scope its owner
 controls, so `@<username>/*` is available without any claim. It is a weaker brand but

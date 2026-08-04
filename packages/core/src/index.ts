@@ -1,16 +1,9 @@
 // The entire public surface of @kajay/core. Anything not re-exported here is private,
 // and there are no subpath entries (ADR-0010) — this file *is* the package.
 
-export { generateContract } from './contract/generateContract.js';
-export {
-  generateDiagnosticContract,
-  RUNTIME_DIAGNOSTIC_CONTRACT_VERSION,
-} from './contract/generateDiagnosticContract.js';
+export { RUNTIME_DIAGNOSTIC_CONTRACT_VERSION } from './contract/generateDiagnosticContract.js';
 export type { RuntimeDiagnosticContract } from './contract/generateDiagnosticContract.js';
-export {
-  generateMetadataContract,
-  RUNTIME_METADATA_CONTRACT_VERSION,
-} from './contract/generateMetadataContract.js';
+export { RUNTIME_METADATA_CONTRACT_VERSION } from './contract/generateMetadataContract.js';
 export type {
   RuntimeMetadataChildCollection,
   RuntimeMetadataClass,
@@ -20,16 +13,12 @@ export type {
 export { EventEmitter } from './events/EventEmitter.js';
 
 // --- Expression language (ADR-0003) ---------------------------------------
-export {
-  createDefaultFunctionRegistry,
-  registerBuiltInFunctions,
-} from './expressions/builtInFunctions.js';
-export { collectReferences } from './expressions/collectReferences.js';
+export { createDefaultFunctionRegistry } from './expressions/builtInFunctions.js';
 export { ExpressionCache } from './expressions/ExpressionCache.js';
 // The language's own truthiness. Public because §L3 evaluates a property condition in the
 // Creator, and re-deriving "an empty collection is falsy" there would be a second set of
 // rules to drift from these.
-export { isEmptyValue, isTruthy } from './expressions/expressionValues.js';
+export { isTruthy } from './expressions/expressionValues.js';
 export { createValueResolver, evaluateExpression } from './expressions/evaluateExpression.js';
 export type {
   AsyncFunctionValues,
@@ -43,7 +32,6 @@ export type {
   ExpressionFunction,
   ExpressionFunctionContext,
 } from './expressions/ExpressionFunction.js';
-export { formatPath } from './expressions/ExpressionNode.js';
 export type {
   ArrayNode,
   BinaryNode,
@@ -61,7 +49,7 @@ export type {
   UnaryNode,
   UnaryOperator,
 } from './expressions/ExpressionNode.js';
-export { FunctionRegistry } from './expressions/FunctionRegistry.js';
+export type { FunctionRegistry } from './expressions/FunctionRegistry.js';
 export { parseExpression } from './expressions/parseExpression.js';
 export type { ParseExpressionResult } from './expressions/parseExpression.js';
 export { printExpression } from './expressions/printExpression.js';
@@ -98,7 +86,7 @@ export type {
   PropertyValue,
 } from './metadata/PropertyDescriptor.js';
 export { registerBuiltInTypes } from './metadata/registerBuiltInTypes.js';
-export { CalculatedValue } from './model/CalculatedValue.js';
+export type { CalculatedValue } from './model/CalculatedValue.js';
 export type { ChoiceFetcher } from './model/ChoiceFetcher.js';
 export type {
   ChoicePage,
@@ -110,32 +98,31 @@ export { BooleanQuestion } from './model/BooleanQuestion.js';
 export type { BooleanRenderMode } from './model/BooleanQuestion.js';
 export { CheckboxQuestion } from './model/CheckboxQuestion.js';
 export { CommentQuestion } from './model/CommentQuestion.js';
-export { DisplayElement } from './model/DisplayElement.js';
+export type { DisplayElement } from './model/DisplayElement.js';
 export { ExpressionQuestion } from './model/ExpressionQuestion.js';
 export type { DisplayStyle } from './model/ExpressionQuestion.js';
 export { HtmlElement } from './model/HtmlElement.js';
 export { ImageElement } from './model/ImageElement.js';
 export { ImagePickerQuestion } from './model/ImagePickerQuestion.js';
-export { MultipleTextItem } from './model/MultipleTextItem.js';
+export type { MultipleTextItem } from './model/MultipleTextItem.js';
 export { MultipleTextQuestion } from './model/MultipleTextQuestion.js';
 export type { ContentMode, ImageFit } from './model/ImageElement.js';
 export { RatingQuestion } from './model/RatingQuestion.js';
 export type { RateType, RatingDisplayMode } from './model/RatingQuestion.js';
-export { DropdownQuestion } from './model/DropdownQuestion.js';
+export type { DropdownQuestion } from './model/DropdownQuestion.js';
 export { MultiSelectQuestion } from './model/MultiSelectQuestion.js';
-export { SingleSelectQuestion } from './model/SingleSelectQuestion.js';
-export { TagboxQuestion } from './model/TagboxQuestion.js';
-export { ItemValue } from './model/ItemValue.js';
+export type { SingleSelectQuestion } from './model/SingleSelectQuestion.js';
+export type { TagboxQuestion } from './model/TagboxQuestion.js';
+export type { ItemValue } from './model/ItemValue.js';
 // --- Matrix family (§F) ----------------------------------------------------
 export { MatrixQuestion, matrixRowKey } from './model/MatrixQuestion.js';
 export { MatrixCellsBase } from './model/MatrixCellsBase.js';
 export { RepeatingQuestion } from './model/RepeatingQuestion.js';
 // --- Dynamic panels (§G) ---------------------------------------------------
-export { PanelDynamicQuestion, toPanelRenderMode } from './model/PanelDynamicQuestion.js';
+export { PanelDynamicQuestion } from './model/PanelDynamicQuestion.js';
 // --- Media and upload (§H) -------------------------------------------------
 export { FileQuestion } from './model/FileQuestion.js';
 export type { FilesChangedListener, FileSeams } from './model/FileQuestion.js';
-export { asFileEntries, matchesAcceptedTypes } from './model/FileEntry.js';
 export type {
   FileCleaner,
   FileDownloader,
@@ -143,30 +130,27 @@ export type {
   FileUploadRequest,
   FileUploader,
 } from './model/FileEntry.js';
-export { SignatureQuestion, toSignatureFormat } from './model/SignatureQuestion.js';
+export { SignatureQuestion } from './model/SignatureQuestion.js';
 export type { SignatureFormat } from './model/SignatureQuestion.js';
 export type { PanelRenderMode } from './model/PanelDynamicQuestion.js';
-export { MatrixCellsQuestion } from './model/MatrixCellsQuestion.js';
+export type { MatrixCellsQuestion } from './model/MatrixCellsQuestion.js';
 export { MatrixDynamicQuestion } from './model/MatrixDynamicQuestion.js';
-export { MatrixTotal } from './model/MatrixTotal.js';
-export { toMatrixLayout } from './model/matrixCells.js';
+export type { MatrixTotal } from './model/MatrixTotal.js';
 export type { CellAttachment, MatrixLayout, TotalKind } from './model/matrixCells.js';
 export type { ExpressionScope } from './model/SurveyLogicHost.js';
-export { copyElement } from './model/copyElement.js';
-export { scopeReferences } from './expressions/scopeReferences.js';
 export { RadiogroupQuestion } from './model/RadiogroupQuestion.js';
 export { RankingQuestion } from './model/RankingQuestion.js';
 export type { RankAreasLayout } from './model/RankingQuestion.js';
 export { moveWithin } from './model/moveWithin.js';
-export { NONE_VALUE, OTHER_VALUE, SelectQuestion } from './model/SelectQuestion.js';
-export { Page } from './model/Page.js';
+export { SelectQuestion } from './model/SelectQuestion.js';
+export type { Page } from './model/Page.js';
 export { PageElement } from './model/PageElement.js';
 export { Panel } from './model/Panel.js';
 export type { PanelState } from './model/Panel.js';
 export { Question } from './model/Question.js';
 export type { ConditionalItemGroup } from './model/Question.js';
-export { Survey } from './model/Survey.js';
-export { HtmlCondition } from './model/HtmlCondition.js';
+export type { Survey } from './model/Survey.js';
+export type { HtmlCondition } from './model/HtmlCondition.js';
 export type { Endpoints } from './model/endpoints.js';
 export { measureProgress } from './model/progressBar.js';
 export type {
@@ -174,16 +158,13 @@ export type {
   ProgressBarType,
   ProgressCount,
 } from './model/progressBar.js';
-export { resolveTextDirection, toTextDirectionSetting } from './model/textDirection.js';
 export type { TextDirection, TextDirectionSetting } from './model/textDirection.js';
-export { StringDictionary } from './strings/StringDictionary.js';
-export { EN_STRINGS, UI_STRING_DEFINITIONS, formatUiString } from './strings/uiStrings.js';
+export type { StringDictionary } from './strings/StringDictionary.js';
 export type { UiStringKey, UiStrings } from './strings/uiStrings.js';
-export { DE_STRINGS, ES_STRINGS, FR_STRINGS } from './strings/seedLocales.js';
 export { isLocalizedText, resolveLocalizedText } from './model/localizedText.js';
 export type { LocaleScope, LocalizedText } from './model/localizedText.js';
-export { SurveyTimer } from './model/SurveyTimer.js';
 export type {
+  SurveyTimer,
   TimerPanelLocation,
   TimerPanelMode,
   TimerReading,
@@ -214,14 +195,14 @@ export type {
 } from './model/ServerValidator.js';
 export { Validator } from './model/Validator.js';
 export type { ExpressionOutcome, ValidationContext } from './model/Validator.js';
-export { AnswerCountValidator } from './model/AnswerCountValidator.js';
-export { EmailValidator } from './model/EmailValidator.js';
-export { ExpressionValidator } from './model/ExpressionValidator.js';
-export { NumericValidator } from './model/NumericValidator.js';
-export { RegexValidator } from './model/RegexValidator.js';
-export { TextValidator } from './model/TextValidator.js';
+export type { AnswerCountValidator } from './model/AnswerCountValidator.js';
+export type { EmailValidator } from './model/EmailValidator.js';
+export type { ExpressionValidator } from './model/ExpressionValidator.js';
+export type { NumericValidator } from './model/NumericValidator.js';
+export type { RegexValidator } from './model/RegexValidator.js';
+export type { TextValidator } from './model/TextValidator.js';
 export { TextQuestion } from './model/TextQuestion.js';
-export { Trigger } from './model/Trigger.js';
+export type { Trigger } from './model/Trigger.js';
 export type { TriggerKind } from './model/Trigger.js';
 export type { Diagnostic, DiagnosticSeverity } from './serialization/Diagnostic.js';
 export type { DefinitionDiagnosticCode } from './serialization/DiagnosticCode.js';

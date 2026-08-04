@@ -3,13 +3,17 @@
 - Area: Runtime contract and SDK portability
 - Status: established
 - Owner: Jarod
-- Last updated: 2026-08-03
+- Last updated: 2026-08-04
 
 This directory is executable specification, not example data. Every runtime adapter
 must produce the same observable results for these cases. The TypeScript adapter is
 `scripts/core-conformance-adapter.mjs`; future .NET or other adapters implement the
 same four operations: canonicalize a definition, parse an expression, evaluate an
 expression, and execute a lifecycle scenario.
+
+Only the TypeScript adapter exists today. V1 is therefore an executable portability
+contract, not evidence of compatibility between two runtimes. That claim requires at
+least two maintained adapters passing this same version.
 
 ## Value representation
 
@@ -100,10 +104,11 @@ set of answers *scores* has no case, because scoring is a pure query and v1 has 
 adapter operations, none of which can ask one. Adding a fifth is not the additive change
 it looks like: every adapter that passes v1 today would stop passing it, which is the
 thing versioning exists to prevent. The rules for it belong in an ADR and probably in
-`conformance/v2`, and are better settled when a second runtime exists to be constrained
-by them than guessed at now. Until then scoring is specified by the TypeScript suite
-alone, which is exactly the situation ADR-0020 was written to end — recorded here rather
-than left to be discovered.
+`conformance/v2`. Scoring will be designed as the first shared v2 change alongside a
+second maintained runtime that needs it, before either adapter claims v2 compatibility;
+it will not be guessed into the contract in advance. Until then scoring is specified
+by the TypeScript suite alone, which is exactly the limitation ADR-0020 requires us to
+state rather than hide.
 
 Changing existing v1 expectations is a contract change and requires an ADR. Additive
 cases may be appended when they clarify behavior already intended. An incompatible

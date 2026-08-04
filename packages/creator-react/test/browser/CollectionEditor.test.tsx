@@ -1,7 +1,7 @@
 /// <reference types="@vitest/browser/matchers" />
 import { MetadataRegistry, registerBuiltInTypes } from '@kajay/core';
 import type { SurveyDefinition } from '@kajay/core';
-import { childrenIn, DesignSurface } from '@kajay/creator-core';
+import { DesignSurface } from '@kajay/creator-core';
 import { PropertyGridPanel } from '@kajay/creator-react';
 import { expect, test } from 'vitest';
 import { render } from 'vitest-browser-react';
@@ -35,7 +35,9 @@ function surface(): DesignSurface {
 }
 
 function choices(designed: DesignSurface): readonly unknown[] {
-  return (childrenIn(designed.definition, 'tier', 'choices') ?? []).map((child) => child['value']);
+  return (
+    designed.survey.getQuestionByName('tier')?.getChildren('choices') ?? []
+  ).map((child) => child.getPropertyValue('value'));
 }
 
 test('parity/L2-collections: a choice list and a validator list are both drawn', async () => {
@@ -65,7 +67,12 @@ test('parity/L2-collections: a choice is edited by the same grid as its question
     .first()
     .fill('Bronze tier');
 
-  expect(childrenIn(designed.definition, 'tier', 'choices')?.[0]?.['text']).toBe('Bronze tier');
+  expect(
+    designed.survey
+      .getQuestionByName('tier')
+      ?.getChildren('choices')[0]
+      ?.getPropertyValue('text'),
+  ).toBe('Bronze tier');
 });
 
 test('parity/L2-collections: adding, removing and reordering', async () => {

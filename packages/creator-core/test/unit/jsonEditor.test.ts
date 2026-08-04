@@ -1,6 +1,7 @@
 import { MetadataRegistry, registerBuiltInTypes } from '@kajay/core';
 import type { SurveyDefinition } from '@kajay/core';
-import { DesignSurface, JsonEditorSession, locationOf, syntaxErrorOffset } from '@kajay/creator-core';
+import { DesignSurface, JsonEditorSession } from '@kajay/creator-core';
+import { locationOf, syntaxErrorOffset } from '../../src/jsonLocation.js';
 import { afterEach, describe, expect, test } from 'vitest';
 
 /** The definition as text — checklist M2. */

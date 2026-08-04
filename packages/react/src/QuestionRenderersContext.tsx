@@ -1,8 +1,8 @@
 import type { ReactElement, ReactNode } from 'react';
 import { createContext, useContext } from 'react';
-import type { PageElementRendererRegistry } from './PageElementRendererRegistry.js';
+import type { PageElementRendererResolver } from './PageElementRendererRegistry.js';
 
-const QuestionRenderersContext = createContext<PageElementRendererRegistry | undefined>(
+const QuestionRenderersContext = createContext<PageElementRendererResolver | undefined>(
   undefined,
 );
 
@@ -21,7 +21,7 @@ export function QuestionRenderersProvider({
   renderers,
   children,
 }: {
-  readonly renderers: PageElementRendererRegistry;
+  readonly renderers: PageElementRendererResolver;
   readonly children: ReactNode;
 }): ReactElement {
   return (
@@ -31,10 +31,10 @@ export function QuestionRenderersProvider({
   );
 }
 
-export function useQuestionRenderers(): PageElementRendererRegistry {
+export function useQuestionRenderers(): PageElementRendererResolver {
   const renderers = useContext(QuestionRenderersContext);
   if (renderers === undefined) {
-    throw new Error('Question renderers require a PageElementRendererRegistry provider.');
+    throw new Error('Question renderers require a QuestionRenderersProvider.');
   }
   return renderers;
 }

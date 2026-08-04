@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": ".tsbuild/tests-unit-out",
+    "lib": ["es2023"],
+    "types": [],
+    "isolatedDeclarations": false,
+    "tsBuildInfoFile": ".tsbuild/tests-unit.tsbuildinfo"
+  },
+  "include": [
+    "packages/*/test/unit/**/*.ts",
+    "packages/*/test/support/**/*.ts",
+    "packages/*/test/performance/**/*.ts"
+  ],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/react" },
+    { "path": "./packages/creator-core" },
+    { "path": "./packages/creator-react" },
+    { "path": "./packages/themes" }
+  ]
+}

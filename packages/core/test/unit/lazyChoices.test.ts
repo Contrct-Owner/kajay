@@ -1,8 +1,8 @@
-import { DropdownQuestion, parseSurvey } from '@kajay/core';
-import type { ChoicePageRequest } from '@kajay/core';
+import { parseSurvey } from '@kajay/core';
+import type { ChoicePageRequest, DropdownQuestion } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
 import { createTestRegistry } from '../support/createTestRegistry.js';
-import { CITIES, choiceTexts as texts, flush, paged } from '../support/FakeChoiceDirectory.js';
+import { CITIES, choiceTexts as texts, paged } from '../support/FakeChoiceDirectory.js';
 
 describe('parity/C5-lazy-loading', () => {
   test('the first page is asked for as soon as the question exists', async () => {
@@ -11,8 +11,7 @@ describe('parity/C5-lazy-loading', () => {
     // Waiting is a state a renderer can show, not a gap it has to guess at.
     expect(question.isLoadingChoices).toBe(true);
 
-    directory.reply();
-    await flush();
+    await directory.reply();
     expect(texts(question)).toEqual(['Aberdeen', 'Bristol', 'Cardiff']);
     expect(question.isLoadingChoices).toBe(false);
     expect(question.hasMoreChoices).toBe(true);
@@ -20,8 +19,7 @@ describe('parity/C5-lazy-loading', () => {
 
   test('the next page is added to the list rather than replacing it', async () => {
     const { question, directory } = paged();
-    directory.reply();
-    await flush();
+    await directory.reply();
 
     question.loadMoreChoices();
     expect(directory.asked.at(-1)).toEqual({
@@ -32,8 +30,7 @@ describe('parity/C5-lazy-loading', () => {
       take: 3,
       filter: '',
     });
-    directory.reply();
-    await flush();
+    await directory.reply();
 
     expect(texts(question)).toEqual(['Aberdeen', 'Bristol', 'Cardiff', 'Dundee', 'Exeter', 'Falmouth']);
   });
@@ -67,27 +64,26 @@ describe('parity/C5-lazy-loading', () => {
       },
     ).survey;
     const question = survey.getQuestionByName('city');
-    if (!(question instanceof DropdownQuestion)) {
+    if (question?.type !== 'dropdown') {
       throw new TypeError('expected a dropdown');
     }
-    await flush();
+    const dropdown = question as DropdownQuestion;
+    // The resolved loader promise was observed by the pager before construction returned.
+    await Promise.resolve();
 
     // Inferring the end from a short page would stop the list here, several pages early.
-    expect(question.hasMoreChoices).toBe(true);
-    question.loadMoreChoices();
+    expect(dropdown.hasMoreChoices).toBe(true);
+    dropdown.loadMoreChoices();
     expect(asked).toHaveLength(2);
   });
 
   test('the end of the list is what the host says it is, not a short page', async () => {
     const { question, directory } = paged();
-    directory.reply();
-    await flush();
+    await directory.reply();
     question.loadMoreChoices();
-    directory.reply();
-    await flush();
+    await directory.reply();
     question.loadMoreChoices();
-    directory.reply();
-    await flush();
+    await directory.reply();
 
     expect(texts(question)).toHaveLength(CITIES.length);
     expect(question.hasMoreChoices).toBe(false);
@@ -106,8 +102,7 @@ describe('parity/C5-lazy-loading', () => {
 
   test('a page that fails to arrive leaves the list usable', async () => {
     const { survey, question, directory } = paged();
-    directory.fail('Network down');
-    await flush();
+    await directory.fail('Network down');
 
     // Not stuck loading: a spinner that never stops is a list nobody can read or get
     // past — the same failure the async validators had.
@@ -142,8 +137,7 @@ describe('parity/C5-lazy-loading', () => {
   test('paging is announced, so a renderer redraws when a page lands', async () => {
     const { survey, question, directory } = paged();
     const before = survey.logicVersion;
-    directory.reply();
-    await flush();
+    await directory.reply();
 
     expect(survey.logicVersion).toBeGreaterThan(before);
     expect(texts(question)).toHaveLength(3);
@@ -151,8 +145,7 @@ describe('parity/C5-lazy-loading', () => {
 
   test('a rebuild of the rules keeps the pages already loaded', async () => {
     const { survey, question, directory } = paged();
-    directory.reply();
-    await flush();
+    await directory.reply();
 
     // Rules are rebuilt whole whenever the tree changes. A pager rebuilt with them
     // would throw away the page the respondent is looking at and ask for it again.
@@ -165,8 +158,7 @@ describe('parity/C5-lazy-loading', () => {
 
   test('the special choices still belong to the question, not to a page', async () => {
     const { question, directory } = paged({ showOtherItem: true, placeholder: 'Pick a city' });
-    directory.reply();
-    await flush();
+    await directory.reply();
 
     // `other` is the definition's, so it sits after whatever has been loaded rather
     // than arriving in the middle of a page.

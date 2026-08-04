@@ -7,27 +7,54 @@
  * `--write` updates the committed file. A drift you did not expect is a design signal,
  * not noise to regenerate away.
  */
+import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { validateJsonSchema2020 } from './lib/jsonSchema2020.mjs';
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const corePath = resolve(repoRoot, 'packages/core/dist/index.js');
-
-if (!existsSync(corePath)) {
+const coreGenerator = resolve(repoRoot, 'packages/core/scripts/generate-contracts.mjs');
+let generatedContracts;
+try {
+  generatedContracts = JSON.parse(
+    execFileSync(process.execPath, [coreGenerator], { encoding: 'utf8' }),
+  );
+} catch {
   console.error('The contract is generated from the built core package, which is missing.');
   console.error('Run `pnpm run build` first.');
   process.exit(1);
 }
-
-const { generateContract, generateDiagnosticContract, generateMetadataContract } =
-  await import(corePath);
 const shouldWrite = process.argv.includes('--write');
+const surveySchema = generatedContracts.schema;
+
+// A positive-only check can go green if the validator is accidentally bypassed. Keep a
+// deliberately invalid keyword beside the harness so every run proves the meta-schema
+// rejects the mutation at the path a maintainer would need to fix.
+const mutationFailures = validateJsonSchema2020({
+  $schema: surveySchema.$schema,
+  type: 'not-a-json-schema-type',
+});
+if (!mutationFailures.some((failure) => failure.path === '/type')) {
+  console.error('The JSON Schema 2020-12 validator accepted an invalid `type` mutation.');
+  process.exit(1);
+}
+
+const schemaFailures = validateJsonSchema2020(surveySchema);
+if (schemaFailures.length > 0) {
+  console.error('\nGenerated survey schema is not valid JSON Schema 2020-12:\n');
+  for (const failure of schemaFailures) {
+    console.error(`  ${failure.path}: ${failure.reason}`);
+  }
+  console.error('');
+  process.exit(1);
+}
+console.log('Generated survey schema is valid JSON Schema 2020-12.');
 
 const artifacts = [
-  ['contracts/survey-schema.json', generateContract()],
-  ['contracts/runtime-metadata.json', generateMetadataContract()],
-  ['contracts/runtime-diagnostics.json', generateDiagnosticContract()],
+  ['contracts/survey-schema.json', surveySchema],
+  ['contracts/runtime-metadata.json', generatedContracts.metadata],
+  ['contracts/runtime-diagnostics.json', generatedContracts.diagnostics],
 ];
 
 let drifted = false;

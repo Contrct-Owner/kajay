@@ -3,7 +3,7 @@
 - Area: Runtime portability and SDK conformance
 - Status: accepted
 - Owner: Jarod
-- Last updated: 2026-08-03
+- Last updated: 2026-08-04
 
 ## Context
 
@@ -31,6 +31,11 @@ the first implementation and runs in CI. A future .NET adapter earns v1 compatib
 by running the same corpus; it does not copy TypeScript tests or reach into TypeScript
 internals.
 
+There is currently one adapter. That makes the seam executable and keeps TypeScript
+behavior reviewable, but it does not yet demonstrate compatibility between runtimes.
+Cross-runtime compatibility may be claimed only for a corpus version passed by at
+least two maintained adapters.
+
 Corpus actions are semantic rather than method names. Values that JSON cannot express
 use tagged encodings for absent and date values. Dates use UTC calendar semantics and
 an explicit clock; numbers are finite IEEE-754 binary64 values. Diagnostic code lists
@@ -43,10 +48,18 @@ instead of pretending the list is closed.
 
 ## Versioning
 
-Additive cases that clarify existing v1 behavior remain in v1. Changing an existing
-expectation or adapter operation creates `conformance/v2`; older corpus versions remain
-available for older SDK trains. Generated metadata and diagnostic contracts carry
-their own contract version separately from the survey definition's `schemaVersion`.
+Additive cases that clarify existing v1 behavior remain in v1. V1 has exactly four
+adapter operations. Changing an existing expectation, changing one of those
+operations, or adding a fifth operation creates `conformance/v2`; older corpus
+versions remain available for older SDK trains. Generated metadata and diagnostic
+contracts carry their own contract version separately from the survey definition's
+`schemaVersion`.
+
+Do not create v2 merely to make the interface look more complete. A second runtime may
+first target v1. If quiz scoring is needed by both maintained runtimes, its cases and
+fifth operation are designed as the first shared v2 change alongside that runtime,
+before either adapter claims v2 compatibility. Scoring remains TypeScript-specified
+until that concrete second caller exists.
 
 Contract generation and conformance are separate CI gates. Shape can remain unchanged
 while behavior drifts, and behavior can remain unchanged while metadata drifts; one
@@ -56,6 +69,8 @@ check would hide that distinction.
 
 - Runtime behavior is reviewable as data and reusable by implementations in any
   language.
+- Until a second adapter passes a corpus version, the repository proves a versioned
+  portability seam rather than cross-runtime compatibility.
 - The TypeScript core becomes an adapter behind the shared seam rather than the
   specification by accident.
 - A new runtime is still a reimplementation, not generated application code. The

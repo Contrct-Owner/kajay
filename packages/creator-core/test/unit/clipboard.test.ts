@@ -1,6 +1,7 @@
 import { MetadataRegistry, registerBuiltInTypes } from '@kajay/core';
 import type { SurveyDefinition } from '@kajay/core';
-import { DesignSurface, freshenFragment } from '@kajay/creator-core';
+import { DesignSurface } from '@kajay/creator-core';
+import { freshenFragment } from '../../src/fragments.js';
 import { describe, expect, test } from 'vitest';
 
 /** Copy, paste, duplicate and convert — checklist K5. */

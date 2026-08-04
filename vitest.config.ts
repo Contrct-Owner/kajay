@@ -24,6 +24,7 @@ export default defineConfig({
         test: {
           name: 'browser',
           include: ['packages/*/test/browser/**/*.test.tsx'],
+          setupFiles: ['./scripts/test-policy/browser-console-guard.mjs'],
           browser: {
             enabled: true,
             provider: playwright(),

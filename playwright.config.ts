@@ -1,7 +1,16 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const hostDemoUrl = 'http://localhost:4173';
+
+// Playwright explicitly forces colour for its web server. Some runners also set NO_COLOR;
+// remove that conflicting inherited preference before Playwright starts any child process.
+delete process.env['NO_COLOR'];
+
 // Parity scenarios run against the built host-demo, i.e. the same artifact a consumer
-// would deploy. Scenario titles carry checklist ids (`parity/<row-id>-<slug>`).
+// would deploy. This module owns the complete host lifecycle for E2E: make a fresh
+// artifact, start its server, and stop it after Playwright finishes. Root scripts and CI
+// delegate here so direct Playwright invocation has the same freshness guarantee.
+// Scenario titles carry checklist ids (`parity/<row-id>-<slug>`).
 export default defineConfig({
   testDir: './apps/host-demo/e2e',
   // Deterministic sharding by sorted file, so CI can add shards without changing
@@ -28,7 +37,7 @@ export default defineConfig({
   },
   reporter: process.env['CI'] ? [['github'], ['html', { open: 'never' }]] : [['list']],
   use: {
-    baseURL: 'http://localhost:4173',
+    baseURL: hostDemoUrl,
     trace: 'retain-on-failure',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
@@ -39,7 +48,7 @@ export default defineConfig({
     // the fix had landed.
     command:
       'pnpm --filter @kajay/host-demo run build && pnpm --filter @kajay/host-demo run preview -- --port 4173 --strictPort',
-    url: 'http://localhost:4173',
+    url: hostDemoUrl,
     // Never reused, in CI or out. Reuse skips the command — and with it the build —
     // so a server left running from an earlier session serves whatever `dist` held
     // then. That reopened the exact hole the line above closes: four scenarios failed

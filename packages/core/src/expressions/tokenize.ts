@@ -1,4 +1,5 @@
 import type { ExpressionError } from './ExpressionError.js';
+import { OPERATOR_PUNCTUATION } from './operators.js';
 import type { Token } from './Token.js';
 
 export interface TokenizeResult {
@@ -12,29 +13,13 @@ export interface TokenizeResult {
  * write `<>` or `&&` while the canonical form stays single-valued.
  */
 const PUNCTUATION = [
-  '<>',
-  '>=',
-  '<=',
-  '==',
-  '!=',
-  '&&',
-  '||',
+  ...OPERATOR_PUNCTUATION,
   '(',
   ')',
   '[',
   ']',
   ',',
-  '+',
-  '-',
-  '*',
-  '/',
-  '%',
-  '^',
-  '>',
-  '<',
-  '=',
-  '!',
-];
+].toSorted((left, right) => right.length - left.length);
 
 function isDigit(char: string): boolean {
   return char >= '0' && char <= '9';

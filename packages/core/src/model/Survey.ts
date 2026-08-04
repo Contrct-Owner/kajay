@@ -22,8 +22,7 @@ import { SurveyProperties } from './SurveyProperties.js';
 import { applyData, readProgress, restoreProgress } from './SurveyProgress.js';
 import type { SurveyProgress } from './SurveyProgress.js';
 import { SurveyStatus } from './SurveyStatus.js';
-import type { SurveyTimer } from './SurveyTimer.js';
-import { createSurveyTimer } from './surveyTimerHost.js';
+import { SurveyTimer } from './SurveyTimer.js';
 import type { HtmlCondition } from './HtmlCondition.js';
 import type { CalculatedValue } from './CalculatedValue.js';
 import { SurveyAnswers } from './SurveyAnswers.js';
@@ -53,7 +52,7 @@ export class Survey extends SurveyProperties implements ValueHost {
   readonly #validation: SurveyValidation = new SurveyValidation(this, () => this.#logic);
   #isDesignMode = false;
 
-  readonly #timer: SurveyTimer = createSurveyTimer(this, () => this.#logic.now(), () => {
+  readonly #timer: SurveyTimer = new SurveyTimer(this, () => this.#logic.now(), () => {
     this.#advance();
   });
 

@@ -17,14 +17,16 @@
     "typecheck:tsc": "tsc -b --force",
     "typecheck:tsc7": "node node_modules/typescript7/bin/tsc -b --force",
     "check:arch": "node scripts/check-arch.mjs",
-    "check:contract": "node scripts/check-contract.mjs",
+    "check:test-policy": "node --test scripts/test-policy/*.test.mjs && node scripts/test-policy/check-unit-test-policy.mjs",
+    "check:parity": "node --test scripts/lib/parityProofs.test.mjs && node scripts/check-parity-proofs.mjs",
+    "check:contract": "node --test scripts/test/jsonSchema2020.test.mjs && node scripts/check-contract.mjs",
     "check:conformance": "node scripts/check-conformance.mjs",
     "test:unit": "vitest run --project unit",
     "test:browser": "vitest run --project browser",
     "build:demo": "pnpm --filter @kajay/host-demo run build",
-    "test:e2e": "pnpm run build:demo && playwright test",
+    "test:e2e": "playwright test",
     "test:pack": "node scripts/pack-test.mjs",
-    "verify": "pnpm run lint && pnpm run typecheck && pnpm run check:arch && pnpm run test:unit && pnpm run test:browser && pnpm run check:contract && pnpm run check:conformance && pnpm run test:e2e && pnpm run test:pack"
+    "verify": "pnpm run lint && pnpm run typecheck && pnpm run check:arch && pnpm run check:test-policy && pnpm run check:parity && pnpm run test:unit && pnpm run test:browser && pnpm run check:contract && pnpm run check:conformance && pnpm run test:e2e && pnpm run test:pack"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
@@ -37,6 +39,7 @@
     "@vitejs/plugin-react": "^6.0.5",
     "@vitest/browser": "^4.1.10",
     "@vitest/browser-playwright": "^4.1.10",
+    "ajv": "^8.20.0",
     "axe-core": "^4.12.1",
     "oxlint": "^1.76.0",
     "playwright": "^1.62.1",

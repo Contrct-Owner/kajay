@@ -1,7 +1,10 @@
 import { parseSurvey } from '@kajay/core';
 import type { ServerValidationError, Survey } from '@kajay/core';
-import { expect, test } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { createTestRegistry } from '../support/createTestRegistry.js';
+
+beforeEach(() => vi.useFakeTimers());
+afterEach(() => vi.useRealTimers());
 
 /**
  * What happens when the check itself breaks, rather than a validator inside it.
@@ -22,12 +25,6 @@ function withServerValidator(validate: () => Promise<ServerValidationError[]>): 
   return survey;
 }
 
-function flush(): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, 0);
-  });
-}
-
 test('parity/D4-server-validation: a server hook that resolves with nonsense is a check failure', async () => {
   // Not a rejection — this one *succeeds*, with something that is not a list of errors.
   // Reading it fails inside the gathering code, past the guards that catch a hook which
@@ -37,7 +34,9 @@ test('parity/D4-server-validation: a server hook that resolves with nonsense is 
   );
 
   expect(survey.nextPageOrComplete()).toBe('pending');
-  await flush();
+  await vi.waitFor(() => {
+    expect(survey.validation.isValidating).toBe(false);
+  });
 
   expect(survey.validation.isValidating).toBe(false);
   expect(survey.validation.checkError).not.toBeUndefined();
@@ -61,7 +60,9 @@ test('parity/D4-validate-question-event: a host rule that throws does not freeze
   });
 
   expect(survey.nextPageOrComplete()).toBe('pending');
-  await flush();
+  await vi.waitFor(() => {
+    expect(survey.validation.isValidating).toBe(false);
+  });
 
   expect(survey.validation.isValidating).toBe(false);
   expect(survey.validation.checkError).toBe('the host rule exploded');
@@ -73,13 +74,17 @@ test('parity/D4-server-validation: the survey recovers rather than staying stuck
     Promise.resolve(undefined as unknown as ServerValidationError[]),
   );
   survey.nextPageOrComplete();
-  await flush();
+  await vi.waitFor(() => {
+    expect(survey.validation.isValidating).toBe(false);
+  });
 
   // The point of putting the flag down: the next press starts a real check rather than
   // returning `pending` against a request that will never land.
   survey.validation.setServerValidator(() => Promise.resolve([]));
   expect(survey.nextPageOrComplete()).toBe('pending');
-  await flush();
+  await vi.waitFor(() => {
+    expect(survey.isCompleted).toBe(true);
+  });
 
   expect(survey.isCompleted).toBe(true);
 });

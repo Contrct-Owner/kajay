@@ -7,16 +7,32 @@ import type { QuestionRenderer } from './QuestionRendererRegistry.js';
 export interface PageElementRendererProps {
   readonly survey: Survey;
   readonly element: PageElement;
-  readonly renderers: PageElementRendererRegistry;
+  readonly renderers: PageElementRendererResolver;
 }
 
 export type PageElementRenderer = (props: PageElementRendererProps) => ReactElement;
 
+/** The complete capability needed to resolve and draw a page element. */
+export interface PageElementRendererResolver {
+  render(survey: Survey, element: PageElement): ReactElement;
+}
+
+/** A frozen registry can inspect and clone renderers, but cannot register them. */
+export interface ReadonlyPageElementRendererRegistry extends PageElementRendererResolver {
+  has(type: string): boolean;
+  /** A mutable copy for one consumer's custom registrations. */
+  clone(): PageElementRendererRegistry;
+}
+
 /** One dispatch table for every element a page may contain. */
-export class PageElementRendererRegistry {
+export class PageElementRendererRegistry implements PageElementRendererResolver {
   readonly #renderers: Map<string, PageElementRenderer> = new Map();
+  #frozen = false;
 
   register(type: string, renderer: PageElementRenderer): void {
+    if (this.#frozen) {
+      throw new Error('This page-element renderer registry is frozen; clone it before registering.');
+    }
     this.#renderers.set(type, renderer);
   }
 
@@ -32,6 +48,12 @@ export class PageElementRendererRegistry {
 
   has(type: string): boolean {
     return this.#renderers.has(type);
+  }
+
+  /** Prevents process-global defaults from being changed; mutable clones stay cheap. */
+  freeze(): ReadonlyPageElementRendererRegistry {
+    this.#frozen = true;
+    return this;
   }
 
   render(survey: Survey, element: PageElement): ReactElement {

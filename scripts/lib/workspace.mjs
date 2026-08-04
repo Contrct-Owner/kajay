@@ -1,25 +1,102 @@
-import { readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { basename, join } from 'node:path';
+import ts from 'typescript';
 
-/** Workspace package directories, from the `packages/*` and `apps/*` globs. */
-export function listWorkspaceDirs(repoRoot) {
-  const dirs = [];
-  for (const group of ['packages', 'apps']) {
-    const base = join(repoRoot, group);
-    let entries;
-    try {
-      entries = readdirSync(base);
-    } catch {
+/** Reads the package globs owned by pnpm rather than maintaining a second list. */
+export function workspacePackagePatterns(repoRoot) {
+  const source = readFileSync(join(repoRoot, 'pnpm-workspace.yaml'), 'utf8');
+  const patterns = [];
+  let packagesIndent;
+  for (const line of source.split('\n')) {
+    const heading = /^(\s*)packages:\s*(?:#.*)?$/u.exec(line);
+    if (heading !== null) {
+      packagesIndent = heading[1].length;
       continue;
     }
-    for (const entry of entries) {
-      const dir = join(base, entry);
-      if (statSync(dir).isDirectory()) {
-        dirs.push(dir);
-      }
+    if (packagesIndent === undefined || /^\s*(?:#.*)?$/u.test(line)) {
+      continue;
+    }
+    const indent = /^\s*/u.exec(line)?.[0].length ?? 0;
+    if (indent <= packagesIndent) {
+      break;
+    }
+    const item = /^\s*-\s*(['"]?)([^'"#]+)\1\s*(?:#.*)?$/u.exec(line);
+    if (item === null) {
+      throw new Error(`Unsupported pnpm workspace package entry: ${line.trim()}`);
+    }
+    patterns.push(item[2].trim());
+  }
+  if (packagesIndent === undefined || patterns.length === 0) {
+    throw new Error('pnpm-workspace.yaml must declare a non-empty packages list.');
+  }
+  return patterns;
+}
+
+function segmentMatcher(segment) {
+  let pattern = '^';
+  for (const character of segment) {
+    if (character === '*') {
+      pattern += '[^/]*';
+    } else if (character === '?') {
+      pattern += '[^/]';
+    } else {
+      pattern += character.replaceAll(/[\\^$.*+?()[\]{}|]/gu, '\\$&');
     }
   }
-  return dirs;
+  return new RegExp(`${pattern}$`, 'u');
+}
+
+function childDirectories(dir) {
+  try {
+    return readdirSync(dir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => join(dir, entry.name));
+  } catch {
+    return [];
+  }
+}
+
+function expandPattern(repoRoot, pattern) {
+  const matches = [];
+  const segments = pattern.replace(/^\.\//u, '').split('/').filter(Boolean);
+  const walk = (dir, index) => {
+    if (index === segments.length) {
+      if (existsSync(join(dir, 'package.json'))) {
+        matches.push(dir);
+      }
+      return;
+    }
+    const segment = segments[index];
+    if (segment === '**') {
+      walk(dir, index + 1);
+      for (const child of childDirectories(dir)) {
+        walk(child, index);
+      }
+      return;
+    }
+    const matcher = segmentMatcher(segment);
+    for (const child of childDirectories(dir)) {
+      if (matcher.test(basename(child))) {
+        walk(child, index + 1);
+      }
+    }
+  };
+  walk(repoRoot, 0);
+  return matches;
+}
+
+/** Workspace package directories expanded from `pnpm-workspace.yaml`. */
+export function listWorkspaceDirs(repoRoot) {
+  const included = new Set();
+  const excluded = new Set();
+  for (const entry of workspacePackagePatterns(repoRoot)) {
+    const negative = entry.startsWith('!');
+    const pattern = negative ? entry.slice(1) : entry;
+    for (const dir of expandPattern(repoRoot, pattern)) {
+      (negative ? excluded : included).add(dir);
+    }
+  }
+  return [...included].filter((dir) => !excluded.has(dir)).toSorted();
 }
 
 /** TypeScript sources under `dir`, skipping node_modules, dist and declaration files. */
@@ -39,6 +116,31 @@ export function listSourceFiles(dir) {
           walk(full);
         }
       } else if (/\.(?:ts|tsx|mts)$/u.test(entry.name) && !entry.name.endsWith('.d.ts')) {
+        files.push(full);
+      }
+    }
+  };
+  walk(dir);
+  return files;
+}
+
+/** JavaScript and TypeScript modules under a repository automation directory. */
+export function listModuleFiles(dir) {
+  const files = [];
+  const walk = (current) => {
+    let entries;
+    try {
+      entries = readdirSync(current, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = join(current, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name !== 'node_modules' && entry.name !== 'dist') {
+          walk(full);
+        }
+      } else if (/\.(?:cjs|js|mjs|mts|ts)$/u.test(entry.name) && !entry.name.endsWith('.d.ts')) {
         files.push(full);
       }
     }
@@ -113,26 +215,58 @@ export function stripComments(source) {
   return out;
 }
 
-/**
- * Finds import specifiers by pattern rather than by parsing.
- *
- * Comments are stripped first, and what remains is still guarded twice — the capture
- * excludes whitespace and the result is shape-checked — because the word "from" also
- * appears inside ordinary strings, and a test title ending in "came from" was enough
- * to produce a bogus specifier before those guards were in place.
- */
-export function importSpecifiers(source) {
-  const specifiers = [];
-  const code = stripComments(source);
-  const pattern = /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)(['"])([^'"\s]*)\1/gu;
-  let match;
-  while ((match = pattern.exec(code)) !== null) {
-    const specifier = match[2];
-    if (specifier.length > 0 && MODULE_SPECIFIER.test(specifier)) {
-      specifiers.push(specifier);
-    }
+function literalSpecifier(node) {
+  return node !== undefined && ts.isStringLiteralLike(node) && MODULE_SPECIFIER.test(node.text)
+    ? node.text
+    : undefined;
+}
+
+function callLoadsModule(expression) {
+  if (expression.kind === ts.SyntaxKind.ImportKeyword || ts.isIdentifier(expression) && expression.text === 'require') {
+    return true;
   }
-  return specifiers;
+  return ts.isPropertyAccessExpression(expression)
+    && expression.name.text === 'resolve'
+    && (ts.isIdentifier(expression.expression) && expression.expression.text === 'require'
+      || ts.isMetaProperty(expression.expression));
+}
+
+/** Finds every statically named module through the TypeScript syntax tree. */
+export function importSpecifiers(source) {
+  const specifiers = new Set();
+  const syntax = ts.createSourceFile('source.tsx', source, ts.ScriptTarget.Latest, false, ts.ScriptKind.TSX);
+  const collect = (node) => {
+    let specifier;
+    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
+      specifier = literalSpecifier(node.moduleSpecifier);
+    } else if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference)) {
+      specifier = literalSpecifier(node.moduleReference.expression);
+    } else if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument)) {
+      specifier = literalSpecifier(node.argument.literal);
+    } else if (ts.isCallExpression(node) && callLoadsModule(node.expression)) {
+      specifier = literalSpecifier(node.arguments[0]);
+    }
+    if (specifier !== undefined) {
+      specifiers.add(specifier);
+    }
+    ts.forEachChild(node, collect);
+  };
+  collect(syntax);
+  return [...specifiers];
+}
+
+/** Static string literals, used when a policy governs file paths rather than imports. */
+export function stringLiterals(source) {
+  const values = new Set();
+  const syntax = ts.createSourceFile('source.ts', source, ts.ScriptTarget.Latest, false);
+  const collect = (node) => {
+    if (ts.isStringLiteralLike(node)) {
+      values.add(node.text);
+    }
+    ts.forEachChild(node, collect);
+  };
+  collect(syntax);
+  return [...values];
 }
 
 /** `@scope/name/subpath` -> `@scope/name`; `name/subpath` -> `name`. */

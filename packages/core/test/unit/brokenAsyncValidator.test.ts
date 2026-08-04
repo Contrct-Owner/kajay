@@ -1,7 +1,10 @@
 import { AsyncValidator, parseSurvey } from '@kajay/core';
 import type { SurveyError } from '@kajay/core';
-import { expect, test } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { createTestRegistry } from '../support/createTestRegistry.js';
+
+beforeEach(() => vi.useFakeTimers());
+afterEach(() => vi.useRealTimers());
 
 /**
  * What happens when a host's own async validator is broken.
@@ -41,8 +44,8 @@ test('parity/D3-async-validators: a validator that throws does not freeze the su
   survey.setValue('code', 'KJ-1');
 
   expect(survey.nextPageOrComplete()).toBe('pending');
-  await new Promise((resolve) => {
-    setTimeout(resolve, 0);
+  await vi.waitFor(() => {
+    expect(survey.validation.isValidating).toBe(false);
   });
 
   // Unhandled, this left `isValidating` true forever: a Next button reading

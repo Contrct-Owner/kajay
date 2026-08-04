@@ -6,13 +6,21 @@
  * Each violation reports the rule and the file or package responsible, so the response
  * is to correct the design rather than to suppress the failure.
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkCorePackageRules, assertDomRuleWorks } from './lib/coreRules.mjs';
 import { readJsonc } from './lib/readJsonc.mjs';
 import {
+  assertPublicSurfaceLedgerRulesWork,
+  publicSurfaceLedgerViolations,
+} from './lib/publicRuntimeSurface.mjs';
+import { assertWorkspacePolicyRulesWork } from './lib/workspacePolicySelfCheck.mjs';
+import { isCorePackage } from './lib/workspacePolicy.mjs';
+import { workspacePolicyViolations } from './lib/workspacePolicyRules.mjs';
+import {
   importSpecifiers,
+  listModuleFiles,
   listSourceFiles,
   listWorkspaceDirs,
   packageNameOf,
@@ -20,35 +28,12 @@ import {
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
-/** Dependency direction is law. Anything not listed here is a violation. */
-const ALLOWED_PACKAGE_DEPENDENCIES = {
-  '@kajay/core': [],
-  '@kajay/react': ['@kajay/core'],
-  '@kajay/creator-core': ['@kajay/core'],
-  '@kajay/creator-react': ['@kajay/creator-core', '@kajay/react', '@kajay/core'],
-  '@kajay/themes': [],
-  '@kajay/host-demo': ['@kajay/core', '@kajay/react', '@kajay/creator-core', '@kajay/creator-react', '@kajay/themes'],
-};
-
-/** Packages that must stay DOM-free and dependency-free. */
-const CORE_PACKAGES = new Set(['@kajay/core', '@kajay/creator-core']);
-
-/** UI packages must take React as a peer, never a dependency. */
-const UI_PACKAGES = new Set(['@kajay/react', '@kajay/creator-react']);
-
-/**
- * ADR-0010: one root entry per package. Subpaths must be justified — themes is the
- * documented exception, because a stylesheet has no other delivery mechanism.
- */
-const ALLOWED_EXPORT_KEYS = {
-  default: new Set(['.', './package.json']),
-  '@kajay/themes': new Set(['.', './package.json', './styles.css', './themes/*.css']),
-};
-
 // The DOM-free rule carries a carve-out, so it is checked against known samples before
 // it is trusted against the source. A matcher that had quietly stopped matching would
 // otherwise report a clean run.
 assertDomRuleWorks();
+assertWorkspacePolicyRulesWork();
+assertPublicSurfaceLedgerRulesWork();
 
 const violations = [];
 
@@ -58,66 +43,57 @@ function fail(rule, location, detail) {
 
 const workspaceDirs = listWorkspaceDirs(repoRoot);
 const packagesByName = new Map();
+const workspacePackages = [];
+
+function repoRelative(path) {
+  return relative(repoRoot, path).replaceAll('\\', '/');
+}
+
+function projectReferences(dir, tsconfig) {
+  return (tsconfig.references ?? [])
+    .map(({ path }) => repoRelative(resolve(dir, path)))
+    .toSorted();
+}
 
 for (const dir of workspaceDirs) {
   const manifest = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
-  packagesByName.set(manifest.name, { dir, manifest });
+  const tsconfigPath = join(dir, 'tsconfig.json');
+  const tsconfigPresent = existsSync(tsconfigPath);
+  const tsconfig = tsconfigPresent ? readJsonc(tsconfigPath) : {};
+  const entry = {
+    name: manifest.name,
+    relativeDir: repoRelative(dir),
+    manifest,
+    projectReferences: projectReferences(dir, tsconfig),
+    tsconfigPresent,
+  };
+  workspacePackages.push(entry);
+  packagesByName.set(manifest.name, { dir, manifest, tsconfig });
 }
 
-for (const [name, { dir, manifest }] of packagesByName) {
-  const location = relative(repoRoot, dir);
-  const allowed = ALLOWED_PACKAGE_DEPENDENCIES[name];
+const rootTsconfig = readJsonc(join(repoRoot, 'tsconfig.json'));
+for (const violation of workspacePolicyViolations({
+  packages: workspacePackages,
+  rootProjectReferences: projectReferences(repoRoot, rootTsconfig),
+  ciWorkflow: readFileSync(join(repoRoot, '.github/workflows/ci.yml'), 'utf8'),
+  scriptSources: listModuleFiles(join(repoRoot, 'scripts')).map((file) => ({
+    location: repoRelative(file),
+    source: readFileSync(file, 'utf8'),
+  })),
+})) {
+  violations.push(violation);
+}
 
-  // ---- Rule: dependency direction -----------------------------------------
-  if (allowed === undefined) {
-    fail('dependency-direction', location, `Package "${name}" is not listed in the allowed dependency graph.`);
-  } else {
-    for (const dependency of Object.keys(manifest.dependencies ?? {})) {
-      if (dependency.startsWith('@kajay/') && !allowed.includes(dependency)) {
-        fail(
-          'dependency-direction',
-          location,
-          `"${name}" must not depend on "${dependency}". Allowed: ${allowed.join(', ') || '(none)'}.`,
-        );
-      }
-    }
-  }
+for (const detail of publicSurfaceLedgerViolations(
+  readFileSync(join(repoRoot, 'docs/public-package-interfaces.md'), 'utf8'),
+)) {
+  fail('public-runtime-surface-ledger', 'docs/public-package-interfaces.md', detail);
+}
 
-  // ---- Rule: core packages carry zero third-party runtime dependencies -----
-  if (CORE_PACKAGES.has(name)) {
-    for (const dependency of Object.keys(manifest.dependencies ?? {})) {
-      if (!dependency.startsWith('@kajay/')) {
-        fail(
-          'core-zero-dependencies',
-          location,
-          `Core package "${name}" declares runtime dependency "${dependency}". This needs an ADR.`,
-        );
-      }
-    }
-  }
-
-  // ---- Rule: React is a peer dependency of UI packages, never a dependency -
-  if (UI_PACKAGES.has(name) && Object.keys(manifest.dependencies ?? {}).includes('react')) {
-    fail('react-peer-only', location, `UI package "${name}" lists react as a dependency; it must be a peerDependency.`);
-  }
-
-  // ---- Rule: single root export entry (ADR-0010) ---------------------------
-  if (manifest.exports !== undefined) {
-    const permitted = ALLOWED_EXPORT_KEYS[name] ?? ALLOWED_EXPORT_KEYS.default;
-    for (const key of Object.keys(manifest.exports)) {
-      if (!permitted.has(key)) {
-        fail(
-          'single-entry-exports',
-          location,
-          `Export key "${key}" is not permitted for "${name}". Adding a subpath weakens the deep-import rule and needs an ADR.`,
-        );
-      }
-    }
-  }
-
+for (const [name, { dir, tsconfig }] of packagesByName) {
   // ---- Rule: core packages exclude the DOM lib -----------------------------
-  if (CORE_PACKAGES.has(name)) {
-    const tsconfig = readJsonc(join(dir, 'tsconfig.json'));
+  if (isCorePackage(name)) {
+    const location = repoRelative(dir);
     const libs = (tsconfig.compilerOptions?.lib ?? []).map((entry) => entry.toLowerCase());
     for (const lib of libs) {
       if (lib.startsWith('dom')) {
@@ -231,7 +207,7 @@ for (const [name, { dir, manifest }] of packagesByName) {
       // Shipped code may only use what the package declares. Test and e2e code may
       // also use the workspace's own devDependencies — those never reach a consumer.
       checkDeclaredDependencies(source, location, manifest, subdir !== 'src');
-      if (subdir === 'src' && CORE_PACKAGES.has(name)) {
+      if (subdir === 'src' && isCorePackage(name)) {
         checkCorePackageRules(source, location, name, fail);
       }
     }

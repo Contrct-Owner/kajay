@@ -1,5 +1,12 @@
-import { DropdownQuestion, TagboxQuestion, parseSurvey } from '@kajay/core';
-import type { ChoicePage, ChoicePageRequest, SelectQuestion, Survey } from '@kajay/core';
+import { parseSurvey } from '@kajay/core';
+import type {
+  ChoicePage,
+  ChoicePageRequest,
+  DropdownQuestion,
+  SelectQuestion,
+  Survey,
+  TagboxQuestion,
+} from '@kajay/core';
 import { createTestRegistry } from './createTestRegistry.js';
 
 /**
@@ -36,8 +43,8 @@ export class FakeChoiceDirectory {
     });
   };
 
-  /** Answers one request the way the fake directory would. Defaults to the latest. */
-  reply(index = this.asked.length - 1): void {
+  /** Answers one request and resolves after the pager has observed it. Defaults to the latest. */
+  async reply(index = this.asked.length - 1): Promise<void> {
     const request = this.asked[index];
     const pending = this.#pending[index];
     if (request === undefined || pending === undefined) {
@@ -51,14 +58,18 @@ export class FakeChoiceDirectory {
       items: page.map((name) => ({ value: name })),
       hasMore: request.skip + page.length < matching.length,
     });
+    // The pager attached its promise handler before the test can call `reply`. Yielding
+    // one microtask therefore resumes only after that handler applied the page.
+    await Promise.resolve();
   }
 
-  fail(message: string, index = this.asked.length - 1): void {
+  async fail(message: string, index = this.asked.length - 1): Promise<void> {
     const pending = this.#pending[index];
     if (pending === undefined) {
       throw new Error(`nothing was asked at ${String(index)}`);
     }
     pending.reject(new Error(message));
+    await Promise.resolve();
   }
 }
 
@@ -94,17 +105,10 @@ export function paged(extra: Readonly<Record<string, unknown>> = {}, type = 'dro
     { loadChoicePage: directory.load },
   ).survey;
   const question = survey.getQuestionByName('city');
-  if (!(question instanceof DropdownQuestion) && !(question instanceof TagboxQuestion)) {
+  if (question?.type !== 'dropdown' && question?.type !== 'tagbox') {
     throw new TypeError('expected a collapsed select');
   }
-  return { survey, question, directory };
-}
-
-/** Lets the pager's promise callbacks run. */
-export function flush(): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, 0);
-  });
+  return { survey, question: question as DropdownQuestion | TagboxQuestion, directory };
 }
 
 /** The loaded choices, as a respondent would read them. */

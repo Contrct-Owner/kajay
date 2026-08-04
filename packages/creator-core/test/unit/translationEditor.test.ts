@@ -1,7 +1,8 @@
 import { MetadataRegistry, registerBuiltInTypes } from '@kajay/core';
 import type { SurveyDefinition } from '@kajay/core';
-import { DesignSurface, TranslationSession, collectTranslations } from '@kajay/creator-core';
+import { DesignSurface, TranslationSession } from '@kajay/creator-core';
 import type { TranslationRequest } from '@kajay/creator-core';
+import { collectTranslations } from '../../src/translations.js';
 import { afterEach, describe, expect, test } from 'vitest';
 
 /**

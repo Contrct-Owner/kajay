@@ -4,16 +4,14 @@ import type { ReactElement } from 'react';
 import type { CSSProperties } from 'react';
 import { PageElementSlot } from './PageElementSlot.js';
 import type { PageElementRendererProps } from './PageElementRendererRegistry.js';
+import { useQuestionRenderers } from './QuestionRenderersContext.js';
 import { useCssClass } from './SurveyCssContext.js';
 
-export function PanelRenderer({
-  survey,
-  element,
-  renderers,
-}: PageElementRendererProps): ReactElement {
+export function PanelRenderer({ survey, element }: PageElementRendererProps): ReactElement {
   if (!(element instanceof Panel)) {
     throw new TypeError('PanelRenderer requires a panel.');
   }
+  const renderers = useQuestionRenderers();
   const contentId = `kajay-panel-${element.name}-content`;
   const isCollapsed = element.state !== 'default' && element.isCollapsed;
   const panelClass = useCssClass('panel', 'kajay-panel');

@@ -320,55 +320,6 @@ export function slotsOnPage(
   }
   return slots;
 }
-
-/**
- * How many elements a container holds, walking what is on screen.
- *
- * Reads the *model* rather than the definition, because it is asked on every pointer
- * move to say "position 2 of 4" — and serializing a survey to count two questions is not
- * something to do sixty times a second.
- */
-export function countIn(page: PageLike | undefined, container: string): number {
-  if (page === undefined) {
-    return 0;
-  }
-  if (page.name === container) {
-    return page.elements.length;
-  }
-  const walk = (elements: readonly ElementLike[]): number | undefined => {
-    for (const element of elements) {
-      const children = childElements(element);
-      if (element.name === container) {
-        return children.length;
-      }
-      const nested = walk(children);
-      if (nested !== undefined) {
-        return nested;
-      }
-    }
-    return undefined;
-  };
-  return walk(page.elements) ?? 0;
-}
-
-/** The little of the model this file needs: a name, and what is inside. */
-interface ElementLike {
-  readonly name: string;
-  getChildren: (property: string) => readonly unknown[];
-}
-
-interface PageLike {
-  readonly name: string;
-  readonly elements: readonly ElementLike[];
-}
-
-function childElements(element: ElementLike): readonly ElementLike[] {
-  return element.getChildren('elements').filter((child): child is ElementLike => {
-    const candidate = child as Partial<ElementLike>;
-    return typeof candidate.name === 'string' && typeof candidate.getChildren === 'function';
-  });
-}
-
 export function nameOf(definition: SurveyDefinition): string | undefined {
   const name = definition['name'];
   return typeof name === 'string' ? name : undefined;

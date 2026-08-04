@@ -1,6 +1,6 @@
 import { createDefaultFunctionRegistry, parseSurvey } from '@kajay/core';
 import type { FunctionRegistry, Survey } from '@kajay/core';
-import { describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { createTestRegistry } from '../support/createTestRegistry.js';
 
 /**
@@ -38,11 +38,8 @@ function build(functions: FunctionRegistry): Survey {
   ).survey;
 }
 
-function flush(): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, 0);
-  });
-}
+beforeEach(() => vi.useFakeTimers());
+afterEach(() => vi.useRealTimers());
 
 describe('parity/B2-async-functions', () => {
   test('an answer that arrives later still drives the logic', async () => {
@@ -54,19 +51,21 @@ describe('parity/B2-async-functions', () => {
     // first pass sees an unanswered question and the rule re-runs when it is answered.
     expect(survey.getQuestionByName('delivery')?.isVisible).toBe(false);
 
-    await flush();
-    expect(survey.getQuestionByName('delivery')?.isVisible).toBe(true);
+    await vi.waitFor(() => {
+      expect(survey.getQuestionByName('delivery')?.isVisible).toBe(true);
+    });
   });
 
   test('the same question is asked once, however often it is evaluated', async () => {
     const asked: string[] = [];
     const survey = build(servedPostcodes(asked));
     survey.setValue('postcode', 'SW1');
-    await flush();
+    await vi.waitFor(() => {
+      expect(asked).toEqual(['', 'SW1']);
+    });
     // Anything that re-runs the rules: the re-evaluation the answer itself triggered
     // has already happened by now.
     survey.setValue('postcode', 'SW1');
-    await flush();
 
     // Two argument sets, two calls, and no more. Without the cache this is where it
     // loops: every re-evaluation would start the call again, and every call would
@@ -83,9 +82,13 @@ describe('parity/B2-async-functions', () => {
     const asked: string[] = [];
     const survey = build(servedPostcodes(asked));
     survey.setValue('postcode', 'SW1');
-    await flush();
+    await vi.waitFor(() => {
+      expect(asked).toEqual(['', 'SW1']);
+    });
     survey.setValue('postcode', 'EH1');
-    await flush();
+    await vi.waitFor(() => {
+      expect(asked).toEqual(['', 'SW1', 'EH1']);
+    });
 
     expect(asked).toEqual(['', 'SW1', 'EH1']);
     expect(survey.getQuestionByName('delivery')?.isVisible).toBe(false);
@@ -96,7 +99,9 @@ describe('parity/B2-async-functions', () => {
     functions.registerAsync('isserved', () => Promise.reject(new Error('lookup exploded')));
     const survey = build(functions);
     survey.setValue('postcode', 'SW1');
-    await flush();
+    await vi.waitFor(() => {
+      expect(survey.logicDiagnostics.expressionErrors).not.toEqual([]);
+    });
 
     const errors = survey.logicDiagnostics.expressionErrors;
     expect(errors.map((error) => error.code)).toContain('function-failed');
@@ -115,9 +120,10 @@ describe('parity/B2-async-functions', () => {
     });
     const survey = build(functions);
     survey.setValue('postcode', 'SW1');
-    await flush();
+    await vi.waitFor(() => {
+      expect(asked).toEqual(['', 'SW1']);
+    });
     survey.setValue('postcode', 'SW1');
-    await flush();
 
     // Asked once per argument set and not again. A failure is an answer too, as far as
     // not asking goes — otherwise a broken endpoint becomes a request storm, and every

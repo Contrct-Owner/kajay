@@ -1,9 +1,9 @@
 # Survey Engine — North Star
 
 - Area: Product vision, architecture, and guiding principles
-- Status: proposed
+- Status: active
 - Owner: Jarod
-- Last updated: 2026-08-03
+- Last updated: 2026-08-04
 
 ---
 
@@ -181,10 +181,10 @@ executable JSON corpus under `conformance/`
   [ADR-0010](./adr/0010-package-manifest-and-distribution.md)). This is a separate
   contract from the compiler this repo builds with.
 - **Language:** TypeScript ~6.0 (strict), ESM-only. Compiler settings chosen to be
-  **TypeScript 7 (tsgo)-clean**: `verbatimModuleSyntax`, `erasableSyntaxOnly`,
+  **TypeScript 7-clean**: `verbatimModuleSyntax`, `erasableSyntaxOnly`,
   `isolatedDeclarations` on published packages, no `namespace`/`enum`/parameter
-  properties, no deprecated compiler options. CI type-checks with **both** `tsc` and
-  `tsgo` so the repo rides the 6 → 7 transition without a migration event.
+  properties, no deprecated compiler options. CI runs the stable TypeScript 7 compiler
+  first and TypeScript 6 `tsc` last for emit, so both must accept identical source.
 - **Monorepo:** pnpm workspaces + TypeScript project references (`tsc -b`), with a
   pnpm **catalog** pinning shared versions once for the whole workspace
   ([ADR-0015](./adr/0015-pnpm-workspace.md)). pnpm is pinned via `packageManager` and
@@ -222,6 +222,8 @@ adapter, not the specification by accident. A C# implementation would reproduce 
 headless core behind that seam and prove compatibility by running the same cases
 ([ADR-0020](./adr/0020-versioned-cross-language-runtime-contract.md)). This does not
 turn the core into a network service; an HTTP/RPC deployment remains a separate design.
+Today only the TypeScript adapter exists, so the corpus is an executable portability
+contract, not yet evidence that two runtimes are compatible.
 
 ---
 
@@ -233,6 +235,10 @@ Mirrors SurveyJS's proven seams, all flowing from the metadata registry:
   schema contract, property grid, and toolbox pick it up automatically; register a
   renderer component per adapter.
 - **Custom properties** on existing types (the `addProperty` pattern).
+- **Published values are intentional.** Consumer operations, extension seams, and
+  maintained adapter requirements are recorded in the
+  [public package interface ledger](./public-package-interfaces.md); package-local
+  algorithms are not promoted merely to make their tests convenient.
 - **Custom expression functions** (sync and async).
 - **Custom validators.**
 - **Theming:** theme JSON (CSS variable sets + a few structural options) applied at
@@ -246,7 +252,7 @@ The host app exists to make embeddability falsifiable:
 
 - It consumes packages **only** through their public `exports` — deep imports are
   build errors.
-- CI additionally runs a **pack test**: `npm pack` each package, install the
+- CI additionally runs a **pack test**: `pnpm pack` each package, install the
   tarballs into a scratch project outside the workspace, compile and run a smoke
   scenario. This simulates a true third-party consumer — the same artifact a real
   host would install — rather than trusting workspace symlinks.
@@ -294,13 +300,16 @@ The host app exists to make embeddability falsifiable:
       zero-dep — [ADR-0003](./adr/0003-hand-rolled-expression-parser.md).
 - [x] **Core reactivity is an explicit dependency graph**, no signals library —
       [ADR-0004](./adr/0004-explicit-dependency-graph.md).
-- [x] **Single version train** released with changesets; `1.0.0` at Phase 3 exit —
-      [ADR-0005](./adr/0005-single-version-train.md).
-- [x] **npm scope `@kajay/*`**, conditional on claiming the org —
-      [ADR-0006](./adr/0006-npm-scope.md) (status: proposed until the claim succeeds).
+- [x] **Working package scope is `@kajay/*`**, conditional on claiming the org —
+      [ADR-0006](./adr/0006-npm-scope.md). The ADR remains proposed and publication
+      remains blocked until the claim succeeds.
       `@survey/*` was abandoned: the `survey` org is already taken on npm.
-- [x] **Private repo, unlicensed**, revisit at Phase 2 exit —
-      [ADR-0007](./adr/0007-license-and-repo-posture.md).
+- [x] **Private repo, unlicensed**, continued after the Phase 2 review as an interim
+      posture — [ADR-0007](./adr/0007-license-and-repo-posture.md).
+- [x] **Publication is on hold pending an explicit release walkthrough.** Working
+      package names stay private at `0.0.0`/`UNLICENSED`; that state does not select a
+      final brand, license, version, or release module —
+      [ADR-0024](./adr/0024-publication-hold.md).
 - [x] **No SurveyJS theme-JSON import**; own token namespace —
       [ADR-0008](./adr/0008-no-surveyjs-theme-import.md).
 - [x] **Creator drag-and-drop deferred** to Phase 3 with three binding constraints —
@@ -330,9 +339,12 @@ The host app exists to make embeddability falsifiable:
 
 ### Still open
 
+- [ ] Walk through and explicitly decide the brand/scope, licensing model, first
+      version, version train, and release tooling before activating any release work
+      ([ADR-0024](./adr/0024-publication-hold.md)).
 - [ ] Claim the `kajay` npm organization; promote ADR-0006 to accepted or pick a
-      replacement scope *before* Phase 0 scaffolding. This is the only decision
-      gating Phase 0.
+      replacement scope before publication. Scaffolding is complete, so this is now a
+      release-readiness gate rather than a Phase 0 implementation gate.
 - [ ] Confirm that housing a survey engine under `@kajay/*` is the intended umbrella
       branding rather than an artifact of scope availability
       ([ADR-0006](./adr/0006-npm-scope.md)).
@@ -343,15 +355,27 @@ The host app exists to make embeddability falsifiable:
 
 | Date | Decision |
 | --- | --- |
+| 2026-08-04 | **Publication is on hold until the release choices are walked through explicitly.** Packages remain private at `0.0.0` with `UNLICENSED` metadata; `@kajay/*` remains a working source scope; and no Changesets configuration, release workflow, scope claim, or registry publication is authorized. Brand/scope, licensing, first version, version train, and tooling remain deliberately undecided. Lifting the hold does not itself authorize publication. [ADR-0024](./adr/0024-publication-hold.md). |
+| 2026-08-04 | **Creator placement and lifetime are headless modules, not React state.** `DesignSurface.placement` owns the complete preview/commit/abandon lifecycle and structured narration facts. `CreatorWorkspace` owns coherent registry/configuration, session construction, and disposal for both the default assembly and host-owned layouts; pieces still take only the narrow model they draw. [ADR-0009](./adr/0009-creator-drag-and-drop.md), [ADR-0021](./adr/0021-creator-composition.md). |
+| 2026-08-04 | **`parseSurvey` retains its options-only and registry-plus-options modes.** Both have concrete production, Creator, test, pack, and conformance callers; replacing them with a bag now would add a transitional third interface without deepening the parser. A single options bag has explicit caller and release triggers. [ADR-0023](./adr/0023-retain-parse-survey-calling-modes.md). |
+| 2026-08-04 | **Published runtime values require evidence.** Every package-root value is classified as a consumer operation, intentional extension seam, or maintained-adapter requirement. Package-local algorithms are private, model constructors that need no runtime identity are type-only, and the installed consumer proves the retained extension seams. [Public interface ledger](./public-package-interfaces.md). |
+| 2026-08-04 | **Functional Phase 3 acceptance is proven; release readiness is separate.** Checklist §A–§N and the N5 host proof are green. Package publication is now subject to an explicit hold, while npm scope, licensing, version, and release-module choices remain deliberately deferred. All non-release architecture remediation is implemented and verified; that work does not manufacture owner decisions. [Context](../CONTEXT.md), [remediation plan](./architecture-remediation-plan.md). |
 | 2026-08-03 | **Runtime compatibility is a versioned, executable interface rather than a source-code promise.** Generated metadata and diagnostic catalogs join the JSON Schema, while adapter-neutral definition, expression, value, and lifecycle cases live under `conformance/v1`. TypeScript is the first adapter; a future .NET runtime must pass the same corpus. [ADR-0020](./adr/0020-versioned-cross-language-runtime-contract.md). |
 | 2026-08-02 | **Runtime seams represent independent policy, not one-use wiring.** Page-element traversal and host propagation now follow the registered content tree; validation/status/logic depend on concrete runtime modules; all dynamic-choice acquisition is owned together; and React dispatches every page element through one registry. Package entries were narrowed to consumer operations and intentional extension seams. [ADR-0019](./adr/0019-deep-runtime-modules-and-rendering-seam.md). |
-| 2026-08-02 | Corpus created. Framework-agnostic core + React-first adapters; parity scope = Form Library + Creator; proof = in-repo host app consuming public APIs + CI pack test; TS 6 strict with tsgo dual-check. |
+| 2026-08-02 | Corpus created. Framework-agnostic core + React-first adapters; parity scope = Form Library + Creator; proof = in-repo host app consuming public interfaces + CI pack test; TS 6 strict with a second TypeScript 7 check. |
 | 2026-08-02 | **Workspace moved from npm to pnpm** ([ADR-0015](./adr/0015-pnpm-workspace.md)), reversing the npm-workspaces choice in §5 and superseding ADR-0010's rejection of corepack. Deciding feature: catalogs, which pin a shared version once across the workspace and are what the single version train wants. Consumers are unaffected — packages still publish for npm, and the pack test now packs with pnpm and installs with npm precisely so the `workspace:*` rewrite is verified rather than assumed. |
-| 2026-08-02 | **Phase 0 complete.** Monorepo, metadata kernel, serializer, React renderer, host-demo, enforcement scripts and CI all landed; `npm run verify` runs eight gates green. Two toolchain amendments were forced by reality: TypeScript 7 has shipped, so `tsgo`/`@typescript/native-preview` is superseded by real `typescript@7` (ADR-0012), and the oxlint baseline had to disable `unicorn/prefer-event-target` because it recommends a DOM global into a DOM-free package (ADR-0013). |
-| 2026-08-02 | Second pass: the `survey` npm org proved taken, so the scope became **`@kajay/*`** and the corpus was renamed (ADR-0006). Remaining Phase-0 decisions closed as ADR-0010 (Node ≥22.12, single-entry `exports`, host-imported CSS) and ADR-0011 (URN `$id`, `schemaVersion` on the definition, refuse-don't-guess on version mismatch). Checklist vocabulary migrates per-PR rather than in one pass. Only the org claim still gates Phase 0. |
+| 2026-08-02 | **Phase 0 complete.** Monorepo, metadata kernel, serializer, React renderer, host-demo, enforcement scripts and CI all landed; `pnpm run verify` runs the repository gates green. Two toolchain amendments were forced by reality: TypeScript 7 shipped, so `@typescript/native-preview` was superseded by stable `typescript@7` (ADR-0012), and the oxlint baseline disabled `unicorn/prefer-event-target` because it recommends a DOM global into a DOM-free package (ADR-0013). |
+| 2026-08-02 | Second pass: the `survey` npm org proved taken, so the scope became **`@kajay/*`** and the corpus was renamed (ADR-0006). Remaining Phase-0 decisions closed as ADR-0010 (Node ≥22.12, single-entry `exports`, host-imported CSS) and ADR-0011 (URN `$id`, `schemaVersion` on the definition, refuse-don't-guess on version mismatch). Checklist vocabulary migrates per-PR rather than in one pass. The org claim still gates publication. |
 | 2026-08-02 | **A broken authored rule fails open; an unanswerable check fails closed.** Validation drew the same question twice with opposite answers, and both are deliberate. An unparseable `regex` or `expression` validator is treated as *no rule*: the respondent did not write it and cannot fix it, so blocking them turns an author's typo into a dead end. A **rejected** server-validation promise blocks the move instead: the server is the authority, nothing has confirmed the answers, and there is a real reason to stop. Neither is silent — `RegexValidator.hasInvalidPattern` and `ExpressionOutcome.failed` expose the first, and `validation.serverError` carries the second as a *survey*-level message rather than an objection attached to an answer that is not at fault. |
 | 2026-08-02 | **`nextPageOrComplete` reports three outcomes, not a boolean** — `advanced`, `blocked`, `pending`. Once a check can leave the process, "the move did not happen" stops being one thing: `blocked` means put the respondent in front of the error, `pending` means there is no error yet, only a wait. A renderer that could not tell them apart would move focus to a field with nothing wrong with it. A survey with nothing async never sees `pending` and never awaits anything. |
 | 2026-08-02 | **`choicesByUrl` origin belongs to the host** ([ADR-0017](./adr/0017-choices-url-environment-portability.md)): definitions carry origin-relative URLs so the artifact promoted to production is the one that was tested. The obvious alternative — parameterising the URL with an answer — was refuted by running it: every placeholder is percent-encoded, so `{baseUrl}/users` produces `https%3A%2F%2Fuat.acme.com/users`. Behind that sit three worse problems, the sharpest being that it would let a respondent choose where the survey fetches from. **Amended the same day**, reversing the ADR's own trigger-gating: the `{@name}` deployment scope is a stated requirement rather than a maybe, so it becomes checklist **B11** in Phase 1 §B rather than waiting for a second origin to appear. |
 | 2026-08-02 | **Phase 1 complete.** §B, §C, §D and §E closed; §A closed but for the three rows naming Creator and Phase-2 surface. Eight gates green: 674 unit, 59 browser, 63 E2E, plus contract drift and the pack test across TypeScript 5.5/6.0/7.0. The last open question was **input masking, now dropped from parity scope** ([ADR-0018](./adr/0018-input-masking-out-of-scope.md)) rather than deferred — the first named gap against the SurveyJS Form Library, stated on C1's face rather than implied by a row that looks complete. Two design decisions from the phase are worth naming here because later work stands on them: a survey's **state is one value** (loading, empty, running, preview, completed) rather than a handful of flags, which is what made E4's preview read-only by construction; and the **reorder interaction was built as a primitive** (ADR-0009 constraint 3), so Phase 3's drag-and-drop extends something already proven accessible. |
 | 2026-08-02 | **Quiz mode (§E8) moves to Phase 2**, with §E3's correct-answer progress bar, resolving a contradiction the roadmap held on its own face: Phase 1 named quiz mode as *out of scope* while its exit gate demanded §E green. Phase 2 already owned quiz mode in its scope list, and no other §E row waits on E8, so the gate moved rather than the work. The same edit made the Phase 1 gate honest in general: it now names the rows that cannot close there — A4/A5 (Creator property grid), A7 (events for features that do not exist yet), D1's matrix half — because reading it literally made the milestone unreachable rather than demanding. Recorded as a scope decision rather than an ADR: nothing about the architecture changed, only when the work happens. |
 | 2026-08-02 | All nine §11 open decisions worked through; ADRs 0001–0009 recorded. Headline: the definition format is **our own** rather than SurveyJS-compatible, which moves parity evidence from executable (running their JSON) to capability-level (against their documentation) and makes deliberate format design Phase 0 work. Round-trip bar set at fixed-point equivalence. Expression parser and reactivity both hand-rolled and zero-dep. Single version train. Repo stays private and unlicensed until Phase 2 exit. |
+
+## Parent and related links
+
+- [Project context](../CONTEXT.md)
+- [Delivery roadmap](./delivery-roadmap.md)
+- [Feature-parity checklist](./feature-parity-checklist.md)
+- [Architecture decision records](./adr/README.md)

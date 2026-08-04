@@ -1,9 +1,7 @@
-import {
-  SCHEMA_ID,
-  generateDiagnosticContract,
-  generateMetadataContract,
-} from '@kajay/core';
+import { SCHEMA_ID } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
+import { generateDiagnosticContract } from '../../src/contract/generateDiagnosticContract.js';
+import { generateMetadataContract } from '../../src/contract/generateMetadataContract.js';
 import { createTestRegistry } from '../support/createTestRegistry.js';
 
 describe('cross-language runtime metadata contract', () => {

@@ -5,10 +5,11 @@ import {
   PageElementSlot,
   QuestionRenderersProvider,
 } from '@kajay/react';
-import type { PageElementDecorator, PageElementRendererRegistry } from '@kajay/react';
+import type { PageElementDecorator, PageElementRendererResolver } from '@kajay/react';
 import type { KeyboardEvent, ReactElement } from 'react';
 import { useCreatorText } from './CreatorStringsContext.js';
 import { DesignedElement } from './DesignedElement.js';
+import { DropEndIndicator } from './DropEndIndicator.js';
 import { historyShortcut, isTextEntry } from './historyShortcut.js';
 import { PageAdorner } from './PageAdorner.js';
 import { useSurfaceVersion } from './useSurfaceVersion.js';
@@ -17,7 +18,7 @@ import type { DesignerPlacement } from './useDesignerPlacement.js';
 export interface DesignSurfacePanelProps {
   readonly surface: DesignSurface;
   /** Defaults to the built-in renderers; pass a clone to draw a custom type. */
-  readonly renderers?: PageElementRendererRegistry;
+  readonly renderers?: PageElementRendererResolver;
   /**
    * Drag and drop, from {@link useDesignerPlacement} — checklist K2.
    *
@@ -116,7 +117,7 @@ export function DesignSurfacePanel({
         // The end of the list has no element to draw a line above, so it gets its own
         // marker. Without it the last position would be the one place a drop could not
         // be aimed at, which is also the most common place to add a question.
-        <div className="kajay-designer__drop-end" data-testid="drop-at-end" />
+        <DropEndIndicator container={page.name} />
       ) : null}
       {placement === undefined ? null : (
         // `aria-live` on its own, not `role="status"`. The ranking question's live
@@ -149,7 +150,7 @@ function CanvasBody({
   renderers,
 }: {
   readonly surface: DesignSurface;
-  readonly renderers: PageElementRendererRegistry;
+  readonly renderers: PageElementRendererResolver;
 }): ReactElement {
   const text = useCreatorText();
   const page = surface.page;
@@ -204,6 +205,12 @@ function useDesignerDecorator(
           activeSlot.list.of === 'elements' &&
           activeSlot.list.container === at.list.container &&
           activeSlot.index === at.index
+        }
+        isDropAtEnd={
+          surface.isContainer(element) &&
+          activeSlot?.list.of === 'elements' &&
+          activeSlot.list.container === element.name &&
+          activeSlot.index === element.getChildren('elements').length
         }
       >
         {children}

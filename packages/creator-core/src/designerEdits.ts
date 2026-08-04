@@ -1,8 +1,5 @@
 import type { DesignSurface } from './DesignSurface.js';
-import type { DropSlot, PlacementSource } from './placement.js';
 import { addPage, pageAfterRemoving, removePage } from './pageEdits.js';
-import { applyPlacement, placedName } from './placement.js';
-import { isTypeAllowed } from './CreatorConfiguration.js';
 
 /**
  * The structural edits, written as what they are: a definition in, a definition out.
@@ -41,34 +38,6 @@ export function removePageFrom(surface: DesignSurface, name: string): boolean {
   }
   const goTo = surface.page?.name === name ? pageAfterRemoving(before, name) : surface.page?.name;
   surface.applyEdit(after, { goTo, from: before });
-  return true;
-}
-
-/**
- * Puts a new element, or an existing one, at a slot — checklist K2 and K4.
- *
- * Returns whether anything happened, so a caller can leave a refused drop unspoken — and
- * so a drop that lands where it started does not put an entry on the undo stack that
- * undoes nothing.
- */
-export function placeOn(
-  surface: DesignSurface,
-  source: PlacementSource,
-  slot: DropSlot,
-): boolean {
-  // A restricted Creator refuses the *edit*, not merely the button — checklist N2. A
-  // toolbox that drew a shorter list while `place` still accepted anything would make the
-  // restriction a suggestion, and a keyboard drag or a host calling `place` directly would
-  // walk straight past it.
-  if (source.kind === 'new' && !isTypeAllowed(source.item.type, surface.configuration)) {
-    return false;
-  }
-  const before = surface.definition;
-  const after = applyPlacement(before, source, slot);
-  if (after === before) {
-    return false;
-  }
-  surface.applyEdit(after, { select: placedName(source, after, slot), from: before });
   return true;
 }
 

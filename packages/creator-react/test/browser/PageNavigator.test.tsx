@@ -3,7 +3,7 @@ import { MetadataRegistry, registerBuiltInTypes } from '@kajay/core';
 import type { SurveyDefinition } from '@kajay/core';
 import { DesignSurface } from '@kajay/creator-core';
 import { DesignSurfacePanel, PageNavigatorPanel, useDesignerPlacement } from '@kajay/creator-react';
-import { userEvent } from '@vitest/browser/context';
+import { userEvent } from 'vitest/browser';
 import type { ReactElement } from 'react';
 import { expect, test } from 'vitest';
 import { render } from 'vitest-browser-react';

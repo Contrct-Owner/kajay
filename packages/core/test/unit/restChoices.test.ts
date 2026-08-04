@@ -1,7 +1,10 @@
 import { parseSurvey, serializeSurvey } from '@kajay/core';
 import type { ChoiceFetcher, SelectQuestion, Survey } from '@kajay/core';
-import { describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { createTestRegistry } from '../support/createTestRegistry.js';
+
+beforeEach(() => vi.useFakeTimers());
+afterEach(() => vi.useRealTimers());
 
 function build(
   definition: Readonly<Record<string, unknown>>,
@@ -24,21 +27,6 @@ function select(survey: Survey, name: string): SelectQuestion {
 
 function choiceValues(survey: Survey, name: string): readonly unknown[] {
   return select(survey, name).visibleChoices.map((choice) => choice.value);
-}
-
-/**
- * Lets every pending promise callback run.
- *
- * A macrotask on purpose. How many microtask hops separate a resolved fetch from an
- * applied choice list is an implementation detail — request sharing added one, and
- * `await Promise.resolve()` counting had to be corrected each time. This is used only
- * where the assertion is that nothing changed; where something is expected to change,
- * wait for that instead.
- */
-function flushPendingWork(): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, 0);
-  });
 }
 
 const countries = [
@@ -158,6 +146,7 @@ describe('parity/B10-rest-choices', () => {
 
   test('a slower obsolete request cannot replace choices from the latest URL', async () => {
     const responses = new Map<string, (payload: unknown) => void>();
+    const settled = new Set<string>();
     const survey = build(
       {
         pages: [
@@ -170,10 +159,15 @@ describe('parity/B10-rest-choices', () => {
           },
         ],
       },
-      (url) =>
-        new Promise((resolve) => {
+      (url) => {
+        const response = new Promise<unknown>((resolve) => {
           responses.set(url, resolve);
-        }),
+        });
+        return response.then((payload) => {
+          settled.add(url);
+          return payload;
+        });
+      },
     );
 
     survey.setValue('region', 'request-a');
@@ -185,12 +179,15 @@ describe('parity/B10-rest-choices', () => {
     });
 
     responses.get('request-a')?.(['obsolete']);
-    await flushPendingWork();
+    await vi.waitFor(() => {
+      expect(settled).toContain('request-a');
+    });
     expect(choiceValues(survey, 'country')).toEqual(['newest']);
   });
 
   test('a response cannot install itself after its URL source is removed', async () => {
     let resolveResponse: ((payload: unknown) => void) | undefined;
+    let responseSettled = false;
     const survey = build(
       {
         pages: [
@@ -207,10 +204,15 @@ describe('parity/B10-rest-choices', () => {
           },
         ],
       },
-      () =>
-        new Promise((resolve) => {
+      () => {
+        const response = new Promise<unknown>((resolve) => {
           resolveResponse = resolve;
-        }),
+        });
+        return response.then((payload) => {
+          responseSettled = true;
+          return payload;
+        });
+      },
     );
 
     select(survey, 'country').setPropertyValue('choicesByUrl', '');
@@ -219,7 +221,9 @@ describe('parity/B10-rest-choices', () => {
       throw new TypeError('expected the URL source to start a request');
     }
     resolveResponse(['obsolete']);
-    await flushPendingWork();
+    await vi.waitFor(() => {
+      expect(responseSettled).toBe(true);
+    });
 
     expect(choiceValues(survey, 'country')).toEqual(['authored']);
   });

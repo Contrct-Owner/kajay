@@ -6,6 +6,9 @@
  * tests, and can cross the core/creator seam intact when the visual logic editor
  * (checklist M1) round-trips AST → UI → AST.
  */
+import type { BinaryOperator, PostfixOperator, UnaryOperator } from './operators.js';
+
+export type { BinaryOperator, PostfixOperator, UnaryOperator } from './operators.js';
 
 /** Character offsets into the source text. Half-open: `[start, end)`. */
 export interface SourceSpan {
@@ -24,30 +27,6 @@ export interface SourceSpan {
 export type PathSegment =
   | { readonly kind: 'name'; readonly name: string }
   | { readonly kind: 'index'; readonly index: number };
-
-export type BinaryOperator =
-  | 'or'
-  | 'and'
-  | '=='
-  | '!='
-  | '>'
-  | '>='
-  | '<'
-  | '<='
-  | 'contains'
-  | 'notcontains'
-  | 'anyof'
-  | 'allof'
-  | '+'
-  | '-'
-  | '*'
-  | '/'
-  | '%'
-  | '^';
-
-export type UnaryOperator = 'not' | '-';
-
-export type PostfixOperator = 'empty' | 'notempty';
 
 export type LiteralValue = string | number | boolean | null;
 

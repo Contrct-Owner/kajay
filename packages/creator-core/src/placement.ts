@@ -3,7 +3,6 @@ import type { ToolboxItem } from './ToolboxItem.js';
 import {
   collectNames,
   containersWithin,
-  countIn,
   listOf,
   locate,
   nameOf,
@@ -187,23 +186,4 @@ export function placedName(
     return source.name;
   }
   return nameOf(listOf(after, slot.list)?.[slot.index] ?? {});
-}
-
-/**
- * How many elements a container holds — what a live region says "of 4" from.
- *
- * A free function taking the surface rather than a method on it, because it is a *read* of
- * two things the surface already exposes and the surface is a facade over a dozen modules
- * already. Read from the **model** rather than the definition: it is asked on every pointer
- * move, and serializing a whole survey to count two questions is not something to do sixty
- * times a second.
- */
-export function countInList(surface: CountableSurface, list: DropList): number {
-  return list.of === 'pages' ? surface.pages.length : countIn(surface.page, list.container);
-}
-
-/** The little of the surface {@link countInList} needs. */
-export interface CountableSurface {
-  readonly pages: readonly unknown[];
-  readonly page: Parameters<typeof countIn>[0];
 }

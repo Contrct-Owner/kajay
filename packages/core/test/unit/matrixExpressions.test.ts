@@ -1,6 +1,7 @@
-import { MatrixDynamicQuestion, parseSurvey, scopeReferences } from '@kajay/core';
+import { MatrixDynamicQuestion, parseSurvey } from '@kajay/core';
 import type { Survey } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
+import { scopeReferences } from '../../src/expressions/scopeReferences.js';
 import { createTestRegistry } from '../support/createTestRegistry.js';
 
 /**

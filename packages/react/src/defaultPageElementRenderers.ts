@@ -11,6 +11,7 @@ import { MatrixDynamicRenderer } from './MatrixDynamicRenderer.js';
 import { MatrixQuestionRenderer } from './MatrixQuestionRenderer.js';
 import { MultipleTextQuestionRenderer } from './MultipleTextQuestionRenderer.js';
 import { PageElementRendererRegistry } from './PageElementRendererRegistry.js';
+import type { ReadonlyPageElementRendererRegistry } from './PageElementRendererRegistry.js';
 import { PanelRenderer } from './PanelRenderer.js';
 import { PanelDynamicRenderer } from './PanelDynamicRenderer.js';
 import { RankingQuestionRenderer } from './RankingQuestionRenderer.js';
@@ -19,7 +20,7 @@ import { SelectQuestionRenderer } from './SelectQuestionRenderer.js';
 import { SignatureQuestionRenderer } from './SignatureQuestionRenderer.js';
 import { TextQuestionRenderer } from './TextQuestionRenderer.js';
 
-function createDefaultRenderers(): PageElementRendererRegistry {
+function createDefaultRenderers(): ReadonlyPageElementRendererRegistry {
   const registry = new PageElementRendererRegistry();
   registry.registerQuestion('text', TextQuestionRenderer);
   registry.registerQuestion('comment', CommentQuestionRenderer);
@@ -42,8 +43,9 @@ function createDefaultRenderers(): PageElementRendererRegistry {
   registry.register('panel', PanelRenderer);
   registry.register('html', HtmlElementRenderer);
   registry.register('image', ImageElementRenderer);
-  return registry;
+  return registry.freeze();
 }
 
 /** Built-in question, panel, and display-element renderers. */
-export const defaultPageElementRenderers: PageElementRendererRegistry = createDefaultRenderers();
+export const defaultPageElementRenderers: ReadonlyPageElementRendererRegistry =
+  createDefaultRenderers();

@@ -1,6 +1,7 @@
 import { MetadataRegistry, registerBuiltInTypes } from '@kajay/core';
 import type { SurveyDefinition } from '@kajay/core';
-import { DesignSurface, TranslationSession, translationCells, translationRows } from '@kajay/creator-core';
+import { DesignSurface, TranslationSession } from '@kajay/creator-core';
+import { translationCells, translationRows } from '../../src/translationSheet.js';
 import { afterEach, describe, expect, test } from 'vitest';
 
 /**

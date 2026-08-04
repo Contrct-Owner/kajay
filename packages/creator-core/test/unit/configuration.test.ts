@@ -1,7 +1,8 @@
 import { MetadataRegistry, registerBuiltInTypes } from '@kajay/core';
 import type { SurveyDefinition } from '@kajay/core';
-import { DesignSurface, Toolbox, allowedToolboxItems, isTypeAllowed } from '@kajay/creator-core';
+import { DesignSurface, Toolbox } from '@kajay/creator-core';
 import type { CreatorConfiguration, ToolboxItem } from '@kajay/creator-core';
+import { allowedToolboxItems, isTypeAllowed } from '../../src/CreatorConfiguration.js';
 import { describe, expect, test } from 'vitest';
 
 /** Configuration — checklist N2. Everything here can only take something away. */

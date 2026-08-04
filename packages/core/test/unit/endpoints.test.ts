@@ -1,7 +1,10 @@
 import { parseSurvey } from '@kajay/core';
 import type { ParseResult } from '@kajay/core';
-import { describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { createTestRegistry } from '../support/createTestRegistry.js';
+
+beforeEach(() => vi.useFakeTimers());
+afterEach(() => vi.useRealTimers());
 
 /** Records what the host was asked to fetch, and answers with two choices. */
 function recordingFetcher(asked: string[]): (url: string) => Promise<unknown> {
@@ -38,12 +41,6 @@ function build(
   );
 }
 
-function flush(): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, 0);
-  });
-}
-
 describe('parity/B11-deployment-scope', () => {
   test('an endpoint the host supplies becomes the origin', async () => {
     const asked: string[] = [];
@@ -51,7 +48,9 @@ describe('parity/B11-deployment-scope', () => {
       fetchJson: recordingFetcher(asked),
       endpoints: { usersApi: 'https://uat.acme.com' },
     });
-    await flush();
+    await vi.waitFor(() => {
+      expect(asked).toEqual(['https://uat.acme.com/users']);
+    });
 
     expect(asked).toEqual(['https://uat.acme.com/users']);
   });
@@ -62,7 +61,9 @@ describe('parity/B11-deployment-scope', () => {
       fetchJson: recordingFetcher(asked),
       endpoints: { usersApi: 'https://uat.acme.com' },
     });
-    await flush();
+    await vi.waitFor(() => {
+      expect(asked).toHaveLength(1);
+    });
 
     // Percent-encoding an origin produces `https%3A%2F%2Fuat.acme.com/users`, which is
     // the exact failure that ruled out carrying the base URL as an answer.
@@ -76,7 +77,9 @@ describe('parity/B11-deployment-scope', () => {
       endpoints: { usersApi: 'https://uat.acme.com' },
     });
     survey.setValue('team', 'a/b?c');
-    await flush();
+    await vi.waitFor(() => {
+      expect(asked.at(-1)).toBe('https://uat.acme.com/teams/a%2Fb%3Fc/users');
+    });
 
     // The two scopes get opposite treatment on purpose: an unencoded answer is a way
     // for a respondent to reach a path — or a host — nobody intended.
@@ -89,11 +92,12 @@ describe('parity/B11-deployment-scope', () => {
       fetchJson: recordingFetcher(asked),
       endpoints: { usersApi: 'https://uat.acme.com' },
     });
-    await flush();
+    await vi.waitFor(() => {
+      expect(asked).toHaveLength(1);
+    });
     const before = asked.length;
 
     survey.setValue('team', 'anything');
-    await flush();
 
     // Constant for the session, so nothing re-fetches. Registering a dependency on it
     // would add a graph node waiting for an answer nobody will ever supply.
@@ -114,10 +118,9 @@ describe('parity/B11-deployment-scope', () => {
     ]);
   });
 
-  test('and the request it would have sent is not sent to the app instead', async () => {
+  test('and the request it would have sent is not sent to the app instead', () => {
     const asked: string[] = [];
     build('{@usersApi}/users', { fetchJson: recordingFetcher(asked) });
-    await flush();
 
     // `/users` against the app's own origin either 404s confusingly or, worse, succeeds
     // against something never meant to answer it.
@@ -127,7 +130,9 @@ describe('parity/B11-deployment-scope', () => {
   test('a relative URL still needs no endpoint at all', async () => {
     const asked: string[] = [];
     const { diagnostics } = build('/users', { fetchJson: recordingFetcher(asked) });
-    await flush();
+    await vi.waitFor(() => {
+      expect(asked).toEqual(['/users']);
+    });
 
     // The one-origin case ADR-0017 kept: the host resolves it in `fetchJson`.
     expect(diagnostics).toEqual([]);

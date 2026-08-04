@@ -5,8 +5,8 @@ import {
   PREVIEW_DEVICES,
   PreviewSession,
   previewDevice,
-  previewViewport,
 } from '@kajay/creator-core';
+import { previewViewport } from '../../src/previewDevices.js';
 import { afterEach, describe, expect, test } from 'vitest';
 
 /** Running the survey being designed — checklist M3. */

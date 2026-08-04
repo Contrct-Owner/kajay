@@ -1,6 +1,7 @@
 import { ExpressionCache, MetadataRegistry, registerBuiltInTypes } from '@kajay/core';
 import type { SurveyDefinition, SurveyElement } from '@kajay/core';
-import { conditionOutcome, DesignSurface, propertyScopeOf } from '@kajay/creator-core';
+import { DesignSurface } from '@kajay/creator-core';
+import { conditionOutcome, propertyScopeOf } from '../../src/propertyConditions.js';
 import { describe, expect, test } from 'vitest';
 
 /** Property visibility and read-only rules — checklist L3. */

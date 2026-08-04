@@ -8,7 +8,7 @@ import { SurveyCssProvider, useCssClass } from './SurveyCssContext.js';
 import type { SurveyCss } from './SurveyCssContext.js';
 import { TextRendererProvider } from './TextRendererContext.js';
 import type { TextRenderer } from './TextRendererContext.js';
-import type { PageElementRendererRegistry } from './PageElementRendererRegistry.js';
+import type { PageElementRendererResolver } from './PageElementRendererRegistry.js';
 import { SurveyNavigation } from './SurveyNavigation.js';
 import { SurveyPage } from './SurveyPage.js';
 import { SurveyPreview } from './SurveyPreview.js';
@@ -29,7 +29,7 @@ import {
 export interface SurveyProps {
   readonly model: SurveyModel;
   /** Defaults to the built-in renderers; pass a clone to add custom question types. */
-  readonly renderers?: PageElementRendererRegistry;
+  readonly renderers?: PageElementRendererResolver;
   /**
    * Cleans author-supplied markup before an `html` element renders it.
    *
@@ -71,7 +71,7 @@ interface SurroundingsProps {
   readonly css: SurveyCss | undefined;
   readonly sanitizeHtml: HtmlSanitizer | undefined;
   readonly renderText: TextRenderer | undefined;
-  readonly renderers: PageElementRendererRegistry;
+  readonly renderers: PageElementRendererResolver;
   readonly children: ReactNode;
 }
 
@@ -202,7 +202,7 @@ export function Survey({
 
 interface SurveyFormProps {
   readonly model: SurveyModel;
-  readonly renderers: PageElementRendererRegistry;
+  readonly renderers: PageElementRendererResolver;
   readonly onErrors: () => void;
   readonly formRef: RefObject<HTMLFormElement | null>;
 }

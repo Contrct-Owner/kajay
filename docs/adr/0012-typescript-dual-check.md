@@ -3,7 +3,7 @@
 - Area: Toolchain
 - Status: accepted
 - Owner: Jarod
-- Last updated: 2026-08-02
+- Last updated: 2026-08-04
 
 ## Context
 
@@ -38,13 +38,13 @@ half:
 
 Neither compiler accepts `--build --noEmit` against composite project references
 (`TS6310: Referenced project may not disable emit`), so the second checker cannot be
-made emit-free. `npm run typecheck` therefore runs **TS 7 first, TS 6 second**, and
+made emit-free. `pnpm run typecheck` therefore runs **TS 7 first, TS 6 second**, and
 both with `--force`. The order is load-bearing: whichever compiler runs last leaves its
 output in `dist`, and ADR-0012 makes TS 6 the compiler that emits.
 
 Reordering these two script lines would silently make TS 7 the emitting compiler.
 
-`npm run typecheck` runs both. The intent of the original rule is unchanged: every
+`pnpm run typecheck` runs both. The intent of the original rule is unchanged: every
 line compiles identically under the JS-based and native compilers, so the repo is
 7-clean by construction. Only the mechanism changed, because the preview package it
 named has been superseded.
@@ -56,9 +56,8 @@ parameter properties.
 
 ## Consequences
 
-- `AGENTS.md`'s command list still reads `tsc -b && tsgo -b`. That line is now
-  inaccurate and should read `tsc -b && tsc7 -b`. The behavior it describes —
-  dual-compiler checking — is intact.
+- `AGENTS.md` and the root scripts now name the stable TypeScript 7 checker explicitly.
+  The dual-compiler behavior remains intact.
 - Two copies of the compiler are installed. Accepted: it is a devDependency cost only,
   and it is the entire point of the dual check.
 - Rolling the TS 7 alias forward is a routine dependency bump; rolling the **primary**

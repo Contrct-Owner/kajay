@@ -1,7 +1,9 @@
 import { MetadataRegistry, registerBuiltInTypes } from '@kajay/core';
 import type { SurveyDefinition } from '@kajay/core';
-import { DesignSurface, UndoHistory } from '@kajay/creator-core';
-import type { DropList, HistorySnapshot, ToolboxItem } from '@kajay/creator-core';
+import { DesignSurface } from '@kajay/creator-core';
+import type { DropList, ToolboxItem } from '@kajay/creator-core';
+import { UndoHistory } from '../../src/UndoHistory.js';
+import type { HistorySnapshot } from '../../src/UndoHistory.js';
 import { describe, expect, test } from 'vitest';
 
 /** Undo and redo — checklist K6. */

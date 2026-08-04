@@ -3,7 +3,7 @@
 - Area: Creator UI surface
 - Status: accepted
 - Owner: Jarod
-- Last updated: 2026-08-03
+- Last updated: 2026-08-04
 
 ## Context
 
@@ -39,16 +39,20 @@ these are named exports, not subpaths.
 
 Five constraints make that more than a statement of intent.
 
-### 1. Every piece takes the creator model as a prop
+### 1. Every piece takes the narrow model it draws
 
-No provider, no hidden context requirement, no ordering trap. A piece is
-`<Toolbox creator={creator} />`, the way a survey is `<Survey model={model} />`. Two
-pieces rendering the same model agree because they read the same model, not because
-they talk to each other — which is exactly what lets a host put them in different
-corners of their own layout, and what keeps a second framework adapter possible.
+No provider, no hidden context requirement, no ordering trap. A toolbox takes a
+`Toolbox`, the design surface takes a `DesignSurface`, and an editor takes its focused
+session. Giving every piece one monolithic Creator object would let unrelated panels
+reach each other and make an isolated toolbox test construct JSON, preview, translation,
+theme, and logic models it never uses.
 
-A host with a deep tree can add a context of their own. The library does not need one
-and will not require one.
+Those narrow models are not constructed independently. One headless
+`CreatorWorkspace` owns construction order, the shared registry and configuration, the
+surface and every following session, and terminal idempotent disposal. A host can use
+the public `useCreatorWorkspace` lifetime adapter or own the headless workspace from a
+different framework. The default assembly uses the same route. A host with a deep tree
+may add context of its own; the library neither needs nor requires one.
 
 ### 2. Pieces hold no state
 
@@ -91,7 +95,10 @@ matters for the hosts who want the shipped look. It is the floor, not the ceilin
   the default. Without the second, nobody notices the day a piece stops working alone.
 - **More public surface, sooner.** Each piece's props are API from 1.0.0. The
   mitigation is that pieces are thin — they take a model and draw it — so their props
-  are close to `{ creator }` and stay small by construction.
+  stay narrow by construction.
+- **One lifetime implementation serves both real adapters.** The default assembly and
+  the deliberately different host layout construct the same `CreatorWorkspace`; they
+  cannot drift in registry propagation, session construction, or disposal order.
 - **The assembly is a real component with real value**, not a demo. Most hosts will use
   it, and it is where the conventional keyboard model, focus order and adorner
   behaviour live.
@@ -117,6 +124,13 @@ matters for the hosts who want the shipped look. It is the floor, not the ceilin
   hands the entire designer UI back to every host, which is the work they adopted the
   library to avoid. Hooks over the same models remain open as an addition, not a
   replacement.
+- **One monolithic Creator model passed to every piece.** Rejected because it hides
+  capabilities, couples focused panels to unrelated sessions, and makes both tests and
+  future framework adapters construct more than they use. The workspace aggregates
+  ownership; it is not the mandatory prop shape of every view.
+- **Plugin registry plus an imperative React ref.** Rejected without a variable plugin
+  caller. It would make construction order, registration timing, cleanup, and StrictMode
+  ref attachment public compatibility concerns while privileging the default assembly.
 
 ## Parent and related links
 

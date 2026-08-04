@@ -3,7 +3,7 @@ import { MetadataRegistry, registerBuiltInTypes } from '@kajay/core';
 import type { SurveyDefinition } from '@kajay/core';
 import { DesignSurface, Toolbox } from '@kajay/creator-core';
 import { DesignSurfacePanel, ToolboxPanel, useDesignerPlacement } from '@kajay/creator-react';
-import { userEvent } from '@vitest/browser/context';
+import { userEvent } from 'vitest/browser';
 import type { ReactElement } from 'react';
 import { expect, test } from 'vitest';
 import { render } from 'vitest-browser-react';
@@ -110,6 +110,44 @@ test('parity/K2-indicator: the end of the list gets its own marker', async () =>
   await expect.element(screen.getByTestId('drop-at-end')).toBeInTheDocument();
 });
 
+test('parity/K2-drag: leaving the measured surface clears the pending target', async () => {
+  const designed = surface();
+  const screen = await render(<Harness designed={designed} />);
+  const handle = screen.getByRole('button', { name: 'Move who' }).element() as HTMLElement;
+  const target = screen.container.querySelector<HTMLElement>('[data-element-index="2"]')!;
+  const rect = target.getBoundingClientRect();
+  const pointer = {
+    bubbles: true,
+    pointerId: 71,
+    clientX: rect.left + rect.width / 2,
+    clientY: rect.top + rect.height * 0.9,
+  };
+  // Synthetic browser events have no live pointer for native capture. Capture itself is
+  // exercised by E2E; this test proves how the adapter translates the later no-slot move.
+  Object.defineProperty(handle, 'setPointerCapture', { value: (): undefined => undefined });
+
+  handle.dispatchEvent(new PointerEvent('pointerdown', pointer));
+  handle.dispatchEvent(new PointerEvent('pointermove', pointer));
+  await expect.element(screen.getByTestId('drop-at-end')).toBeInTheDocument();
+
+  // Keep the handle connected so React still receives its captured move, while making
+  // the measured surface expose no candidate for this one event.
+  for (const candidate of screen.container.querySelectorAll<HTMLElement>('[data-element-index]')) {
+    delete candidate.dataset['elementIndex'];
+  }
+  handle.dispatchEvent(
+    new PointerEvent('pointermove', { ...pointer, clientX: -100, clientY: -100 }),
+  );
+  await expect.element(screen.getByTestId('drop-at-end')).not.toBeInTheDocument();
+
+  handle.dispatchEvent(new PointerEvent('pointerup', pointer));
+  await expect
+    .element(screen.container.querySelector<HTMLElement>('.kajay-designer__announcement'))
+    .toHaveTextContent('Reordering cancelled. who returned to position 1 of 3');
+  expect(orderOn(designed)).toEqual(['who', 'plan', 'why']);
+  expect(designed.canUndo).toBe(false);
+});
+
 test('parity/K2-announce: every step is spoken', async () => {
   const designed = surface();
   const screen = await render(<Harness designed={designed} />);
@@ -175,6 +213,65 @@ test('parity/K2-nesting: the arrow keys walk into a panel and out again', async 
   // the whole reason the slot list is flattened across containers.
   expect(designed.survey.getQuestionByName('who')).toBeDefined();
   expect((designed.page?.elements ?? []).map((element) => element.name)).toEqual(['group']);
+});
+
+test('parity/K2-nesting: the final slot in a non-empty panel has an indicator', async () => {
+  const designed = surface({
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          { type: 'text', name: 'who', title: 'Your name' },
+          { type: 'panel', name: 'group', elements: [{ type: 'text', name: 'inner' }] },
+        ],
+      },
+    ],
+  });
+  const screen = await render(<Harness designed={designed} />);
+
+  await screen.getByRole('button', { name: 'Move who' }).click();
+  await userEvent.keyboard('{ }');
+  await userEvent.keyboard('{ArrowDown}');
+  await userEvent.keyboard('{ArrowDown}');
+
+  expect(designed.placement.snapshot.activeSlot).toEqual({
+    list: { of: 'elements', container: 'group' },
+    index: 1,
+  });
+  const indicators = screen.container.querySelectorAll<HTMLElement>(
+    '[data-testid="drop-at-end"][data-in-container="group"]',
+  );
+  expect(indicators).toHaveLength(1);
+});
+
+test('parity/K2-nesting: an empty panel keeps its pointer target and end indicator', async () => {
+  const designed = surface({
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          { type: 'text', name: 'who', title: 'Your name' },
+          { type: 'panel', name: 'group', elements: [] },
+        ],
+      },
+    ],
+  });
+  const screen = await render(<Harness designed={designed} />);
+
+  await screen.getByRole('button', { name: 'Move who' }).click();
+  await userEvent.keyboard('{ }');
+  await userEvent.keyboard('{ArrowDown}');
+
+  expect(designed.placement.snapshot.activeSlot).toEqual({
+    list: { of: 'elements', container: 'group' },
+    index: 0,
+  });
+  expect(screen.container.querySelector('[data-empty-container="group"]')).not.toBeNull();
+  expect(
+    screen.container.querySelectorAll(
+      '[data-testid="drop-at-end"][data-in-container="group"]',
+    ),
+  ).toHaveLength(1);
 });
 
 test('parity/K2-nesting: an element inside a panel has an adorner of its own', async () => {

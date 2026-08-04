@@ -1,6 +1,8 @@
 import { MetadataRegistry, registerBuiltInTypes } from '@kajay/core';
 import type { SurveyDefinition } from '@kajay/core';
-import { childrenIn, DesignSurface, fastEntryItems, fastEntryText } from '@kajay/creator-core';
+import { DesignSurface, fastEntryText } from '@kajay/creator-core';
+import { childrenIn } from '../../src/collectionEdits.js';
+import { fastEntryItems } from '../../src/fastEntry.js';
 import { describe, expect, test } from 'vitest';
 
 /** Fast entry — checklist L2. One item per line, `value` or `value|text`. */

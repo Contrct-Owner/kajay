@@ -16,10 +16,10 @@ export interface HistoryKey {
  * convention and Ctrl+Shift+Z is everywhere else. Accepting one and refusing the other
  * makes redo feel broken to half the people who try it.
  *
- * Exported rather than bound to the document, deliberately. A library that attached a
+ * Kept inside the top-level design-surface piece rather than bound to the document. A
  * global listener would take Ctrl+Z away from the rest of the host's application — which
- * may well have its own undo, and certainly has its own text fields. The Creator binds
- * this within its own canvas; a host wanting it application-wide binds it themselves.
+ * may well have its own undo, and certainly has its own text fields. A host composes the
+ * public `DesignSurfacePanel`, which owns the correctly scoped binding.
  */
 export function historyShortcut(event: HistoryKey): HistoryIntent | undefined {
   if (!event.ctrlKey && !event.metaKey) {

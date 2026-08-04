@@ -1,11 +1,11 @@
+import { ThemeEditorSession } from '@kajay/creator-core';
+import type { ThemeDocument } from '@kajay/creator-core';
 import {
   BUILT_IN_THEME_FIELDS,
-  ThemeEditorSession,
   themeRowsFor,
   valueAt,
   withValueAt,
-} from '@kajay/creator-core';
-import type { ThemeDocument } from '@kajay/creator-core';
+} from '../../src/themeFields.js';
 import { describe, expect, test } from 'vitest';
 
 /**

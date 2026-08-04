@@ -1,3 +1,8 @@
+import {
+  CORE_EXTENSION_SMOKE,
+  RENDERER_EXTENSION_SMOKE,
+} from './pack-extension-fixtures.mjs';
+
 /**
  * The scratch project's sources for the pack test.
  *
@@ -15,21 +20,33 @@
  * would add is checked by compiling {@link CREATOR_TSX} beside it, not by rendering here.
  */
 export const SMOKE_TS = `import {
+  AsyncValidator,
   CURRENT_SCHEMA_VERSION,
+  MetadataRegistry,
+  Question,
+  RepeatingQuestion,
+  Validator,
+  createDefaultFunctionRegistry,
+  createValueResolver,
+  evaluateExpression,
   moveWithin,
+  parseExpression,
   parseSurvey,
+  registerBuiltInTypes,
+  scoreQuiz,
   serializeSurvey,
   globalRegistry,
+  type SurveyError,
   type SurveyDefinition,
+  type PageElement,
+  type ValidationContext,
 } from '@kajay/core';
 import {
+  CreatorWorkspace,
   CreatorStringDictionary,
   DesignSurface,
-  JsonEditorSession,
-  LogicSession,
   SaveController,
   Toolbox,
-  TranslationSession,
   type CreatorConfiguration,
 } from '@kajay/creator-core';
 import { lightTheme } from '@kajay/themes';
@@ -42,7 +59,8 @@ import {
 
 const definition: SurveyDefinition = {
   title: 'Pack smoke',
-  pages: [{ name: 'p1', elements: [{ type: 'text', name: 'q1', keptUnknown: 'yes' }] }],
+  maxTimeToFinish: 60,
+  pages: [{ name: 'p1', elements: [{ type: 'text', name: 'q1', correctAnswer: 'Ada', keptUnknown: 'yes' }] }],
 };
 
 const first = parseSurvey(definition);
@@ -61,7 +79,22 @@ if (!first.diagnostics.some((d) => d.code === 'unknown-property')) {
 if (!globalRegistry.hasClass('text')) {
   throw new Error('Built-in types are not registered.');
 }
-const toolbox = new Toolbox();
+
+${CORE_EXTENSION_SMOKE}
+
+first.survey.setValue('q1', 'Ada');
+if (scoreQuiz(first.survey).correct !== 1) {
+  throw new Error('Quiz scoring did not survive packaging.');
+}
+first.survey.timer.start();
+first.survey.timer.tick();
+first.survey.timer.stop();
+if (first.survey.timer.isRunning) {
+  throw new Error('The survey-owned timer did not stop.');
+}
+
+const workspace = new CreatorWorkspace({ definition });
+const toolbox = workspace.toolbox;
 if (toolbox.items.length === 0) {
   throw new Error('Toolbox derived no items from the registry.');
 }
@@ -93,7 +126,7 @@ if (lightTheme.name !== 'light') {
 // Headless on purpose: this file runs in Node with no DOM, and everything below is
 // \`creator-core\`, which is a core package and may not touch one. What a browser would
 // add is checked by compiling \`creator.tsx\` beside this, not by rendering here.
-const designed = new DesignSurface({ definition });
+const designed = workspace.surface;
 designed.place(
   { kind: 'new', item: { name: 'comment', type: 'comment', title: 'Long text', category: 'Text', keywords: [], defaults: {} } },
   { list: { of: 'elements', container: 'p1' }, index: 1 },
@@ -117,17 +150,17 @@ if (designed.survey.getQuestionByName(addedName)?.title === 'Tell us more') {
 }
 
 designed.setProperty(designed.survey.getQuestionByName('q1')!, 'visibleIf', "{q1} notempty");
-const logic = new LogicSession(designed);
+const logic = workspace.logic;
 if (logic.rules.length !== 1 || logic.rules[0]?.condition === undefined) {
   throw new Error('The logic editor did not read the rule it just wrote.');
 }
 
-const translations = new TranslationSession(designed);
+const translations = workspace.translations;
 if (!translations.entries.some((entry) => entry.key.endsWith('/title'))) {
   throw new Error('The translation table found no strings.');
 }
 
-const json = new JsonEditorSession(designed);
+const json = workspace.json;
 if (json.isDirty || json.problem !== undefined) {
   throw new Error('The JSON editor did not open clean on the definition it was given.');
 }
@@ -159,6 +192,7 @@ saver.request(designed.definition);
 if (saver.state !== 'saving') {
   throw new Error('The save seam did not start.');
 }
+workspace.dispose();
 
 console.log('pack smoke: ok');
 `;
@@ -171,11 +205,6 @@ console.log('pack smoke: ok');
 // nothing else checks that they can be *installed*.
 export const CREATOR_TSX = `import {
   CreatorStringDictionary,
-  DesignSurface,
-  LogicSession,
-  PreviewSession,
-  ThemeEditorSession,
-  Toolbox,
   type CreatorConfiguration,
 } from '@kajay/creator-core';
 import {
@@ -188,14 +217,25 @@ import {
   SurveyCreator,
   ThemeEditorPanel,
   ToolboxPanel,
+  useCreatorDocument,
+  useCreatorWorkspace,
   useDesignerPlacement,
   type CreatorTab,
   type SurveyCreatorProps,
 } from '@kajay/creator-react';
+import {
+  defaultPageElementRenderers,
+  type PageElementRendererRegistry,
+  type PageElementRendererResolver,
+  type SurveyProps,
+} from '@kajay/react';
 import { themeVariables, lightTheme } from '@kajay/themes';
+import type { SurveyDefinition } from '@kajay/core';
+import { useState } from 'react';
 import type { ReactElement } from 'react';
 
 const definition = { pages: [{ name: 'p1', elements: [{ type: 'text', name: 'q1' }] }] };
+${RENDERER_EXTENSION_SMOKE}
 
 /** The default assembly, configured and white-labelled — N1, N2 and N3 together. */
 export function Assembled(props: SurveyCreatorProps): ReactElement {
@@ -211,6 +251,7 @@ export function Assembled(props: SurveyCreatorProps): ReactElement {
       tabs={tabs}
       configuration={configuration}
       strings={strings}
+      renderers={rendererResolver}
       creatorTheme={themeVariables(lightTheme)}
       isAutoSave
       save={() => true}
@@ -224,9 +265,12 @@ export function Assembled(props: SurveyCreatorProps): ReactElement {
  * If the pieces were not really usable alone, this would not compile.
  */
 export function ByHand(): ReactElement {
-  const surface = new DesignSurface({ definition });
-  const toolbox = new Toolbox();
+  const workspace = useCreatorWorkspace({ definition });
+  const surface = workspace.surface;
+  const toolbox = workspace.toolbox;
   const placement = useDesignerPlacement(surface);
+  const [document, setDocument] = useState<SurveyDefinition>(() => surface.definition);
+  useCreatorDocument({ surface, value: document, onChange: setDocument });
 
   return (
     <CreatorStringsProvider dictionary={new CreatorStringDictionary()} locale="en">
@@ -234,9 +278,9 @@ export function ByHand(): ReactElement {
       <PageNavigatorPanel surface={surface} placement={placement} />
       <DesignSurfacePanel surface={surface} placement={placement} />
       <PropertyGridPanel surface={surface} grid={{ hidden: ['visibleIf'] }} />
-      <LogicPanel session={new LogicSession(surface)} />
-      <PreviewPanel session={new PreviewSession(surface)} />
-      <ThemeEditorPanel session={new ThemeEditorSession({ theme: { name: 'x' } })} />
+      <LogicPanel session={workspace.logic} />
+      <PreviewPanel session={workspace.preview} />
+      <ThemeEditorPanel session={workspace.themeEditor} />
     </CreatorStringsProvider>
   );
 }

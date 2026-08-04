@@ -3,7 +3,7 @@
 - Area: Licensing and distribution posture
 - Status: accepted
 - Owner: Jarod
-- Last updated: 2026-08-02
+- Last updated: 2026-08-04
 
 ## Context
 
@@ -24,6 +24,14 @@ which is exactly the half this project reaches in Phase 3.
 - **No `LICENSE` file**, and no implied grant: all rights reserved.
 - Revisit at **Phase 2 exit** — the point at which the Form Library half is complete
   and it becomes knowable whether the Creator is a product or a portfolio piece.
+
+## Phase 2 exit review (2026-08-04)
+
+The owner explicitly continued the private, unpublished posture through
+[ADR-0024](./0024-publication-hold.md). This is an interim publication hold, not a
+selection of the eventual licensing model. `UNLICENSED` continues to mean that no
+license grant has been made; the long-term package and repository license choices
+remain deferred until the release walkthrough.
 
 ## Consequences
 

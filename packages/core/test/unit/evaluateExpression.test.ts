@@ -1,15 +1,15 @@
 import {
-  collectReferences,
   createDefaultFunctionRegistry,
   createValueResolver,
   evaluateExpression,
-  formatPath,
   parseExpression,
 } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
+import { collectReferences } from '../../src/expressions/collectReferences.js';
 // Internal by design — a host has no reason to hold a parse cache — but the engine
 // parses every expression through it on every settle, so it stays proven.
 import { ExpressionCache } from '../../src/expressions/ExpressionCache.js';
+import { formatPath } from '../../src/expressions/ExpressionNode.js';
 
 /** A fixed clock: date-dependent expressions must not depend on when tests run. */
 const NOW = new Date('2026-08-02T12:34:56.000Z');

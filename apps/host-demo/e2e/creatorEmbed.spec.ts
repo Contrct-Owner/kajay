@@ -44,6 +44,31 @@ test('parity/N1-controlled: an edit comes out and the echo does not come back in
   await expect(embed(page).getByTestId('embed-value')).toContainText('Renamed by the host');
 });
 
+test('parity/N1-primitives: host controls preserve editing and focus behavior', async ({
+  page,
+}) => {
+  await embed(page).getByTestId('select-embedName').click();
+
+  const title = embed(page).getByLabel('Title of embedName');
+  await expect(title).toHaveAttribute('data-host-primitive', 'input');
+  await title.fill('Drawn by the host');
+  await expect(title).toBeFocused();
+
+  const type = embed(page).getByLabel('Type of embedName');
+  await expect(type).toHaveAttribute('data-host-primitive', 'select');
+  await type.selectOption('comment');
+  await expect(type).toHaveValue('comment');
+
+  await embed(page).getByTestId('creator-tab-json').click();
+  const definition = embed(page).getByLabel('Survey definition');
+  await expect(definition).toHaveAttribute('data-host-primitive', 'textarea');
+  await definition.fill('{');
+  await expect(definition).toBeFocused();
+  await expect(definition).toHaveAttribute('aria-invalid', 'true');
+  await expect(embed(page).getByTestId('json-apply')).toBeDisabled();
+  await expect(embed(page).getByTestId('json-revert')).toBeEnabled();
+});
+
 test('parity/N1-save: auto-save reports success, and a refusal is said', async ({ page }) => {
   await embed(page).getByTestId('select-embedName').click();
   await embed(page).getByLabel('Title of embedName').fill('Fine');

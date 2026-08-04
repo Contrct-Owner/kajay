@@ -1,6 +1,10 @@
-import type { CreatorConfiguration, CreatorStringKey } from '@kajay/creator-core';
+import type {
+  CreatorConfiguration,
+  CreatorStringKey,
+  CreatorWorkspace,
+} from '@kajay/creator-core';
 import type { SaveController } from '@kajay/creator-core';
-import type { PageElementRendererRegistry } from '@kajay/react';
+import type { PageElementRendererResolver } from '@kajay/react';
 import type { ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
 import { useCreatorText } from './CreatorStringsContext.js';
@@ -16,7 +20,6 @@ import { ThemeEditorPanel } from './ThemeEditorPanel.js';
 import { ToolboxPanel } from './ToolboxPanel.js';
 import { TranslationsPanel } from './TranslationsPanel.js';
 import { useDesignerPlacement } from './useDesignerPlacement.js';
-import type { CreatorModels } from './SurveyCreator.js';
 
 /** The tabs the default assembly can show. A host names the ones they want — §N2. */
 export type CreatorTab = 'design' | 'preview' | 'logic' | 'json' | 'translations' | 'theme';
@@ -41,14 +44,14 @@ const TAB_KEYS: Readonly<Record<CreatorTab, CreatorStringKey>> = {
 };
 
 export interface CreatorTabsProps {
-  readonly models: CreatorModels;
+  readonly workspace: CreatorWorkspace;
   /** What this deployment has turned off — checklist N2. */
   readonly configuration?: CreatorConfiguration | undefined;
   readonly tabs: readonly CreatorTab[];
   readonly tab: CreatorTab;
   readonly onTabChange: (tab: CreatorTab) => void;
   readonly saver?: SaveController | undefined;
-  readonly renderers?: PageElementRendererRegistry | undefined;
+  readonly renderers?: PageElementRendererResolver | undefined;
 }
 
 /**
@@ -64,7 +67,7 @@ export interface CreatorTabsProps {
  * like. In the markup they are **navigation**, not an ARIA tablist — see below.
  */
 export function CreatorTabs({
-  models,
+  workspace,
   configuration,
   tabs,
   tab,
@@ -99,11 +102,11 @@ export function CreatorTabs({
             </Button>
           ))}
         </nav>
-        {saver === undefined ? null : <SaveButton surface={models.surface} saver={saver} />}
+        {saver === undefined ? null : <SaveButton surface={workspace.surface} saver={saver} />}
       </div>
       <div className="kajay-creator__body">
         <TabBody
-          models={models}
+          workspace={workspace}
           tab={tab}
           renderers={renderers}
           configuration={configuration}
@@ -114,34 +117,40 @@ export function CreatorTabs({
 }
 
 function TabBody({
-  models,
+  workspace,
   tab,
   renderers,
   configuration,
 }: {
-  readonly models: CreatorModels;
+  readonly workspace: CreatorWorkspace;
   readonly tab: CreatorTab;
-  readonly renderers: PageElementRendererRegistry | undefined;
+  readonly renderers: PageElementRendererResolver | undefined;
   readonly configuration: CreatorConfiguration | undefined;
 }): ReactElement {
   switch (tab) {
     case 'design':
-      return <DesignTab models={models} renderers={renderers} configuration={configuration} />;
+      return (
+        <DesignTab
+          workspace={workspace}
+          renderers={renderers}
+          configuration={configuration}
+        />
+      );
     case 'preview':
       return (
         <PreviewPanel
-          session={models.preview}
+          session={workspace.preview}
           {...(renderers === undefined ? {} : { surveyProps: { renderers } })}
         />
       );
     case 'logic':
-      return <LogicPanel session={models.logic} />;
+      return <LogicPanel session={workspace.logic} />;
     case 'json':
-      return <JsonEditorPanel session={models.json} />;
+      return <JsonEditorPanel session={workspace.json} />;
     case 'translations':
-      return <TranslationsPanel session={models.translations} />;
+      return <TranslationsPanel session={workspace.translations} />;
     case 'theme':
-      return <ThemeEditorPanel session={models.themeEditor} />;
+      return <ThemeEditorPanel session={workspace.themeEditor} />;
   }
 }
 
@@ -153,30 +162,30 @@ function TabBody({
  * the design tab is on screen, which is the same span the two pieces do.
  */
 function DesignTab({
-  models,
+  workspace,
   renderers,
   configuration,
 }: {
-  readonly models: CreatorModels;
-  readonly renderers: PageElementRendererRegistry | undefined;
+  readonly workspace: CreatorWorkspace;
+  readonly renderers: PageElementRendererResolver | undefined;
   readonly configuration: CreatorConfiguration | undefined;
 }): ReactElement {
-  const placement = useDesignerPlacement(models.surface);
+  const placement = useDesignerPlacement(workspace.surface);
 
   return (
     <div className="kajay-creator__designer">
-      <ToolboxPanel toolbox={models.toolbox} getItemProps={placement.getItemProps} />
+      <ToolboxPanel toolbox={workspace.toolbox} getItemProps={placement.getItemProps} />
       <div className="kajay-creator__canvas">
-        <HistoryPanel surface={models.surface} />
-        <PageNavigatorPanel surface={models.surface} placement={placement} />
+        <HistoryPanel surface={workspace.surface} />
+        <PageNavigatorPanel surface={workspace.surface} placement={placement} />
         <DesignSurfacePanel
-          surface={models.surface}
+          surface={workspace.surface}
           placement={placement}
           {...(renderers === undefined ? {} : { renderers })}
         />
       </div>
       <PropertyGridPanel
-        surface={models.surface}
+        surface={workspace.surface}
         {...(configuration?.grid === undefined ? {} : { grid: configuration.grid })}
       />
     </div>

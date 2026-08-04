@@ -6,10 +6,9 @@ import {
   DesignSurfacePanel,
   HistoryPanel,
   ToolboxPanel,
-  historyShortcut,
   useDesignerPlacement,
 } from '@kajay/creator-react';
-import { userEvent } from '@vitest/browser/context';
+import { userEvent } from 'vitest/browser';
 import type { ReactElement } from 'react';
 import { expect, test } from 'vitest';
 import { render } from 'vitest-browser-react';
@@ -115,15 +114,15 @@ test('parity/K6-shortcut: inside a text field it belongs to the field', async ()
   expect(names(designed)).toEqual(['who', 'why', 'comment1']);
 });
 
-test('parity/K6-shortcut: both spellings of redo are accepted', () => {
-  const held = { ctrlKey: true, metaKey: false, shiftKey: false };
+test('parity/K6-shortcut: Ctrl+Y also redoes', async () => {
+  const designed = surface();
+  const screen = await render(<Harness designed={designed} />);
+  await screen.getByTestId('toolbox-comment').click();
+  await screen.getByTestId('select-who').click();
+  await userEvent.keyboard('{Control>}z{/Control}');
 
-  // Ctrl+Y is the Windows convention and Ctrl+Shift+Z is everywhere else. Taking one
-  // and refusing the other makes redo feel broken to half the people who try it.
-  expect(historyShortcut({ ...held, key: 'y' })).toBe('redo');
-  expect(historyShortcut({ ...held, key: 'z', shiftKey: true })).toBe('redo');
-  expect(historyShortcut({ ...held, key: 'z' })).toBe('undo');
-  expect(historyShortcut({ ...held, key: 'Z', metaKey: true, ctrlKey: false })).toBe('undo');
-  expect(historyShortcut({ ...held, key: 'z', ctrlKey: false })).toBeUndefined();
-  expect(historyShortcut({ ...held, key: 'a' })).toBeUndefined();
+  // Ctrl+Y is the Windows convention; Ctrl+Shift+Z is proven in the preceding test.
+  await userEvent.keyboard('{Control>}y{/Control}');
+
+  expect(names(designed)).toEqual(['who', 'why', 'comment1']);
 });

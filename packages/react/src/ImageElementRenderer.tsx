@@ -7,13 +7,14 @@ export function ImageElementRenderer({ element }: PageElementRendererProps): Rea
   if (!(element instanceof ImageElement)) {
     throw new TypeError('ImageElementRenderer requires an image element.');
   }
+  const source = element.imageLink.length > 0 ? element.imageLink : undefined;
   if (element.contentMode === 'video') {
     return (
       // eslint-disable-next-line jsx-a11y/media-has-caption -- captions belong to the asset.
       <video
         className="kajay-image"
         data-element-name={element.name}
-        src={element.imageLink}
+        src={source}
         style={mediaStyle(element)}
         controls
       />
@@ -23,7 +24,7 @@ export function ImageElementRenderer({ element }: PageElementRendererProps): Rea
     <img
       className="kajay-image"
       data-element-name={element.name}
-      src={element.imageLink}
+      src={source}
       alt={element.altText}
       style={mediaStyle(element)}
     />

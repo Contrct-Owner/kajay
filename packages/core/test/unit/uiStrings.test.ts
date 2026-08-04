@@ -1,12 +1,12 @@
+import { parseSurvey } from '@kajay/core';
+import type { Survey } from '@kajay/core';
+import { describe, expect, test } from 'vitest';
+import { StringDictionary } from '../../src/strings/StringDictionary.js';
 import {
   EN_STRINGS,
   formatUiString,
-  parseSurvey,
-  StringDictionary,
   UI_STRING_DEFINITIONS,
-} from '@kajay/core';
-import type { Survey } from '@kajay/core';
-import { describe, expect, test } from 'vitest';
+} from '../../src/strings/uiStrings.js';
 import { createTestRegistry } from '../support/createTestRegistry.js';
 
 /**

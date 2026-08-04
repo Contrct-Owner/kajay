@@ -1,6 +1,6 @@
 import { AsyncValidator, globalRegistry, parseSurvey } from '@kajay/core';
 import type { ServerValidator, Survey, SurveyError, ValidationContext } from '@kajay/core';
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { createTestRegistry } from '../support/createTestRegistry.js';
 
 /**
@@ -59,14 +59,10 @@ function errorsOf(survey: Survey, name: string): readonly string[] {
   return (survey.getQuestionByName(name)?.errors ?? []).map((error) => error.text);
 }
 
-/** Resolves once every pending promise callback has run. A macrotask on purpose. */
-function flushPendingWork(): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, 0);
-  });
-}
+beforeEach(() => vi.useFakeTimers());
 
 afterEach(() => {
+  vi.useRealTimers();
   ReservedNameValidator.asked.length = 0;
 });
 
@@ -79,7 +75,9 @@ describe('parity/D3-async-validators', () => {
     expect(survey.validation.isValidating).toBe(true);
     expect(survey.isCompleted).toBe(false);
 
-    await flushPendingWork();
+    await vi.waitFor(() => {
+      expect(survey.isCompleted).toBe(true);
+    });
     expect(survey.validation.isValidating).toBe(false);
     expect(survey.isCompleted).toBe(true);
   });
@@ -89,22 +87,23 @@ describe('parity/D3-async-validators', () => {
     survey.setValue('nickname', 'admin');
 
     expect(survey.nextPageOrComplete()).toBe('pending');
-    await flushPendingWork();
+    await vi.waitFor(() => {
+      expect(errorsOf(survey, 'nickname')).toEqual(['"admin" is reserved.']);
+    });
 
     expect(survey.isCompleted).toBe(false);
     expect(errorsOf(survey, 'nickname')).toEqual(['"admin" is reserved.']);
   });
 
-  test('the synchronous checks run first, so a known-bad answer costs no round trip', async () => {
+  test('the synchronous checks run first, so a known-bad answer costs no round trip', () => {
     const survey = withReservedName();
     // Required and unanswered. Paying for a lookup to confirm an answer already known
     // to be wrong would be a request bought with nothing.
     expect(survey.nextPageOrComplete()).toBe('blocked');
-    await flushPendingWork();
     expect(ReservedNameValidator.asked).toEqual([]);
   });
 
-  test('an empty answer is never sent, exactly as in the synchronous pass', async () => {
+  test('an empty answer is never sent, exactly as in the synchronous pass', () => {
     const survey = build({
       pages: [
         {
@@ -116,7 +115,6 @@ describe('parity/D3-async-validators', () => {
       ],
     });
     expect(survey.nextPageOrComplete()).toBe('advanced');
-    await flushPendingWork();
     expect(ReservedNameValidator.asked).toEqual([]);
   });
 
@@ -127,7 +125,9 @@ describe('parity/D3-async-validators', () => {
     expect(survey.nextPageOrComplete()).toBe('pending');
     expect(survey.nextPageOrComplete()).toBe('pending');
 
-    await flushPendingWork();
+    await vi.waitFor(() => {
+      expect(survey.validation.isValidating).toBe(false);
+    });
     expect(ReservedNameValidator.asked).toEqual(['ada']);
   });
 
@@ -139,7 +139,9 @@ describe('parity/D3-async-validators', () => {
     // The respondent kept typing. Completing on the strength of a check against a value
     // they have already replaced would be the wrong answer confidently applied.
     survey.setValue('nickname', 'admin');
-    await flushPendingWork();
+    await vi.waitFor(() => {
+      expect(survey.validation.isValidating).toBe(false);
+    });
 
     expect(survey.isCompleted).toBe(false);
   });
@@ -169,7 +171,9 @@ describe('parity/D3-async-validators', () => {
     // Changed their mind. The check they started is still in flight, and it is about
     // to come back clean — but it is a reply to a question they withdrew.
     survey.goTo('p2');
-    await flushPendingWork();
+    await vi.waitFor(() => {
+      expect(survey.validation.isValidating).toBe(false);
+    });
 
     // Still on p2. A middle page on purpose: from the last page the stale advance
     // would complete the survey instead of moving, and the assertion could not tell
@@ -192,7 +196,9 @@ describe('parity/D3-async-validators', () => {
     survey.onValidatingChanged.add((event) => seen.push(event.isValidating));
 
     survey.nextPageOrComplete();
-    await flushPendingWork();
+    await vi.waitFor(() => {
+      expect(seen).toEqual([true, false]);
+    });
 
     expect(seen).toEqual([true, false]);
   });
@@ -213,7 +219,9 @@ describe('parity/D4-server-validation', () => {
     survey.setValue('code', 'KJ-1');
 
     expect(survey.nextPageOrComplete()).toBe('pending');
-    await flushPendingWork();
+    await vi.waitFor(() => {
+      expect(survey.isCompleted).toBe(true);
+    });
 
     expect(validate).toHaveBeenCalledWith({
       data: { code: 'KJ-1' },
@@ -228,7 +236,9 @@ describe('parity/D4-server-validation', () => {
     );
     survey.setValue('code', 'KJ-1');
     survey.nextPageOrComplete();
-    await flushPendingWork();
+    await vi.waitFor(() => {
+      expect(errorsOf(survey, 'code')).toEqual(['That code is already in use.']);
+    });
 
     expect(survey.isCompleted).toBe(false);
     expect(errorsOf(survey, 'code')).toEqual(['That code is already in use.']);
@@ -238,7 +248,9 @@ describe('parity/D4-server-validation', () => {
     const survey = withServerValidator(() => Promise.reject(new Error('Network down')));
     survey.setValue('code', 'KJ-1');
     survey.nextPageOrComplete();
-    await flushPendingWork();
+    await vi.waitFor(() => {
+      expect(survey.validation.checkError).toBe('Network down');
+    });
 
     // The server is the authority and nothing confirmed the answers, so the move is
     // refused — but the respondent's answer is not at fault and is not marked as such.

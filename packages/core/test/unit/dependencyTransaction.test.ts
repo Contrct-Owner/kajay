@@ -1,6 +1,7 @@
-import { collectReferences, parseExpression } from '@kajay/core';
+import { parseExpression } from '@kajay/core';
 import { DependencyGraph } from '../../src/dependencies/DependencyGraph.js';
 import type { DependencyPattern } from '../../src/dependencies/DependencyPattern.js';
+import { collectReferences } from '../../src/expressions/collectReferences.js';
 import type { PathSegment } from '../../src/expressions/ExpressionNode.js';
 import { describe, expect, test } from 'vitest';
 // Reached through the source path, not the package entry: the transaction runner is

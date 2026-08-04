@@ -12,13 +12,11 @@ export { DesignSurfacePanel } from './DesignSurfacePanel.js';
 export type { DesignSurfacePanelProps } from './DesignSurfacePanel.js';
 export { HistoryPanel } from './HistoryPanel.js';
 export type { HistoryPanelProps } from './HistoryPanel.js';
-export { historyShortcut, isTextEntry } from './historyShortcut.js';
-export type { HistoryIntent, HistoryKey } from './historyShortcut.js';
 export { PageNavigatorPanel } from './PageNavigatorPanel.js';
 export type { PageNavigatorPanelProps } from './PageNavigatorPanel.js';
-export { JsonEditorPanel, useJsonEditorVersion } from './JsonEditorPanel.js';
+export { JsonEditorPanel } from './JsonEditorPanel.js';
 export type { JsonEditorPanelProps } from './JsonEditorPanel.js';
-export { LogicPanel, useLogicVersion } from './LogicPanel.js';
+export { LogicPanel } from './LogicPanel.js';
 export type { LogicPanelProps } from './LogicPanel.js';
 export { PreviewPanel, usePreviewVersion } from './PreviewPanel.js';
 export type { PreviewPanelProps } from './PreviewPanel.js';
@@ -30,24 +28,17 @@ export type {
   PropertyEditorProviderProps,
   PropertyEditorResolver,
 } from './PropertyEditors.js';
-export { CollectionEditor } from './CollectionEditor.js';
-export type { CollectionEditorProps } from './CollectionEditor.js';
-export { PropertySection } from './PropertyFields.js';
-export type { PropertySectionProps } from './PropertyFields.js';
-export { ExpressionField } from './ExpressionField.js';
-export type { ExpressionFieldProps } from './ExpressionField.js';
-export { TranslationsField } from './TranslationsField.js';
-export type { TranslationsFieldProps } from './TranslationsField.js';
 export { ThemeEditorPanel, useThemeVersion } from './ThemeEditorPanel.js';
 export type { ThemeEditorPanelProps } from './ThemeEditorPanel.js';
-export { SaveButton, useSaveVersion } from './SaveButton.js';
+export { SaveButton } from './SaveButton.js';
 export type { SaveButtonProps } from './SaveButton.js';
 export { SurveyCreator } from './SurveyCreator.js';
-export type { CreatorModels, SurveyCreatorProps } from './SurveyCreator.js';
+export type { SurveyCreatorProps } from './SurveyCreator.js';
+export { useCreatorWorkspace } from './useCreatorWorkspace.js';
 export { ToolboxPanel } from './ToolboxPanel.js';
 export { useCreatorDocument } from './useCreatorDocument.js';
 export type { CreatorDocumentOptions } from './useCreatorDocument.js';
-export { TranslationsPanel, useTranslationVersion } from './TranslationsPanel.js';
+export { TranslationsPanel } from './TranslationsPanel.js';
 export type { TranslationsPanelProps } from './TranslationsPanel.js';
 export { useDesignerPlacement } from './useDesignerPlacement.js';
 export type {
@@ -69,5 +60,3 @@ export type {
   CreatorTextareaProps,
   ResolvedCreatorComponents,
 } from './CreatorComponents.js';
-export { ElementActions } from './ElementActions.js';
-export type { ElementActionsProps } from './ElementActions.js';

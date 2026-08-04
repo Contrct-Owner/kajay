@@ -1,5 +1,6 @@
-import { SCHEMA_ID, generateContract } from '@kajay/core';
+import { SCHEMA_ID } from '@kajay/core';
 import { describe, expect, test } from 'vitest';
+import { generateContract } from '../../src/contract/generateContract.js';
 import { createTestRegistry } from '../support/createTestRegistry.js';
 
 describe('parity/A6-contract-generated-from-registry', () => {

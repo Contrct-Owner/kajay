@@ -17,7 +17,7 @@ export interface JsonEditorPanelProps {
  * and holds nothing, so a host can put it in a tab, a drawer, or a second pane beside the
  * canvas.
  *
- * A plain `<textarea>` rather than a code editor, and deliberately. A syntax-highlighting
+ * A plain textarea primitive rather than a code editor, and deliberately. A syntax-highlighting
  * editor is a large dependency with its own opinions about keyboard handling, focus and
  * markup — exactly what [ADR-0022](../../../docs/adr/0022-design-system-primitives.md) says
  * the Creator does not ship. Everything this row actually promises (two-way sync, syntax
@@ -26,6 +26,7 @@ export interface JsonEditorPanelProps {
  */
 export function JsonEditorPanel({ session, className }: JsonEditorPanelProps): ReactElement {
   useJsonEditorVersion(session);
+  const { Textarea } = useCreatorComponents();
   const text = useCreatorText();
 
   return (
@@ -44,7 +45,7 @@ export function JsonEditorPanel({ session, className }: JsonEditorPanelProps): R
       <label className="kajay-json__label" htmlFor="kajay-json-text">
         {text('jsonDefinition')}
       </label>
-      <textarea
+      <Textarea
         id="kajay-json-text"
         className="kajay-json__text"
         data-testid="json-text"
@@ -52,8 +53,8 @@ export function JsonEditorPanel({ session, className }: JsonEditorPanelProps): R
         value={session.text}
         aria-invalid={session.problem !== undefined}
         aria-describedby={session.problem === undefined ? undefined : 'kajay-json-problem'}
-        onChange={(event) => {
-          session.setText(event.target.value);
+        onValueChange={(value) => {
+          session.setText(value);
         }}
       />
       <ProblemReport problem={session.problem} />

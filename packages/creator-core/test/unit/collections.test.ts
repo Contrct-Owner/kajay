@@ -1,6 +1,7 @@
 import { MetadataRegistry, Question, registerBuiltInTypes } from '@kajay/core';
 import type { SurveyDefinition, SurveyElement } from '@kajay/core';
-import { childLabel, childrenIn, DesignSurface, withChildren } from '@kajay/creator-core';
+import { childLabel, DesignSurface } from '@kajay/creator-core';
+import { childrenIn, withChildren } from '../../src/collectionEdits.js';
 import { describe, expect, test } from 'vitest';
 
 /** Child collections: the choices editor and the validators editor — checklist L2. */

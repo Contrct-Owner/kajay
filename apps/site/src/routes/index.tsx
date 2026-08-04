@@ -37,7 +37,12 @@ function TopBar(): ReactElement {
   return (
     <header className="flex items-center justify-between py-6">
       <span className="text-lg font-semibold tracking-tight">Kajay</span>
-      <ThemeToggle />
+      <nav aria-label="Primary" className="flex items-center gap-4">
+        <Link className="text-muted-foreground hover:text-foreground text-sm" to="/docs">
+          Docs
+        </Link>
+        <ThemeToggle />
+      </nav>
     </header>
   );
 }

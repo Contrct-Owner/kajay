@@ -602,6 +602,11 @@
 
 .kajay-designer__adorner {
   display: flex;
+  /* Wraps, because the adorner is as wide as its actions and the canvas is as wide as the
+     host's layout gave it. Without this the row runs off the element's right edge and over
+     whatever is beside it — which happens in any host that puts the canvas in a column
+     rather than full-bleed, so it was never a narrow-window edge case. */
+  flex-wrap: wrap;
   gap: calc(var(--kajay-spacing) / 2);
   align-items: center;
 }
@@ -619,6 +624,9 @@
 
 .kajay-designer__title {
   flex: 1;
+  /* A flex item's floor is its content, not zero, so without this the title refuses to
+     shrink and pushes the actions out instead of giving way. */
+  min-width: 0;
   padding: calc(var(--kajay-spacing) / 4);
   border: 1px solid var(--kajay-color-accent);
   border-radius: var(--kajay-radius);

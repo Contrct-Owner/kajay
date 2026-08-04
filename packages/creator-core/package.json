@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Headless survey designer model over @kajay/core. Phase 3 scope; stub for now.",
+  "description": "Headless survey designer model over @kajay/core: the design surface, toolbox, property grid, logic, translations and theme editors.",
   "license": "UNLICENSED",
   "sideEffects": false,
   "engines": {

@@ -14,10 +14,11 @@
  * repo's node_modules, because that is what a consumer actually has.
  */
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CREATOR_TSX, SMOKE_TS } from './pack-fixtures.mjs';
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const PACKAGES = ['core', 'react', 'creator-core', 'creator-react', 'themes'];
@@ -128,7 +129,7 @@ try {
           skipLibCheck: false,
           lib: ['es2023', 'dom'],
         },
-        include: ['smoke.ts'],
+        include: ['smoke.ts', 'creator.tsx'],
       },
       null,
       2,
@@ -149,78 +150,8 @@ try {
     'utf8',
   );
 
-  writeFileSync(
-    join(scratch, 'smoke.ts'),
-    `import {
-  CURRENT_SCHEMA_VERSION,
-  moveWithin,
-  parseSurvey,
-  serializeSurvey,
-  globalRegistry,
-  type SurveyDefinition,
-} from '@kajay/core';
-import { Toolbox } from '@kajay/creator-core';
-import { lightTheme } from '@kajay/themes';
-import {
-  defaultPageElementRenderers,
-  reorderAnnouncement,
-  useReorder,
-  type ReorderOptions,
-} from '@kajay/react';
-
-const definition: SurveyDefinition = {
-  title: 'Pack smoke',
-  pages: [{ name: 'p1', elements: [{ type: 'text', name: 'q1', keptUnknown: 'yes' }] }],
-};
-
-const first = parseSurvey(definition);
-const canonical = serializeSurvey(first.survey);
-const second = serializeSurvey(parseSurvey(canonical).survey);
-
-if (JSON.stringify(canonical) !== JSON.stringify(second)) {
-  throw new Error('Round-trip is not a fixed point.');
-}
-if (canonical['schemaVersion'] !== CURRENT_SCHEMA_VERSION) {
-  throw new Error('schemaVersion missing from canonical output.');
-}
-if (!first.diagnostics.some((d) => d.code === 'unknown-property')) {
-  throw new Error('Unknown property was not surfaced as a diagnostic.');
-}
-if (!globalRegistry.hasClass('text')) {
-  throw new Error('Built-in types are not registered.');
-}
-const toolbox = new Toolbox();
-if (toolbox.items.length === 0) {
-  throw new Error('Toolbox derived no items from the registry.');
-}
-if (!toolbox.categories.some((category) => category.name === 'Choice')) {
-  throw new Error('Toolbox categories did not survive packaging.');
-}
-if (!defaultPageElementRenderers.has('text')) {
-  throw new Error('Default renderers are missing the text question.');
-}
-if (JSON.stringify(moveWithin(['a', 'b', 'c'], 0, 2)) !== JSON.stringify(['b', 'c', 'a'])) {
-  throw new Error('The reusable core reorder primitive is not working.');
-}
-if (typeof useReorder !== 'function') {
-  throw new Error('The reusable React reorder interaction is not exported.');
-}
-const reorderOptions: ReorderOptions = {
-  itemCount: 1,
-  onMove: () => false,
-  describe: () => 'Only item',
-};
-if (reorderOptions.itemCount !== 1 || reorderAnnouncement('moved', 'Only item', 0, 1) !== 'Only item, position 1 of 1.') {
-  throw new Error('The reusable React reorder contract is not working.');
-}
-if (lightTheme.name !== 'light') {
-  throw new Error('Theme preset did not load.');
-}
-
-console.log('pack smoke: ok');
-`,
-    'utf8',
-  );
+  writeFileSync(join(scratch, 'smoke.ts'), SMOKE_TS, 'utf8');
+  writeFileSync(join(scratch, 'creator.tsx'), CREATOR_TSX, 'utf8');
 
   console.log(`\nTypeScript compatibility matrix: ${SUPPORTED_TYPESCRIPT.join(', ')}`);
   for (const spec of SUPPORTED_TYPESCRIPT) {
@@ -246,8 +177,33 @@ console.log('pack smoke: ok');
     console.log(`  stylesheet present: ${asset}`);
   }
 
+  // The Creator's *own* chrome ships too — checklist N4. The designer, the property grid
+  // and the assembly's layout all live in the same stylesheet as the survey's, and a
+  // consumer who installed the Creator and got an unstyled one would have no way to tell
+  // whether that was the library or their own build.
+  const shipped = readFileSync(
+    join(scratch, 'node_modules', '@kajay', 'themes', 'styles/styles.css'),
+    'utf8',
+  );
+  for (const rule of ['.kajay-creator__', '.kajay-designer__', '.kajay-properties__']) {
+    if (!shipped.includes(rule)) {
+      throw new Error(`Packed stylesheet is missing the Creator's ${rule} rules.`);
+    }
+  }
+  console.log('  stylesheet covers the Creator');
+
   console.log('\nRunning the smoke scenario...');
   run('node', ['node_modules/typescript/bin/tsc', '-p', 'tsconfig.build.json'], scratch);
+
+  // **The React consumer was really compiled.** `creator.tsx` is checked rather than run,
+  // which means a build that quietly stopped including it would report nothing at all —
+  // the worst kind of green. Its emitted output existing is the proof that the matrix
+  // above actually type-checked the Creator's React half.
+  if (!existsSync(join(scratch, 'built', 'creator.js'))) {
+    throw new Error('creator.tsx was not compiled; the React consumer check did nothing.');
+  }
+  console.log('  React consumer compiled: creator.tsx');
+
   process.stdout.write(run('node', ['built/smoke.js'], scratch));
 
   if (failures.length === 0) {

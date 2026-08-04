@@ -38,6 +38,7 @@ export function PageNavigatorPanel({
 
   return (
     <div className={joinClasses('kajay-pages', className)}>
+      <SurveyEntry surface={surface} />
       <ol className="kajay-pages__list" ref={placement?.pageListRef}>
         {pages.map((page, index) => (
           <PageEntry
@@ -65,6 +66,34 @@ export function PageNavigatorPanel({
         Add page
       </Button>
     </div>
+  );
+}
+
+/**
+ * The survey settings surface — checklist L5.
+ *
+ * It lives in the page navigator rather than in a piece of its own because this is where
+ * the survey's *shape* is drawn, and the survey is the root of it: a designer looking for
+ * "the whole survey" looks at the list of what it contains.
+ *
+ * **Selecting, not navigating**, so it carries no `aria-current`. The canvas still shows a
+ * page; what changes is what the grid is editing — and saying "current" about something
+ * nobody has navigated to would be the one claim this list must not get wrong.
+ */
+function SurveyEntry({ surface }: { readonly surface: DesignSurface }): ReactElement {
+  const { Button } = useCreatorComponents();
+
+  return (
+    <Button
+      className="kajay-pages__survey"
+      data-selected={surface.selection.isSurvey ? 'true' : undefined}
+      data-testid="select-survey"
+      onClick={() => {
+        surface.selectSurvey();
+      }}
+    >
+      Survey
+    </Button>
   );
 }
 

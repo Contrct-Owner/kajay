@@ -172,7 +172,7 @@ export function renameIn(surface: DesignSurface, from: string, to: string): bool
     return false;
   }
   const page = surface.page?.name;
-  const selected = surface.selectedName;
+  const selected = surface.selection.name;
   surface.applyEdit(renameThroughout(before, from, trimmed), {
     // The renamed thing keeps the selection when it *was* the selection. Renaming a
     // matrix column from the collection editor is not a request to select the column —

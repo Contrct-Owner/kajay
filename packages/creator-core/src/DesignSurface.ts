@@ -9,12 +9,13 @@ import type {
   SurveyDefinition,
   SurveyElement,
 } from '@kajay/core';
-import { countIn, locate, nameOf } from './definitionTree.js';
+import { countIn, locate } from './definitionTree.js';
 import type { DropList } from './definitionTree.js';
 import { SurveyDocument } from './SurveyDocument.js';
 import { DesignHistory } from './DesignHistory.js';
 import type { HistorySnapshot } from './UndoHistory.js';
-import { addPageTo, placeOn, removePageFrom, resolveSelection } from './designerEdits.js';
+import { addPageTo, placeOn, removePageFrom } from './designerEdits.js';
+import { DesignSelection } from './DesignSelection.js';
 import {
   convertibleTypes,
   convertIn,
@@ -73,7 +74,7 @@ export interface DesignSurfaceOptions {
  */
 export class DesignSurface {
   readonly #document: SurveyDocument;
-  #selected: SurveyElement | undefined;
+  readonly #selection: DesignSelection = new DesignSelection();
   #version = 0;
   readonly #clipboard: DesignClipboard = new DesignClipboard();
   readonly #history: DesignHistory = new DesignHistory();
@@ -110,26 +111,37 @@ export class DesignSurface {
   }
 
   get selected(): SurveyElement | undefined {
-    return this.#selected;
+    return this.#selection.in(this.survey);
   }
 
   /**
-   * What is selected, by name — what an edit passes back to `applyEdit` to keep it.
+   * The selection itself: what it is by name, and whether it is the survey — L5.
    *
-   * Its own getter because "the selection survives this edit" is a thing several edits
-   * need to say, and each of them reaching into `selected.getPropertyValue('name')` and
-   * narrowing the result is four chances to write it differently.
+   * Exposed rather than mirrored in two getters here, because "the survey is selected" and
+   * "the selection is called `who`" are one fact with two shapes, and the survey having no
+   * name is the reason it needs both — see {@link DesignSelection}.
    */
-  get selectedName(): string | undefined {
-    return nameOf({ name: this.#selected?.getPropertyValue('name') });
+  get selection(): DesignSelection {
+    return this.#selection;
   }
 
   isSelected(element: SurveyElement): boolean {
-    return this.#selected === element;
+    return this.selected === element;
   }
 
   select(element: SurveyElement): void {
-    this.#setSelected(element);
+    this.#changeSelection(() => this.#selection.select(element));
+  }
+
+  /**
+   * Selects the survey itself — checklist L5.
+   *
+   * Its own method for {@link clearSelection}'s reason: it is a thing a designer does
+   * deliberately, and `select(survey)` would be a call the type system allows and the
+   * name-based restoration cannot honour.
+   */
+  selectSurvey(): void {
+    this.#changeSelection(() => this.#selection.selectSurvey());
   }
 
   /**
@@ -140,18 +152,17 @@ export class DesignSurface {
    * site, where `undefined` reads as a value somebody forgot to compute.
    */
   clearSelection(): void {
-    this.#setSelected();
+    this.#changeSelection(() => this.#selection.select());
   }
 
-  #setSelected(element?: SurveyElement): void {
-    if (this.#selected === element) {
+  #changeSelection(apply: () => boolean): void {
+    if (!apply()) {
       return;
     }
     // The designer's attention has moved. Without this, renaming a question, going away
     // and coming back to rename it again would be one undo, because the key had not
     // changed in between.
     this.#history.breakRun();
-    this.#selected = element;
     this.#announce();
   }
 
@@ -325,7 +336,7 @@ export class DesignSurface {
     // has moved, so whatever was coalescing has ended.
     this.#history.breakRun();
     this.#document.replace(this.definition, name);
-    this.#selected = undefined;
+    this.#selection.select();
     this.#announce();
   }
 
@@ -358,7 +369,11 @@ export class DesignSurface {
    */
   applyEdit(definition: SurveyDefinition, options: EditOptions = {}): void {
     this.#history.record(this, options.from ?? this.definition, options.undoKey);
-    this.#reparse(definition, options.select, options.goTo ?? this.page?.name);
+    // An edit that names nothing to select leaves the selection where it was, which for
+    // the survey (§L5) is the only way it *can* survive — it has no name to hand back.
+    // One that names something means it, so the survey gives way.
+    const keepSurvey = options.select === undefined && this.#selection.isSurvey;
+    this.#reparse(definition, options.select, options.goTo ?? this.page?.name, keepSurvey);
   }
 
   /** Removes an element, and everything inside it — checklist K7. */
@@ -424,13 +439,9 @@ export class DesignSurface {
    * the designer back to page one with nothing selected — the edit landing correctly
    * and the canvas losing its place.
    */
-  #reparse(
-    definition: SurveyDefinition,
-    selectedName: string | undefined,
-    goToPage: string | undefined,
-  ): void {
-    this.#document.replace(definition, goToPage);
-    this.#selected = resolveSelection(this, selectedName);
+  #reparse(definition: SurveyDefinition, name?: string, page?: string, isSurvey = false): void {
+    this.#document.replace(definition, page);
+    this.#selection.restore(name, this.pages, this.page, isSurvey);
     this.#announce();
   }
 
@@ -462,7 +473,7 @@ export class DesignSurface {
     if (snapshot === undefined) {
       return false;
     }
-    this.#reparse(snapshot.definition, snapshot.selected, snapshot.page);
+    this.#reparse(snapshot.definition, snapshot.selected, snapshot.page, snapshot.isSurveySelected);
     return true;
   }
 

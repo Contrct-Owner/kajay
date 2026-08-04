@@ -12,6 +12,13 @@ export interface HistorySnapshot {
   readonly definition: SurveyDefinition;
   readonly page: string | undefined;
   readonly selected: string | undefined;
+  /**
+   * Whether the survey itself was selected — checklist L5.
+   *
+   * Its own field because the survey has no name for `selected` to hold: it is the thing
+   * names are unique within. See `DesignSelection`.
+   */
+  readonly isSurveySelected: boolean;
 }
 
 /** How many edits are kept. Beyond this the oldest is forgotten. */

@@ -211,7 +211,7 @@ describe('parity/L2-collection-edits', () => {
     // working on that question — moving the grid off it would take away the panel being
     // typed in. Asserted here rather than after an undo, which restores the selection
     // from its own snapshot and would pass either way.
-    expect(designed.selectedName).toBe('tier');
+    expect(designed.selection.name).toBe('tier');
     expect(designed.selected).not.toBe(tier);
 
     designed.removeChild(designed.selected!, 'choices', 0);

@@ -58,10 +58,15 @@ export interface CollectionRow {
 /**
  * The collections a designer may edit, grouped by nothing — the grid groups them.
  *
- * **`elements` is deliberately absent**, and every collection of page elements with it.
- * What is on a page is the canvas's, not a list in a sidebar: K2 and K3 built dragging,
- * dropping, selecting and adorning for exactly that collection, and a second way to
- * reorder it here would be a second place for the two to disagree.
+ * **`elements` and `pages` are deliberately absent.** What is on a page is the canvas's
+ * and what pages there are is the navigator's: K2, K3 and K4 built dragging, dropping,
+ * selecting, adorning and reordering for exactly those two collections, and a second way
+ * to reorder either here would be a second place for the two to disagree.
+ *
+ * The rule is the *base type*, not the property name, so a host's own container is excluded
+ * for the same reason — and everything else the survey holds falls in without being asked
+ * for: selecting the survey (§L5) makes its calculated values, its triggers and its
+ * conditional endings editable with no code about any of them.
  */
 export function collectionRowsFor(
   element: SurveyElement,
@@ -72,7 +77,7 @@ export function collectionRowsFor(
   for (const collection of registry.getChildCollections(element.type)) {
     // Hidden by the same list that hides a property (§L4): to a host, "do not show the
     // validators editor" and "do not show `valueName`" are one kind of decision.
-    if (collection.elementBaseType === PAGE_ELEMENT || isHidden(collection.property, options)) {
+    if (SURFACE_OWNED.has(collection.elementBaseType) || isHidden(collection.property, options)) {
       continue;
     }
     rows.push({
@@ -87,8 +92,8 @@ export function collectionRowsFor(
   return rows;
 }
 
-/** The base whose collections the design surface owns rather than the grid. */
-const PAGE_ELEMENT = 'pageelement';
+/** The bases whose collections the canvas and the page navigator own rather than the grid. */
+const SURFACE_OWNED: ReadonlySet<string> = new Set(['pageelement', 'page']);
 
 /**
  * What to call a child in the list — checklist L2.

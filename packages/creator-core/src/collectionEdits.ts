@@ -152,7 +152,7 @@ function apply(
   // working on that question, and moving the grid off it under the designer would take
   // away the panel they are typing in.
   surface.applyEdit(after, {
-    select: surface.selectedName,
+    select: surface.selection.name,
     from: before,
     ...(undoKey === undefined ? {} : { undoKey }),
   });
@@ -211,7 +211,7 @@ export function childrenIn(
   owner: string,
   property: string,
 ): readonly SurveyDefinition[] | undefined {
-  const found = findNamed(definition, owner);
+  const found = ownerIn(definition, owner);
   if (found === undefined) {
     return undefined;
   }
@@ -229,7 +229,26 @@ export function withChildren(
   property: string,
   items: readonly SurveyDefinition[],
 ): SurveyDefinition {
+  if (isRoot(owner)) {
+    return { ...definition, [property]: items };
+  }
   return rewriteNamed(definition, owner, (found) => ({ ...found, [property]: items }));
+}
+
+/**
+ * The object a collection hangs off, given the name of its owner.
+ *
+ * **An empty name is the survey** — checklist L5. It is the root, and it has no name
+ * because it is the thing names are unique within (see `DesignSelection`), so there is
+ * nothing to walk the tree looking for. Written as one function rather than a branch in
+ * each caller, because "the survey has no name" is a fact that must be said once.
+ */
+function ownerIn(definition: SurveyDefinition, owner: string): SurveyDefinition | undefined {
+  return isRoot(owner) ? definition : findNamed(definition, owner);
+}
+
+function isRoot(owner: string): boolean {
+  return owner.length === 0;
 }
 
 /**

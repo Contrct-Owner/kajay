@@ -177,7 +177,7 @@ describe('parity/L1-rename', () => {
     // question that no longer exists: the survey would still parse, still render, and
     // simply stop working. K5 already argued that is worse than failing loudly.
     expect(elementIn(designed.definition, 'why')['visibleIf']).toBe('{applicant} notempty');
-    expect(designed.selectedName).toBe('applicant');
+    expect(designed.selection.name).toBe('applicant');
   });
 
   test('renaming something else leaves the selection where it was', () => {
@@ -189,7 +189,7 @@ describe('parity/L1-rename', () => {
     // A matrix column renamed from the collection editor is not a request to select the
     // column — and a nested child is not something the selection can resolve to at all,
     // so always selecting the renamed element would empty the grid being typed in.
-    expect(designed.selectedName).toBe('why');
+    expect(designed.selection.name).toBe('why');
   });
 
   test('a name already spoken for is refused', () => {

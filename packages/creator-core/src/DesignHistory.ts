@@ -54,5 +54,13 @@ function snapshot(
   surface: DesignSurface,
   definition: SurveyDefinition = surface.definition,
 ): HistorySnapshot {
-  return { definition, page: surface.page?.name, selected: surface.selectedName };
+  return {
+    definition,
+    page: surface.page?.name,
+    selected: surface.selection.name,
+    // Recorded separately because the survey has no name to record — see
+    // `DesignSelection`. Without it, undoing while looking at the survey settings would
+    // leave the grid on the survey while restoring a question nobody could see change.
+    isSurveySelected: surface.selection.isSurvey,
+  };
 }

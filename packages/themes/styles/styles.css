@@ -698,6 +698,23 @@
   flex-wrap: wrap;
 }
 
+.kajay-pages__survey {
+  padding: 0 calc(var(--kajay-spacing) / 3);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Selected, not current: the canvas still shows a page. */
+.kajay-pages__survey[data-selected='true'] {
+  border-color: var(--kajay-color-accent);
+  background: var(--kajay-color-accent);
+  color: var(--kajay-color-on-accent);
+}
+
 .kajay-pages__list {
   display: flex;
   gap: calc(var(--kajay-spacing) / 2);

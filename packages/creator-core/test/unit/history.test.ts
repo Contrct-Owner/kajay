@@ -206,7 +206,12 @@ describe('parity/K6-coalesce', () => {
 });
 
 function snapshotAt(at: number): HistorySnapshot {
-  return { definition: { title: String(at) }, page: undefined, selected: undefined };
+  return {
+    definition: { title: String(at) },
+    page: undefined,
+    selected: undefined,
+    isSurveySelected: false,
+  };
 }
 
 describe('parity/K6-depth', () => {

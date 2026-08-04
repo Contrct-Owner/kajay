@@ -28,9 +28,10 @@ export interface PropertyGridPanelProps {
  * order, the labels and the editors all come from `surface.properties` and
  * `surface.collections`, which is the whole claim of both rows.
  *
- * It edits **whatever is selected**, and a page is selectable (K4), so selecting one shows
- * the page's own properties with no code about pages. §L5 is still open: the survey itself
- * is not selectable, and there is nowhere yet for the settings that belong to it.
+ * It edits **whatever is selected**, and a page is selectable (K4) and the survey is too
+ * (§L5) — so selecting either shows its own properties with no code about pages and none
+ * about surveys. A survey's calculated values, triggers and conditional endings arrive as
+ * collection editors for the same reason a question's choices do.
  */
 export function PropertyGridPanel({
   surface,
@@ -71,7 +72,10 @@ function SelectedElement({
   readonly element: SurveyElement;
   readonly grid: PropertyGridOptions | undefined;
 }): ReactElement {
-  const scope = String(element.getPropertyValue('name') ?? '');
+  // The survey has no name — it is the thing names are unique within (§L5) — so a
+  // nameless element is scoped by its type, which is unique among the things that have
+  // no name.
+  const scope = String(element.getPropertyValue('name') ?? element.type);
 
   return (
     <>

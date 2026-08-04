@@ -229,6 +229,42 @@ test('parity/L3-read-only: an overridden property is shown, and fixed', async ({
   await expect(page.getByTestId('surface-json')).toContainText('"isRequired": true');
 });
 
+test('parity/L5-survey-settings: the survey is reachable, and its grid is generated', async ({
+  page,
+}) => {
+  await page.getByTestId('select-survey').click();
+
+  // A registered class like any other. Selecting, not navigating — the canvas still shows
+  // the page it was showing.
+  await expect(field(page, 'Title')).toHaveValue('A survey being designed');
+  await expect(field(page, 'Show progress bar')).toBeVisible();
+  await expect(page.getByTestId('select-survey')).not.toHaveAttribute('aria-current');
+  await expect(page.getByTestId('go-to-p1')).toHaveAttribute('aria-current', 'page');
+
+  await field(page, 'Show progress bar').fill('top');
+  await expect(page.getByTestId('surface-json')).toContainText('"showProgressBar": "top"');
+});
+
+test('parity/L5-survey-settings: what the survey holds is editable too', async ({ page }) => {
+  await page.getByTestId('select-survey').click();
+
+  await grid(page).getByTestId('add-calculatedValues').click();
+
+  // Calculated values arrive as a collection editor for the same reason a question's
+  // choices do — and `pages` does not, because the navigator beside it owns that list.
+  await expect(page.getByTestId('surface-json')).toContainText('calculatedvalue1');
+  await expect(grid(page).getByTestId('collection-pages')).toBeHidden();
+});
+
+test('parity/L5-page-settings: a page’s own settings are its grid', async ({ page }) => {
+  await page.getByTestId('select-page-p1').click();
+
+  // K4 made the page selectable and L1 generated the grid; this row needed neither to
+  // change. Only the survey had nowhere to live.
+  await expect(field(page, 'Title')).toHaveValue('Draft: the first page');
+  await expect(field(page, 'Max time to finish')).toBeVisible();
+});
+
 test('parity/L1-grid: no accessibility violations', async ({ page }) => {
   await page.getByTestId('select-draftName').click();
 

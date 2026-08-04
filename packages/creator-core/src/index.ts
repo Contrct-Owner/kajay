@@ -3,7 +3,8 @@
 
 export { DesignSurface } from './DesignSurface.js';
 export type { DesignSurfaceOptions, EditOptions } from './DesignSurface.js';
-export { addPageTo, placeOn, removePageFrom, resolveSelection } from './designerEdits.js';
+export { addPageTo, placeOn, removePageFrom } from './designerEdits.js';
+export { DesignSelection } from './DesignSelection.js';
 export {
   canConvert,
   convertibleTypes,

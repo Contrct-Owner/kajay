@@ -37,6 +37,11 @@ export type { SaveButtonProps } from './SaveButton.js';
 export { SurveyCreator } from './SurveyCreator.js';
 export type { SurveyCreatorProps } from './SurveyCreator.js';
 export { useCreatorWorkspace } from './useCreatorWorkspace.js';
+// **A host who puts undo in their own toolbar needs this** — ADR-0021 invites exactly
+// that, and without a way to subscribe their button could not tell when there stopped
+// being anything to undo. `HistoryPanel` used it privately; the composition story does not
+// work unless it is public.
+export { useSurfaceVersion } from './useSurfaceVersion.js';
 export { ToolboxPanel } from './ToolboxPanel.js';
 export { useCreatorDocument } from './useCreatorDocument.js';
 export type { CreatorDocumentOptions } from './useCreatorDocument.js';

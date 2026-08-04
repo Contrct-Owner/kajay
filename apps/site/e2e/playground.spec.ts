@@ -162,3 +162,21 @@ test('parity/P3-playground: undo is on screen, not only on the keyboard', async 
   // people never discovered they could undo in.
   await expect(canvas(page).getByTestId('select-rating1')).toHaveCount(0);
 });
+
+test('parity/P3-playground: the sidebar scrolls without taking the canvas with it', async ({
+  page,
+}) => {
+  await page.goto(PLAYGROUND);
+  await canvas(page).getByTestId('select-name').click();
+
+  const sidebar = page.getByTestId('pane-properties').locator('xpath=ancestor::*[@data-slot="accordion"]');
+  const before = await canvas(page).getByTestId('select-name').boundingBox();
+  await sidebar.evaluate((node) => {
+    node.scrollTop = node.scrollHeight;
+  });
+  const after = await canvas(page).getByTestId('select-name').boundingBox();
+
+  // Reaching a property near the bottom used to mean scrolling the page, which scrolled
+  // the canvas away — so a designer was editing something they could no longer see.
+  expect(after?.y).toBe(before?.y);
+});

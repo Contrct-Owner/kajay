@@ -138,6 +138,7 @@ export const PUBLIC_RUNTIME_SURFACE = Object.freeze({
     'useCreatorWorkspace',
     'useDesignerPlacement',
     'usePreviewVersion',
+    'useSurfaceVersion',
     'usePropertyEditor',
     'useThemeVersion',
   ]),

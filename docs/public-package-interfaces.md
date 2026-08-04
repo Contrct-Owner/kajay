@@ -52,13 +52,13 @@ Free placement/tree/edit algorithms are private. Consumers use `DesignSurface.pl
 or the deep `DesignSurface.placement` controller; translation/theme/logic consumers use
 their sessions rather than raw traversal and codec functions.
 
-## `@kajay/creator-react` — 27 values
+## `@kajay/creator-react` — 28 values
 
 | Category | Values | Concrete evidence |
 | --- | --- | --- |
 | Default assembly and composition controllers | `CreatorTabs`, `DEFAULT_CREATOR_TABS`, `SurveyCreator`, `useCreatorDocument`, `useCreatorWorkspace`, `useDesignerPlacement` | The assembled Creator and host-owned arrangement share the same public workspace, controlled-document, and placement lifetime paths. |
 | Top-level pieces promised by ADR-0021 | `DesignSurfacePanel`, `HistoryPanel`, `JsonEditorPanel`, `LogicPanel`, `PageNavigatorPanel`, `PreviewPanel`, `PropertyGridPanel`, `SaveButton`, `ThemeEditorPanel`, `ToolboxPanel`, `TranslationsPanel` | Default and non-default host layouts render these pieces through public imports; browser and host E2E suites cover both arrangements. |
-| Host design-system, text, editor, and session seams | `CreatorComponentsProvider`, `CreatorStringsProvider`, `PropertyEditorProvider`, `useCreatorComponents`, `useCreatorText`, `usePreviewVersion`, `usePropertyEditor`, `useThemeVersion` | Host primitive replacement, white-label strings, custom property editors, and custom preview/theme panels use these seams without internal imports. |
+| Host design-system, text, editor, and session seams | `CreatorComponentsProvider`, `CreatorStringsProvider`, `PropertyEditorProvider`, `useCreatorComponents`, `useCreatorText`, `usePreviewVersion`, `usePropertyEditor`, `useSurfaceVersion`, `useThemeVersion` | Host primitive replacement, white-label strings, custom property editors, and custom preview/theme panels use these seams without internal imports. **`useSurfaceVersion` is what a host needs to put undo in their own toolbar** — ADR-0021 invites exactly that, and until the reference application wanted icon buttons the hook was private, so a host's own control could not tell when there stopped being anything to undo. | Host primitive replacement, white-label strings, custom property editors, and custom preview/theme panels use these seams without internal imports. |
 | Saying what the Creator did ([ADR-0023](./adr/0023-the-creator-says-what-happened.md)) | `CreatorNotices`, `useLatestNotice` | The default assembly renders the shipped polite live region; a host who would rather route notices into their own notification system subscribes with the hook and draws nothing. Browser scenarios cover both the shipped region and a white-labelled message. |
 
 Nested fields, shortcuts, panel-internal version counters, and element-action widgets

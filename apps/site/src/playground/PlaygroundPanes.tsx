@@ -1,8 +1,6 @@
 import type { CreatorWorkspace } from '@kajay/creator-core';
 import {
   DesignSurfacePanel,
-  HistoryPanel,
-  PageNavigatorPanel,
   JsonEditorPanel,
   PropertyGridPanel,
   ToolboxPanel,
@@ -17,6 +15,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
+import { DesignerToolbar } from './DesignerToolbar';
 import { KAJAY_SURVEY_COMPONENTS } from '@/kajay/surveyComponents';
 
 export type EditorMode = 'design' | 'json';
@@ -140,16 +139,20 @@ function DesignerLayout({
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_15rem] items-start gap-3">
           <div className="flex min-w-0 flex-col gap-2">
             {/*
-              **Undo and the page list, above the canvas** — the same order the default
-              assembly uses, and for the same reason: both are about the document rather
-              than about any element on it. Arranging the pieces by hand means arranging
-              *all* of them; leaving these two out is how the playground shipped with no
-              way to add a page.
+              **One row above the canvas.** Undo, redo and the pages are all about the
+              document rather than about any element on it, so they read as one control
+              strip rather than two stacked panels — see `DesignerToolbar` for why the
+              library's own `HistoryPanel` is not what draws them here.
             */}
-            <HistoryPanel surface={workspace.surface} />
-            <PageNavigatorPanel surface={workspace.surface} placement={placement} />
+            <DesignerToolbar workspace={workspace} placement={placement} />
             <DesignSurfacePanel surface={workspace.surface} placement={placement} />
           </div>
+          {/*
+            **Its own scroll container, and sticky.** The properties of a question near the
+            bottom of a long survey used to be reachable only by scrolling the whole page —
+            which scrolled the canvas away, so a designer was editing something they could
+            no longer see. The canvas scrolls with the page; this column scrolls by itself.
+          */}
           <Accordion
             type="multiple"
             // Both open by default, and `multiple` rather than `single` because these are
@@ -157,16 +160,16 @@ function DesignerLayout({
             // a panel that closed the other every time would be a worse toolbox than a
             // list. Collapsing is for reclaiming height on a laptop, not for choosing.
             defaultValue={['toolbox', 'properties']}
-            className="min-w-0"
+            className="sticky top-4 max-h-[calc(100svh-2rem)] min-w-0 overflow-y-auto pr-1"
           >
             <AccordionItem value="toolbox">
               <AccordionTrigger data-testid="pane-toolbox">Toolbox</AccordionTrigger>
               {/*
-                Capped and scrolled: twenty-one types is a long list, and an uncapped one
-                pushes Properties below the fold — which makes "both open at once" a promise
-                the layout breaks rather than keeps.
+                No cap of its own any more. It had one so a long type list could not push
+                Properties below the fold; now the column scrolls, so a nested scroller
+                would be a second thing to drag past for no reason.
               */}
-              <AccordionContent className="max-h-80 overflow-y-auto">
+              <AccordionContent>
                 <ToolboxPanel toolbox={workspace.toolbox} getItemProps={placement.getItemProps} />
               </AccordionContent>
             </AccordionItem>

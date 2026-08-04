@@ -22,6 +22,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -31,6 +33,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         }
       ],
@@ -48,6 +52,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -57,6 +63,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -66,6 +74,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "What is stored for yes. Anything the host backend expects."
         },
         {
@@ -75,6 +85,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -84,6 +96,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "switch or radio."
         }
       ],
@@ -101,6 +115,8 @@
           "isRequired": true,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "The name this value is referenced by in expressions."
         },
         {
@@ -110,6 +126,8 @@
           "isRequired": true,
           "isExpression": true,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -119,6 +137,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Whether the computed value joins the survey answers."
         }
       ],
@@ -143,6 +163,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -152,6 +174,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Visible height, in lines."
         },
         {
@@ -161,6 +185,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Grow to fit the answer rather than scrolling."
         },
         {
@@ -170,6 +196,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": "{autoGrow} = false",
+          "readOnlyIf": null,
           "description": "Whether the respondent may drag the field taller."
         },
         {
@@ -179,6 +207,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Length budget. 0 means none, which also hides the counter."
         }
       ],
@@ -203,6 +233,8 @@
           "isRequired": true,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -212,6 +244,8 @@
           "isRequired": true,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         }
       ],
@@ -250,6 +284,8 @@
           "isRequired": true,
           "isExpression": true,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Computed from the answers. The respondent does not supply it."
         },
         {
@@ -259,6 +295,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "none, decimal, currency, percent or date."
         },
         {
@@ -268,6 +306,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": "{displayStyle} = 'currency'",
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -277,6 +317,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": "{displayStyle} <> 'none'",
+          "readOnlyIf": null,
           "description": "0 leaves it to the style."
         },
         {
@@ -286,6 +328,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Template around the result, with {0} standing for it."
         }
       ],
@@ -303,6 +347,8 @@
           "isRequired": true,
           "isExpression": true,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "The answer is acceptable while this evaluates truthy."
         }
       ],
@@ -320,6 +366,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -329,6 +377,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "An `accept` list — image/*, .pdf — offered to the picker and enforced."
         },
         {
@@ -338,6 +388,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Bytes. 0 means no limit."
         },
         {
@@ -347,6 +399,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "0 means no limit."
         },
         {
@@ -356,6 +410,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -365,6 +421,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "The content travels inside the response instead of being uploaded."
         },
         {
@@ -374,6 +432,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Offer the camera as well as the filesystem, where the platform has one."
         }
       ],
@@ -391,6 +451,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Markup, rendered as markup. See HtmlElement on the trust boundary."
         }
       ],
@@ -408,6 +470,8 @@
           "isRequired": true,
           "isExpression": true,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -417,6 +481,8 @@
           "isRequired": true,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         }
       ],
@@ -434,6 +500,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -443,6 +511,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Falls back to the title, then to empty — a decorative image."
         },
         {
@@ -452,6 +522,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "none, contain, cover or fill. Mirrors CSS object-fit."
         },
         {
@@ -461,6 +533,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "image or video."
         },
         {
@@ -470,6 +544,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "CSS pixels. 0 lets layout decide."
         },
         {
@@ -479,6 +555,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         }
       ],
@@ -496,6 +574,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "The one select type whose arity is a property rather than its type."
         },
         {
@@ -505,6 +585,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "none, contain, cover or fill. Mirrors CSS object-fit."
         },
         {
@@ -514,6 +596,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "image or video."
         },
         {
@@ -523,6 +607,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -532,6 +618,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -541,6 +629,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Whether the choice text is shown. It is the tile name either way."
         }
       ],
@@ -558,6 +648,8 @@
           "isRequired": true,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -567,6 +659,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Display text; falls back to the value."
         },
         {
@@ -576,6 +670,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Picture or video for this choice. Only an imagepicker draws it."
         },
         {
@@ -585,6 +681,8 @@
           "isRequired": false,
           "isExpression": true,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Expression; the choice is offered only while truthy."
         }
       ],
@@ -602,6 +700,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Every visible row demands an answer, not just the question as a whole."
         },
         {
@@ -611,6 +711,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "No two rows may be answered with the same column."
         },
         {
@@ -620,6 +722,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Shade alternate rows. Presentation only."
         },
         {
@@ -629,6 +733,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "auto, table or list. auto turns the table into a list on a narrow screen."
         }
       ],
@@ -657,6 +763,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "none, underRow, or underRowSingle (one row open at a time)."
         },
         {
@@ -666,6 +774,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "auto, table or list. auto turns the table into a list on a narrow screen."
         }
       ],
@@ -704,6 +814,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Rows shown before the respondent adds any, and the floor on removal."
         },
         {
@@ -713,6 +825,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "0 means no limit."
         },
         {
@@ -722,6 +836,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -731,6 +847,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -740,6 +858,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": "{allowAddRows} = true",
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -749,6 +869,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": "{allowRemoveRows} = true",
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -758,6 +880,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Removing a row asks first. A row can hold a lot of typing."
         },
         {
@@ -767,6 +891,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": "{confirmDelete} = true",
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -776,6 +902,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Row header template, with {0} as the row number."
         },
         {
@@ -785,6 +913,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Answers a new row starts with, keyed by column name."
         },
         {
@@ -794,6 +924,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "A new row starts as a copy of the one before it. Wins over defaultRowValue."
         },
         {
@@ -803,6 +935,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "none, underRow, or underRowSingle (one row open at a time)."
         },
         {
@@ -812,6 +946,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "auto, table or list. auto turns the table into a list on a narrow screen."
         }
       ],
@@ -845,6 +981,8 @@
           "isRequired": true,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "The column summarised."
         },
         {
@@ -854,6 +992,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "sum, count, min, max or avg."
         },
         {
@@ -863,6 +1003,8 @@
           "isRequired": false,
           "isExpression": true,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Computes the figure instead. {row.col} is that column own total."
         },
         {
@@ -872,6 +1014,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Template around the figure, with {0} standing for it."
         },
         {
@@ -881,6 +1025,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Decimal places shown."
         }
       ],
@@ -898,6 +1044,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Default field width in characters. An item size wins."
         },
         {
@@ -907,6 +1055,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         }
       ],
@@ -930,6 +1080,8 @@
           "isRequired": true,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Key this field is stored under inside the question answer."
         },
         {
@@ -939,6 +1091,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Display label; falls back to name."
         },
         {
@@ -948,6 +1102,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -957,6 +1113,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -966,6 +1124,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -975,6 +1135,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Answer key, when it should differ from the name. Shared keys share an answer."
         },
         {
@@ -984,6 +1146,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "The answer is shown but cannot be changed by the respondent."
         },
         {
@@ -993,6 +1157,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1002,6 +1168,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Width in characters. 0 uses itemSize."
         }
       ],
@@ -1025,6 +1193,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1034,6 +1204,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1043,6 +1215,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "0 means no limit."
         }
       ],
@@ -1060,6 +1234,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Omit for no lower bound."
         },
         {
@@ -1069,6 +1245,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Omit for no upper bound."
         }
       ],
@@ -1086,6 +1264,8 @@
           "isRequired": true,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Unique page identifier."
         },
         {
@@ -1095,6 +1275,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "How many columns the elements flow into."
         },
         {
@@ -1104,6 +1286,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1113,6 +1297,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Seconds allowed for this page. 0 falls back to the survey's default."
         },
         {
@@ -1122,6 +1308,8 @@
           "isRequired": false,
           "isExpression": true,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Expression; the page is shown only while it evaluates truthy."
         }
       ],
@@ -1145,6 +1333,8 @@
           "isRequired": true,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Unique element identifier. For a question, also its answer key."
         },
         {
@@ -1154,6 +1344,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Display title; falls back to name."
         },
         {
@@ -1163,6 +1355,8 @@
           "isRequired": false,
           "isExpression": true,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Expression; the element is shown only while it evaluates truthy."
         },
         {
@@ -1172,6 +1366,8 @@
           "isRequired": false,
           "isExpression": true,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Expression; the element is editable only while it evaluates truthy."
         },
         {
@@ -1181,6 +1377,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Break onto a fresh row rather than flowing into the columns beside it."
         },
         {
@@ -1190,6 +1388,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "CSS length. Empty fills its column."
         },
         {
@@ -1199,6 +1399,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "CSS length."
         },
         {
@@ -1208,6 +1410,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "default, top, left or hidden. Hidden is visual only; it is still announced."
         }
       ],
@@ -1225,6 +1429,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1234,6 +1440,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "default, expanded or collapsed. Collapsed panels start closed."
         },
         {
@@ -1243,6 +1451,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "How many columns the elements inside flow into."
         }
       ],
@@ -1266,6 +1476,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Instances shown before the respondent adds any, and the floor on removal."
         },
         {
@@ -1275,6 +1487,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "0 means no limit."
         },
         {
@@ -1284,6 +1498,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1293,6 +1509,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1302,6 +1520,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1311,6 +1531,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1320,6 +1542,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Removing an instance asks first. A panel can hold a lot of typing."
         },
         {
@@ -1329,6 +1553,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1338,6 +1564,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Instance heading template, with {0} as its number."
         },
         {
@@ -1347,6 +1575,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "list shows every instance; tab and progress show one at a time."
         },
         {
@@ -1356,6 +1586,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Answers a new instance starts with, keyed by question name."
         }
       ],
@@ -1379,6 +1611,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": "{requiredIf} notempty",
           "description": null
         },
         {
@@ -1388,6 +1622,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Answer key, when it should differ from the name. Shared keys share an answer."
         },
         {
@@ -1397,6 +1633,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "The answer is shown but cannot be changed by the respondent."
         },
         {
@@ -1406,6 +1644,8 @@
           "isRequired": false,
           "isExpression": true,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Expression; when present it overrides isRequired."
         },
         {
@@ -1415,6 +1655,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": "{isRequired} = true or {requiredIf} notempty",
+          "readOnlyIf": null,
           "description": "Replaces the built-in message shown when a required answer is missing."
         },
         {
@@ -1424,6 +1666,8 @@
           "isRequired": false,
           "isExpression": true,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Expression supplying a value while the question is unanswered."
         },
         {
@@ -1433,6 +1677,8 @@
           "isRequired": false,
           "isExpression": true,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Expression; while truthy, setValueExpression drives the answer."
         },
         {
@@ -1442,6 +1688,8 @@
           "isRequired": false,
           "isExpression": true,
           "isLocalizable": false,
+          "visibleIf": "{setValueIf} notempty",
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1451,6 +1699,8 @@
           "isRequired": false,
           "isExpression": true,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Expression; while truthy the answer is cleared. Wins over the others."
         },
         {
@@ -1460,6 +1710,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         }
       ],
@@ -1483,6 +1735,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         }
       ],
@@ -1500,6 +1754,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Choices start in a pool and are ranked only once placed."
         },
         {
@@ -1509,6 +1765,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "horizontal or vertical. Where the pool sits relative to the ranking."
         },
         {
@@ -1518,6 +1776,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "0 means no limit."
         }
       ],
@@ -1535,6 +1795,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1544,6 +1806,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1553,6 +1817,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1562,6 +1828,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "labels, stars or smileys."
         },
         {
@@ -1571,6 +1839,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "auto, buttons or dropdown. auto collapses a long scale."
         },
         {
@@ -1580,6 +1850,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1589,6 +1861,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         }
       ],
@@ -1612,6 +1886,8 @@
           "isRequired": true,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Pattern the answer must match. Applied with the unicode flag."
         }
       ],
@@ -1629,6 +1905,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1638,6 +1916,8 @@
           "isRequired": true,
           "isExpression": true,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         }
       ],
@@ -1655,6 +1935,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "none, asc or desc."
         },
         {
@@ -1664,6 +1946,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1673,6 +1957,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1682,6 +1968,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": "{showOtherItem} = true",
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1691,6 +1979,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1700,6 +1990,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": "{showNoneItem} = true",
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1709,6 +2001,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1718,6 +2012,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Whether a long list may be narrowed by typing."
         },
         {
@@ -1727,6 +2023,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Name of a select question whose choices are carried forward."
         },
         {
@@ -1736,6 +2034,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": "{choicesFromQuestion} notempty",
+          "readOnlyIf": null,
           "description": "all, selected or unselected."
         },
         {
@@ -1745,6 +2045,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "URL to load choices from; may interpolate {question} placeholders."
         },
         {
@@ -1754,6 +2056,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Dotted path to the array inside the response."
         },
         {
@@ -1763,6 +2067,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1772,6 +2078,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1781,6 +2089,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "The list arrives a page at a time from the host loader."
         },
         {
@@ -1790,6 +2100,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "How many choices one page asks for."
         }
       ],
@@ -1813,6 +2125,8 @@
           "isRequired": true,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1822,6 +2136,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Literal written to setToName."
         }
       ],
@@ -1839,6 +2155,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1848,6 +2166,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Empty is transparent, which is what a signature on a form usually wants."
         },
         {
@@ -1857,6 +2177,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "png, jpeg or svg."
         },
         {
@@ -1866,6 +2188,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1875,6 +2199,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         }
       ],
@@ -1892,6 +2218,8 @@
           "isRequired": true,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Page name, or a question name whose page is navigated to."
         }
       ],
@@ -1909,6 +2237,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Survey title shown above the first page."
         },
         {
@@ -1918,6 +2248,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -1927,6 +2259,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "auto, ltr or rtl. auto reads the direction off the locale."
         },
         {
@@ -1936,6 +2270,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "BCP-47 tag the survey opens in. Which one a respondent switches to afterwards is not part of the definition."
         },
         {
@@ -1945,6 +2281,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "standard, singlePage or questionPerPage."
         },
         {
@@ -1954,6 +2292,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Set false to stop validation blocking navigation or completion."
         },
         {
@@ -1963,6 +2303,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "onNextPage, onValueChanged or onComplete."
         },
         {
@@ -1972,6 +2314,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Whether a question draws its errors above its input or below it."
         },
         {
@@ -1981,6 +2325,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "The whole survey is for reading rather than answering."
         },
         {
@@ -1990,6 +2336,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Turn the page once every question on it has a one-step answer."
         },
         {
@@ -1999,6 +2347,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Give the first question on each page focus as the page arrives."
         },
         {
@@ -2008,6 +2358,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "off, top, bottom or both."
         },
         {
@@ -2017,6 +2369,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": "{showProgressBar} <> 'off'",
+          "readOnlyIf": null,
           "description": "pages, questions or requiredQuestions."
         },
         {
@@ -2026,6 +2380,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Offer a list of pages the respondent can jump between."
         },
         {
@@ -2035,6 +2391,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "noPreview, showAllQuestions or showAnsweredQuestions."
         },
         {
@@ -2044,6 +2402,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Seconds allowed for the whole survey. 0 means untimed."
         },
         {
@@ -2053,6 +2413,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Seconds allowed for a page that does not state its own. 0 means untimed."
         },
         {
@@ -2062,6 +2424,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "none, top or bottom."
         },
         {
@@ -2071,6 +2435,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": "{showTimerPanel} <> 'none'",
+          "readOnlyIf": null,
           "description": "page, survey or all. Which clocks the panel shows."
         },
         {
@@ -2080,6 +2446,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "none, onHidden or onComplete. What happens to an unreachable answer."
         },
         {
@@ -2089,6 +2457,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Markup shown once the survey is finished. {name} resolves to an answer."
         },
         {
@@ -2098,6 +2468,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Markup shown while the host reports the survey as loading."
         },
         {
@@ -2107,6 +2479,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Markup shown when no page is visible, so there is nothing to answer."
         }
       ],
@@ -2152,6 +2526,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "text, number, email, date, datetime-local, time, tel, url, color, range or password."
         },
         {
@@ -2161,6 +2537,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -2170,6 +2548,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Lower bound. A number for numeric types, an ISO string for date ones."
         },
         {
@@ -2179,6 +2559,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Upper bound, read the same way as min."
         },
         {
@@ -2188,6 +2570,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": "{inputType} = 'number' or {inputType} = 'range'",
+          "readOnlyIf": null,
           "description": "0 lets the browser choose."
         }
       ],
@@ -2205,6 +2589,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -2214,6 +2600,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": null
         },
         {
@@ -2223,6 +2611,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Set false to reject an answer containing any digit."
         }
       ],
@@ -2240,6 +2630,8 @@
           "isRequired": true,
           "isExpression": true,
           "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "The trigger acts when this becomes true, not while it stays true."
         }
       ],
@@ -2257,6 +2649,8 @@
           "isRequired": false,
           "isExpression": false,
           "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
           "description": "Replaces the built-in message when this check fails."
         }
       ],

@@ -51,6 +51,34 @@ export interface PropertyDefinition {
    * in whichever language somebody translated it into.
    */
   readonly isLocalizable?: boolean;
+  /**
+   * Expression over the element's **own properties**; the property applies only while it
+   * is truthy — checklist L3.
+   *
+   * `otherText` means nothing unless `showOtherItem` is on, and `currency` means nothing
+   * unless `displayStyle` is `currency`. Those are facts about the *format*: the runtime
+   * already ignores the property, and an authoring tool showing it is offering a field
+   * that does nothing.
+   *
+   * Declared here for the reason {@link PropertyDefinition.description} is — the registry
+   * is where a property says what it is, and a dependency table kept in a Creator would be
+   * missing an entry the day a property arrived, and would leave a host's own property
+   * with no way to say the same thing. **Nothing in the runtime reads it**: a value whose
+   * condition is false is still stored, still serialized and still round-trips (ADR-0002
+   * rule 3), because hiding a field is not the same as deleting what somebody wrote.
+   *
+   * The language is the survey's own, so a host writing one is not learning a second.
+   */
+  readonly visibleIf?: string;
+  /**
+   * Expression over the element's own properties; the property is **fixed** while truthy.
+   *
+   * Distinct from {@link visibleIf} because the two say different things. `isRequired` is
+   * overridden by `requiredIf` rather than made irrelevant by it — the value still matters
+   * the moment the expression is cleared — so hiding it would lose a setting a designer
+   * had made, where showing it unchangeable says exactly what is going on.
+   */
+  readonly readOnlyIf?: string;
   readonly description?: string;
 }
 
@@ -62,6 +90,10 @@ export interface PropertyDescriptor {
   readonly isRequired: boolean;
   readonly isExpression: boolean;
   readonly isLocalizable: boolean;
+  /** Empty when the property always applies — see {@link PropertyDefinition.visibleIf}. */
+  readonly visibleIf: string;
+  /** Empty when the property is always editable. */
+  readonly readOnlyIf: string;
   readonly description: string | undefined;
 }
 
@@ -88,6 +120,8 @@ export function normalizePropertyDefinition(definition: PropertyDefinition): Pro
     isRequired: definition.isRequired ?? false,
     isExpression: definition.isExpression ?? false,
     isLocalizable: definition.isLocalizable ?? false,
+    visibleIf: definition.visibleIf ?? '',
+    readOnlyIf: definition.readOnlyIf ?? '',
     description: definition.description,
   };
 }

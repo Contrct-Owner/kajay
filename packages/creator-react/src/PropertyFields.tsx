@@ -3,6 +3,7 @@ import type { DesignSurface, PropertyGridCategory, PropertyRow } from '@kajay/cr
 import type { SurveyElement } from '@kajay/core';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
+import { readOnlyAction } from '@kajay/react';
 import { useCreatorComponents } from './CreatorComponents.js';
 import { ExpressionField } from './ExpressionField.js';
 import { TranslationsField } from './TranslationsField.js';
@@ -78,7 +79,11 @@ function PropertyField({ surface, element, row, scope }: FieldProps): ReactEleme
   const describedBy = row.description === undefined ? undefined : hintId;
 
   return (
-    <div className="kajay-properties__row" data-property={row.name}>
+    <div
+      className="kajay-properties__row"
+      data-property={row.name}
+      data-read-only={row.isReadOnly ? 'true' : undefined}
+    >
       <label className="kajay-properties__label" htmlFor={id}>
         {row.title}
       </label>
@@ -122,6 +127,15 @@ interface EditorProps {
   readonly testId: string;
 }
 
+/**
+ * A boolean, and how it says it may not be changed — checklists L1 and L3.
+ *
+ * The guard is on the **handler**, not on the click, which is E7's finding brought over
+ * whole: cancelling the click's default stops the browser toggling the box but not React
+ * reporting a change, because React synthesizes `onChange` for a checkbox from the click
+ * itself. Refusing here leaves React to restore the control from `checked`, which is what
+ * puts the box back.
+ */
 function BooleanField({ surface, element, row, id, hint, testId }: EditorProps): ReactElement {
   const { Checkbox } = useCreatorComponents();
 
@@ -131,9 +145,12 @@ function BooleanField({ surface, element, row, id, hint, testId }: EditorProps):
       id={id}
       data-testid={testId}
       aria-describedby={hint}
+      {...readOnlyAction(row.isReadOnly)}
       checked={row.value === true}
       onCheckedChange={(checked) => {
-        surface.setProperty(element, row.name, checked);
+        if (!row.isReadOnly) {
+          surface.setProperty(element, row.name, checked);
+        }
       }}
     />
   );
@@ -242,6 +259,7 @@ function PlainField({
       aria-invalid={
         row.editor === 'json' && parseEditorText(row.editor, draft) === undefined ? true : undefined
       }
+      readOnly={row.isReadOnly}
       value={draft}
       onValueChange={onChange}
       onBlur={onCommit}

@@ -1,4 +1,4 @@
-import { EventEmitter } from '@kajay/core';
+import { EventEmitter, ExpressionCache } from '@kajay/core';
 import type {
   Diagnostic,
   MetadataRegistry,
@@ -175,8 +175,17 @@ export class DesignSurface {
    * from. The same shape as {@link convertibleTypes}, and for the same reason.
    */
   properties(element: SurveyElement): readonly PropertyGridCategory[] {
-    return propertyRowsFor(element, this.#document.registry);
+    return propertyRowsFor(element, this.#document.registry, this.#conditions);
   }
+
+  /**
+   * Parsed property conditions, kept for the life of the surface — checklist L3.
+   *
+   * Owned rather than module-global, the rule `ExpressionCache` states for itself. The
+   * grid is rebuilt on every keystroke of a property edit, and re-parsing a dozen
+   * conditions each time would be work with a known answer.
+   */
+  readonly #conditions: ExpressionCache = new ExpressionCache();
 
   /**
    * Writes a property — checklist L1. Says whether it took.

@@ -37,11 +37,21 @@ export const SELECT_TYPE_DEFINITIONS: SelectTypeDefinitions = {
       { name: 'choicesOrder', type: 'string', description: 'none, asc or desc.' },
       { name: 'colCount', type: 'number' },
       { name: 'showOtherItem', type: 'boolean' },
-      { name: 'otherText', type: 'string',
-        isLocalizable: true, defaultValue: 'Other' },
+      {
+        name: 'otherText',
+        type: 'string',
+        isLocalizable: true,
+        defaultValue: 'Other',
+        visibleIf: '{showOtherItem} = true',
+      },
       { name: 'showNoneItem', type: 'boolean' },
-      { name: 'noneText', type: 'string',
-        isLocalizable: true, defaultValue: 'None' },
+      {
+        name: 'noneText',
+        type: 'string',
+        isLocalizable: true,
+        defaultValue: 'None',
+        visibleIf: '{showNoneItem} = true',
+      },
       { name: 'placeholder', type: 'string', isLocalizable: true },
       {
         name: 'searchEnabled',
@@ -58,6 +68,7 @@ export const SELECT_TYPE_DEFINITIONS: SelectTypeDefinitions = {
         name: 'choicesFromQuestionMode',
         type: 'string',
         defaultValue: 'all',
+        visibleIf: '{choicesFromQuestion} notempty',
         description: 'all, selected or unselected.',
       },
       {

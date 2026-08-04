@@ -18,7 +18,13 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
     parent: 'pageelement',
     isAbstract: true,
     properties: [
-      { name: 'isRequired', type: 'boolean' },
+      {
+        name: 'isRequired',
+        type: 'boolean',
+        // Not hidden: the value still matters the moment the expression is cleared, so
+        // hiding it would lose a setting a designer had made.
+        readOnlyIf: '{requiredIf} notempty',
+      },
       {
         name: 'valueName',
         type: 'string',
@@ -39,6 +45,7 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
         name: 'requiredErrorText',
         type: 'string',
         isLocalizable: true,
+        visibleIf: '{isRequired} = true or {requiredIf} notempty',
         description: 'Replaces the built-in message shown when a required answer is missing.',
       },
       {
@@ -53,7 +60,12 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
         isExpression: true,
         description: 'Expression; while truthy, setValueExpression drives the answer.',
       },
-      { name: 'setValueExpression', type: 'string', isExpression: true },
+      {
+        name: 'setValueExpression',
+        type: 'string',
+        isExpression: true,
+        visibleIf: '{setValueIf} notempty',
+      },
       {
         name: 'resetValueIf',
         type: 'string',
@@ -87,7 +99,12 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
         description: 'Lower bound. A number for numeric types, an ISO string for date ones.',
       },
       { name: 'max', type: 'value', description: 'Upper bound, read the same way as min.' },
-      { name: 'step', type: 'number', description: '0 lets the browser choose.' },
+      {
+        name: 'step',
+        type: 'number',
+        visibleIf: "{inputType} = 'number' or {inputType} = 'range'",
+        description: '0 lets the browser choose.',
+      },
     ],
   },
   comment: {
@@ -105,6 +122,7 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
         name: 'allowResize',
         type: 'boolean',
         defaultValue: true,
+        visibleIf: '{autoGrow} = false',
         description: 'Whether the respondent may drag the field taller.',
       },
       {
@@ -180,8 +198,18 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
         defaultValue: 'none',
         description: 'none, decimal, currency, percent or date.',
       },
-      { name: 'currency', type: 'string', defaultValue: 'USD' },
-      { name: 'maximumFractionDigits', type: 'number', description: '0 leaves it to the style.' },
+      {
+        name: 'currency',
+        type: 'string',
+        defaultValue: 'USD',
+        visibleIf: "{displayStyle} = 'currency'",
+      },
+      {
+        name: 'maximumFractionDigits',
+        type: 'number',
+        visibleIf: "{displayStyle} <> 'none'",
+        description: '0 leaves it to the style.',
+      },
       {
         name: 'format',
         type: 'string',

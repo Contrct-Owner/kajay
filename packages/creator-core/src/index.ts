@@ -30,6 +30,7 @@ export type {
   PropertyRow,
 } from './propertyGrid.js';
 export { renameIn, setLocalizedOn, setPropertyOn } from './propertyEdits.js';
+export { conditionOutcome, propertyScopeOf } from './propertyConditions.js';
 export {
   applySuggestion,
   expressionSuggestions,

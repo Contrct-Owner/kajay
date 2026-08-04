@@ -100,17 +100,19 @@ test('parity/L1-editors: typing in a text field reaches the survey as it is type
 });
 
 test('parity/L1-editors: clearing a number field leaves it cleared', async () => {
-  const designed = select(surface(), 'who');
+  // A comment's `rows`, because a text question's only number property is `step` — which
+  // §L3 hides unless the input type is numeric.
+  const designed = select(surface(), 'why');
   const screen = await render(<PropertyGridPanel surface={designed} />);
-  const step = screen.getByLabelText('Step', { exact: true });
-  await step.fill('3');
+  const rows = screen.getByLabelText('Rows', { exact: true });
+  await rows.fill('3');
 
-  await step.fill('');
+  await rows.fill('');
 
-  // A field driven straight from the model would write 0 the instant it was cleared and
-  // put "0" straight back on screen, which is a number editor that cannot be cleared.
-  await expect.element(step).toHaveValue('');
-  expect(property(designed, 'who', 'step')).toBe(3);
+  // A field driven straight from the model would write 4 the instant it was cleared and
+  // put it straight back on screen, which is a number editor that cannot be cleared.
+  await expect.element(rows).toHaveValue('');
+  expect(property(designed, 'why', 'rows')).toBe(3);
 });
 
 test('parity/L1-editors: unparseable JSON is flagged and not written', async () => {

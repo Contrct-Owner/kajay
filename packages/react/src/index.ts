@@ -6,6 +6,10 @@ export { PageElementRendererRegistry } from './PageElementRendererRegistry.js';
 // Exported for the Creator's design surface (K3): it draws elements one at a time so it
 // can wrap each in an adorner, and re-implementing the slot there would put I5's layout
 // decisions in a second place to drift from this one.
+// E7's read-only vocabulary, public because §L3's property grid says the same thing about
+// a property a designer may not change — and a second spelling of `aria-disabled` is a
+// second chance to put it on a role that does not define it.
+export { readOnlyAction, readOnlyControl, readOnlyRadioGroup, whenEditable } from './readOnly.js';
 export { PageElementSlot } from './PageElementSlot.js';
 export {
   PageElementDecoratorProvider,

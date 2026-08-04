@@ -19,6 +19,17 @@ export interface RuntimeMetadataProperty {
    * `visibleIf` is code, and both are declared `string`.
    */
   readonly isLocalizable: boolean;
+  /**
+   * When the property applies, and when it is fixed — checklist L3.
+   *
+   * In the contract for the same reason `description` and `isLocalizable` are: a second
+   * runtime's authoring tool cannot infer that `otherText` means nothing without
+   * `showOtherItem`, and re-deriving it would mean a dependency table per language. Empty
+   * means "always", and nothing in any *runtime* reads either — a value whose condition is
+   * false is still stored and still round-trips.
+   */
+  readonly visibleIf: string | null;
+  readonly readOnlyIf: string | null;
   readonly description: string | null;
 }
 
@@ -54,8 +65,15 @@ function metadataProperty(property: PropertyDescriptor): RuntimeMetadataProperty
     isRequired: property.isRequired,
     isExpression: property.isExpression,
     isLocalizable: property.isLocalizable,
+    visibleIf: emptyAsNull(property.visibleIf),
+    readOnlyIf: emptyAsNull(property.readOnlyIf),
     description: property.description ?? null,
   };
+}
+
+/** `null` rather than `""`, so "no condition" reads the way "no description" does. */
+function emptyAsNull(source: string): string | null {
+  return source.length === 0 ? null : source;
 }
 
 /**

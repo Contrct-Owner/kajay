@@ -84,8 +84,10 @@ describe('parity/L1-grid', () => {
       'placeholder',
       'min',
       'max',
-      'step',
     ]);
+    // `step` is missing on purpose: §L3's condition hides it unless the input type is
+    // numeric. Asserted as an exact list precisely so that a property appearing or
+    // disappearing is something a test has to be told about.
     // `valueName` and `correctAnswer` are about how the answer is stored and scored
     // rather than how it is asked, so they are one section down.
     expect(rowsIn(designed, who, 'Data')).toEqual(['valueName', 'correctAnswer']);
@@ -191,6 +193,10 @@ describe('parity/L1-categories', () => {
     // because "every row in Logic holds an expression" is a claim §M's logic editor can
     // rely on, and "expressions, mostly" is not.
     expect(rowsIn(designed, who, 'Logic')).toContain('requiredIf');
+    // `requiredErrorText` is one of §L3's conditional properties and arrives with the
+    // requirement it is the message for.
+    expect(rowsIn(designed, who, 'Validation')).toEqual(['isRequired']);
+    designed.setProperty(who, 'isRequired', true);
     expect(rowsIn(designed, who, 'Validation')).toEqual(['isRequired', 'requiredErrorText']);
   });
 
@@ -219,7 +225,11 @@ describe('parity/L1-categories', () => {
 
 describe('parity/L1-editors', () => {
   test('one editor per declared property type', () => {
-    const designed = surface();
+    // A numeric input, so `step` — the only number property a text question has — is one
+    // §L3 shows.
+    const designed = surface({
+      pages: [{ name: 'p1', elements: [{ type: 'text', name: 'who', inputType: 'number' }] }],
+    });
     const who = selectByName(designed, 'who');
     const kinds = (name: string): string | undefined => rowFor(designed, who, name)?.editor;
 

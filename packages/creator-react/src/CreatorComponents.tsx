@@ -56,6 +56,15 @@ export interface CreatorInputProps {
   /** Points at the hint under a property-grid row — L1. */
   readonly 'aria-describedby'?: string | undefined;
   readonly 'aria-invalid'?: boolean | undefined;
+  /**
+   * A value for reading rather than changing — checklist L3.
+   *
+   * `readOnly`, never `disabled`, which is [E7](../../react/src/readOnly.ts)'s rule and
+   * for its reasons: a disabled field drops out of the tab order and stops being readable,
+   * and a designer looking at a property they may not change still has to be able to see
+   * what it says.
+   */
+  readonly readOnly?: boolean;
   readonly 'data-testid'?: string | undefined;
   /**
    * The combobox attributes, because L2's expression field is one.
@@ -147,6 +156,15 @@ export interface CreatorCheckboxProps {
   readonly id?: string;
   readonly 'aria-label'?: string;
   readonly 'aria-describedby'?: string | undefined;
+  /**
+   * How a checkbox says it may not be changed — checklist L3.
+   *
+   * `aria-disabled` because ARIA gives a `checkbox` no read-only state that a native
+   * checkbox honours, and E7 already worked out that this is the least-bad thing to say:
+   * the control keeps its place in the tab order and stays announced, and what it gives up
+   * is the claim that it can be operated.
+   */
+  readonly 'aria-disabled'?: 'true' | undefined;
   readonly 'data-testid'?: string;
 }
 

@@ -995,6 +995,17 @@
   flex-wrap: wrap;
 }
 
+/* A property that applies but may not be changed — L3. Muted rather than greyed out:
+   it is a value to read, and E7's argument about read-only questions is this one. */
+.kajay-properties__row[data-read-only='true'] .kajay-properties__input {
+  background: var(--kajay-color-background);
+  color: var(--kajay-color-muted);
+}
+
+.kajay-properties__row[data-read-only='true'] .kajay-properties__checkbox {
+  opacity: 0.6;
+}
+
 /* --- expression suggestions and translations (L2) ------------------------ */
 
 .kajay-suggestions {

@@ -1,5 +1,6 @@
-import { isLocalizedText, resolveLocalizedText } from '@kajay/core';
+import { ExpressionCache, isLocalizedText, resolveLocalizedText } from '@kajay/core';
 import type { MetadataRegistry, PropertyDescriptor, PropertyValue, SurveyElement } from '@kajay/core';
+import { conditionOutcome, propertyScopeOf } from './propertyConditions.js';
 import {
   GENERAL_CATEGORY,
   LOGIC_CATEGORY,
@@ -70,6 +71,15 @@ export interface PropertyRow {
   readonly isRequired: boolean;
   /** Whether the value is an expression — what earns the row an autocomplete (L2). */
   readonly isExpression: boolean;
+  /**
+   * Whether the property applies but cannot be changed — checklist L3.
+   *
+   * Distinct from being left out: an invisible property is one that means nothing in this
+   * element's current shape, and a read-only one means something a designer must not
+   * change. `isRequired` under a `requiredIf` is the second — the value still matters the
+   * moment the expression is cleared.
+   */
+  readonly isReadOnly: boolean;
   readonly isLocalizable: boolean;
   /**
    * The languages a localizable value should offer — checklist L2.
@@ -104,12 +114,21 @@ export interface PropertyGridCategory {
 export function propertyRowsFor(
   element: SurveyElement,
   registry: MetadataRegistry,
+  cache: ExpressionCache = new ExpressionCache(),
 ): readonly PropertyGridCategory[] {
   const grouped = new Map<string, PropertyRow[]>();
+  const scope = propertyScopeOf(element, registry);
   for (const descriptor of registry.getProperties(element.type)) {
+    // A property that means nothing in this element's current shape is left out entirely
+    // — a field that does nothing is worse than no field, because a designer fills it in.
+    // Undecidable means shown: a typo in a registration must not make a property
+    // unreachable with nothing on screen to say why.
+    if (conditionOutcome(descriptor.visibleIf, scope, cache) === false) {
+      continue;
+    }
     const category = categoryOf(descriptor);
     const bucket = grouped.get(category);
-    const row = rowFor(element, descriptor);
+    const row = rowFor(element, descriptor, scope, cache);
     if (bucket === undefined) {
       grouped.set(category, [row]);
     } else {
@@ -132,7 +151,12 @@ function categoryOf(descriptor: PropertyDescriptor): string {
   );
 }
 
-function rowFor(element: SurveyElement, descriptor: PropertyDescriptor): PropertyRow {
+function rowFor(
+  element: SurveyElement,
+  descriptor: PropertyDescriptor,
+  scope: Readonly<Record<string, unknown>>,
+  cache: ExpressionCache,
+): PropertyRow {
   const value = element.getResolvedProperty(descriptor.name) ?? descriptor.defaultValue;
   return {
     name: descriptor.name,
@@ -145,6 +169,8 @@ function rowFor(element: SurveyElement, descriptor: PropertyDescriptor): Propert
     text: editorText(value, descriptor, element.localeScope.locale),
     isRequired: descriptor.isRequired,
     isExpression: descriptor.isExpression,
+    // Undecidable means editable, the same direction and for the same reason.
+    isReadOnly: conditionOutcome(descriptor.readOnlyIf, scope, cache) === true,
     isLocalizable: descriptor.isLocalizable,
     locales: descriptor.isLocalizable ? localesOf(value, element.localeScope.locale) : [],
   };

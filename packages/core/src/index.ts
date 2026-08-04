@@ -25,6 +25,11 @@ export {
   registerBuiltInFunctions,
 } from './expressions/builtInFunctions.js';
 export { collectReferences } from './expressions/collectReferences.js';
+export { ExpressionCache } from './expressions/ExpressionCache.js';
+// The language's own truthiness. Public because §L3 evaluates a property condition in the
+// Creator, and re-deriving "an empty collection is falsy" there would be a second set of
+// rules to drift from these.
+export { isEmptyValue, isTruthy } from './expressions/expressionValues.js';
 export { createValueResolver, evaluateExpression } from './expressions/evaluateExpression.js';
 export type {
   AsyncFunctionValues,

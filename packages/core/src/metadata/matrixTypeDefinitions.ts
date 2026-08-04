@@ -115,9 +115,9 @@ export const MATRIX_TYPE_DEFINITIONS: MatrixTypeDefinitions = {
       { name: 'maxRowCount', type: 'number', description: '0 means no limit.' },
       { name: 'allowAddRows', type: 'boolean', defaultValue: true },
       { name: 'allowRemoveRows', type: 'boolean', defaultValue: true },
-      { name: 'addRowText', type: 'string',
+      { name: 'addRowText', type: 'string', visibleIf: '{allowAddRows} = true',
         isLocalizable: true, defaultValue: 'Add row' },
-      { name: 'removeRowText', type: 'string',
+      { name: 'removeRowText', type: 'string', visibleIf: '{allowRemoveRows} = true',
         isLocalizable: true, defaultValue: 'Remove' },
       {
         name: 'confirmDelete',
@@ -126,6 +126,7 @@ export const MATRIX_TYPE_DEFINITIONS: MatrixTypeDefinitions = {
       },
       {
         name: 'confirmDeleteText',
+        visibleIf: '{confirmDelete} = true',
         type: 'string',
         isLocalizable: true,
         defaultValue: 'Remove this row?',

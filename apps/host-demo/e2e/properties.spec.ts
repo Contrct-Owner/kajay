@@ -171,6 +171,34 @@ test('parity/L2-translations: a second language is added and kept', async ({ pag
   await expect(page.getByTestId('surface-json')).toContainText('"fr": "Nom du candidat"');
 });
 
+test('parity/L3-visibility: a field arrives with the property it depends on', async ({ page }) => {
+  await page.getByTestId('select-draftTier').click();
+
+  await expect(grid(page).getByTestId('property-draftTier-otherText')).toBeHidden();
+
+  await field(page, 'Show other item').check();
+
+  // Declared on the descriptor, in the survey's own expression language — nothing in the
+  // Creator knows what `otherText` is.
+  await expect(grid(page).getByTestId('property-draftTier-otherText')).toHaveValue('Other');
+});
+
+test('parity/L3-read-only: an overridden property is shown, and fixed', async ({ page }) => {
+  await page.getByTestId('select-draftName').click();
+  const required = grid(page).getByTestId('property-draftName-isRequired');
+
+  await required.check();
+  await expect(required).not.toHaveAttribute('aria-disabled');
+
+  await field(page, 'Required if').fill('{draftTier} = 1');
+
+  // Read-only rather than hidden: the value still matters the moment the expression is
+  // cleared, and it is readable and focusable rather than disabled (E7's rule).
+  await expect(required).toHaveAttribute('aria-disabled', 'true');
+  await expect(required).toBeChecked();
+  await expect(page.getByTestId('surface-json')).toContainText('"isRequired": true');
+});
+
 test('parity/L1-grid: no accessibility violations', async ({ page }) => {
   await page.getByTestId('select-draftName').click();
 

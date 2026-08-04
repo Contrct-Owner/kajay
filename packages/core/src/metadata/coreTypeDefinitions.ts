@@ -79,6 +79,7 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         name: 'progressBarType',
         type: 'string',
         defaultValue: 'pages',
+        visibleIf: "{showProgressBar} <> 'off'",
         description: 'pages, questions or requiredQuestions.',
       },
       {
@@ -112,6 +113,7 @@ export const CORE_TYPE_DEFINITIONS: CoreTypeDefinitions = {
         name: 'showTimerPanelMode',
         type: 'string',
         defaultValue: 'all',
+        visibleIf: "{showTimerPanel} <> 'none'",
         description: 'page, survey or all. Which clocks the panel shows.',
       },
       {

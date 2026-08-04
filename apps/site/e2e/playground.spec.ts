@@ -128,3 +128,37 @@ test('parity/P3-playground: one toggle moves both token systems', async ({ page 
   await expect(page.locator('html')).toHaveClass(/dark/u);
   await expect(page.locator('html')).toHaveAttribute('data-kajay-theme', 'dark');
 });
+
+test('parity/P3-playground: pages can be added and switched between', async ({ page }) => {
+  await page.goto(PLAYGROUND);
+
+  // Arranging the pieces by hand means arranging *all* of them. The playground shipped
+  // without the page navigator, so there was no way to add a page — a gap in the
+  // reference application rather than in the library, and invisible until somebody
+  // looked for the button.
+  await canvas(page).getByTestId('add-page').click();
+
+  // Named `page1` by `uniqueName`, not `p2` — the seeded page's name is the site's, and
+  // the Creator does not try to guess a series from it.
+  await expect(canvas(page).getByTestId('go-to-page1')).toBeVisible();
+
+  // The new page is the one being designed, and it is empty: a designer adds a page in
+  // order to put something on it, and one that appeared somewhere off-screen would need
+  // finding first.
+  await expect(canvas(page).getByTestId('select-name')).toHaveCount(0);
+
+  await canvas(page).getByTestId('go-to-p1').click();
+  await expect(canvas(page).getByTestId('select-name')).toBeVisible();
+});
+
+test('parity/P3-playground: undo is on screen, not only on the keyboard', async ({ page }) => {
+  await page.goto(PLAYGROUND);
+  await page.getByTestId('toolbox-rating').click();
+  await expect(canvas(page).getByTestId('select-rating1')).toBeVisible();
+
+  await canvas(page).getByRole('button', { name: 'Undo' }).click();
+
+  // K6 bound Ctrl+Z as well, and a Creator that only had the shortcut would be one most
+  // people never discovered they could undo in.
+  await expect(canvas(page).getByTestId('select-rating1')).toHaveCount(0);
+});

@@ -1,6 +1,8 @@
 import type { CreatorWorkspace } from '@kajay/creator-core';
 import {
   DesignSurfacePanel,
+  HistoryPanel,
+  PageNavigatorPanel,
   JsonEditorPanel,
   PropertyGridPanel,
   ToolboxPanel,
@@ -136,7 +138,18 @@ function DesignerLayout({
 }): ReactElement {
   return (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_15rem] items-start gap-3">
-          <DesignSurfacePanel surface={workspace.surface} placement={placement} />
+          <div className="flex min-w-0 flex-col gap-2">
+            {/*
+              **Undo and the page list, above the canvas** — the same order the default
+              assembly uses, and for the same reason: both are about the document rather
+              than about any element on it. Arranging the pieces by hand means arranging
+              *all* of them; leaving these two out is how the playground shipped with no
+              way to add a page.
+            */}
+            <HistoryPanel surface={workspace.surface} />
+            <PageNavigatorPanel surface={workspace.surface} placement={placement} />
+            <DesignSurfacePanel surface={workspace.surface} placement={placement} />
+          </div>
           <Accordion
             type="multiple"
             // Both open by default, and `multiple` rather than `single` because these are

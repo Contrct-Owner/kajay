@@ -7,14 +7,13 @@ interface CreatorCodeBlockProps {
 
 export function CreatorCodeBlock({ code, label }: CreatorCodeBlockProps): ReactElement {
   return (
-    <figure className="space-y-2">
+    <figure className="min-w-0 space-y-2">
       <figcaption className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
         {label}
       </figcaption>
-      <pre aria-label={label}>
+      <pre aria-label={label} className="overflow-x-auto">
         <code>{code}</code>
       </pre>
     </figure>
   );
 }
-

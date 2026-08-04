@@ -8,7 +8,7 @@ interface DocsTableOfContentsProps {
 export function DocsTableOfContents({ items }: DocsTableOfContentsProps): ReactElement {
   return (
     <nav aria-label="On this page">
-      <h2 className="mb-3 text-sm font-semibold">On this page</h2>
+      <p className="mb-3 text-sm font-semibold">On this page</p>
       <ul className="border-border space-y-2 border-l text-sm">
         {items.map((item) => (
           <li key={item.id} className={item.depth === 3 ? 'pl-6' : 'pl-4'}>
@@ -21,4 +21,3 @@ export function DocsTableOfContents({ items }: DocsTableOfContentsProps): ReactE
     </nav>
   );
 }
-

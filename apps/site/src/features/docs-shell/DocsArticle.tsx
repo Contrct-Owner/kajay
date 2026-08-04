@@ -25,7 +25,7 @@ export function DocsArticle({ page }: DocsArticleProps): ReactElement {
             </span>
           )}
         </div>
-        <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+        <h1 className="text-3xl font-semibold tracking-tight text-balance break-words sm:text-4xl">
           {page.title}
         </h1>
         <p className="text-muted-foreground mt-4 max-w-3xl text-lg text-pretty">

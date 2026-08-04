@@ -19,10 +19,10 @@ export function DocsHeader({ toolbar }: DocsHeaderProps): ReactElement {
         <Link className="font-medium" to="/docs">
           Docs
         </Link>
-        <span className="bg-secondary text-secondary-foreground rounded-full px-2 py-0.5 text-xs font-medium">
+        <span className="bg-secondary text-secondary-foreground hidden rounded-full px-2 py-0.5 text-xs font-medium sm:inline-flex">
           Preview
         </span>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex min-w-0 items-center gap-2">
           {toolbar}
           <Link
             className="text-muted-foreground hover:text-foreground hidden text-sm sm:inline"
@@ -36,4 +36,3 @@ export function DocsHeader({ toolbar }: DocsHeaderProps): ReactElement {
     </header>
   );
 }
-

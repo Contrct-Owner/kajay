@@ -21,7 +21,7 @@ export function MobileDocsNavigation({
 }: DocsNavigationProps): ReactElement {
   return (
     <details className="border-border bg-muted/30 rounded-lg border lg:hidden">
-      <summary className="cursor-pointer px-4 py-3 text-sm font-medium">
+      <summary className="cursor-pointer rounded-lg px-4 py-3 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring">
         Browse documentation
       </summary>
       <nav aria-label="Mobile documentation" className="border-border border-t px-4 py-4">
@@ -35,10 +35,10 @@ function DocsNavigationLinks({ activeSlug, sections }: DocsNavigationProps): Rea
   return (
     <div className="space-y-7">
       {sections.map((section) => (
-        <section key={section.title}>
-          <h2 className="text-foreground mb-2 text-xs font-semibold tracking-wide uppercase">
+        <div key={section.title}>
+          <p className="text-foreground mb-2 text-xs font-semibold tracking-wide uppercase">
             {section.title}
-          </h2>
+          </p>
           <ul className="space-y-1">
             {section.pages.map((page) => {
               const isActive = page.slug === activeSlug;
@@ -59,9 +59,8 @@ function DocsNavigationLinks({ activeSlug, sections }: DocsNavigationProps): Rea
               );
             })}
           </ul>
-        </section>
+        </div>
       ))}
     </div>
   );
 }
-

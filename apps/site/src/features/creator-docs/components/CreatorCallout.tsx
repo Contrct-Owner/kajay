@@ -17,10 +17,9 @@ export function CreatorCallout({
       : 'border-border bg-muted/40';
 
   return (
-    <aside className={`${className} rounded-lg border p-5`} aria-label={title}>
-      <h3 className="mb-2 text-base font-semibold">{title}</h3>
+    <aside className={`${className} rounded-lg border p-5`} aria-label={title} role="note">
+      <p className="mb-2 text-base font-semibold">{title}</p>
       <div className="text-muted-foreground space-y-2 text-sm">{children}</div>
     </aside>
   );
 }
-

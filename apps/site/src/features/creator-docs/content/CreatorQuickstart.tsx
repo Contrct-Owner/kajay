@@ -41,12 +41,13 @@ export function CreatorQuickstart(): ReactElement {
       </CreatorDocSection>
       <CreatorDocSection id="next-steps" title="Next steps">
         <p>
-          Add a save function when you are ready to persist definitions. Configure a
-          deployment to restrict tabs, question types, or property rows. Use the composed
-          pieces only when the default assembly does not fit your application layout.
+          <a href="/docs/creator/definitions-and-saving">Add a save function</a> when you are
+          ready to persist definitions. <a href="/docs/creator/configuration">Configure a
+          deployment</a> to restrict tabs, question types, or property rows. Use the{' '}
+          <a href="/docs/creator/composition">composed pieces</a> only when the default assembly
+          does not fit your application layout.
         </p>
       </CreatorDocSection>
     </>
   );
 }
-

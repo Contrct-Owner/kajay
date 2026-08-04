@@ -20,11 +20,11 @@ export function GuideContent({ sections }: GuideContentProps): ReactElement {
           <h2 id={section.id}>{section.title}</h2>
           {section.body}
           {section.code === undefined ? null : (
-            <figure className="space-y-2">
+            <figure className="min-w-0 space-y-2">
               <figcaption className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                 {section.codeLabel ?? 'TypeScript'}
               </figcaption>
-              <pre>
+              <pre className="overflow-x-auto">
                 <code>{section.code}</code>
               </pre>
             </figure>
@@ -41,7 +41,6 @@ export function ResponsibilityList({ children }: { readonly children: ReactNode 
 
 export function GuideNote({ children }: { readonly children: ReactNode }): ReactElement {
   return (
-    <aside className="border-border bg-muted/40 rounded-lg border p-4 text-sm">{children}</aside>
+    <aside className="border-border bg-muted/40 rounded-lg border p-4 text-sm" role="note">{children}</aside>
   );
 }
-

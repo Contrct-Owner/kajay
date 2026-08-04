@@ -21,12 +21,13 @@
     "check:parity": "node --test scripts/lib/parityProofs.test.mjs && node scripts/check-parity-proofs.mjs",
     "check:contract": "node --test scripts/test/jsonSchema2020.test.mjs && node scripts/check-contract.mjs",
     "check:conformance": "node scripts/check-conformance.mjs",
+    "check:docs": "node --test scripts/docs/*.test.mjs scripts/docs-quality/*.test.mjs && node scripts/docs-quality/check-docs.mjs",
     "test:unit": "vitest run --project unit",
     "test:browser": "vitest run --project browser",
     "build:demo": "pnpm --filter @kajay/host-demo run build",
     "test:e2e": "playwright test",
     "test:pack": "node scripts/pack-test.mjs",
-    "verify": "pnpm run lint && pnpm run typecheck && pnpm run check:arch && pnpm run check:test-policy && pnpm run check:parity && pnpm run test:unit && pnpm run test:browser && pnpm run check:contract && pnpm run check:conformance && pnpm run test:e2e && pnpm run test:pack"
+    "verify": "pnpm run lint && pnpm run typecheck && pnpm run check:arch && pnpm run check:test-policy && pnpm run check:parity && pnpm run test:unit && pnpm run test:browser && pnpm run check:contract && pnpm run check:conformance && pnpm run check:docs && pnpm run test:e2e && pnpm run test:pack"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",

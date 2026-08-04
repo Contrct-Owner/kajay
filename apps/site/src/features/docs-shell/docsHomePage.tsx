@@ -18,20 +18,20 @@ export const docsHomePage: DocPageDefinition = {
       <section aria-labelledby="choose-a-path">
         <h2 id="choose-a-path">Choose a path</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="border-border rounded-lg border p-5">
+          <a className="border-border hover:bg-muted/40 block rounded-lg border p-5 no-underline" href="/docs/quickstart/runtime">
             <h3>Render surveys</h3>
             <p>
               Start with a JSON definition, parse it into a runtime model, and render it with
               your React components.
             </p>
-          </div>
-          <div className="border-border rounded-lg border p-5">
+          </a>
+          <a className="border-border hover:bg-muted/40 block rounded-lg border p-5 no-underline" href="/docs/quickstart/creator">
             <h3>Embed the Creator</h3>
             <p>
               Give authors a complete survey designer or compose the Creator pieces into your
               own workspace.
             </p>
-          </div>
+          </a>
         </div>
       </section>
       <section aria-labelledby="preview-documentation">
@@ -48,4 +48,3 @@ export const docsHomePage: DocPageDefinition = {
     </>
   ),
 };
-

@@ -130,3 +130,24 @@ test('parity/P4-menu: a host’s own menu replaces ours entirely', async () => {
   await screen.getByText('Delete').click();
   expect(chosen).toHaveBeenCalledWith('delete');
 });
+
+test('parity/P4-menu: a caller’s class is added to ours, never swapped for it', async () => {
+  // **The regression, stated as structure**, because this suite renders unstyled markup —
+  // no stylesheet is loaded, so it cannot see position at all. `kajay-menu` carries the
+  // `position: relative` the list anchors to; when a layout class *replaced* it the menu
+  // opened hundreds of pixels away, against some distant ancestor. The geometry is proved
+  // in the demo E2E, where the real stylesheet is.
+  const screen = await render(
+    <Harness
+      label="Actions for who"
+      data-testid="menu"
+      className="kajay-designer__menu"
+      onSelect={vi.fn()}
+      items={[{ id: 'duplicate', label: 'Duplicate' }]}
+    />,
+  );
+
+  const root = (await screen.getByTestId('menu').element()).parentElement;
+  expect(root?.classList.contains('kajay-menu')).toBe(true);
+  expect(root?.classList.contains('kajay-designer__menu')).toBe(true);
+});

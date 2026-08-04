@@ -117,6 +117,22 @@ test('parity/K5-actions: the adorner passes the same accessibility bar', async (
   expect(results.violations.map((violation: Result) => violation.id)).toEqual([]);
 });
 
+test('parity/P4-menu: the menu opens against its own button', async ({ page }) => {
+  await page.getByTestId('select-draftTier').click();
+  await openActions(page, 'draftTier');
+
+  // **Measured against the real stylesheet**, which is why this lives here: the browser
+  // suite renders unstyled markup and cannot see position at all. The menu once opened
+  // hundreds of pixels away, in the properties panel, because a layout class replaced the
+  // one carrying its `position: relative`.
+  const trigger = await page.getByTestId('actions-draftTier').boundingBox();
+  const list = await page.getByRole('menu').boundingBox();
+
+  expect(list).not.toBeNull();
+  expect(list!.y - (trigger!.y + trigger!.height)).toBeLessThan(8);
+  expect(Math.abs(list!.x + list!.width - (trigger!.x + trigger!.width))).toBeLessThan(2);
+});
+
 /**
  * Opens an element's action menu — checklist P4.
  *

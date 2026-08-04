@@ -38,7 +38,12 @@ export function DefaultMenu({
   };
 
   return (
-    <div className={className ?? 'kajay-menu'} ref={root}>
+    // **`kajay-menu` is always on, and the caller's class is added to it.** It carries
+    // `position: relative`, which is not decoration: it is the containing block the list
+    // positions against, so a caller passing a layout class used to make the menu open in a
+    // different part of the page. Every other primitive here passes `className` straight
+    // through because none of them own any structure — this one does.
+    <div className={className === undefined ? 'kajay-menu' : `kajay-menu ${className}`} ref={root}>
       <MenuTrigger
         ref={trigger}
         listId={isOpen ? listId : undefined}

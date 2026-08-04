@@ -4,6 +4,8 @@ import { defaultPageElementRenderers } from './defaultPageElementRenderers.js';
 import { HtmlSanitizerProvider } from './HtmlSanitizerContext.js';
 import type { HtmlSanitizer } from './HtmlSanitizerContext.js';
 import { QuestionRenderersProvider } from './QuestionRenderersContext.js';
+import { SurveyComponentsProvider } from './SurveyComponents.js';
+import type { SurveyComponents } from './SurveyComponents.js';
 import { SurveyCssProvider, useCssClass } from './SurveyCssContext.js';
 import type { SurveyCss } from './SurveyCssContext.js';
 import { TextRendererProvider } from './TextRendererContext.js';
@@ -63,6 +65,14 @@ export interface SurveyProps {
    * library never inserts markup it did not build.
    */
   readonly renderText?: TextRenderer;
+  /**
+   * The host's own primitives — ADR-0022, checklist P2.
+   *
+   * Partial: supply a Button and keep our Input. Supply nothing and every control is the
+   * native element the stylesheet already styles, which is what a host wanting the shipped
+   * look changes nothing to get.
+   */
+  readonly components?: SurveyComponents;
 }
 
 interface SurroundingsProps {
@@ -72,6 +82,7 @@ interface SurroundingsProps {
   readonly sanitizeHtml: HtmlSanitizer | undefined;
   readonly renderText: TextRenderer | undefined;
   readonly renderers: PageElementRendererResolver;
+  readonly components: SurveyComponents | undefined;
   readonly children: ReactNode;
 }
 
@@ -90,6 +101,7 @@ function Surroundings({
   sanitizeHtml,
   renderText,
   renderers,
+  components,
   children,
 }: SurroundingsProps): ReactElement {
   return (
@@ -97,7 +109,11 @@ function Surroundings({
       <SurveyCssProvider css={css}>
         <TextRendererProvider renderText={renderText}>
           <HtmlSanitizerProvider sanitize={sanitizeHtml}>
-            <QuestionRenderersProvider renderers={renderers}>{children}</QuestionRenderersProvider>
+            <QuestionRenderersProvider renderers={renderers}>
+              <SurveyComponentsProvider components={components}>
+                {children}
+              </SurveyComponentsProvider>
+            </QuestionRenderersProvider>
           </HtmlSanitizerProvider>
         </TextRendererProvider>
       </SurveyCssProvider>
@@ -164,6 +180,7 @@ export function Survey({
   theme,
   css,
   renderText,
+  components,
 }: SurveyProps): ReactElement {
   const state = useSurveyStatus(model);
   // Subscribed for the re-render: conditional logic can add, remove or disable
@@ -177,7 +194,7 @@ export function Survey({
   const { formRef, requestFocus } = useErrorFocus(model);
   useAutoFocus(model, formRef, currentPageNo);
 
-  const surroundings = { survey: model, theme, css, sanitizeHtml, renderText, renderers };
+  const surroundings = { survey: model, theme, css, sanitizeHtml, renderText, renderers, components };
 
   if (state !== 'running') {
     // Everything that is not the form still needs the sanitizer: the completed markup

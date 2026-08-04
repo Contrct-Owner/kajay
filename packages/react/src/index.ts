@@ -23,6 +23,16 @@ export type {
   ReadonlyPageElementRendererRegistry,
 } from './PageElementRendererRegistry.js';
 export type { QuestionRendererProps } from './QuestionRendererProps.js';
+// The renderer's own primitive seam — ADR-0022's second half, checklist P2. Separate from
+// the Creator's map because `@kajay/react` cannot import `@kajay/creator-react` without
+// inverting the dependency direction; a host who wants one object spreads theirs into both.
+export { SurveyComponentsProvider, useSurveyComponents } from './SurveyComponents.js';
+export type {
+  ResolvedSurveyComponents,
+  SurveyButtonProps,
+  SurveyComponents,
+  SurveyComponentsProviderProps,
+} from './SurveyComponents.js';
 // Exported for the Creator's design surface (N5): a question that contains questions —
 // a matrix cell, a repeating panel's instance — looks its children up in the registry it
 // is being drawn through, and `<Survey>` is not the only thing that draws elements.

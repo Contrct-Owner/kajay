@@ -10,6 +10,7 @@ import { useReorder } from './useReorder.js';
 import type { ReorderItemProps } from './useReorder.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 function rankingHeading(question: RankingQuestion): string {
   if (question.isReadOnly || question.selectToRankEnabled) {
@@ -21,7 +22,7 @@ function rankingHeading(question: RankingQuestion): string {
 /**
  * The ranking itself: rows that can be dragged or walked into place.
  *
- * Every row is a real `<button>`, so it is in the tab order, has a focus ring and
+ * Every row is a real `<Button>`, so it is in the tab order, has a focus ring and
  * announces itself without anything being simulated. The interaction is
  * `useReorder`, which knows nothing about questions — this component only says how many
  * rows there are, what moving one means, and what each is called.
@@ -46,8 +47,9 @@ function RankedRow({
   readonly hintId: string;
   readonly itemProps: ReorderItemProps | Record<string, never>;
 }): ReactElement {
+  const { Button } = useSurveyComponents();
   return (
-    <button
+    <Button
       type="button"
       className="kajay-ranking__row"
       // Reading: no hint and no handlers, because there is nothing to grab. The order
@@ -62,7 +64,7 @@ function RankedRow({
     >
       <span className="kajay-ranking__rank">{index + 1}</span>
       <span className="kajay-ranking__text">{choice.text}</span>
-    </button>
+    </Button>
   );
 }
 
@@ -126,8 +128,9 @@ function PoolChoice({
   readonly question: RankingQuestion;
   readonly choice: ItemValue;
 }): ReactElement {
+  const { Button } = useSurveyComponents();
   return (
-    <button
+    <Button
       type="button"
       className="kajay-ranking__pool-choice"
       // The visible text is the choice; the name says what pressing it does, because
@@ -138,7 +141,7 @@ function PoolChoice({
       }}
     >
       {choice.text}
-    </button>
+    </Button>
   );
 }
 
@@ -171,8 +174,9 @@ function UnrankButton({
   readonly question: RankingQuestion;
   readonly choice: ItemValue;
 }): ReactElement {
+  const { Button } = useSurveyComponents();
   return (
-    <button
+    <Button
       type="button"
       className="kajay-ranking__unrank"
       aria-label={`Remove ${choice.text} from the ranking`}
@@ -181,7 +185,7 @@ function UnrankButton({
       }}
     >
       ×
-    </button>
+    </Button>
   );
 }
 

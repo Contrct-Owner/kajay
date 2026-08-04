@@ -1,4 +1,5 @@
 import type { SelectQuestion } from '@kajay/core';
+import { useSurveyComponents } from './SurveyComponents.js';
 import type { ReactElement } from 'react';
 
 export interface MoreChoicesProps {
@@ -18,13 +19,14 @@ export interface MoreChoicesProps {
  * about, and not worth interrupting someone mid-sentence for.
  */
 export function MoreChoices({ question }: MoreChoicesProps): ReactElement | null {
+  const { Button } = useSurveyComponents();
   if (!question.isPaged) {
     return null;
   }
   return (
     <div className="kajay-choice-paging" aria-live="polite">
       {question.hasMoreChoices ? (
-        <button
+        <Button
           type="button"
           className="kajay-choice-paging__more"
           disabled={question.isLoadingChoices}
@@ -33,7 +35,7 @@ export function MoreChoices({ question }: MoreChoicesProps): ReactElement | null
           }}
         >
           {question.uiText(question.isLoadingChoices ? 'loadingOptions' : 'loadMoreOptions')}
-        </button>
+        </Button>
       ) : (
         <p className="kajay-choice-paging__done">{question.uiText('allOptionsLoaded')}</p>
       )}

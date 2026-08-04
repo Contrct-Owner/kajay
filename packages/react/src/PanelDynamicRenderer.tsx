@@ -7,6 +7,7 @@ import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { questionId } from './questionId.js';
 import { whenEditable } from './readOnly.js';
 import { useSurveyValue } from './useSurveyState.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 interface PanelNavProps {
   readonly question: PanelDynamicQuestion;
@@ -44,10 +45,11 @@ function PanelTabs({
   readonly question: PanelDynamicQuestion;
   readonly onMove: (index: number) => void;
 }): ReactElement {
+  const { Button } = useSurveyComponents();
   return (
     <div className="kajay-paneldynamic__tabs" role="tablist">
       {question.rowKeys.map((rowKey, index) => (
-        <button
+        <Button
           key={rowKey}
           type="button"
           role="tab"
@@ -58,7 +60,7 @@ function PanelTabs({
           }}
         >
           {question.rowTitle(rowKey)}
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -72,9 +74,10 @@ function PanelSteps({
   readonly question: PanelDynamicQuestion;
   readonly onMove: (index: number) => void;
 }): ReactElement {
+  const { Button } = useSurveyComponents();
   return (
     <div className="kajay-paneldynamic__progress">
-      <button
+      <Button
         type="button"
         className="kajay-paneldynamic__previous"
         disabled={question.currentIndex === 0}
@@ -83,11 +86,11 @@ function PanelSteps({
         }}
       >
         Previous
-      </button>
+      </Button>
       <span className="kajay-paneldynamic__position">
         {`${String(question.currentIndex + 1)} of ${String(question.panelCount)}`}
       </span>
-      <button
+      <Button
         type="button"
         className="kajay-paneldynamic__next"
         disabled={question.currentIndex >= question.panelCount - 1}
@@ -96,7 +99,7 @@ function PanelSteps({
         }}
       >
         Next
-      </button>
+      </Button>
     </div>
   );
 }
@@ -109,11 +112,12 @@ function AddPanelButton({
   readonly question: PanelDynamicQuestion;
   readonly onAdd: () => void;
 }): ReactElement | null {
+  const { Button } = useSurveyComponents();
   if (!question.canAddPanel) {
     return null;
   }
   return (
-    <button
+    <Button
       type="button"
       className="kajay-paneldynamic__add"
       onClick={whenEditable(question.isReadOnly, () => {
@@ -122,7 +126,7 @@ function AddPanelButton({
       })}
     >
       {question.addPanelText}
-    </button>
+    </Button>
   );
 }
 

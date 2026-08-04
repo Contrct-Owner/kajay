@@ -1,6 +1,7 @@
 import type { Survey as SurveyModel } from '@kajay/core';
 import type { ReactElement } from 'react';
 import { useSurveyValidating } from './useSurveyState.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 export interface SurveyNavigationProps {
   readonly survey: SurveyModel;
@@ -31,6 +32,7 @@ function validatingLabel(survey: SurveyModel, isValidating: boolean, isLastPage:
 }
 
 export function SurveyNavigation({ survey }: SurveyNavigationProps): ReactElement {
+  const { Button } = useSurveyComponents();
   const { isFirstPage, isLastPage, pageCount, currentPageNo } = survey;
   const isValidating = useSurveyValidating(survey);
 
@@ -51,7 +53,7 @@ export function SurveyNavigation({ survey }: SurveyNavigationProps): ReactElemen
       ) : null}
 
       {isFirstPage ? null : (
-        <button
+        <Button
           className="kajay-navigation__previous"
           type="button"
           onClick={() => {
@@ -59,20 +61,20 @@ export function SurveyNavigation({ survey }: SurveyNavigationProps): ReactElemen
           }}
         >
           Previous
-        </button>
+        </Button>
       )}
 
       {/* Disabled while a check is outstanding, so a respondent cannot queue a second
           round trip behind the first — and so the wait is visible rather than the page
           simply not responding. */}
-      <button
+      <Button
         className="kajay-navigation__next"
         type="submit"
         disabled={isValidating}
         aria-busy={isValidating || undefined}
       >
         {validatingLabel(survey, isValidating, isLastPage)}
-      </button>
+      </Button>
     </div>
   );
 }

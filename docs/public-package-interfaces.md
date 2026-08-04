@@ -30,12 +30,12 @@ types, but their constructors are no longer JavaScript compatibility promises. S
 are created from the authoritative definition through `parseSurvey`; timer and string
 operations are reached through `survey.timer` and `survey.strings`.
 
-## `@kajay/react` — 15 values
+## `@kajay/react` — 17 values
 
 | Category | Values | Concrete evidence |
 | --- | --- | --- |
 | Consumer operations | `Survey`, `useSurveyCurrentPageNo`, `useSurveyStatus`, `useSurveyValidating` | Host rendering, navigation/status UI, validation timelines, and browser tests. |
-| Intentional extension seams | `PageElementRendererRegistry`, `defaultPageElementRenderers`, `useQuestionRenderers`, `useQuestionValue`, `useReorder`, `useSurveyValue` | Custom renderer registration and isolation, nested renderer resolution, custom question controls, and the shared accessible reorder grammar. The default registry is statically readonly; `clone()` returns a mutable registry. |
+| Intentional extension seams | `PageElementRendererRegistry`, `SurveyComponentsProvider`, `defaultPageElementRenderers`, `useQuestionRenderers`, `useQuestionValue`, `useReorder`, `useSurveyComponents`, `useSurveyValue` | Custom renderer registration and isolation, nested renderer resolution, custom question controls, and the shared accessible reorder grammar. The default registry is statically readonly; `clone()` returns a mutable registry. `SurveyComponentsProvider`/`useSurveyComponents` are [ADR-0022](./adr/0022-design-system-primitives.md)'s primitive seam for the renderer (P2) — a host supplies their own Button and the survey draws with it; the provider is public because a host arranging pieces themselves needs to establish the map without `<Survey>`. |
 | Maintained Creator-adapter requirements | `PageElementDecoratorProvider`, `PageElementSlot`, `QuestionRenderersProvider`, `readOnlyAction`, `reorderAnnouncement` | Creator adorners, nested container rendering, property actions, and placement narration import these through the public package seam. |
 
 ## `@kajay/creator-core` — 26 values

@@ -7,10 +7,12 @@ import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 function ClearButton({ question }: { readonly question: RadiogroupQuestion }): ReactElement {
+  const { Button } = useSurveyComponents();
   return (
-    <button
+    <Button
       className="kajay-question__clear"
       type="button"
       onClick={() => {
@@ -18,7 +20,7 @@ function ClearButton({ question }: { readonly question: RadiogroupQuestion }): R
       }}
     >
       Clear
-    </button>
+    </Button>
   );
 }
 

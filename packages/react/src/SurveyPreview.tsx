@@ -2,6 +2,7 @@ import type { Survey as SurveyModel } from '@kajay/core';
 import type { FormEvent, ReactElement } from 'react';
 import type { PageElementRendererResolver } from './PageElementRendererRegistry.js';
 import { SurveyElements } from './SurveyElements.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 export interface SurveyPreviewProps {
   readonly survey: SurveyModel;
@@ -24,6 +25,7 @@ export interface SurveyPreviewProps {
  * response at once — that is what the respondent is being asked to confirm.
  */
 export function SurveyPreview({ survey, renderers }: SurveyPreviewProps): ReactElement {
+  const { Button } = useSurveyComponents();
   const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
     survey.nextPageOrComplete();
@@ -38,7 +40,7 @@ export function SurveyPreview({ survey, renderers }: SurveyPreviewProps): ReactE
       <div className="kajay-navigation">
         {/* Back to the pages, not to the first one: they were part-way through, and a
             preview that costs a respondent their place is one they learn not to open. */}
-        <button
+        <Button
           className="kajay-navigation__previous"
           type="button"
           onClick={() => {
@@ -46,10 +48,10 @@ export function SurveyPreview({ survey, renderers }: SurveyPreviewProps): ReactE
           }}
         >
           {survey.uiText('editAnswers')}
-        </button>
-        <button className="kajay-navigation__next" type="submit">
+        </Button>
+        <Button className="kajay-navigation__next" type="submit">
           Complete
-        </button>
+        </Button>
       </div>
     </form>
   );

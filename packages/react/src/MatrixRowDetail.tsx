@@ -2,6 +2,7 @@ import type { MatrixCellsBase, Survey as SurveyModel } from '@kajay/core';
 import type { ReactElement } from 'react';
 import { MatrixCell } from './MatrixCell.js';
 import { questionId } from './questionId.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 export interface MatrixRowDetailProps {
   readonly survey: SurveyModel;
@@ -40,9 +41,10 @@ export function MatrixDetailToggle({
   rowKey,
   onToggle,
 }: MatrixDetailToggleProps): ReactElement {
+  const { Button } = useSurveyComponents();
   const isExpanded = question.isRowExpanded(rowKey);
   return (
-    <button
+    <Button
       type="button"
       className="kajay-matrix__detail-toggle"
       aria-expanded={isExpanded}
@@ -53,7 +55,7 @@ export function MatrixDetailToggle({
       }}
     >
       {question.rowTitle(rowKey)}
-    </button>
+    </Button>
   );
 }
 

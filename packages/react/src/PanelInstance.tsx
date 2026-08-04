@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useQuestionRenderers } from './QuestionRenderersContext.js';
 import { whenEditable } from './readOnly.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 export interface PanelInstanceProps {
   readonly survey: SurveyModel;
@@ -47,6 +48,7 @@ function RemovePanelButton({
   readonly rowKey: string;
   readonly onRemove: () => void;
 }): ReactElement {
+  const { Button } = useSurveyComponents();
   const [isAsking, setAsking] = useState(false);
   const remove = (): void => {
     setAsking(false);
@@ -67,7 +69,7 @@ function RemovePanelButton({
   }
 
   return (
-    <button
+    <Button
       type="button"
       className="kajay-paneldynamic__remove"
       onClick={whenEditable(question.isReadOnly, () => {
@@ -79,7 +81,7 @@ function RemovePanelButton({
       })}
     >
       {question.removePanelText}
-    </button>
+    </Button>
   );
 }
 
@@ -93,14 +95,15 @@ function ConfirmRemoval({
   readonly onConfirm: () => void;
   readonly onCancel: () => void;
 }): ReactElement {
+  const { Button } = useSurveyComponents();
   return (
     <span className="kajay-paneldynamic__confirm">
-      <button type="button" className="kajay-paneldynamic__remove-confirm" onClick={onConfirm}>
+      <Button type="button" className="kajay-paneldynamic__remove-confirm" onClick={onConfirm}>
         {text}
-      </button>
-      <button type="button" className="kajay-paneldynamic__remove-cancel" onClick={onCancel}>
+      </Button>
+      <Button type="button" className="kajay-paneldynamic__remove-cancel" onClick={onCancel}>
         Keep
-      </button>
+      </Button>
     </span>
   );
 }

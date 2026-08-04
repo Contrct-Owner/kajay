@@ -6,6 +6,7 @@ import { PageElementSlot } from './PageElementSlot.js';
 import type { PageElementRendererProps } from './PageElementRendererRegistry.js';
 import { useQuestionRenderers } from './QuestionRenderersContext.js';
 import { useCssClass } from './SurveyCssContext.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 export function PanelRenderer({ survey, element }: PageElementRendererProps): ReactElement {
   if (!(element instanceof Panel)) {
@@ -61,6 +62,7 @@ interface PanelLegendProps {
 }
 
 function PanelLegend({ panel, contentId, isCollapsed }: PanelLegendProps): ReactElement | null {
+  const { Button } = useSurveyComponents();
   if (panel.title.length === 0) {
     return null;
   }
@@ -69,7 +71,7 @@ function PanelLegend({ panel, contentId, isCollapsed }: PanelLegendProps): React
   }
   return (
     <legend className="kajay-panel__title">
-      <button
+      <Button
         type="button"
         className="kajay-panel__toggle"
         aria-expanded={!isCollapsed}
@@ -79,7 +81,7 @@ function PanelLegend({ panel, contentId, isCollapsed }: PanelLegendProps): React
         }}
       >
         {panel.title}
-      </button>
+      </Button>
     </legend>
   );
 }

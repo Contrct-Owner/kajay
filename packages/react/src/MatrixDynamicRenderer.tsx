@@ -11,6 +11,7 @@ import { questionId } from './questionId.js';
 import { whenEditable } from './readOnly.js';
 import { useMatrixLayout } from './useMatrixLayout.js';
 import { useSurveyValue } from './useSurveyState.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 interface RemoveButtonProps {
   readonly question: MatrixDynamicQuestion;
@@ -26,6 +27,7 @@ interface RemoveButtonProps {
  * same thing and stay inside the page.
  */
 function RemoveButton({ question, rowKey }: RemoveButtonProps): ReactElement {
+  const { Button } = useSurveyComponents();
   const [isAsking, setAsking] = useState(false);
   const remove = (): void => {
     setAsking(false);
@@ -35,10 +37,10 @@ function RemoveButton({ question, rowKey }: RemoveButtonProps): ReactElement {
   if (isAsking) {
     return (
       <span className="kajay-matrix__confirm">
-        <button type="button" className="kajay-matrix__remove-confirm" onClick={remove}>
+        <Button type="button" className="kajay-matrix__remove-confirm" onClick={remove}>
           {question.confirmDeleteText}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           className="kajay-matrix__remove-cancel"
           onClick={() => {
@@ -46,13 +48,13 @@ function RemoveButton({ question, rowKey }: RemoveButtonProps): ReactElement {
           }}
         >
           Keep
-        </button>
+        </Button>
       </span>
     );
   }
 
   return (
-    <button
+    <Button
       type="button"
       className="kajay-matrix__remove"
       onClick={whenEditable(question.isReadOnly, () => {
@@ -64,7 +66,7 @@ function RemoveButton({ question, rowKey }: RemoveButtonProps): ReactElement {
       })}
     >
       {question.removeRowText}
-    </button>
+    </Button>
   );
 }
 
@@ -205,11 +207,12 @@ function AddRowButton({
 }: {
   readonly question: MatrixDynamicQuestion;
 }): ReactElement | null {
+  const { Button } = useSurveyComponents();
   if (!question.canAddRow) {
     return null;
   }
   return (
-    <button
+    <Button
       type="button"
       className="kajay-matrix__add"
       onClick={whenEditable(question.isReadOnly, () => {
@@ -217,7 +220,7 @@ function AddRowButton({
       })}
     >
       {question.addRowText}
-    </button>
+    </Button>
   );
 }
 

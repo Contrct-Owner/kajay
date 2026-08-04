@@ -7,6 +7,7 @@ import { questionErrorId, questionId } from './questionId.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { whenEditable } from './readOnly.js';
 import { useQuestionValue } from './useSurveyState.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 /** The MIME type a format is exported as. SVG is not a canvas format; PNG stands in. */
 function mimeTypeOf(format: string): string {
@@ -129,8 +130,9 @@ function repaint(canvas: HTMLCanvasElement | null, signature: string, background
 
 /** Erases the pad. Always present: a signature nobody can undo is a trap. */
 function ClearButton({ question }: { readonly question: SignatureQuestion }): ReactElement {
+  const { Button } = useSurveyComponents();
   return (
-    <button
+    <Button
       type="button"
       className="kajay-signature__clear"
       onClick={whenEditable(question.isReadOnly, () => {
@@ -138,7 +140,7 @@ function ClearButton({ question }: { readonly question: SignatureQuestion }): Re
       })}
     >
       {question.uiText('clearSignature')}
-    </button>
+    </Button>
   );
 }
 

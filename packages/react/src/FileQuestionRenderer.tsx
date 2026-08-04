@@ -9,6 +9,7 @@ import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { readFiles } from './readFiles.js';
 import { whenEditable } from './readOnly.js';
 import { useQuestionValue } from './useSurveyState.js';
+import { useSurveyComponents } from './SurveyComponents.js';
 
 /** Bytes as a respondent reads them, beside the name of the thing they attached. */
 function describeSize(bytes: number): string {
@@ -33,6 +34,7 @@ function AttachedFile({
   readonly entry: FileEntry;
   readonly onRemove: () => void;
 }): ReactElement {
+  const { Button } = useSurveyComponents();
   const source = entry.url ?? entry.content ?? '';
   const isImage = entry.type.startsWith('image/');
   return (
@@ -42,13 +44,13 @@ function AttachedFile({
       ) : null}
       <span className="kajay-file__name">{entry.name}</span>
       <span className="kajay-file__size">{describeSize(entry.size)}</span>
-      <button
+      <Button
         type="button"
         className="kajay-file__remove"
         onClick={whenEditable(question.isReadOnly, onRemove)}
       >
         {question.uiText('removeFile', entry.name)}
-      </button>
+      </Button>
     </li>
   );
 }

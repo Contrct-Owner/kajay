@@ -1,4 +1,5 @@
 import type { Survey as SurveyModel } from '@kajay/core';
+import { useSurveyComponents } from './SurveyComponents.js';
 import type { ReactElement } from 'react';
 
 export interface SurveyTocProps {
@@ -23,6 +24,7 @@ export interface SurveyTocProps {
  * between them and completing.
  */
 export function SurveyToc({ survey }: SurveyTocProps): ReactElement | null {
+  const { Button } = useSurveyComponents();
   if (!survey.showTOC) {
     return null;
   }
@@ -32,7 +34,7 @@ export function SurveyToc({ survey }: SurveyTocProps): ReactElement | null {
       <ol className="kajay-toc__list">
         {survey.visiblePages.map((page, index) => (
           <li key={page.name}>
-            <button
+            <Button
               type="button"
               className="kajay-toc__page"
               aria-current={index === survey.currentPageNo ? 'page' : undefined}
@@ -41,7 +43,7 @@ export function SurveyToc({ survey }: SurveyTocProps): ReactElement | null {
               }}
             >
               {page.title.length > 0 ? page.title : page.name}
-            </button>
+            </Button>
           </li>
         ))}
       </ol>

@@ -33,6 +33,7 @@ import {
   setFastEntryIn,
 } from './collectionEdits.js';
 import { propertyRowsFor } from './propertyGrid.js';
+import type { PropertyGridOptions } from './propertyGridOptions.js';
 import type { PropertyGridCategory } from './propertyGrid.js';
 import { renameIn, setLocalizedOn, setPropertyOn } from './propertyEdits.js';
 
@@ -174,8 +175,8 @@ export class DesignSurface {
    * and the registry a document was parsed with is the registry its grid is generated
    * from. The same shape as {@link convertibleTypes}, and for the same reason.
    */
-  properties(element: SurveyElement): readonly PropertyGridCategory[] {
-    return propertyRowsFor(element, this.#document.registry, this.#conditions);
+  properties(element: SurveyElement, grid?: PropertyGridOptions): readonly PropertyGridCategory[] {
+    return propertyRowsFor(element, this.#document.registry, this.#conditions, grid);
   }
 
   /**
@@ -220,8 +221,8 @@ export class DesignSurface {
    * because they are one thing as far as the registry is concerned. What a page holds is
    * not among them: the canvas owns that.
    */
-  collections(element: SurveyElement): readonly CollectionRow[] {
-    return collectionRowsFor(element, this.#document.registry);
+  collections(element: SurveyElement, grid?: PropertyGridOptions): readonly CollectionRow[] {
+    return collectionRowsFor(element, this.#document.registry, grid);
   }
 
   /**

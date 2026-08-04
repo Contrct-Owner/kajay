@@ -1,5 +1,7 @@
 import type { MetadataRegistry, SurveyElement } from '@kajay/core';
 import { humanizePropertyName } from './propertyGrid.js';
+import { isHidden, NO_GRID_OPTIONS, titleOverride } from './propertyGridOptions.js';
+import type { PropertyGridOptions } from './propertyGridOptions.js';
 
 /**
  * The child collections of an element, ready to edit — checklist L2.
@@ -64,15 +66,19 @@ export interface CollectionRow {
 export function collectionRowsFor(
   element: SurveyElement,
   registry: MetadataRegistry,
+  options: PropertyGridOptions = NO_GRID_OPTIONS,
 ): readonly CollectionRow[] {
   const rows: CollectionRow[] = [];
   for (const collection of registry.getChildCollections(element.type)) {
-    if (collection.elementBaseType === PAGE_ELEMENT) {
+    // Hidden by the same list that hides a property (§L4): to a host, "do not show the
+    // validators editor" and "do not show `valueName`" are one kind of decision.
+    if (collection.elementBaseType === PAGE_ELEMENT || isHidden(collection.property, options)) {
       continue;
     }
     rows.push({
       property: collection.property,
-      title: humanizePropertyName(collection.property),
+      title:
+        titleOverride(collection.property, options) ?? humanizePropertyName(collection.property),
       types: registry.getConcreteSubclasses(collection.elementBaseType),
       children: element.getChildren(collection.property),
       shorthand: collection.shorthandProperty,

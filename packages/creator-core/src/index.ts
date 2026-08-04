@@ -32,6 +32,15 @@ export type {
 export { renameIn, setLocalizedOn, setPropertyOn } from './propertyEdits.js';
 export { conditionOutcome, propertyScopeOf } from './propertyConditions.js';
 export {
+  categoryFor,
+  isHidden,
+  NO_GRID_OPTIONS,
+  orderCategories,
+  orderRows,
+  titleOverride,
+} from './propertyGridOptions.js';
+export type { PropertyGridOptions } from './propertyGridOptions.js';
+export {
   applySuggestion,
   expressionSuggestions,
   matchingSuggestions,

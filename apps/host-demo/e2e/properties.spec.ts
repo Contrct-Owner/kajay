@@ -31,7 +31,7 @@ test('parity/L1-grid: the sections appear when something is selected', async ({ 
   // with neither of them named anywhere in the Creator.
   await expect(field(page, 'Input type')).toHaveValue('text');
   await expect(field(page, 'Name')).toHaveValue('draftName');
-  await expect(grid(page).getByTestId('properties-Logic')).toBeVisible();
+  await expect(grid(page).getByTestId('properties-draftName-Logic')).toBeVisible();
 });
 
 test('parity/L1-editors: an edit reaches the definition a host would save', async ({ page }) => {
@@ -90,7 +90,37 @@ test('parity/L1-grid: a page has a grid of its own', async ({ page }) => {
   // K4 made the page selectable and this row needed no code about pages: it is a
   // registered class, so its properties are generated like anything else's.
   await expect(field(page, 'Name')).toHaveValue('p1');
-  await expect(field(page, 'Col count')).toHaveValue('2');
+  // "Columns", not "Col count": the demo is a host, and §L4 is where a host fixes a
+  // derived label it does not like. This assertion changing is the override working.
+  await expect(field(page, 'Columns')).toHaveValue('2');
+});
+
+test('parity/L4-customization: the host’s own grid, not the generated one', async ({ page }) => {
+  await page.getByTestId('select-draftName').click();
+
+  // Hidden, because this deployment stores nothing under a second key — and a field
+  // nobody uses is a field somebody eventually fills in.
+  await expect(grid(page).getByTestId('property-draftName-valueName')).toBeHidden();
+
+  // The title is what a designer types first, so this host put it above the name.
+  const general = grid(page).getByTestId('properties-draftName-General');
+  await expect(general.locator('[data-property]').first()).toHaveAttribute(
+    'data-property',
+    'title',
+  );
+
+  // A section the library has never heard of, drawn where the host asked for it.
+  await expect(grid(page).getByTestId('properties-draftName-Quiz')).toBeVisible();
+});
+
+test('parity/L4-editors: a host closes L1’s enumerated-property gap', async ({ page }) => {
+  await page.getByTestId('select-draftName').click();
+
+  // The registry can only call `titleLocation` a string; its description names four
+  // values, and L1 declined to guess a domain by parsing English. A host knows.
+  await grid(page).getByTestId('property-draftName-titleLocation').selectOption('left');
+
+  await expect(page.getByTestId('surface-json')).toContainText('"titleLocation": "left"');
 });
 
 test('parity/L2-collections: a choice list is editable, and the canvas follows', async ({

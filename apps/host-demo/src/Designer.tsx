@@ -1,12 +1,8 @@
 import { DesignSurface, Toolbox } from '@kajay/creator-core';
-import {
-  HistoryPanel,
-  PageNavigatorPanel,
-  PropertyGridPanel,
-  useDesignerPlacement,
-} from '@kajay/creator-react';
+import { HistoryPanel, PageNavigatorPanel, useDesignerPlacement } from '@kajay/creator-react';
 import { useMemo } from 'react';
-import type { CSSProperties, ReactElement } from 'react';
+import type { ReactElement } from 'react';
+import { DesignerProperties } from './DesignerProperties.js';
 import { DesignerSurface } from './DesignerSurface.js';
 import { DesignerToolbox } from './DesignerToolbox.js';
 
@@ -91,15 +87,10 @@ export function Designer({ theme }: DesignerProps): ReactElement {
         <PageNavigatorPanel surface={surface} placement={placement} />
       </DesignerSurface>
       {/* Its own section rather than a strip inside the canvas — a property grid is the
-          piece most likely to live somewhere the host already had a sidebar (L1). */}
-      <section
-        className="host-demo__panel"
-        aria-label="Designer properties"
-        style={theme as CSSProperties}
-      >
-        <h2>Properties</h2>
-        <PropertyGridPanel surface={surface} />
-      </section>
+          piece most likely to live somewhere the host already had a sidebar (L1) — and its
+          own *file*, because everything this deployment has changed about the grid (L4)
+          belongs with the host rather than beside the assembly. */}
+      <DesignerProperties theme={theme} surface={surface} />
     </>
   );
 }

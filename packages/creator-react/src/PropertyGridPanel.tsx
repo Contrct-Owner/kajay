@@ -1,4 +1,4 @@
-import type { DesignSurface } from '@kajay/creator-core';
+import type { DesignSurface, PropertyGridOptions } from '@kajay/creator-core';
 import type { SurveyElement } from '@kajay/core';
 import type { ReactElement } from 'react';
 import { CollectionEditor } from './CollectionEditor.js';
@@ -7,6 +7,15 @@ import { useSurfaceVersion } from './useSurfaceVersion.js';
 
 export interface PropertyGridPanelProps {
   readonly surface: DesignSurface;
+  /**
+   * What this host has changed about the grid — checklist L4.
+   *
+   * A prop rather than something the surface holds, because it is a fact about *this
+   * panel*: a host showing an author's grid in one place and a reviewer's in another wants
+   * two, and neither is state the survey has any opinion about
+   * ([ADR-0021](../../../docs/adr/0021-creator-composition.md)).
+   */
+  readonly grid?: PropertyGridOptions;
   readonly className?: string;
 }
 
@@ -23,7 +32,11 @@ export interface PropertyGridPanelProps {
  * the page's own properties with no code about pages. §L5 is still open: the survey itself
  * is not selectable, and there is nowhere yet for the settings that belong to it.
  */
-export function PropertyGridPanel({ surface, className }: PropertyGridPanelProps): ReactElement {
+export function PropertyGridPanel({
+  surface,
+  grid,
+  className,
+}: PropertyGridPanelProps): ReactElement {
   useSurfaceVersion(surface);
   const selected = surface.selected;
 
@@ -35,7 +48,7 @@ export function PropertyGridPanel({ surface, className }: PropertyGridPanelProps
         // something every test that looks one up has to start disambiguating.
         <p className="kajay-properties__empty">Select a question or a page to edit it.</p>
       ) : (
-        <SelectedElement surface={surface} element={selected} />
+        <SelectedElement surface={surface} element={selected} grid={grid} />
       )}
     </div>
   );
@@ -52,15 +65,17 @@ export function PropertyGridPanel({ surface, className }: PropertyGridPanelProps
 function SelectedElement({
   surface,
   element,
+  grid,
 }: {
   readonly surface: DesignSurface;
   readonly element: SurveyElement;
+  readonly grid: PropertyGridOptions | undefined;
 }): ReactElement {
   const scope = String(element.getPropertyValue('name') ?? '');
 
   return (
     <>
-      {surface.properties(element).map((category) => (
+      {surface.properties(element, grid).map((category) => (
         <PropertySection
           key={category.name}
           surface={surface}
@@ -69,7 +84,7 @@ function SelectedElement({
           scope={scope}
         />
       ))}
-      {surface.collections(element).map((collection) => (
+      {surface.collections(element, grid).map((collection) => (
         <CollectionEditor
           key={collection.property}
           surface={surface}

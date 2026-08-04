@@ -130,6 +130,14 @@ export interface CreatorSelectProps {
   readonly onValueChange: (value: string) => void;
   readonly disabled?: boolean;
   readonly className?: string;
+  /**
+   * Needed because §L4's replaced editors are built out of these.
+   *
+   * A grid row's `<label>` points at an id, and a host's own editor has to be able to put
+   * it on whatever it renders — a select with no id is a field with no label attached to
+   * it. The demo's `titleLocation` picker found this the first time it was written.
+   */
+  readonly id?: string;
   readonly 'aria-label'?: string;
   readonly 'aria-describedby'?: string | undefined;
   readonly 'data-testid'?: string;

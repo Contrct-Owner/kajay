@@ -2,11 +2,14 @@ import { ExpressionCache, isLocalizedText, resolveLocalizedText } from '@kajay/c
 import type { MetadataRegistry, PropertyDescriptor, PropertyValue, SurveyElement } from '@kajay/core';
 import { conditionOutcome, propertyScopeOf } from './propertyConditions.js';
 import {
-  GENERAL_CATEGORY,
-  LOGIC_CATEGORY,
-  orderPropertyCategories,
-  PROPERTY_CATEGORIES,
-} from './propertyCategories.js';
+  categoryFor,
+  isHidden,
+  NO_GRID_OPTIONS,
+  orderCategories,
+  orderRows,
+  titleOverride,
+} from './propertyGridOptions.js';
+import type { PropertyGridOptions } from './propertyGridOptions.js';
 
 /**
  * The property grid, generated from the metadata registry — checklist L1.
@@ -115,10 +118,16 @@ export function propertyRowsFor(
   element: SurveyElement,
   registry: MetadataRegistry,
   cache: ExpressionCache = new ExpressionCache(),
+  options: PropertyGridOptions = NO_GRID_OPTIONS,
 ): readonly PropertyGridCategory[] {
   const grouped = new Map<string, PropertyRow[]>();
   const scope = propertyScopeOf(element, registry);
   for (const descriptor of registry.getProperties(element.type)) {
+    // A host's own decision, taken before the registry's: §L4's whole point is that a
+    // generated grid is complete and occasionally wrong for one deployment.
+    if (isHidden(descriptor.name, options)) {
+      continue;
+    }
     // A property that means nothing in this element's current shape is left out entirely
     // — a field that does nothing is worse than no field, because a designer fills it in.
     // Undecidable means shown: a typo in a registration must not make a property
@@ -126,29 +135,19 @@ export function propertyRowsFor(
     if (conditionOutcome(descriptor.visibleIf, scope, cache) === false) {
       continue;
     }
-    const category = categoryOf(descriptor);
+    const category = categoryFor(descriptor.name, descriptor.isExpression, options);
     const bucket = grouped.get(category);
-    const row = rowFor(element, descriptor, scope, cache);
+    const row = rowFor(element, descriptor, scope, cache, options);
     if (bucket === undefined) {
       grouped.set(category, [row]);
     } else {
       bucket.push(row);
     }
   }
-  return orderPropertyCategories([...grouped.keys()]).map((name) => ({
+  return orderCategories([...grouped.keys()], options).map((name) => ({
     name,
-    rows: grouped.get(name) ?? [],
+    rows: orderRows(grouped.get(name) ?? [], options),
   }));
-}
-
-function categoryOf(descriptor: PropertyDescriptor): string {
-  // The table first, then the registry's own declaration, then General. A property that
-  // is both listed and an expression is listed on purpose — `setValueExpression` would
-  // be Logic either way, but a host's table entry has to be able to win.
-  return (
-    PROPERTY_CATEGORIES.get(descriptor.name) ??
-    (descriptor.isExpression ? LOGIC_CATEGORY : GENERAL_CATEGORY)
-  );
 }
 
 function rowFor(
@@ -156,11 +155,12 @@ function rowFor(
   descriptor: PropertyDescriptor,
   scope: Readonly<Record<string, unknown>>,
   cache: ExpressionCache,
+  options: PropertyGridOptions,
 ): PropertyRow {
   const value = element.getResolvedProperty(descriptor.name) ?? descriptor.defaultValue;
   return {
     name: descriptor.name,
-    title: humanizePropertyName(descriptor.name),
+    title: titleOverride(descriptor.name, options) ?? humanizePropertyName(descriptor.name),
     description: descriptor.description,
     editor: editorKindFor(descriptor),
     // `name` is the identity every expression in the survey refers to; see PropertyCommit.

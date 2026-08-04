@@ -4,9 +4,12 @@ import type { SurveyElement } from '@kajay/core';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { readOnlyAction } from '@kajay/react';
+import type { ComponentType } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
 import { ExpressionField } from './ExpressionField.js';
 import { TranslationsField } from './TranslationsField.js';
+import { usePropertyEditor } from './PropertyEditors.js';
+import type { PropertyEditorProps } from './PropertyEditors.js';
 
 /**
  * The fields a property grid is drawn out of — checklists L1 and L2.
@@ -36,7 +39,12 @@ export function PropertySection({
   scope,
 }: PropertySectionProps): ReactElement {
   return (
-    <fieldset className="kajay-properties__section" data-testid={`properties-${category.name}`}>
+    <fieldset
+      className="kajay-properties__section"
+      // Scoped like the fields inside it: a choice in the collection editor draws its own
+      // General section, and an unscoped hook found two of them.
+      data-testid={`properties-${scope}-${category.name}`}
+    >
       <legend className="kajay-properties__legend">{category.name}</legend>
       {category.rows.map((row) => (
         // Keyed on the scope as well as the property, so moving to a different element —
@@ -70,6 +78,7 @@ interface FieldProps {
  * using a text field for an enumerated property needs to hear.
  */
 function PropertyField({ surface, element, row, scope }: FieldProps): ReactElement {
+  const Custom = usePropertyEditor(row);
   const id = `kajay-prop-${scope}-${row.name}`;
   // Scoped like the id, and for the same reason: a question's `visibleIf` and the
   // `visibleIf` of the third choice inside it are two fields, and an unscoped hook found
@@ -87,25 +96,15 @@ function PropertyField({ surface, element, row, scope }: FieldProps): ReactEleme
       <label className="kajay-properties__label" htmlFor={id}>
         {row.title}
       </label>
-      {row.editor === 'boolean' ? (
-        <BooleanField
-          surface={surface}
-          element={element}
-          row={row}
-          id={id}
-          hint={describedBy}
-          testId={testId}
-        />
-      ) : (
-        <TextualField
-          surface={surface}
-          element={element}
-          row={row}
-          id={id}
-          hint={describedBy}
-          testId={testId}
-        />
-      )}
+      <Editor
+        Custom={Custom}
+        surface={surface}
+        element={element}
+        row={row}
+        id={id}
+        hint={describedBy}
+        testId={testId}
+      />
       {row.description === undefined ? null : (
         <p className="kajay-properties__hint" id={hintId}>
           {row.description}
@@ -116,6 +115,25 @@ function PropertyField({ surface, element, row, scope }: FieldProps): ReactEleme
       ) : null}
     </div>
   );
+}
+
+/**
+ * The host's editor for this row, or the built-in one for its declared type — L4.
+ *
+ * The host's is consulted **first and unconditionally**: a replacement that only applied to
+ * kinds the Creator had no opinion about would be no seam at all, and a host who has
+ * decided how to draw `correctAnswer` has decided.
+ */
+function Editor({
+  Custom,
+  ...props
+}: EditorProps & {
+  readonly Custom: ComponentType<PropertyEditorProps> | undefined;
+}): ReactElement {
+  if (Custom !== undefined) {
+    return <Custom {...props} />;
+  }
+  return props.row.editor === 'boolean' ? <BooleanField {...props} /> : <TextualField {...props} />;
 }
 
 interface EditorProps {

@@ -47,7 +47,7 @@ test('parity/L1-grid: nothing is drawn until something is selected', async () =>
     .toBeInTheDocument();
 
   select(designed, 'who');
-  await expect.element(screen.getByTestId('properties-General')).toBeInTheDocument();
+  await expect.element(screen.getByTestId('properties-who-General')).toBeInTheDocument();
 });
 
 test('parity/L1-grid: the sections and their rows come from the registry', async () => {
@@ -58,7 +58,7 @@ test('parity/L1-grid: the sections and their rows come from the registry', async
   // Logic because the registry says it is one — none of them named anywhere in the panel.
   await expect.element(screen.getByLabelText('Input type', { exact: true })).toHaveValue('text');
   await expect.element(screen.getByLabelText('Title', { exact: true })).toHaveValue('Your name');
-  await expect.element(screen.getByTestId('properties-Logic')).toBeInTheDocument();
+  await expect.element(screen.getByTestId('properties-who-Logic')).toBeInTheDocument();
   expect(
     screen.container.querySelectorAll('.kajay-properties__section:not(.kajay-collection)'),
   ).toHaveLength(5);

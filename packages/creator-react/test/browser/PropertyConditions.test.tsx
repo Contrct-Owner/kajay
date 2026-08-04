@@ -42,7 +42,7 @@ test('parity/L3-visibility: a section with nothing left in it is not drawn', asy
 
   // A display element has no validation properties at all, so there is no empty heading
   // where a designer would look for one — the same rule that hides an empty category.
-  expect(screen.container.querySelector('[data-testid="properties-Validation"]')).toBeNull();
+  expect(screen.container.querySelector('[data-testid="properties-note-Validation"]')).toBeNull();
 });
 
 test('parity/L3-read-only: a fixed property is readable, not disabled', async () => {

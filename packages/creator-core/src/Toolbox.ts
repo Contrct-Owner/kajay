@@ -105,10 +105,12 @@ export class Toolbox {
       entry?.title ?? fallbackTitle(definition.type),
       entry?.category ?? OTHER_CATEGORY,
     );
-    // Built-in keywords survive an override that does not mention them, so a host
-    // retitling the dropdown does not silently make "select" stop finding it.
+    // Built-in keywords and starter content survive an override that does not mention
+    // them, so a host retitling the dropdown does not silently make "select" stop finding
+    // it, or leave the dropdown it retitled with no choices.
     const keywords = definition.keywords ?? entry?.keywords ?? [];
-    this.#items.set(item.name, { ...item, keywords });
+    const defaults = definition.defaults ?? entry?.defaults ?? {};
+    this.#items.set(item.name, { ...item, keywords, defaults });
     this.#announce();
   }
 

@@ -1,5 +1,10 @@
 import type { DesignSurface, DropSlot } from '@kajay/creator-core';
-import { defaultPageElementRenderers, PageElementDecoratorProvider, PageElementSlot } from '@kajay/react';
+import {
+  defaultPageElementRenderers,
+  PageElementDecoratorProvider,
+  PageElementSlot,
+  QuestionRenderersProvider,
+} from '@kajay/react';
 import type { PageElementDecorator, PageElementRendererRegistry } from '@kajay/react';
 import type { KeyboardEvent, ReactElement } from 'react';
 import { useCreatorText } from './CreatorStringsContext.js';
@@ -92,9 +97,19 @@ export function DesignSurfacePanel({
         handleCanvasKey(surface, event);
       }}
     >
-      <PageElementDecoratorProvider decorate={decorate}>
-        <CanvasBody surface={surface} renderers={renderers} />
-      </PageElementDecoratorProvider>
+      {/*
+        A question that contains questions looks its children up in *this* registry —
+        checklist N5's second finding. `<Survey>` supplies it and the canvas did not, so a
+        matrix or a repeating panel dropped on the canvas threw rather than drawing: the
+        one place in the Creator where a designer meets §F and §G at all. It went unseen
+        because no scenario before this row put a container question on a canvas, which is
+        exactly the gap an overall AC exists to close.
+      */}
+      <QuestionRenderersProvider renderers={renderers}>
+        <PageElementDecoratorProvider decorate={decorate}>
+          <CanvasBody surface={surface} renderers={renderers} />
+        </PageElementDecoratorProvider>
+      </QuestionRenderersProvider>
       {activeSlot?.list.of === 'elements' &&
       activeSlot.list.container === page?.name &&
       activeSlot.index === (page?.elements.length ?? 0) ? (

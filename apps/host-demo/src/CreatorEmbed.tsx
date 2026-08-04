@@ -1,6 +1,7 @@
 import { CreatorStringDictionary } from '@kajay/creator-core';
 import { SurveyCreator } from '@kajay/creator-react';
 import type { SurveyDefinition } from '@kajay/core';
+import { everyTypeSurvey } from './everyTypeSurvey.js';
 import { useState } from 'react';
 import type { CSSProperties, ReactElement } from 'react';
 
@@ -101,6 +102,22 @@ export function CreatorEmbed({ theme }: CreatorEmbedProps): ReactElement {
         isWhiteLabelled={isWhiteLabelled}
         onWhiteLabelled={setWhiteLabelled}
       />
+      {/*
+        The overall acceptance scenario's starting point — checklist N5. A button rather
+        than a switch, because loading one of everything is a *document* arriving, not a
+        deployment changing: it goes in through `value` exactly as a survey fetched from a
+        server would, which is also the shortest demonstration of N1's controlled contract
+        there is.
+      */}
+      <button
+        type="button"
+        data-testid="load-every-type"
+        onClick={() => {
+          setValue(everyTypeSurvey());
+        }}
+      >
+        Load one of everything
+      </button>
       {isShown ? (
         <EmbeddedCreator
           isRestricted={isRestricted}

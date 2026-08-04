@@ -25,6 +25,10 @@ export type {
   PageElementRendererProps,
 } from './PageElementRendererRegistry.js';
 export type { QuestionRendererProps } from './QuestionRendererProps.js';
+// Exported for the Creator's design surface (N5): a question that contains questions —
+// a matrix cell, a repeating panel's instance — looks its children up in the registry it
+// is being drawn through, and `<Survey>` is not the only thing that draws elements.
+export { QuestionRenderersProvider, useQuestionRenderers } from './QuestionRenderersContext.js';
 export type { QuestionRenderer } from './QuestionRendererRegistry.js';
 export type {
   DraggedRow,

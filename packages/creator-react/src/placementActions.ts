@@ -1,4 +1,4 @@
-import { sameList } from '@kajay/creator-core';
+import { countInList, sameList } from '@kajay/creator-core';
 import type { DesignSurface, DropSlot, PlacementSource } from '@kajay/creator-core';
 import { reorderAnnouncement } from '@kajay/react';
 import type { Dispatch, SetStateAction } from 'react';
@@ -50,7 +50,7 @@ export function placementActions(
     source: PlacementSource,
     origin: DropSlot | undefined,
     slot: DropSlot,
-  ): string => narrate(kind, source, origin, slot, surface.countIn(slot.list));
+  ): string => narrate(kind, source, origin, slot, countInList(surface, slot.list));
 
   return {
     begin: (source, origin, slot) => {

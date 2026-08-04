@@ -1,4 +1,5 @@
 import type { MetadataRegistry, SurveyDefinition } from '@kajay/core';
+import type { CreatorConfiguration } from './CreatorConfiguration.js';
 
 /**
  * What a design surface is opened with, and what an edit carries.
@@ -30,4 +31,6 @@ export interface DesignSurfaceOptions {
    * being refused by the compiler. The same reason `CreatorComponents` spells it out.
    */
   readonly registry?: MetadataRegistry | undefined;
+  /** What this deployment has turned off — checklist N2. Absent means nothing. */
+  readonly configuration?: CreatorConfiguration | undefined;
 }

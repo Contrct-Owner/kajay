@@ -4,6 +4,8 @@
 export { DesignSurface } from './DesignSurface.js';
 export type { DesignSurfaceOptions, EditOptions } from './DesignSurfaceOptions.js';
 export { addPageTo, placeOn, removePageFrom } from './designerEdits.js';
+export { allowedToolboxItems, isTypeAllowed } from './CreatorConfiguration.js';
+export type { CreatorConfiguration } from './CreatorConfiguration.js';
 export { DesignSelection } from './DesignSelection.js';
 export {
   canConvert,
@@ -70,8 +72,8 @@ export {
   PROPERTY_CATEGORIES,
   PROPERTY_CATEGORY_ORDER,
 } from './propertyCategories.js';
-export { canPlace, applyPlacement, dropSlotsFor, dropSlotsOn } from './placement.js';
-export type { DropSlot, PlacementSource } from './placement.js';
+export { canPlace, applyPlacement, countInList, dropSlotsFor, dropSlotsOn } from './placement.js';
+export type { CountableSurface, DropSlot, PlacementSource } from './placement.js';
 export { addPage, pageAfterRemoving, removePage } from './pageEdits.js';
 export {
   CONDITION_OPERATORS,

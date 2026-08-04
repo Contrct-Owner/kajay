@@ -9,8 +9,7 @@ import type {
   SurveyDefinition,
   SurveyElement,
 } from '@kajay/core';
-import { countIn, locate } from './definitionTree.js';
-import type { DropList } from './definitionTree.js';
+import { locate } from './definitionTree.js';
 import { SurveyDocument } from './SurveyDocument.js';
 import { DesignHistory } from './DesignHistory.js';
 import type { HistorySnapshot } from './UndoHistory.js';
@@ -22,7 +21,7 @@ import {
   duplicateIn,
   removeElementFrom,
 } from './elementEdits.js';
-import { canPlace, dropSlotsFor, dropSlotsOn } from './placement.js';
+import { dropSlotsFor, dropSlotsOn } from './placement.js';
 import type { DropSlot, PlacementSource } from './placement.js';
 import { DesignClipboard } from './DesignClipboard.js';
 import { collectionRowsFor } from './collectionGrid.js';
@@ -37,6 +36,7 @@ import { propertyRowsFor } from './propertyGrid.js';
 import type { PropertyGridOptions } from './propertyGridOptions.js';
 import type { PropertyGridCategory } from './propertyGrid.js';
 import { renameIn, setLocalizedOn, setPropertyOn } from './propertyEdits.js';
+import type { CreatorConfiguration } from './CreatorConfiguration.js';
 import type { DesignSurfaceOptions, EditOptions } from './DesignSurfaceOptions.js';
 
 /**
@@ -62,11 +62,28 @@ export class DesignSurface {
   #version = 0;
   readonly #clipboard: DesignClipboard = new DesignClipboard();
   readonly #history: DesignHistory = new DesignHistory();
+  readonly #configuration: CreatorConfiguration | undefined;
 
   readonly onChanged: EventEmitter<number> = new EventEmitter();
 
   constructor(options: DesignSurfaceOptions) {
     this.#document = new SurveyDocument(options.definition, options.registry);
+    this.#configuration = options.configuration;
+  }
+
+  /** What this deployment has turned off — checklist N2. */
+  get configuration(): CreatorConfiguration | undefined {
+    return this.#configuration;
+  }
+
+  /**
+   * Whether the survey can be changed at all — checklist N2.
+   *
+   * A read-only Creator is a **viewer**, not a hidden one: the canvas, the grid and the
+   * JSON are all still there to read. A reviewer needs to see the logic to comment on it.
+   */
+  get isReadOnly(): boolean {
+    return this.#configuration?.isReadOnly === true;
   }
 
   get survey(): Survey {
@@ -291,20 +308,6 @@ export class DesignSurface {
     return locate(this.definition, name);
   }
 
-  /**
-   * How many elements a container holds.
-   *
-   * Read from the *model* rather than the definition, because it is asked on every
-   * pointer move to say "position 2 of 4" — and serializing a survey to count two
-   * questions is not something to do sixty times a second.
-   */
-  countIn(list: DropList): number {
-    if (list.of === 'pages') {
-      return this.pages.length;
-    }
-    return countIn(this.page, list.container);
-  }
-
   /** Every position a page could be dragged to — checklist K4. */
   get pageSlots(): readonly DropSlot[] {
     return dropSlotsFor({ of: 'pages' }, this.pages.length);
@@ -363,6 +366,7 @@ export class DesignSurface {
    * and this is only the part that cannot be pure.
    */
   applyEdit(definition: SurveyDefinition, options: EditOptions = {}): void {
+    if (this.isReadOnly) { return; }
     this.#history.record(this, options.from ?? this.definition, options.undoKey);
     // An edit that names nothing to select leaves the selection where it was, which for
     // the survey (§L5) is the only way it *can* survive — it has no name to hand back.
@@ -417,12 +421,7 @@ export class DesignSurface {
 
   /** The types a question can be turned into. */
   get convertibleTypes(): readonly string[] {
-    return convertibleTypes(this.#document.registry);
-  }
-
-  /** Whether this placement would change anything. What a drop indicator is drawn from. */
-  canPlace(source: PlacementSource, slot: DropSlot): boolean {
-    return canPlace(this.definition, source, slot);
+    return convertibleTypes(this.#document.registry, this.#configuration);
   }
 
   /**
@@ -480,6 +479,10 @@ export class DesignSurface {
    * mutation nobody hears about. What matters is that *every* change comes through here.
    */
   change(edit: () => void, undoKey?: string): void {
+    // The two chokepoints K6 established are the two a restriction has to hold: between
+    // them nothing reaches the survey, so read-only is enforced once rather than on every
+    // button. A disabled button is a suggestion; this is the rule.
+    if (this.isReadOnly) { return; }
     this.#history.record(this, this.definition, undoKey);
     edit();
     this.#announce();

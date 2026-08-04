@@ -72,3 +72,36 @@ test('parity/N1-assembly: no accessibility violations', async ({ page }) => {
 
   expect(results.violations).toEqual([]);
 });
+
+test('parity/N2-config: a restricted deployment is the same component, told less', async ({
+  page,
+}) => {
+  await page.getByTestId('toggle-restricted').check();
+
+  // Three question types, two tabs, and the logic rows gone from the grid — all from one
+  // plain value that could as easily have come from a server.
+  await expect(embed(page).getByTestId('toolbox-text')).toBeVisible();
+  await expect(embed(page).getByTestId('toolbox-file')).toBeHidden();
+  await expect(embed(page).getByTestId('creator-tab-json')).toBeHidden();
+  await expect(embed(page).getByTestId('creator-tab-preview')).toBeVisible();
+
+  await embed(page).getByTestId('select-embedName').click();
+  // Property ids carry their element's scope (L1), or one question's `visibleIf` and the
+  // `visibleIf` of a choice inside it would be one field with two labels.
+  await expect(embed(page).getByTestId('property-embedName-visibleIf')).toBeHidden();
+  await expect(embed(page).getByTestId('property-embedName-title')).toBeVisible();
+});
+
+test('parity/N2-config: turning the restriction off gives everything back', async ({ page }) => {
+  await page.getByTestId('toggle-restricted').check();
+  await expect(embed(page).getByTestId('toolbox-file')).toBeHidden();
+
+  await page.getByTestId('toggle-restricted').uncheck();
+
+  // Every field can only take something away, so the unconfigured Creator is the most
+  // capable one — which is what makes the shape checkable. The demo keys the component on
+  // which deployment it is showing, because a configuration is read once when the models
+  // are built; changing deployment is showing a *different* Creator, and `key` says so.
+  await expect(embed(page).getByTestId('toolbox-file')).toBeVisible();
+  await expect(embed(page).getByTestId('creator-tab-json')).toBeVisible();
+});

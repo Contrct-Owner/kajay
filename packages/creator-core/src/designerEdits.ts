@@ -2,6 +2,7 @@ import type { DesignSurface } from './DesignSurface.js';
 import type { DropSlot, PlacementSource } from './placement.js';
 import { addPage, pageAfterRemoving, removePage } from './pageEdits.js';
 import { applyPlacement, placedName } from './placement.js';
+import { isTypeAllowed } from './CreatorConfiguration.js';
 
 /**
  * The structural edits, written as what they are: a definition in, a definition out.
@@ -55,6 +56,13 @@ export function placeOn(
   source: PlacementSource,
   slot: DropSlot,
 ): boolean {
+  // A restricted Creator refuses the *edit*, not merely the button — checklist N2. A
+  // toolbox that drew a shorter list while `place` still accepted anything would make the
+  // restriction a suggestion, and a keyboard drag or a host calling `place` directly would
+  // walk straight past it.
+  if (source.kind === 'new' && !isTypeAllowed(source.item.type, surface.configuration)) {
+    return false;
+  }
   const before = surface.definition;
   const after = applyPlacement(before, source, slot);
   if (after === before) {

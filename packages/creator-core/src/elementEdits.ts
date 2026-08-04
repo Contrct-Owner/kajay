@@ -1,4 +1,6 @@
 import type { MetadataRegistry, SurveyDefinition } from '@kajay/core';
+import { isTypeAllowed } from './CreatorConfiguration.js';
+import type { CreatorConfiguration } from './CreatorConfiguration.js';
 import type { DesignSurface } from './DesignSurface.js';
 import { listOf, nameOf, withList } from './definitionTree.js';
 import type { DropList } from './definitionTree.js';
@@ -123,7 +125,13 @@ export function convertIn(
     return false;
   }
   const element = findByName(items, name);
-  if (element === undefined || !canConvert(element, type, registry)) {
+  if (
+    element === undefined ||
+    !canConvert(element, type, registry) ||
+    // A type a designer may not *add* is one they may not convert into either — otherwise
+    // the restriction is a detour rather than a rule.
+    !isTypeAllowed(type, surface.configuration)
+  ) {
     return false;
   }
   const converted = convertDefinition(element, type, registry);
@@ -160,8 +168,13 @@ export function canConvert(
 }
 
 /** The types a question can be turned into. Questions only, for the reason above. */
-export function convertibleTypes(registry: MetadataRegistry): readonly string[] {
-  return registry.getConcreteSubclasses('question');
+export function convertibleTypes(
+  registry: MetadataRegistry,
+  configuration?: CreatorConfiguration,
+): readonly string[] {
+  return registry
+    .getConcreteSubclasses('question')
+    .filter((type) => isTypeAllowed(type, configuration));
 }
 
 function isConvertibleType(type: string, registry: MetadataRegistry): boolean {

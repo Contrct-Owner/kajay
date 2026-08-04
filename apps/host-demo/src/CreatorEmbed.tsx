@@ -22,6 +22,20 @@ const DESIGNED: SurveyDefinition = {
 };
 
 /**
+ * What a restricted deployment looks like — checklist N2.
+ *
+ * A plain value, which is the point: this could as easily have arrived as JSON from a
+ * server keyed on which customer is logged in.
+ */
+const RESTRICTED = {
+  tabs: ['design', 'preview'] as const,
+  configuration: {
+    allowedTypes: ['text', 'comment', 'radiogroup'],
+    grid: { hidden: ['visibleIf', 'enableIf', 'requiredIf'] },
+  },
+};
+
+/**
  * The whole Creator as one component — checklist N1.
  *
  * **Controlled, the way a host actually holds it:** the definition lives in this file's
@@ -40,6 +54,10 @@ export function CreatorEmbed({ theme }: CreatorEmbedProps): ReactElement {
   // every page-wide query in this app's own scenarios ambiguous. Two Creators at once is a
   // demo artefact rather than something the library minds, so the demo hides one.
   const [isShown, setShown] = useState(false);
+  // **A second deployment of the same component, restricted** — checklist N2. Same library,
+  // same props, a different configuration: three question types, no JSON or theme tab, and
+  // the logic section of the property grid turned off.
+  const [isRestricted, setRestricted] = useState(false);
 
   return (
     <section
@@ -58,8 +76,21 @@ export function CreatorEmbed({ theme }: CreatorEmbedProps): ReactElement {
       >
         {isShown ? 'Hide the embedded creator' : 'Show the embedded creator'}
       </button>
+      <label htmlFor="restrict-embed">
+        <input
+          id="restrict-embed"
+          type="checkbox"
+          data-testid="toggle-restricted"
+          checked={isRestricted}
+          onChange={(event) => {
+            setRestricted(event.target.checked);
+          }}
+        />
+        {' Restrict this deployment'}
+      </label>
       {isShown ? (
         <EmbeddedCreator
+          isRestricted={isRestricted}
           value={value}
           onChange={setValue}
           onSaved={() => {
@@ -77,7 +108,9 @@ function EmbeddedCreator({
   onChange,
   onSaved,
   saves,
+  isRestricted,
 }: {
+  readonly isRestricted: boolean;
   readonly value: SurveyDefinition;
   readonly onChange: (definition: SurveyDefinition) => void;
   readonly onSaved: () => void;
@@ -86,8 +119,14 @@ function EmbeddedCreator({
   return (
     <>
       <SurveyCreator
+        // **Keyed on the deployment.** A configuration is read once, when the Creator's
+        // models are built — see `useCreatorModels`, and the trap it exists to avoid. A
+        // host changing which deployment they are showing is showing a *different* Creator,
+        // and `key` is React's own way of saying so.
+        key={isRestricted ? 'restricted' : 'full'}
         value={value}
         onChange={onChange}
+        {...(isRestricted ? RESTRICTED : {})}
         isAutoSave
         save={(definition) => {
           onSaved();

@@ -1,6 +1,8 @@
 import { EventEmitter, globalRegistry } from '@kajay/core';
 import type { MetadataRegistry } from '@kajay/core';
 import { BUILT_IN_TOOLBOX, CATEGORY_ORDER } from './builtInToolbox.js';
+import { allowedToolboxItems } from './CreatorConfiguration.js';
+import type { CreatorConfiguration } from './CreatorConfiguration.js';
 import { fallbackTitle, OTHER_CATEGORY, toToolboxItem } from './ToolboxItem.js';
 import type { ToolboxItem, ToolboxItemDefinition } from './ToolboxItem.js';
 
@@ -11,6 +13,8 @@ export interface ToolboxCategory {
 }
 
 export interface ToolboxOptions {
+  /** What this deployment has turned off — checklist N2. Absent means nothing. */
+  readonly configuration?: CreatorConfiguration | undefined;
   /** Where the types come from. The global registry unless a host says otherwise. */
   readonly registry?: MetadataRegistry;
   /**
@@ -40,6 +44,7 @@ export interface ToolboxOptions {
  */
 export class Toolbox {
   readonly #items: Map<string, ToolboxItem> = new Map();
+  readonly #configuration: CreatorConfiguration | undefined;
   #search = '';
 
   /**
@@ -54,6 +59,7 @@ export class Toolbox {
   readonly onChanged: EventEmitter<number> = new EventEmitter();
 
   constructor(options: ToolboxOptions = {}) {
+    this.#configuration = options.configuration;
     const registry = options.registry ?? globalRegistry;
     for (const type of registry.getConcreteSubclasses(options.baseType ?? 'pageelement')) {
       this.add({ type });
@@ -66,7 +72,10 @@ export class Toolbox {
 
   /** Every item, whatever the search says. */
   get items(): readonly ToolboxItem[] {
-    return [...this.#items.values()];
+    // Filtered here rather than at construction, so a host adding an item afterwards is
+    // held to the same restriction as the built-in ones — a curation seam that let a
+    // blocked type back in through the side door would be worse than no restriction.
+    return allowedToolboxItems([...this.#items.values()], this.#configuration);
   }
 
   /** What the designer has typed. */

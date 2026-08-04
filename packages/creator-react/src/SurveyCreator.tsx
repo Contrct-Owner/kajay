@@ -8,7 +8,12 @@ import {
   Toolbox,
   TranslationSession,
 } from '@kajay/creator-core';
-import type { MachineTranslator, SurveySaver, ThemeDocument } from '@kajay/creator-core';
+import type {
+  CreatorConfiguration,
+  MachineTranslator,
+  SurveySaver,
+  ThemeDocument,
+} from '@kajay/creator-core';
 import type { MetadataRegistry, ParseOptions, SurveyDefinition } from '@kajay/core';
 import type { PageElementRendererRegistry } from '@kajay/react';
 import { useEffect, useRef, useState } from 'react';
@@ -30,8 +35,16 @@ export interface SurveyCreatorProps {
   readonly save?: SurveySaver | undefined;
   /** Whether every change is saved, or only a press of the button. */
   readonly isAutoSave?: boolean | undefined;
-  /** Which tabs to show, in order. Defaults to all of them. */
+  /** Which tabs to show, in order. Defaults to all of them — checklist N2. */
   readonly tabs?: readonly CreatorTab[] | undefined;
+  /**
+   * What this deployment has turned off — checklist N2.
+   *
+   * A plain value so it can be written in JSON, stored against a customer and sent from a
+   * server: a deployment offering three question types to one tenant and thirty to another
+   * has to be able to *say* so somewhere other than in code.
+   */
+  readonly configuration?: CreatorConfiguration | undefined;
   readonly registry?: MetadataRegistry | undefined;
   /** Renderers for the canvas and the preview. Pass a clone to draw a custom type. */
   readonly renderers?: PageElementRendererRegistry | undefined;
@@ -61,6 +74,7 @@ export function SurveyCreator({
   save,
   isAutoSave = false,
   tabs = DEFAULT_CREATOR_TABS,
+  configuration,
   registry,
   renderers,
   parse,
@@ -68,7 +82,7 @@ export function SurveyCreator({
   theme,
   className,
 }: SurveyCreatorProps): ReactElement {
-  const models = useCreatorModels({ value, registry, parse, translate, theme });
+  const models = useCreatorModels({ value, configuration, registry, parse, translate, theme });
   const saver = useSaveController(save);
   useCreatorDocument({
     surface: models.surface,
@@ -82,6 +96,7 @@ export function SurveyCreator({
     <div className={joinClasses('kajay-creator', className)}>
       <CreatorTabs
         models={models}
+        configuration={configuration}
         tabs={tabs}
         tab={tabs.includes(tab) ? tab : (tabs[0] ?? 'design')}
         onTabChange={setTab}
@@ -121,16 +136,20 @@ export interface CreatorModels {
  */
 function useCreatorModels({
   value,
+  configuration,
   registry,
   parse,
   translate,
   theme,
-}: Pick<SurveyCreatorProps, 'value' | 'registry' | 'parse' | 'translate' | 'theme'>): CreatorModels {
+}: Pick<
+  SurveyCreatorProps,
+  'value' | 'configuration' | 'registry' | 'parse' | 'translate' | 'theme'
+>): CreatorModels {
   const [models] = useState<CreatorModels>(() => {
-    const surface = new DesignSurface({ definition: value ?? {}, registry });
+    const surface = new DesignSurface({ definition: value ?? {}, registry, configuration });
     return {
       surface,
-      toolbox: new Toolbox(registry === undefined ? {} : { registry }),
+      toolbox: new Toolbox({ ...(registry === undefined ? {} : { registry }), configuration }),
       preview: new PreviewSession(surface, { registry, parse }),
       json: new JsonEditorSession(surface, { registry }),
       translations: new TranslationSession(surface, { registry, translate }),

@@ -1,3 +1,4 @@
+import type { CreatorConfiguration } from '@kajay/creator-core';
 import type { SaveController } from '@kajay/creator-core';
 import type { PageElementRendererRegistry } from '@kajay/react';
 import type { ReactElement } from 'react';
@@ -40,6 +41,8 @@ const TAB_TITLES: Readonly<Record<CreatorTab, string>> = {
 
 export interface CreatorTabsProps {
   readonly models: CreatorModels;
+  /** What this deployment has turned off — checklist N2. */
+  readonly configuration?: CreatorConfiguration | undefined;
   readonly tabs: readonly CreatorTab[];
   readonly tab: CreatorTab;
   readonly onTabChange: (tab: CreatorTab) => void;
@@ -61,6 +64,7 @@ export interface CreatorTabsProps {
  */
 export function CreatorTabs({
   models,
+  configuration,
   tabs,
   tab,
   onTabChange,
@@ -96,7 +100,12 @@ export function CreatorTabs({
         {saver === undefined ? null : <SaveButton surface={models.surface} saver={saver} />}
       </div>
       <div className="kajay-creator__body">
-        <TabBody models={models} tab={tab} renderers={renderers} />
+        <TabBody
+          models={models}
+          tab={tab}
+          renderers={renderers}
+          configuration={configuration}
+        />
       </div>
     </>
   );
@@ -106,14 +115,16 @@ function TabBody({
   models,
   tab,
   renderers,
+  configuration,
 }: {
   readonly models: CreatorModels;
   readonly tab: CreatorTab;
   readonly renderers: PageElementRendererRegistry | undefined;
+  readonly configuration: CreatorConfiguration | undefined;
 }): ReactElement {
   switch (tab) {
     case 'design':
-      return <DesignTab models={models} renderers={renderers} />;
+      return <DesignTab models={models} renderers={renderers} configuration={configuration} />;
     case 'preview':
       return (
         <PreviewPanel
@@ -142,9 +153,11 @@ function TabBody({
 function DesignTab({
   models,
   renderers,
+  configuration,
 }: {
   readonly models: CreatorModels;
   readonly renderers: PageElementRendererRegistry | undefined;
+  readonly configuration: CreatorConfiguration | undefined;
 }): ReactElement {
   const placement = useDesignerPlacement(models.surface);
 
@@ -160,7 +173,10 @@ function DesignTab({
           {...(renderers === undefined ? {} : { renderers })}
         />
       </div>
-      <PropertyGridPanel surface={models.surface} />
+      <PropertyGridPanel
+        surface={models.surface}
+        {...(configuration?.grid === undefined ? {} : { grid: configuration.grid })}
+      />
     </div>
   );
 }

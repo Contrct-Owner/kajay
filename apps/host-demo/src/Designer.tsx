@@ -1,7 +1,8 @@
-import { DesignSurface, Toolbox } from '@kajay/creator-core';
+import { DesignSurface, PreviewSession, Toolbox } from '@kajay/creator-core';
 import { HistoryPanel, PageNavigatorPanel, useDesignerPlacement } from '@kajay/creator-react';
-import { useMemo } from 'react';
-import type { ReactElement } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
+import { DesignerPreview } from './DesignerPreview.js';
 import { DesignerProperties } from './DesignerProperties.js';
 import { DesignerSurface } from './DesignerSurface.js';
 import { DesignerToolbox } from './DesignerToolbox.js';
@@ -74,23 +75,84 @@ export function Designer({ theme }: DesignerProps): ReactElement {
   const surface = useMemo(() => new DesignSurface({ definition: DESIGNED }), []);
   const toolbox = useMemo(() => new Toolbox(), []);
   const placement = useDesignerPlacement(surface);
+  // Built here rather than inside the preview tab, so a run survives switching away to
+  // change a title and back again. It follows the surface's changes, so it is disposed
+  // when the whole Creator goes.
+  const session = useMemo(() => new PreviewSession(surface), [surface]);
+  useEffect(
+    () => () => {
+      session.dispose();
+    },
+    [session],
+  );
+  const [tab, setTab] = useState<DesignerTab>('design');
 
   return (
     <>
-      <DesignerToolbox
-        theme={theme}
-        toolbox={toolbox}
-        getItemProps={placement.getItemProps}
-      />
-      <DesignerSurface theme={theme} surface={surface} placement={placement}>
-        <HistoryPanel surface={surface} />
-        <PageNavigatorPanel surface={surface} placement={placement} />
-      </DesignerSurface>
-      {/* Its own section rather than a strip inside the canvas — a property grid is the
-          piece most likely to live somewhere the host already had a sidebar (L1) — and its
-          own *file*, because everything this deployment has changed about the grid (L4)
-          belongs with the host rather than beside the assembly. */}
-      <DesignerProperties theme={theme} surface={surface} />
+      <DesignerTabs tab={tab} onChange={setTab} theme={theme} />
+      {tab === 'design' ? (
+        <>
+          <DesignerToolbox
+            theme={theme}
+            toolbox={toolbox}
+            getItemProps={placement.getItemProps}
+          />
+          <DesignerSurface theme={theme} surface={surface} placement={placement}>
+            <HistoryPanel surface={surface} />
+            <PageNavigatorPanel surface={surface} placement={placement} />
+          </DesignerSurface>
+          {/* Its own section rather than a strip inside the canvas — a property grid is
+              the piece most likely to live somewhere the host already had a sidebar (L1)
+              — and its own *file*, because everything this deployment has changed about
+              the grid (L4) belongs with the host rather than beside the assembly. */}
+          <DesignerProperties theme={theme} surface={surface} />
+        </>
+      ) : (
+        <DesignerPreview theme={theme} session={session} />
+      )}
     </>
+  );
+}
+
+type DesignerTab = 'design' | 'preview';
+
+/**
+ * Design or preview, one at a time — checklist M3's word for it.
+ *
+ * **A tab, not a panel beside the others, and this deployment learned why the hard way.**
+ * A preview is a *complete second survey* in the document: the same Next button, the same
+ * navigation, the same roles. Rendered alongside the designer it made every page-wide
+ * query in this app's own scenarios ambiguous — the same lesson K2 learned about a second
+ * `role="status"`, arriving in a much larger size. The library is happy either way; a host
+ * showing both at once needs to scope its queries, and the honest default is not to.
+ */
+function DesignerTabs({
+  tab,
+  onChange,
+  theme,
+}: {
+  readonly tab: DesignerTab;
+  readonly onChange: (tab: DesignerTab) => void;
+  readonly theme: Readonly<Record<string, string>>;
+}): ReactElement {
+  return (
+    <section className="host-demo__panel" aria-label="Designer tabs" style={theme as CSSProperties}>
+      <div role="tablist" aria-label="Creator">
+        {(['design', 'preview'] as const).map((name) => (
+          <button
+            key={name}
+            type="button"
+            role="tab"
+            aria-selected={tab === name}
+            data-testid={`tab-${name}`}
+            onClick={() => {
+              onChange(name);
+            }}
+          >
+            {name === 'design' ? 'Design' : 'Preview'}
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }

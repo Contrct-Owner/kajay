@@ -73,6 +73,15 @@ export {
 export { canPlace, applyPlacement, dropSlotsFor, dropSlotsOn } from './placement.js';
 export type { DropSlot, PlacementSource } from './placement.js';
 export { addPage, pageAfterRemoving, removePage } from './pageEdits.js';
+export { PreviewSession } from './PreviewSession.js';
+export type { PreviewData, PreviewSessionOptions } from './PreviewSession.js';
+export {
+  DEFAULT_PREVIEW_DEVICE,
+  PREVIEW_DEVICES,
+  previewDevice,
+  previewViewport,
+} from './previewDevices.js';
+export type { PreviewDevice, PreviewOrientation, PreviewViewport } from './previewDevices.js';
 export { UndoHistory } from './UndoHistory.js';
 export type { HistorySnapshot } from './UndoHistory.js';
 export type { DropList, IsContainerType } from './definitionTree.js';

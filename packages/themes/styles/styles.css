@@ -1760,3 +1760,26 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* The preview — checklist M3. The frame is a plain sized box, so the questions inside lay
+   themselves out against a real width rather than against a picture of one. */
+.kajay-preview__controls {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 2);
+  align-items: center;
+  margin-block-end: var(--kajay-spacing);
+}
+
+.kajay-preview__frame {
+  max-width: 100%;
+  overflow: auto;
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  padding: var(--kajay-spacing);
+  background: var(--kajay-color-surface);
+}
+
+.kajay-preview__stale {
+  margin-block: 0 var(--kajay-spacing);
+  color: var(--kajay-color-danger);
+}

@@ -62,3 +62,22 @@ body {
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
 }
+
+/* The preview's test data — checklist M3. Seed and readout side by side, because seeing
+   them together is what makes the seed checkable. */
+.host-demo__test-data {
+  display: grid;
+  gap: 0.5rem;
+  margin-block-start: 1rem;
+}
+
+.host-demo__test-data textarea {
+  font-family: ui-monospace, monospace;
+}
+
+.host-demo__test-data pre {
+  margin: 0;
+  padding: 0.5rem;
+  background: #f4f4f5;
+  overflow-x: auto;
+}

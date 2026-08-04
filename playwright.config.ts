@@ -1,6 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const hostDemoUrl = 'http://localhost:4173';
+// The reference application (§P). Its own port and its own project, because it is a
+// different artifact with a different job: the demo proves capability through the smallest
+// possible host, and this one proves the packages are pleasant to build with.
+const siteUrl = 'http://localhost:4174';
 
 // Playwright explicitly forces colour for its web server. Some runners also set NO_COLOR;
 // remove that conflicting inherited preference before Playwright starts any child process.
@@ -12,7 +16,7 @@ delete process.env['NO_COLOR'];
 // delegate here so direct Playwright invocation has the same freshness guarantee.
 // Scenario titles carry checklist ids (`parity/<row-id>-<slug>`).
 export default defineConfig({
-  testDir: './apps/host-demo/e2e',
+  // Each project names its own, so the two suites do not have to live in one tree.
   // Deterministic sharding by sorted file, so CI can add shards without changing
   // behaviour. Full parallelism: no scenario may depend on another's state.
   fullyParallel: true,
@@ -40,8 +44,20 @@ export default defineConfig({
     baseURL: hostDemoUrl,
     trace: 'retain-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: {
+  projects: [
+    {
+      name: 'host-demo',
+      testDir: './apps/host-demo/e2e',
+      use: { ...devices['Desktop Chrome'], baseURL: hostDemoUrl },
+    },
+    {
+      name: 'site',
+      testDir: './apps/site/e2e',
+      use: { ...devices['Desktop Chrome'], baseURL: siteUrl },
+    },
+  ],
+  webServer: [
+    {
     // `preview` serves whatever is already in the demo's `dist`, so the build is part
     // of the command — running Playwright directly must not silently test a stale
     // bundle, which it did once, reporting the old string-typed REST answer long after
@@ -56,5 +72,17 @@ export default defineConfig({
     // right price for never debugging that again.
     reuseExistingServer: false,
     timeout: 120_000,
-  },
+    },
+    {
+      // The same freshness rule, for the same reason. `vite preview` serves the SSR build
+      // TanStack Start emits, so the site is exercised as it would be deployed rather than
+      // through a dev server — which is the only way P1's server rendering is really under
+      // test rather than asserted.
+      command:
+        'pnpm --filter @kajay/site run build && pnpm --filter @kajay/site run preview -- --port 4174 --strictPort',
+      url: siteUrl,
+      reuseExistingServer: false,
+      timeout: 120_000,
+    },
+  ],
 });

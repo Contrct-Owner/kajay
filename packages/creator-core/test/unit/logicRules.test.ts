@@ -149,7 +149,7 @@ describe('parity/M1-logic-edits', () => {
         terms: [{ left: 'tier', operator: '==', right: 'bronze' }],
         join: 'and',
       }),
-    ).toBe(true);
+    ).toBeUndefined();
 
     expect(designed.survey.getQuestionByName('why')?.getPropertyValue('visibleIf')).toBe(
       "{tier} == 'bronze'",

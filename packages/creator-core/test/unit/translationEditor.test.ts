@@ -129,7 +129,7 @@ describe('parity/M4-translations', () => {
     const made = session(designed);
     const who = made.entries.find((entry) => entry.key.endsWith('elements/who/title'));
 
-    expect(made.setText(who!, 'fr', 'Votre nom')).toBe(true);
+    expect(made.setText(who!, 'fr', 'Votre nom')).toBeUndefined();
 
     // L2's rule: a language is written into the property in place, never over the others.
     expect(designed.survey.getQuestionByName('who')?.getPropertyValue('title')).toEqual({

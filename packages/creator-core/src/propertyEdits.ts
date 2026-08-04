@@ -1,7 +1,10 @@
 import { isLocalizedText } from '@kajay/core';
 import type { MetadataRegistry, PropertyValue, SurveyElement } from '@kajay/core';
 import type { DesignSurface } from './DesignSurface.js';
-import { renameThroughout, takenNames } from './fragments.js';
+import { renameThroughout } from './fragments.js';
+import { nameRefusal } from './nameRefusal.js';
+import { refuse } from './EditRefusal.js';
+import type { EditRefusal } from './EditRefusal.js';
 import { DEFAULT_LOCALE_KEY } from './propertyGrid.js';
 
 /**
@@ -15,7 +18,7 @@ import { DEFAULT_LOCALE_KEY } from './propertyGrid.js';
  */
 
 /**
- * Sets a declared property. Says whether it took.
+ * Sets a declared property. Says why it did not take, or `undefined` when it did.
  *
  * Refuses a property the element's type does not declare, rather than storing it: the grid
  * only ever offers declared ones, so anything else arriving here is a caller that has got
@@ -28,22 +31,28 @@ export function setPropertyOn(
   name: string,
   value: PropertyValue,
   registry: MetadataRegistry,
-): boolean {
+): EditRefusal | undefined {
   const descriptor = registry
     .getProperties(element.type)
     .find((property) => property.name === name);
   if (descriptor === undefined) {
-    return false;
+    return refuse('unknown-property', name);
   }
   if (name === 'name') {
     const current = element.getPropertyValue('name');
-    return typeof current === 'string' && renameIn(surface, current, String(value));
+    // An element with no name is one the survey cannot refer to at all, so there is
+    // nothing to rename *from* — reported as not-found rather than as a bad new name,
+    // which would blame the designer's typing for the document's shape.
+    return typeof current === 'string'
+      ? renameIn(surface, current, String(value))
+      : refuse('not-found', name);
   }
   const written = merged(element.getPropertyValue(name), value, descriptor.isLocalizable, surface);
-  surface.change(() => {
+  // Returned rather than discarded: `change` is where the read-only refusal is minted, and
+  // dropping it here is exactly the silence ADR-0023 is about — one layer further in.
+  return surface.change(() => {
     element.setPropertyValue(name, written);
   }, undoKeyFor(element, name));
-  return true;
 }
 
 /**
@@ -105,18 +114,23 @@ export function setLocalizedOn(
   locale: string,
   text: string,
   registry: MetadataRegistry,
-): boolean {
+): EditRefusal | undefined {
   const descriptor = registry
     .getProperties(element.type)
     .find((property) => property.name === name);
-  if (descriptor === undefined || !descriptor.isLocalizable || locale.length === 0) {
-    return false;
+  if (descriptor === undefined) {
+    return refuse('unknown-property', name);
+  }
+  // A blank locale is the same refusal as a property that does not translate: both mean
+  // "there is no language this text belongs to", and splitting them would give a
+  // translations panel two messages for one mistake nobody makes twice.
+  if (!descriptor.isLocalizable || locale.length === 0) {
+    return refuse('not-localizable', name);
   }
   const written = withLocale(element.getPropertyValue(name), locale, text);
-  surface.change(() => {
+  return surface.change(() => {
     element.setPropertyValue(name, written);
   }, `${undoKeyFor(element, name)}:${locale}`);
-  return true;
 }
 
 function withLocale(current: PropertyValue | undefined, locale: string, text: string): PropertyValue {
@@ -158,18 +172,23 @@ function plainEntries(current: PropertyValue | undefined): Record<string, string
  *
  * Refused when the name is blank or already spoken for. A collision is the exact failure
  * `uniqueName` exists to prevent: two questions answering to one name, with
- * `getQuestionByName` returning whichever the parser saw first. Refusing is reported
- * rather than announced, so the field a designer is typing in reverts and nothing else
- * moves.
+ * `getQuestionByName` returning whichever the parser saw first.
+ *
+ * **The reason comes back, and the same predicate the field asks with decides it** —
+ * [`nameRefusal`](./nameRefusal.ts). Before ADR-0023 this returned `false` and the field
+ * silently put the old name back, which is indistinguishable from a text box that ate the
+ * typing.
  */
-export function renameIn(surface: DesignSurface, from: string, to: string): boolean {
+export function renameIn(
+  surface: DesignSurface,
+  from: string,
+  to: string,
+): EditRefusal | undefined {
   const trimmed = to.trim();
   const before = surface.definition;
-  // Renaming something to what it is already called needs no separate guard: its own
-  // name is one of the taken ones. A `trimmed === from` check beside this would read as
-  // if it were doing something and could never fail.
-  if (trimmed.length === 0 || takenNames(before).has(trimmed)) {
-    return false;
+  const refusal = nameRefusal(before, trimmed);
+  if (refusal !== undefined) {
+    return refusal;
   }
   const page = surface.page?.name;
   const selected = surface.selection.name;
@@ -184,5 +203,5 @@ export function renameIn(surface: DesignSurface, from: string, to: string): bool
     goTo: page === from ? trimmed : page,
     from: before,
   });
-  return true;
+  return undefined;
 }

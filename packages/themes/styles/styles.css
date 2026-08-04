@@ -944,6 +944,14 @@
   font-size: 0.85em;
 }
 
+/* Why an edit was refused (ADR-0023). Danger-coloured rather than muted like the hint
+   beside it: a hint is what the property accepts, this is what just happened. */
+.kajay-properties__refusal {
+  margin: calc(var(--kajay-spacing) / 4) 0 0;
+  color: var(--kajay-color-danger);
+  font-size: var(--kajay-font-size-sm);
+}
+
 @media (max-width: 40rem) {
   .kajay-properties__row {
     grid-template-columns: 1fr;

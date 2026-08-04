@@ -1,5 +1,10 @@
-import { parseEditorText } from '@kajay/creator-core';
-import type { DesignSurface, PropertyGridCategory, PropertyRow } from '@kajay/creator-core';
+import { parseEditorText, refusalMessageKey } from '@kajay/creator-core';
+import type {
+  DesignSurface,
+  EditRefusal,
+  PropertyGridCategory,
+  PropertyRow,
+} from '@kajay/creator-core';
 import type { SurveyElement } from '@kajay/core';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
@@ -198,57 +203,138 @@ function BooleanField({ surface, element, row, id, hint, testId }: EditorProps):
  * half-typed states this exists to keep.
  */
 function TextualField({ surface, element, row, id, hint, testId }: EditorProps): ReactElement {
-  const [state, setState] = useState({ draft: row.text, shown: row.text });
-  if (state.shown !== row.text) {
-    setState({ draft: row.text, shown: row.text });
-  }
-
-  const commit = (text: string): void => {
-    const value = parseEditorText(row.editor, text);
-    if (value !== undefined) {
-      surface.setProperty(element, row.name, value);
-    }
-  };
-  const change = (text: string): void => {
-    setState({ draft: text, shown: row.text });
-    if (row.commit === 'change') {
-      commit(text);
-    }
-  };
-  const blur = (): void => {
-    if (row.commit === 'blur') {
-      commit(state.draft);
-      // Re-seeded from the model rather than from the draft, so a refused rename — a
-      // blank name, or one already taken — puts the old name back in the field instead
-      // of leaving a name on screen that the survey does not have.
-      setState({ draft: row.text, shown: row.text });
-    }
-  };
+  const { draft, refusal, change, blur } = useDraft(surface, element, row);
+  const refusalId = `${id}-refusal`;
+  const describedBy = joinIds(hint, refusal === undefined ? undefined : refusalId);
 
   // An expression field is the same draft over a different control: what it adds is a
   // suggestion list, and what it must not lose is L1's rule that a value changing
   // underneath the field re-seeds it.
-  return row.isExpression ? (
-    <ExpressionField
-      surface={surface}
-      owner={String(element.getPropertyValue('name') ?? '')}
-      id={id}
-      hint={hint}
-      data-testid={testId}
-      value={state.draft}
-      onValueChange={change}
-    />
-  ) : (
-    <PlainField
-      row={row}
-      id={id}
-      hint={hint}
-      testId={testId}
-      draft={state.draft}
-      onChange={change}
-      onCommit={blur}
-    />
+  return (
+    <>
+      {row.isExpression ? (
+        <ExpressionField
+          surface={surface}
+          owner={String(element.getPropertyValue('name') ?? '')}
+          id={id}
+          hint={describedBy}
+          data-testid={testId}
+          value={draft}
+          onValueChange={change}
+        />
+      ) : (
+        <PlainField
+          row={row}
+          id={id}
+          hint={describedBy}
+          testId={testId}
+          draft={draft}
+          isRefused={refusal !== undefined}
+          onChange={change}
+          onCommit={blur}
+        />
+      )}
+      <RefusalNote id={refusalId} testId={`${testId}-refusal`} refusal={refusal} />
+    </>
   );
+}
+
+/**
+ * The half-typed value, and why the last commit was refused.
+ *
+ * Its own hook because the two belong together: a refusal is *about* a draft, and it has to
+ * be cleared by the same keystroke that changes what it was about. Splitting them across
+ * two `useState`s would leave a message on screen describing a name the field no longer
+ * holds.
+ */
+function useDraft(
+  surface: DesignSurface,
+  element: SurveyElement,
+  row: PropertyRow,
+): {
+  readonly draft: string;
+  readonly refusal: EditRefusal | undefined;
+  readonly change: (text: string) => void;
+  readonly blur: () => void;
+} {
+  const [state, setState] = useState<FieldState>({ draft: row.text, shown: row.text });
+  if (state.shown !== row.text) {
+    setState({ draft: row.text, shown: row.text });
+  }
+
+  const commit = (text: string): EditRefusal | undefined => {
+    const value = parseEditorText(row.editor, text);
+    return value === undefined ? undefined : surface.setProperty(element, row.name, value);
+  };
+
+  return {
+    draft: state.draft,
+    refusal: state.refusal,
+    // Typing clears the last refusal. The message was about the value they had just tried,
+    // and leaving it beside a field they are now changing would attach it to something
+    // nothing has judged yet.
+    change: (text: string): void => {
+      setState({
+        draft: text,
+        shown: row.text,
+        ...(row.commit === 'change' ? { refusal: commit(text) } : {}),
+      });
+    },
+    blur: (): void => {
+      if (row.commit !== 'blur') {
+        return;
+      }
+      const refusal = commit(state.draft);
+      // Re-seeded from the model rather than from the draft, so a refused rename puts the
+      // old name back instead of leaving one on screen the survey does not have. **And the
+      // reason is kept** — reverting silently is what made this indistinguishable from a
+      // field that ate the typing (ADR-0023).
+      setState({ draft: row.text, shown: row.text, refusal });
+    },
+  };
+}
+
+interface FieldState {
+  readonly draft: string;
+  readonly shown: string;
+  readonly refusal?: EditRefusal | undefined;
+}
+
+/**
+ * Why the edit did not take — [ADR-0023](../../../docs/adr/0023-the-creator-says-what-happened.md).
+ *
+ * **`role="alert"` as well as `aria-describedby`.** The description wiring alone would be
+ * silent here: a blur-committed rename is refused *after* focus has left the field, so
+ * nothing re-reads its description and a screen-reader user would get the same nothing a
+ * sighted one used to. The live region says it once, when it happens.
+ *
+ * The words come from the Creator's own catalogue by way of `refusalMessageKey`, so a
+ * white-labelled or translated deployment gets these like every other string (N3).
+ */
+function RefusalNote({
+  id,
+  testId,
+  refusal,
+}: {
+  readonly id: string;
+  readonly testId: string;
+  readonly refusal: EditRefusal | undefined;
+}): ReactElement | null {
+  const text = useCreatorText();
+  if (refusal === undefined) {
+    return null;
+  }
+  return (
+    <p className="kajay-properties__refusal" id={id} data-testid={testId} role="alert">
+      {text(refusalMessageKey(refusal.kind), refusal.subject ?? '')}
+    </p>
+  );
+}
+
+/** `aria-describedby` takes a list, and a field may have both a hint and a refusal. */
+function joinIds(...ids: readonly (string | undefined)[]): string | undefined {
+  const present = ids.filter((value): value is string => value !== undefined);
+  return present.length === 0 ? undefined : present.join(' ');
 }
 
 function PlainField({
@@ -257,6 +343,7 @@ function PlainField({
   hint,
   testId,
   draft,
+  isRefused,
   onChange,
   onCommit,
 }: {
@@ -265,6 +352,7 @@ function PlainField({
   readonly hint: string | undefined;
   readonly testId: string;
   readonly draft: string;
+  readonly isRefused: boolean;
   readonly onChange: (text: string) => void;
   readonly onCommit: () => void;
 }): ReactElement {
@@ -277,9 +365,14 @@ function PlainField({
       data-testid={testId}
       aria-describedby={hint}
       // Only where a designer can genuinely be wrong. An empty number field is somebody
-      // mid-retype, not a mistake, and flagging it would cry wolf on every edit.
+      // mid-retype, not a mistake, and flagging it would cry wolf on every edit. A refusal
+      // the document actually returned is the other such case — it is not a guess about
+      // what they typed, it is what happened when they committed it.
       aria-invalid={
-        row.editor === 'json' && parseEditorText(row.editor, draft) === undefined ? true : undefined
+        isRefused ||
+        (row.editor === 'json' && parseEditorText(row.editor, draft) === undefined)
+          ? true
+          : undefined
       }
       readOnly={row.isReadOnly}
       value={draft}

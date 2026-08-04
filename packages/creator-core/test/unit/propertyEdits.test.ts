@@ -59,7 +59,7 @@ describe('parity/L1-set', () => {
     const designed = surface();
     const who = selectByName(designed, 'who');
 
-    expect(designed.setProperty(who, 'isRequired', true)).toBe(true);
+    expect(designed.setProperty(who, 'isRequired', true)).toBeUndefined();
 
     expect(elementIn(designed.definition, 'who')['isRequired']).toBe(true);
   });
@@ -134,7 +134,7 @@ describe('parity/L1-set', () => {
     // The grid only ever offers declared properties, so anything else arriving here is a
     // caller that got the element and the property from two different places — and the
     // value would round-trip as an unknown property and never be seen again.
-    expect(designed.setProperty(selectByName(designed, 'who'), 'nonsense', 1)).toBe(false);
+    expect(designed.setProperty(selectByName(designed, 'who'), 'nonsense', 1)?.kind).toBe('unknown-property');
   });
 
   test('every keystroke of one field is one undo entry', () => {
@@ -171,7 +171,7 @@ describe('parity/L1-rename', () => {
     const designed = surface();
     selectByName(designed, 'who');
 
-    expect(designed.rename('who', 'applicant')).toBe(true);
+    expect(designed.rename('who', 'applicant')).toBeUndefined();
 
     // A rename that changed only the `name` key would leave `visibleIf` pointing at a
     // question that no longer exists: the survey would still parse, still render, and
@@ -195,15 +195,17 @@ describe('parity/L1-rename', () => {
   test('a name already spoken for is refused', () => {
     const designed = surface();
 
-    expect(designed.rename('who', 'why')).toBe(false);
-    expect(designed.setProperty(selectByName(designed, 'who'), 'name', 'why')).toBe(false);
+    expect(designed.rename('who', 'why')?.kind).toBe('name-taken');
+    expect(designed.setProperty(selectByName(designed, 'who'), 'name', 'why')?.kind).toBe(
+      'name-taken',
+    );
     expect(elementIn(designed.definition, 'who')['name']).toBe('who');
   });
 
   test('a blank name is refused', () => {
     const designed = surface();
 
-    expect(designed.rename('who', '   ')).toBe(false);
+    expect(designed.rename('who', '   ')?.kind).toBe('name-empty');
     expect(elementIn(designed.definition, 'who')['name']).toBe('who');
   });
 
@@ -216,7 +218,7 @@ describe('parity/L1-rename', () => {
     });
     designed.goToPage('p2');
 
-    expect(designed.rename('p2', 'details')).toBe(true);
+    expect(designed.rename('p2', 'details')).toBeUndefined();
 
     // `applyEdit` otherwise restores "the page called p2", which is the one thing that
     // cannot work when p2 is what just changed — and a failed `goTo` leaves a fresh parse

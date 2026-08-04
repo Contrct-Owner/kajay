@@ -36,6 +36,9 @@ import type { PropertyGridOptions } from './propertyGridOptions.js';
 import type { PropertyGridCategory } from './propertyGrid.js';
 import { renameIn, setLocalizedOn, setPropertyOn } from './propertyEdits.js';
 import type { CreatorConfiguration } from './CreatorConfiguration.js';
+import { isTypeAllowed } from './CreatorConfiguration.js';
+import { refuse } from './EditRefusal.js';
+import type { EditRefusal } from './EditRefusal.js';
 import type { DesignSurfaceOptions, EditOptions } from './DesignSurfaceOptions.js';
 import { PlacementSessionModel } from './PlacementSession.js';
 import type { PlacementSession } from './PlacementSession.js';
@@ -203,8 +206,15 @@ export class DesignSurface {
    *
    * `name` goes through {@link rename} and every other property is set in place; see
    * [`propertyEdits`](./propertyEdits.ts) for why that split is not arbitrary.
+   *
+   * Returns **why it did not take**, or `undefined` when it did — ADR-0023. A boolean
+   * could not be rendered, translated, or told apart from "nothing needed doing".
    */
-  setProperty(element: SurveyElement, name: string, value: PropertyValue): boolean {
+  setProperty(
+    element: SurveyElement,
+    name: string,
+    value: PropertyValue,
+  ): EditRefusal | undefined {
     return setPropertyOn(this, element, name, value, this.#document.registry);
   }
 
@@ -215,12 +225,17 @@ export class DesignSurface {
    * any of them, which is what a translations panel needs and the whole of the
    * localizable-string editor.
    */
-  setLocalized(element: SurveyElement, name: string, locale: string, text: string): boolean {
+  setLocalized(
+    element: SurveyElement,
+    name: string,
+    locale: string,
+    text: string,
+  ): EditRefusal | undefined {
     return setLocalizedOn(this, element, name, locale, text, this.#document.registry);
   }
 
   /** Renames an element or page and every reference to it — checklist L1. */
-  rename(from: string, to: string): boolean { return renameIn(this, from, to); }
+  rename(from: string, to: string): EditRefusal | undefined { return renameIn(this, from, to); }
 
   /**
    * The child collections an element holds, ready to edit — checklist L2.
@@ -239,22 +254,27 @@ export class DesignSurface {
    * The owner is the *element*, not its name, and that is the guard as much as the
    * convenience — see [`collectionEdits`](./collectionEdits.ts).
    */
-  addChild(owner: SurveyElement, property: string, type: string): boolean {
+  addChild(owner: SurveyElement, property: string, type: string): EditRefusal | undefined {
     return addChildTo(this, owner, property, type, this.#document.registry);
   }
 
   /** Removes the child at an index. Says whether there was one. */
-  removeChild(owner: SurveyElement, property: string, index: number): boolean {
+  removeChild(owner: SurveyElement, property: string, index: number): EditRefusal | undefined {
     return removeChildFrom(this, owner, property, index, this.#document.registry);
   }
 
   /** Moves a child within its collection — checklist L2. */
-  moveChild(owner: SurveyElement, property: string, from: number, to: number): boolean {
+  moveChild(
+    owner: SurveyElement,
+    property: string,
+    from: number,
+    to: number,
+  ): EditRefusal | undefined {
     return moveChildIn(this, owner, property, from, to, this.#document.registry);
   }
 
   /** Rewrites a whole shorthand collection from text — checklist L2's fast entry. */
-  setFastEntry(owner: SurveyElement, property: string, text: string): boolean {
+  setFastEntry(owner: SurveyElement, property: string, text: string): EditRefusal | undefined {
     return setFastEntryIn(this, owner, property, text, this.#document.registry);
   }
 
@@ -306,11 +326,20 @@ export class DesignSurface {
   addPage(): void { addPageTo(this); }
 
   /** Removes a page and everything on it — checklist K4. Says whether it was there. */
-  removePage(name: string): boolean { return removePageFrom(this, name); }
+  removePage(name: string): EditRefusal | undefined { return removePageFrom(this, name); }
 
   /** Puts a new element, or an existing one, at a slot — checklist K2 and K4. */
-  place(source: PlacementSource, slot: DropSlot): boolean {
-    return this.#placementSession.transition({ kind: 'place', source, slot }) === 'committed';
+  place(source: PlacementSource, slot: DropSlot): EditRefusal | undefined {
+    // The restriction is checked here so the *specific* reason survives. `PlacementSession`
+    // answers with `'refused'` for several unrelated causes — a drag already in flight, a
+    // slot the rules forbid, a type this deployment turned off — and N2's is the one a
+    // designer can do something about, so it is asked first rather than flattened with the
+    // rest. Reconciling the two vocabularies is follow-up work; see ADR-0023.
+    if (source.kind === 'new' && !isTypeAllowed(source.item.type, this.#configuration)) {
+      return refuse('type-not-allowed', source.item.type);
+    }
+    const outcome = this.#placementSession.transition({ kind: 'place', source, slot });
+    return outcome === 'refused' ? refuse('not-placeable') : undefined;
   }
 
   /**
@@ -325,8 +354,12 @@ export class DesignSurface {
    * intended: what an edit *means* is a pure function from one definition to another,
    * and this is only the part that cannot be pure.
    */
-  applyEdit(definition: SurveyDefinition, options: EditOptions = {}): void {
-    if (this.isReadOnly) { return; }
+  applyEdit(definition: SurveyDefinition, options: EditOptions = {}): EditRefusal | undefined {
+    // **The read-only refusal is minted once, here and in `change`.** Every edit in the
+    // package reaches the document through one of the two, so propagating what they return
+    // gives N2's restriction a voice everywhere without a guard per method — and a new edit
+    // added later inherits it by construction rather than by remembering (ADR-0023).
+    if (this.isReadOnly) { return refuse('read-only'); }
     const invalidated = this.#placementSession.invalidate();
     this.#history.record(this, options.from ?? this.definition, options.undoKey);
     // An edit that names nothing to select leaves the selection where it was, which for
@@ -335,6 +368,7 @@ export class DesignSurface {
     const keepSurvey = options.select === undefined && this.#selection.isSurvey;
     this.#reparse(definition, options.select, options.goTo ?? this.page?.name, keepSurvey);
     this.#publishPlacement(invalidated);
+    return undefined;
   }
 
   /** Commits a placement after its final idle snapshot has already been installed. */
@@ -348,10 +382,10 @@ export class DesignSurface {
   }
 
   /** Removes an element, and everything inside it — checklist K7. */
-  removeElement(name: string): boolean { return removeElementFrom(this, name); }
+  removeElement(name: string): EditRefusal | undefined { return removeElementFrom(this, name); }
 
   /** Puts a copy of an element straight after it — checklist K5. */
-  duplicate(name: string): boolean { return duplicateIn(this, name); }
+  duplicate(name: string): EditRefusal | undefined { return duplicateIn(this, name); }
 
   /**
    * Remembers an element so it can be pasted — checklist K5.
@@ -360,12 +394,13 @@ export class DesignSurface {
    * view *shows* — whether Paste is available — without changing the survey, so there is
    * nothing to undo and everything to redraw.
    */
-  copy(name: string): boolean {
-    if (!this.#clipboard.copy(this, name)) {
-      return false;
+  copy(name: string): EditRefusal | undefined {
+    const refusal = this.#clipboard.copy(this, name);
+    if (refusal !== undefined) {
+      return refusal;
     }
     this.#announce();
-    return true;
+    return undefined;
   }
 
   /** What was copied, if anything — see {@link DesignClipboard}. */
@@ -374,10 +409,10 @@ export class DesignSurface {
   get canPaste(): boolean { return this.#clipboard.fragment !== undefined && this.page !== undefined; }
 
   /** Pastes what was copied, after the selection — checklist K5. */
-  paste(slot?: DropSlot): boolean { return this.#clipboard.paste(this, slot); }
+  paste(slot?: DropSlot): EditRefusal | undefined { return this.#clipboard.paste(this, slot); }
 
   /** Changes a question's type in place, keeping what the new type understands — K5. */
-  convert(name: string, type: string): boolean {
+  convert(name: string, type: string): EditRefusal | undefined {
     return convertIn(this, name, type, this.#document.registry);
   }
 
@@ -433,17 +468,18 @@ export class DesignSurface {
    * class does not name, and the alternative is either a method per operation or a
    * mutation nobody hears about. What matters is that *every* change comes through here.
    */
-  change(edit: () => void, undoKey?: string): void {
+  change(edit: () => void, undoKey?: string): EditRefusal | undefined {
     // The two chokepoints K6 established are the two a restriction has to hold: between
     // them nothing reaches the survey, so read-only is enforced once rather than on every
     // button. A disabled button is a suggestion; this is the rule.
-    if (this.isReadOnly) { return; }
+    if (this.isReadOnly) { return refuse('read-only'); }
     const invalidated = this.#placementSession.invalidate();
     this.#history.record(this, this.definition, undoKey);
     edit();
     this.#placementRevision += 1;
     this.#announce();
     this.#publishPlacement(invalidated);
+    return undefined;
   }
 
   #publishPlacement(invalidated: boolean): void {

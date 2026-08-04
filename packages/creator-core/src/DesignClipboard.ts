@@ -3,6 +3,8 @@ import type { DesignSurface } from './DesignSurface.js';
 import type { DropList } from './definitionTree.js';
 import { copyFrom, pasteInto } from './elementEdits.js';
 import type { DropSlot } from './placement.js';
+import { refuse } from './EditRefusal.js';
+import type { EditRefusal } from './EditRefusal.js';
 
 /**
  * What was copied, and where a paste lands — checklist K5.
@@ -32,13 +34,13 @@ export class DesignClipboard {
    * view *shows* — whether Paste is available — without changing the survey, so there is
    * nothing to undo and everything to redraw.
    */
-  copy(surface: DesignSurface, name: string): boolean {
+  copy(surface: DesignSurface, name: string): EditRefusal | undefined {
     const fragment = copyFrom(surface, name);
     if (fragment === undefined) {
-      return false;
+      return refuse('not-found', name);
     }
     this.#fragment = fragment;
-    return true;
+    return undefined;
   }
 
   /**
@@ -48,10 +50,20 @@ export class DesignClipboard {
    * selected. Pasting "somewhere" is not a useful answer, and the selection is the only
    * thing on screen that says where a designer is working.
    */
-  paste(surface: DesignSurface, slot: DropSlot | undefined = pasteSlotFor(surface)): boolean {
+  paste(
+    surface: DesignSurface,
+    slot: DropSlot | undefined = pasteSlotFor(surface),
+  ): EditRefusal | undefined {
     const fragment = this.#fragment;
-    if (fragment === undefined || slot === undefined) {
-      return false;
+    // Two reasons a paste does nothing, and only one of them is about the clipboard: an
+    // empty clipboard is `nothing-copied`, while no slot means there is no page to paste
+    // onto. A designer told "nothing has been copied yet" while holding something copied
+    // would go looking for a bug that is not there.
+    if (fragment === undefined) {
+      return refuse('nothing-copied');
+    }
+    if (slot === undefined) {
+      return refuse('not-found', '');
     }
     return pasteInto(surface, fragment, slot);
   }

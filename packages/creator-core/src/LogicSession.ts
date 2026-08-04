@@ -5,6 +5,8 @@ import type { Condition } from './conditionTerms.js';
 import type { DesignSurface } from './DesignSurface.js';
 import { collectLogicRules } from './logicRules.js';
 import type { LogicActionKind, LogicRule } from './logicRules.js';
+import { refuse } from './EditRefusal.js';
+import type { EditRefusal } from './EditRefusal.js';
 
 /** A rule a designer can add, and where adding it writes. */
 export interface LogicRuleTemplate {
@@ -96,8 +98,8 @@ export class LogicSession {
       .map(String);
   }
 
-  /** Writes a rule's condition from the builder. Says whether it took. */
-  setCondition(rule: LogicRule, condition: Condition): boolean {
+  /** Writes a rule's condition from the builder. Says why it did not take. */
+  setCondition(rule: LogicRule, condition: Condition): EditRefusal | undefined {
     return this.setConditionText(rule, printCondition(condition));
   }
 
@@ -108,7 +110,7 @@ export class LogicSession {
    * that always holds, it is the absence of one: canonical form elides it (ADR-0002), so
    * leaving the row on screen would show a rule the definition does not have.
    */
-  setConditionText(rule: LogicRule, text: string): boolean {
+  setConditionText(rule: LogicRule, text: string): EditRefusal | undefined {
     // One setter for both sites. A trigger is a registered element like any other, so
     // `setProperty` reaches it exactly as it reaches a question — which is what L2's
     // collection editor already relies on for a validator's `minValue`.
@@ -118,7 +120,11 @@ export class LogicSession {
   }
 
   /** Writes the action's own argument: the value to set, the page to skip to. */
-  setArgument(rule: LogicRule, argumentProperty: string, value: string): boolean {
+  setArgument(
+    rule: LogicRule,
+    argumentProperty: string,
+    value: string,
+  ): EditRefusal | undefined {
     const target =
       rule.site.kind === 'trigger' ? rule.site.trigger : rule.site.element;
     return this.#surface.setProperty(target, argumentProperty, value);
@@ -130,7 +136,7 @@ export class LogicSession {
    * A property rule is emptied and a trigger is deleted, which is the same act said two
    * ways: in both cases the definition stops carrying it.
    */
-  removeRule(rule: LogicRule): boolean {
+  removeRule(rule: LogicRule): EditRefusal | undefined {
     if (rule.site.kind === 'trigger') {
       return this.#surface.removeChild(this.#surface.survey, 'triggers', rule.site.index);
     }
@@ -145,23 +151,26 @@ export class LogicSession {
    * screen that vanished on the next re-parse. The starter condition names the first
    * question it can find, which a designer then changes.
    */
-  addRule(template: LogicRuleTemplate, subject: string): boolean {
+  addRule(template: LogicRuleTemplate, subject: string): EditRefusal | undefined {
     const starter = this.#starterCondition();
     if (template.triggerType !== undefined) {
+      // Two edits, and the **first refusal wins**: adding the trigger then writing its
+      // condition. Chaining these with `&&` used to collapse both into one `false`, so a
+      // read-only deployment and a missing trigger type were the same silence.
       const added = this.#surface.addChild(this.#surface.survey, 'triggers', template.triggerType);
+      if (added !== undefined) {
+        return added;
+      }
       const trigger = this.#surface.survey.getChildren('triggers').at(-1);
-      return (
-        added &&
-        trigger !== undefined &&
-        this.#surface.setProperty(trigger, 'expression', starter)
-      );
+      return trigger === undefined
+        ? refuse('not-found', template.triggerType)
+        : this.#surface.setProperty(trigger, 'expression', starter);
     }
     const element = this.#find(subject);
-    return (
-      template.property !== undefined &&
-      element !== undefined &&
-      this.#surface.setProperty(element, template.property, starter)
-    );
+    if (template.property === undefined || element === undefined) {
+      return refuse('not-found', subject);
+    }
+    return this.#surface.setProperty(element, template.property, starter);
   }
 
   #starterCondition(): string {

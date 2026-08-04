@@ -96,7 +96,7 @@ describe('parity/L2-translations', () => {
     const designed = surface(FRENCH);
     const who = selectByName(designed, 'who');
 
-    expect(designed.setLocalized(who, 'title', 'de', 'Name auf Deutsch')).toBe(true);
+    expect(designed.setLocalized(who, 'title', 'de', 'Name auf Deutsch')).toBeUndefined();
 
     expect(elementIn(designed.definition, 'who')['title']).toEqual({
       default: 'Name',
@@ -147,7 +147,7 @@ describe('parity/L2-translations', () => {
 
     // Storing `{ default: … }` in one that is not localizable would produce a shape every
     // reader of it treats as an object rather than as words.
-    expect(designed.setLocalized(who, 'visibleIf', 'fr', '{x} = 1')).toBe(false);
-    expect(designed.setLocalized(who, 'title', '', 'Nothing')).toBe(false);
+    expect(designed.setLocalized(who, 'visibleIf', 'fr', '{x} = 1')?.kind).toBe('not-localizable');
+    expect(designed.setLocalized(who, 'title', '', 'Nothing')?.kind).toBe('not-localizable');
   });
 });

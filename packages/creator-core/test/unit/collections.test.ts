@@ -142,7 +142,7 @@ describe('parity/L2-collection-edits', () => {
   test('adding a choice gives it a value nothing in the list has taken', () => {
     const designed = surface();
 
-    expect(designed.addChild(elementNamed(designed, 'tier'), 'choices', 'itemvalue')).toBe(true);
+    expect(designed.addChild(elementNamed(designed, 'tier'), 'choices', 'itemvalue')).toBeUndefined();
 
     // Stemmed on the property the registry says the shorthand fills, and counted within
     // the list — a choice's value is unique in its list and means nothing outside it.
@@ -240,8 +240,9 @@ describe('parity/L2-collection-edits', () => {
     const designed = surface();
     const tier = elementNamed(designed, 'tier');
 
-    expect(designed.moveChild(tier, 'choices', 0, 0)).toBe(false);
-    expect(designed.moveChild(tier, 'choices', 0, 9)).toBe(false);
+    expect(designed.moveChild(tier, 'choices', 0, 0)).toBeUndefined();
+    // An index off the end moves nothing, and moving nothing refuses nothing.
+    expect(designed.moveChild(tier, 'choices', 0, 9)).toBeUndefined();
     // An entry that undoes nothing is worse than no entry: pressing undo then appears to
     // do nothing at all.
     expect(designed.canUndo).toBe(false);
@@ -253,9 +254,9 @@ describe('parity/L2-collection-edits', () => {
 
     // A text question has no choices. Writing them anyway would put a key on it that the
     // type does not have — an unknown property that round-trips forever and edits nothing.
-    expect(designed.removeChild(who, 'choices', 0)).toBe(false);
-    expect(designed.moveChild(who, 'choices', 0, 1)).toBe(false);
-    expect(designed.addChild(who, 'choices', 'itemvalue')).toBe(false);
+    expect(designed.removeChild(who, 'choices', 0)?.kind).toBe('unknown-property');
+    expect(designed.moveChild(who, 'choices', 0, 1)?.kind).toBe('unknown-property');
+    expect(designed.addChild(who, 'choices', 'itemvalue')?.kind).toBe('unknown-property');
   });
 });
 

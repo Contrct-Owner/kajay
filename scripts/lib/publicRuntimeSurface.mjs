@@ -96,8 +96,14 @@ export const PUBLIC_RUNTIME_SURFACE = Object.freeze({
     'localesOf',
     'localizedTextIn',
     'matchingSuggestions',
+    // ADR-0023's refusal vocabulary: the reasons an edit did not happen, and the words for
+    // them. Public because a host drawing their own property grid needs both to say
+    // anything at all.
+    'nameRefusal',
     'parseEditorText',
     'previewDevice',
+    'refusalMessageKey',
+    'refuse',
     'sameDefinition',
     'tokenAt',
   ]),

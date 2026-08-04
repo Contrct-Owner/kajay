@@ -6,6 +6,8 @@ import { listOf, nameOf, withList } from './definitionTree.js';
 import type { DropList } from './definitionTree.js';
 import { findByName, freshenFragment, takenNames } from './fragments.js';
 import type { DropSlot } from './placement.js';
+import { refuse } from './EditRefusal.js';
+import type { EditRefusal } from './EditRefusal.js';
 
 /**
  * Copy, paste, duplicate and convert — checklist K5.
@@ -30,11 +32,11 @@ export function copyFrom(surface: DesignSurface, name: string): SurveyDefinition
  * Straight after, rather than at the end: a duplicate is nearly always the start of "and
  * one more like that", and the two belong together while the designer edits the second.
  */
-export function duplicateIn(surface: DesignSurface, name: string): boolean {
+export function duplicateIn(surface: DesignSurface, name: string): EditRefusal | undefined {
   const page = surface.page;
   const fragment = copyFrom(surface, name);
   if (page === undefined || fragment === undefined) {
-    return false;
+    return refuse('not-found', name);
   }
   const list: DropList = { of: 'elements', container: page.name };
   const at = (listOf(surface.definition, list) ?? []).findIndex(
@@ -53,11 +55,11 @@ export function pasteInto(
   surface: DesignSurface,
   fragment: SurveyDefinition,
   slot: DropSlot,
-): boolean {
+): EditRefusal | undefined {
   const before = surface.definition;
   const items = listOf(before, slot.list);
   if (items === undefined || slot.index < 0 || slot.index > items.length) {
-    return false;
+    return refuse('not-found', 'container' in slot.list ? slot.list.container : '');
   }
   const fresh = freshenFragment(fragment, takenNames(before));
   const after = withList(before, slot.list, [
@@ -65,14 +67,14 @@ export function pasteInto(
     fresh,
     ...items.slice(slot.index),
   ]);
-  surface.applyEdit(after, { select: nameOf(fresh), from: before });
-  return true;
+  return surface.applyEdit(after, { select: nameOf(fresh), from: before });
 }
 
 /**
  * Removes an element, and everything inside it — checklist K7.
  *
- * Returns whether it was there. **Deleting a panel takes its questions with it**, which
+ * Says why it did not happen, or `undefined` when it did. **Deleting a panel takes its
+ * questions with it**, which
  * is the operation rather than a side effect — the same argument K4 made about a page,
  * and the same thing that makes it safe to mean: it goes through `applyEdit`, so undo
  * brings the whole subtree back without anything having written an inverse.
@@ -82,21 +84,23 @@ export function pasteInto(
  * deleting the third of five questions is still working in the middle of a page, and an
  * empty property grid reads as having lost their place rather than removed one thing.
  */
-export function removeElementFrom(surface: DesignSurface, name: string): boolean {
+export function removeElementFrom(
+  surface: DesignSurface,
+  name: string,
+): EditRefusal | undefined {
   const page = surface.page;
   const before = surface.definition;
   const list: DropList = { of: 'elements', container: page?.name ?? '' };
   const items = listOf(before, list);
   const at = items?.findIndex((element) => nameOf(element) === name) ?? -1;
   if (items === undefined || at < 0) {
-    return false;
+    return refuse('not-found', name);
   }
   const remaining = items.filter((_unused, index) => index !== at);
-  surface.applyEdit(withList(before, list, remaining), {
+  return surface.applyEdit(withList(before, list, remaining), {
     select: nameOf(remaining[Math.min(at, remaining.length - 1)] ?? {}),
     from: before,
   });
-  return true;
 }
 
 /**
@@ -116,26 +120,28 @@ export function convertIn(
   name: string,
   type: string,
   registry: MetadataRegistry,
-): boolean {
+): EditRefusal | undefined {
   const page = surface.page;
   const before = surface.definition;
   const list: DropList = { of: 'elements', container: page?.name ?? '' };
   const items = listOf(before, list);
-  if (items === undefined) {
-    return false;
+  const element = items === undefined ? undefined : findByName(items, name);
+  // Three reasons that used to be one `false`, and a designer can act on each differently:
+  // find the question again, pick a compatible type, or ask whoever configured the
+  // deployment. "Nothing happened" told them none of that.
+  if (items === undefined || element === undefined) {
+    return refuse('not-found', name);
   }
-  const element = findByName(items, name);
-  if (
-    element === undefined ||
-    !canConvert(element, type, registry) ||
-    // A type a designer may not *add* is one they may not convert into either — otherwise
-    // the restriction is a detour rather than a rule.
-    !isTypeAllowed(type, surface.configuration)
-  ) {
-    return false;
+  if (!canConvert(element, type, registry)) {
+    return refuse('not-convertible', name);
+  }
+  // A type a designer may not *add* is one they may not convert into either — otherwise
+  // the restriction is a detour rather than a rule.
+  if (!isTypeAllowed(type, surface.configuration)) {
+    return refuse('type-not-allowed', type);
   }
   const converted = convertDefinition(element, type, registry);
-  surface.applyEdit(
+  return surface.applyEdit(
     withList(
       before,
       list,
@@ -143,7 +149,6 @@ export function convertIn(
     ),
     { select: name, from: before },
   );
-  return true;
 }
 
 /**

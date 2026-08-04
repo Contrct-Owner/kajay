@@ -119,6 +119,20 @@ export const CREATOR_STRING_DEFINITIONS = [
   { key: 'translationFilled', en: 'Filled {0} strings into {1}.' },
   { key: 'translationCell', en: '{0} in {1}' },
 
+  // --- Why an edit was refused (ADR-0023) ----------------------------------
+  // Addressed to a designer who has just tried something, so each says what happened and,
+  // where there is one, what would work instead. None of them apologise.
+  { key: 'refusalNameEmpty', en: 'A name is required — it is what logic and results refer to.' },
+  { key: 'refusalNameTaken', en: '“{0}” is already used. Names must be unique.' },
+  { key: 'refusalUnknownProperty', en: 'This type has no “{0}” to set.' },
+  { key: 'refusalNotLocalizable', en: '“{0}” is the same in every language.' },
+  { key: 'refusalReadOnly', en: 'This survey is open for reading only.' },
+  { key: 'refusalTypeNotAllowed', en: '“{0}” is turned off for this deployment.' },
+  { key: 'refusalNotFound', en: '“{0}” is no longer in this survey.' },
+  { key: 'refusalNotConvertible', en: '“{0}” cannot become that type.' },
+  { key: 'refusalNotPlaceable', en: 'That cannot go there.' },
+  { key: 'refusalNothingCopied', en: 'Nothing has been copied yet.' },
+
   // --- The theme editor -----------------------------------------------------
   { key: 'themeReset', en: 'Reset' },
   { key: 'themeNotSet', en: '(not set)' },

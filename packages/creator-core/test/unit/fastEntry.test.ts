@@ -124,9 +124,9 @@ describe('parity/L2-fast-entry-edit', () => {
   test('a rewritten list is one edit and one press of undo', () => {
     const designed = surface(WITH_CHOICES);
 
-    expect(designed.setFastEntry(tierOf(designed), 'choices', 'bronze\nsilver|Silver\ngold')).toBe(
-      true,
-    );
+    expect(
+      designed.setFastEntry(tierOf(designed), 'choices', 'bronze\nsilver|Silver\ngold'),
+    ).toBeUndefined();
     expect(choicesOf(designed).map((child) => child['value'])).toEqual([
       'bronze',
       'silver',
@@ -152,9 +152,9 @@ describe('parity/L2-fast-entry-edit', () => {
 
     // A validator has no scalar form, so there is nothing for a line to be — and a text
     // question has no choices at all.
-    expect(designed.setFastEntry(tierOf(designed), 'validators', 'a')).toBe(false);
-    expect(designed.setFastEntry(designed.survey.getQuestionByName('who')!, 'choices', 'a')).toBe(
-      false,
-    );
+    expect(designed.setFastEntry(tierOf(designed), 'validators', 'a')?.kind).toBe('unknown-property');
+    expect(
+      designed.setFastEntry(designed.survey.getQuestionByName('who')!, 'choices', 'a')?.kind,
+    ).toBe('unknown-property');
   });
 });

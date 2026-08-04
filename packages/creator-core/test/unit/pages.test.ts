@@ -108,7 +108,7 @@ describe('parity/K4-page-surface', () => {
     const designed = surface();
     designed.goToPage('p2');
 
-    expect(designed.removePage('p2')).toBe(true);
+    expect(designed.removePage('p2')).toBeUndefined();
     expect(designed.page?.name).toBe('p3');
   });
 
@@ -126,7 +126,7 @@ describe('parity/K4-page-surface', () => {
     const seen: number[] = [];
     designed.onChanged.add((version) => seen.push(version));
 
-    expect(designed.removePage('ghost')).toBe(false);
+    expect(designed.removePage('ghost')?.kind).toBe('not-found');
     expect(seen).toEqual([]);
   });
 

@@ -112,8 +112,11 @@ describe('parity/K6-undo', () => {
   test('a refused edit records nothing', () => {
     const designed = surface();
 
-    expect(designed.place({ kind: 'move', name: 'who' }, { list: P1, index: 0 })).toBe(false);
-    expect(designed.removePage('ghost')).toBe(false);
+    // A move to where it already is refuses nothing — it simply records no undo entry.
+    expect(
+      designed.place({ kind: 'move', name: 'who' }, { list: P1, index: 0 })?.kind,
+    ).toBe('not-placeable');
+    expect(designed.removePage('ghost')?.kind).toBe('not-found');
 
     // An entry that undoes nothing is worse than no entry: pressing undo would appear
     // to do nothing at all, twice.

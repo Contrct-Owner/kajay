@@ -13,6 +13,9 @@ export type {
 export type { CreatorConfiguration } from './CreatorConfiguration.js';
 export { CreatorStringDictionary } from './CreatorStringDictionary.js';
 export type { CreatorStringKey, CreatorStrings } from './creatorStrings.js';
+export { refuse, refusalMessageKey } from './EditRefusal.js';
+export type { EditRefusal, EditRefusalKind } from './EditRefusal.js';
+export { nameRefusal } from './nameRefusal.js';
 export type { DesignSelection } from './DesignSelection.js';
 export {
   localesOf,

@@ -1,5 +1,7 @@
 import type { DesignSurface } from './DesignSurface.js';
 import { addPage, pageAfterRemoving, removePage } from './pageEdits.js';
+import { refuse } from './EditRefusal.js';
+import type { EditRefusal } from './EditRefusal.js';
 
 /**
  * The structural edits, written as what they are: a definition in, a definition out.
@@ -30,15 +32,17 @@ export function addPageTo(surface: DesignSurface): void {
  * the one being looked at**. Relocating unconditionally sent a designer off the page
  * they were working on because a different one had been tidied up.
  */
-export function removePageFrom(surface: DesignSurface, name: string): boolean {
+export function removePageFrom(
+  surface: DesignSurface,
+  name: string,
+): EditRefusal | undefined {
   const before = surface.definition;
   const after = removePage(before, name);
   if (after === before) {
-    return false;
+    return refuse('not-found', name);
   }
   const goTo = surface.page?.name === name ? pageAfterRemoving(before, name) : surface.page?.name;
-  surface.applyEdit(after, { goTo, from: before });
-  return true;
+  return surface.applyEdit(after, { goTo, from: before });
 }
 
 function newestPage(definition: Record<string, unknown>): string | undefined {

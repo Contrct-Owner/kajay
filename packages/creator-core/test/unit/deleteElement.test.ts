@@ -41,7 +41,7 @@ describe('parity/K7-delete', () => {
   test('a question goes, and the neighbour is selected', () => {
     const designed = surface();
 
-    expect(designed.removeElement('who')).toBe(true);
+    expect(designed.removeElement('who')).toBeUndefined();
 
     // Not "nothing selected": a designer deleting one of several questions is still
     // working on that page, and an empty property grid reads as having lost their place.
@@ -109,7 +109,7 @@ describe('parity/K7-delete', () => {
   test('deleting something that is not there does nothing', () => {
     const designed = surface();
 
-    expect(designed.removeElement('ghost')).toBe(false);
+    expect(designed.removeElement('ghost')?.kind).toBe('not-found');
     expect(designed.canUndo).toBe(false);
   });
 });

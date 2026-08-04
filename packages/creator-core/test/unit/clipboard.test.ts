@@ -134,7 +134,7 @@ describe('parity/K5-duplicate', () => {
   test('a copy lands straight after the original', () => {
     const designed = surface();
 
-    expect(designed.duplicate('who')).toBe(true);
+    expect(designed.duplicate('who')).toBeUndefined();
 
     // A duplicate is nearly always the start of "and one more like that", and the two
     // belong together while the designer edits the second.
@@ -162,7 +162,7 @@ describe('parity/K5-duplicate', () => {
   test('duplicating something that is not there does nothing', () => {
     const designed = surface();
 
-    expect(designed.duplicate('ghost')).toBe(false);
+    expect(designed.duplicate('ghost')?.kind).toBe('not-found');
     expect(designed.canUndo).toBe(false);
   });
 });
@@ -172,7 +172,7 @@ describe('parity/K5-clipboard', () => {
     const designed = surface();
 
     expect(designed.canPaste).toBe(false);
-    expect(designed.paste()).toBe(false);
+    expect(designed.paste()?.kind).toBe('nothing-copied');
   });
 
   test('copying is announced but not recorded', () => {
@@ -194,7 +194,7 @@ describe('parity/K5-clipboard', () => {
     designed.copy('tier');
     designed.duplicate('who');
 
-    expect(designed.paste()).toBe(true);
+    expect(designed.paste()).toBeUndefined();
 
     // The clipboard holds a definition fragment, not an element — nothing survives a
     // re-parse by identity, and there have been two since.
@@ -229,7 +229,7 @@ describe('parity/K5-convert', () => {
     const designed = surface();
     const before = elementOf(designed, 'tier');
 
-    expect(designed.convert('tier', 'dropdown')).toBe(true);
+    expect(designed.convert('tier', 'dropdown')).toBeUndefined();
 
     // A designer who picked the wrong type should not have to retype the question, so
     // everything the two types share survives — only `type` moved.
@@ -275,15 +275,15 @@ describe('parity/K5-convert', () => {
     // Converting a panel would drop the elements the target type has no notion of — a
     // delete dressed up as a change of type. The mirror case would put an empty
     // container where a question used to be.
-    expect(designed.convert('group', 'text')).toBe(false);
-    expect(designed.convert('who', 'panel')).toBe(false);
+    expect(designed.convert('group', 'text')?.kind).toBe('not-convertible');
+    expect(designed.convert('who', 'panel')?.kind).toBe('not-convertible');
     expect(designed.survey.getQuestionByName('inner')).toBeDefined();
   });
 
   test('converting to the type it already is does nothing', () => {
     const designed = surface();
 
-    expect(designed.convert('who', 'text')).toBe(false);
+    expect(designed.convert('who', 'text')?.kind).toBe('not-convertible');
     expect(designed.canUndo).toBe(false);
   });
 

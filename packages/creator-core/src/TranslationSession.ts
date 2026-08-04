@@ -5,6 +5,7 @@ import { localizedTextIn } from './propertyGrid.js';
 import { collectTranslations, DEFAULT_LOCALE, localesUsed } from './translations.js';
 import type { TranslationEntry } from './translations.js';
 import { fromCsv, toCsv, translationCells, translationRows } from './translationSheet.js';
+import type { EditRefusal } from './EditRefusal.js';
 
 /** What a host's translation service is asked. One call per language, not one per string. */
 export interface TranslationRequest {
@@ -131,7 +132,7 @@ export class TranslationSession {
   }
 
   /** Writes one string in one language — L2's `setLocalized`, and undoable like it. */
-  setText(entry: TranslationEntry, locale: string, text: string): boolean {
+  setText(entry: TranslationEntry, locale: string, text: string): EditRefusal | undefined {
     return this.#surface.setLocalized(entry.element, entry.property, locale, text);
   }
 
@@ -194,7 +195,9 @@ export class TranslationSession {
     let filled = 0;
     for (const [index, entry] of pending.entries()) {
       const text = answers[index] ?? '';
-      if (text.length > 0 && this.setText(entry, locale, text)) {
+      // `=== undefined` is the success test now: an edit that took returns no reason
+      // (ADR-0023). Reading it as a truthy boolean counted every success as a failure.
+      if (text.length > 0 && this.setText(entry, locale, text) === undefined) {
         filled += 1;
       }
     }
@@ -238,7 +241,10 @@ export class TranslationSession {
       }
       // An unchanged cell is not an edit. Without this, importing a file nobody touched
       // would be a hundred undo entries and a survey that reports itself modified.
-      if (this.textIn(entry, cell.locale) !== cell.text && this.setText(entry, cell.locale, cell.text)) {
+      if (
+        this.textIn(entry, cell.locale) !== cell.text &&
+        this.setText(entry, cell.locale, cell.text) === undefined
+      ) {
         applied += 1;
       }
     }

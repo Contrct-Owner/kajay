@@ -89,18 +89,18 @@ describe('parity/N2-types', () => {
     const designed = surface({ allowedTypes: ['text'] });
     const slot = { list: { of: 'elements' as const, container: 'p1' }, index: 0 };
 
-    expect(designed.place(NEW_FILE, slot)).toBe(false);
-    expect(designed.place(NEW_TEXT, slot)).toBe(true);
+    expect(designed.place(NEW_FILE, slot)?.kind).toBe('type-not-allowed');
+    expect(designed.place(NEW_TEXT, slot)).toBeUndefined();
   });
 
   test('a restricted type cannot be converted into either', () => {
     const designed = surface({ blockedTypes: ['comment'] });
 
-    expect(designed.convert('who', 'comment')).toBe(false);
+    expect(designed.convert('who', 'comment')?.kind).toBe('type-not-allowed');
     expect(designed.convertibleTypes).not.toContain('comment');
     // A type a designer may not add is one they may not convert into: otherwise the
     // restriction is a detour rather than a rule.
-    expect(designed.convert('who', 'boolean')).toBe(true);
+    expect(designed.convert('who', 'boolean')).toBeUndefined();
   });
 
   test('moving an element that already exists is not adding a type', () => {
@@ -113,7 +113,7 @@ describe('parity/N2-types', () => {
         { kind: 'move', name: 'tier' },
         { list: { of: 'elements', container: 'p1' }, index: 0 },
       ),
-    ).toBe(true);
+    ).toBeUndefined();
   });
 
   test('the two helpers agree with each other', () => {

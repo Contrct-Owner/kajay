@@ -9,6 +9,8 @@ import type { DesignSurface } from './DesignSurface.js';
 import { uniqueName } from './definitionTree.js';
 import { fastEntryItems } from './fastEntry.js';
 import { takenNames } from './fragments.js';
+import { refuse } from './EditRefusal.js';
+import type { EditRefusal } from './EditRefusal.js';
 
 /**
  * Adding, removing, reordering and bulk-editing a child collection — checklist L2.
@@ -43,19 +45,29 @@ function nameOf(owner: SurveyElement): string {
   return typeof name === 'string' ? name : '';
 }
 
-/** Adds a child of `type` at the end. Says whether the collection was there. */
+/**
+ * Adds a child of `type` at the end. Says why it did not, or `undefined` when it did.
+ *
+ * Two different refusals that used to be one `false`: a collection this type does not
+ * declare, and an owner the definition no longer holds. A designer meets the second by
+ * editing a question that has since been deleted in another view, and "this type has no
+ * choices to set" would be a confusing thing to read about a radiogroup.
+ */
 export function addChildTo(
   surface: DesignSurface,
   owner: SurveyElement,
   property: string,
   type: string,
   registry: MetadataRegistry,
-): boolean {
+): EditRefusal | undefined {
   const collection = declared(owner, property, registry);
   const before = surface.definition;
   const children = childrenIn(before, nameOf(owner), property);
-  if (collection === undefined || children === undefined) {
-    return false;
+  if (collection === undefined) {
+    return refuse('unknown-property', property);
+  }
+  if (children === undefined) {
+    return refuse('not-found', nameOf(owner));
   }
   const child = freshChild(
     type,
@@ -73,12 +85,17 @@ export function removeChildFrom(
   property: string,
   index: number,
   registry: MetadataRegistry,
-): boolean {
+): EditRefusal | undefined {
   const before = surface.definition;
   const children = childrenIn(before, nameOf(owner), property);
-  const declares = declared(owner, property, registry) !== undefined;
-  if (!declares || children === undefined || index < 0 || index >= children.length) {
-    return false;
+  if (declared(owner, property, registry) === undefined) {
+    return refuse('unknown-property', property);
+  }
+  // An index outside the collection is the same fact as an owner that is not there: the
+  // thing this call names does not exist. Both are `not-found`, because a designer cannot
+  // act on the difference and a second message would only ask them to.
+  if (children === undefined || index < 0 || index >= children.length) {
+    return refuse('not-found', nameOf(owner));
   }
   return apply(
     surface,
@@ -103,15 +120,21 @@ export function moveChildIn(
   from: number,
   to: number,
   registry: MetadataRegistry,
-): boolean {
+): EditRefusal | undefined {
   const before = surface.definition;
   const children = childrenIn(before, nameOf(owner), property);
-  if (declared(owner, property, registry) === undefined || children === undefined) {
-    return false;
+  if (declared(owner, property, registry) === undefined) {
+    return refuse('unknown-property', property);
+  }
+  if (children === undefined) {
+    return refuse('not-found', nameOf(owner));
   }
   const moved = moveWithin(children, from, to);
+  // A drag that lands where it started is **not a refusal**: nothing went wrong and there
+  // is nothing to tell anybody. It reports success and records no undo entry, which is the
+  // distinction a boolean could not draw — `false` meant both "refused" and "no-op".
   return moved === children
-    ? false
+    ? undefined
     : apply(surface, before, nameOf(owner), property, moved);
 }
 
@@ -126,13 +149,16 @@ export function setFastEntryIn(
   property: string,
   text: string,
   registry: MetadataRegistry,
-): boolean {
+): EditRefusal | undefined {
   // No shorthand, nothing a line of text can be: a validator has no scalar form.
   const shorthand = declared(owner, property, registry)?.shorthandProperty;
   const before = surface.definition;
   const children = childrenIn(before, nameOf(owner), property);
-  if (shorthand === undefined || children === undefined) {
-    return false;
+  if (shorthand === undefined) {
+    return refuse('unknown-property', property);
+  }
+  if (children === undefined) {
+    return refuse('not-found', nameOf(owner));
   }
   const items = fastEntryItems(text, shorthand, children, surface.survey.locale);
   const name = nameOf(owner);
@@ -146,17 +172,18 @@ function apply(
   property: string,
   items: readonly SurveyDefinition[],
   undoKey?: string,
-): boolean {
+): EditRefusal | undefined {
   const after = withChildren(before, owner, property, items);
   // The selection is left where it was on purpose: editing a question's choices is
   // working on that question, and moving the grid off it under the designer would take
   // away the panel they are typing in.
-  surface.applyEdit(after, {
+  // Returned rather than discarded, so N2's read-only refusal reaches the collection
+  // editor without this function knowing the restriction exists.
+  return surface.applyEdit(after, {
     select: surface.selection.name,
     from: before,
     ...(undoKey === undefined ? {} : { undoKey }),
   });
-  return true;
 }
 
 /**

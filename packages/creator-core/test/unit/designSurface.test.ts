@@ -253,12 +253,16 @@ describe('parity/K2-place', () => {
     const seen: number[] = [];
     designed.onChanged.add((version) => seen.push(version));
 
-    expect(designed.place({ kind: 'move', name: 'who' }, { list: P1, index: 2 })).toBe(
-      true,
-    );
-    expect(designed.place({ kind: 'move', name: 'who' }, { list: P1, index: 2 })).toBe(
-      false,
-    );
+    // The first drop moves it and announces; the second asks for the position it is
+    // already in. **`PlacementSession` calls that `'refused'`**, so it surfaces as
+    // `not-placeable` — which is truthful about what the session said and wrong about what
+    // a designer did. Reconciling the two vocabularies is the rest of P5; see ADR-0023.
+    expect(
+      designed.place({ kind: 'move', name: 'who' }, { list: P1, index: 2 }),
+    ).toBeUndefined();
+    expect(
+      designed.place({ kind: 'move', name: 'who' }, { list: P1, index: 2 })?.kind,
+    ).toBe('not-placeable');
 
     expect(seen).toHaveLength(1);
     expect(elementNames(designed)).toEqual(['plan', 'who']);

@@ -519,6 +519,15 @@
 }
 
 .kajay-toolbox__search {
+  /* Stays put when the list scrolls. A toolbox is a long list with a filter above it, and
+     a filter that scrolls away is one you have to scroll back up to reach in order to
+     shorten the thing you were scrolling — which is the wrong way round. Sticky rather
+     than a fixed header because a host who does *not* scroll the toolbox should see no
+     difference: with no scrolling ancestor this behaves exactly as it did.
+     The opaque background is what makes items pass behind it rather than through. */
+  position: sticky;
+  top: 0;
+  z-index: 1;
   padding: calc(var(--kajay-spacing) / 2);
   border: 1px solid var(--kajay-color-border);
   border-radius: var(--kajay-radius);

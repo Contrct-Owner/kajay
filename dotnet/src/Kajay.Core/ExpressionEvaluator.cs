@@ -23,6 +23,7 @@ internal static class ExpressionEvaluator
             ExpressionNode.Array array => EvaluateArray(array, context, errors),
             ExpressionNode.Postfix postfix => EvaluatePostfix(postfix, context, errors),
             ExpressionNode.Binary binary => EvaluateBinary(binary, context, errors),
+            ExpressionNode.Call call => EvaluateCall(call, errors),
             _ => KajayValue.Absent,
         };
     }
@@ -68,11 +69,24 @@ internal static class ExpressionEvaluator
             postfix.Operator == ExpressionOperator.Empty ? empty : !empty);
     }
 
+    private static KajayValue EvaluateCall(
+        ExpressionNode.Call call,
+        List<ExpressionError> errors)
+    {
+        errors.Add(new ExpressionError("unknown-function", call.Span));
+        return KajayValue.Absent;
+    }
+
     private static KajayValue EvaluateBinary(
         ExpressionNode.Binary binary,
         ExpressionEvaluationContext context,
         List<ExpressionError> errors)
     {
+        if (binary.Operator is ExpressionOperator.And or ExpressionOperator.Or)
+        {
+            return EvaluateLogical(binary, context, errors);
+        }
+
         KajayValue left = EvaluateNode(binary.Left, context, errors);
         KajayValue right = EvaluateNode(binary.Right, context, errors);
         if (binary.Operator is ExpressionOperator.Equal or ExpressionOperator.NotEqual)
@@ -107,5 +121,22 @@ internal static class ExpressionEvaluator
             _ => double.NaN,
         };
         return double.IsFinite(value) ? KajayValue.From(value) : KajayValue.Absent;
+    }
+
+    private static KajayValue EvaluateLogical(
+        ExpressionNode.Binary binary,
+        ExpressionEvaluationContext context,
+        List<ExpressionError> errors)
+    {
+        bool left = KajayValueSemantics.IsTruthy(
+            EvaluateNode(binary.Left, context, errors));
+        if (binary.Operator == ExpressionOperator.And && !left
+            || binary.Operator == ExpressionOperator.Or && left)
+        {
+            return KajayValue.From(left);
+        }
+
+        return KajayValue.From(KajayValueSemantics.IsTruthy(
+            EvaluateNode(binary.Right, context, errors)));
     }
 }

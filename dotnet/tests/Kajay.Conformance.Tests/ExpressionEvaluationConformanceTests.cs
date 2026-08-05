@@ -180,6 +180,31 @@ public sealed class ExpressionEvaluationConformanceTests
         Assert.True(evaluated.Value.GetBoolean());
     }
 
+    [Fact]
+    public void AndShortCircuitsBeforeAnUnknownFunctionCall()
+    {
+        using JsonDocument corpus = OpenExpressionCorpus();
+        JsonElement testCase = corpus.RootElement
+            .GetProperty("evaluation")
+            .EnumerateArray()
+            .Single(candidate =>
+                candidate.GetProperty("id").GetString() == "and-short-circuits");
+        DateTimeOffset clock = DateTimeOffset.Parse(
+            corpus.RootElement.GetProperty("clock").GetString()!,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind);
+
+        ExpressionParseResult parsed = SurveyExpression.Parse(
+            testCase.GetProperty("source").GetString()!);
+        ExpressionEvaluationResult evaluated = parsed.Expression!.Evaluate(
+            new ExpressionEvaluationContext(clock));
+
+        Assert.Empty(parsed.Errors);
+        Assert.Empty(evaluated.Errors);
+        Assert.Equal(KajayValueKind.Boolean, evaluated.Value.Kind);
+        Assert.False(evaluated.Value.GetBoolean());
+    }
+
     private static JsonDocument OpenExpressionCorpus()
     {
         string path = Path.Combine(

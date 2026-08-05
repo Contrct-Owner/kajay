@@ -7,11 +7,22 @@ public sealed class DefinitionConformanceTests
     [Fact]
     public void MinimalDefinitionCanonicalizesThroughThePublicDefinitionSeam()
     {
+        AssertDefinitionCase("minimal-definition");
+    }
+
+    [Fact]
+    public void ExplicitDefinitionDefaultsAreElided()
+    {
+        AssertDefinitionCase("explicit-defaults-are-elided");
+    }
+
+    private static void AssertDefinitionCase(string id)
+    {
         using JsonDocument corpus = OpenDefinitionCorpus();
         JsonElement testCase = corpus.RootElement
             .GetProperty("cases")
             .EnumerateArray()
-            .Single(candidate => candidate.GetProperty("id").GetString() == "minimal-definition");
+            .Single(candidate => candidate.GetProperty("id").GetString() == id);
 
         SurveyDefinitionParseResult result = SurveyDefinition.Parse(
             testCase.GetProperty("input").GetRawText());

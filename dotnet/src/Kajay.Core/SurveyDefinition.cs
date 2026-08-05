@@ -29,7 +29,7 @@ public sealed class SurveyDefinition
         };
         if (input["pages"] is JsonArray pages)
         {
-            canonical["pages"] = pages.DeepClone();
+            canonical["pages"] = CanonicalizePages(pages);
         }
 
         return new SurveyDefinitionParseResult(
@@ -42,5 +42,34 @@ public sealed class SurveyDefinition
     public string ToCanonicalJson()
     {
         return _canonical.ToJsonString();
+    }
+
+    private static JsonArray CanonicalizePages(JsonArray pages)
+    {
+        var canonical = (JsonArray)pages.DeepClone();
+        foreach (JsonObject page in canonical.OfType<JsonObject>())
+        {
+            RemoveDefault(page, "title", JsonValue.Create(string.Empty));
+            if (page["elements"] is not JsonArray elements)
+            {
+                continue;
+            }
+
+            foreach (JsonObject element in elements.OfType<JsonObject>())
+            {
+                RemoveDefault(element, "isRequired", JsonValue.Create(false));
+                RemoveDefault(element, "inputType", JsonValue.Create("text"));
+            }
+        }
+
+        return canonical;
+    }
+
+    private static void RemoveDefault(JsonObject owner, string propertyName, JsonNode? value)
+    {
+        if (JsonNode.DeepEquals(owner[propertyName], value))
+        {
+            owner.Remove(propertyName);
+        }
     }
 }

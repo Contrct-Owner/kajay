@@ -40,6 +40,27 @@ reconfirmed.
 Changesets remains an inert root development dependency. There is intentionally no
 configuration, release script, or publishing workflow while the hold is active.
 
+## Scaffolding amendment (2026-08-04)
+
+The owner asked for the configuration to be created ahead of the walkthrough, so the
+paragraph above is now partly out of date and this records exactly how far it moved.
+
+**Configuration and versioning exist. Publication does not.** `.changeset/config.json`
+sets up the fixed group of five packages; `changeset` and `changeset:version` are root
+scripts. There is deliberately **no `release` script, no `changeset publish`, and no CI
+workflow** that runs either, and every package is still `private: true` — three
+independent brakes, so lifting the hold stays a decision somebody takes rather than
+something a script does.
+
+`privatePackages: { version: true, tag: false }` is what lets the train be rehearsed at
+all: changesets otherwise skips private packages entirely, so neither the bump nor the
+changelog could be seen before the hold lifts. Tagging stays off, because a tag is a
+release artefact rather than a rehearsal.
+
+The `1.0.0` cut still needs an explicit **major** changeset — the packages are at
+`0.0.0`, so anything less produces `0.1.0`. ADR-0024's walkthrough remains required
+before anything is published.
+
 ## Consequences
 
 - No version matrix to support or document: any `@kajay/*` at version X works with

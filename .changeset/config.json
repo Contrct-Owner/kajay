@@ -1,0 +1,19 @@
+{
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "fixed": [
+    [
+      "@kajay/core",
+      "@kajay/react",
+      "@kajay/themes",
+      "@kajay/creator-core",
+      "@kajay/creator-react"
+    ]
+  ],
+  "linked": [],
+  "access": "restricted",
+  "ignore": ["@kajay/host-demo", "@kajay/site"],
+  "privatePackages": { "version": true, "tag": false }
+}

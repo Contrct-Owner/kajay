@@ -23,7 +23,7 @@ internal static class ExpressionEvaluator
             ExpressionNode.Array array => EvaluateArray(array, context, errors),
             ExpressionNode.Postfix postfix => EvaluatePostfix(postfix, context, errors),
             ExpressionNode.Binary binary => EvaluateBinary(binary, context, errors),
-            ExpressionNode.Call call => EvaluateCall(call, errors),
+            ExpressionNode.Call call => EvaluateCall(call, context, errors),
             _ => KajayValue.Absent,
         };
     }
@@ -71,8 +71,17 @@ internal static class ExpressionEvaluator
 
     private static KajayValue EvaluateCall(
         ExpressionNode.Call call,
+        ExpressionEvaluationContext context,
         List<ExpressionError> errors)
     {
+        if (KajayBuiltInFunctions.IsRegistered(call.Name))
+        {
+            IReadOnlyList<KajayValue> arguments = call.Arguments
+                .Select(argument => EvaluateNode(argument, context, errors))
+                .ToArray();
+            return KajayBuiltInFunctions.Evaluate(call.Name, arguments, context.Clock);
+        }
+
         errors.Add(new ExpressionError("unknown-function", call.Span));
         return KajayValue.Absent;
     }

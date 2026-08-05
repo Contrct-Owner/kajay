@@ -78,11 +78,25 @@ jobs:
       - name: Verify
         run: pnpm run verify
 
+      # **Trusted publishing needs npm 11.5.1+, which is newer than the npm bundled with
+      # any Node.** Pinned rather than floating: a release that silently fell back to
+      # looking for a token would fail with an authentication error that says nothing
+      # about the real cause.
+      - name: Use an npm that can publish with OIDC
+        run: |
+          npm install -g npm@^11.5.1
+          npm --version
+
+      # **No token.** npm mints a short-lived credential from the OIDC identity GitHub
+      # issues for this workflow, which is why `id-token: write` is above and why nothing
+      # long-lived is stored anywhere. Provenance comes with it automatically for a public
+      # repository, so `NPM_CONFIG_PROVENANCE` is gone too.
+      #
+      # The trusted publisher registered on npm names this repository, this workflow file
+      # and the `release` environment. Renaming any of the three stops publishing until npm
+      # is told — which is the point of it.
       - name: Publish
         run: pnpm run release
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: 'true'
 
       - name: Push the tags changesets created
         run: git push --follow-tags

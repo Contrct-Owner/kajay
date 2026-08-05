@@ -64,13 +64,25 @@ it. It takes the version and a typed `RELEASE` confirmation, refuses if any pack
 with that version or if changesets are still pending, and runs the full `verify` chain before
 publishing.
 
-**Provenance: on.** `publishConfig.provenance` on all five, with `id-token: write` in the
-workflow. Each tarball gets a signed, verifiable link back to the commit and workflow run
-that built it. It is free, and it is what makes a supply-chain claim checkable rather than
-stated.
+**Access control: trusted publishing, so there is no token.** npm mints a short-lived
+credential from the OIDC identity GitHub issues for this workflow. Nothing long-lived is
+stored in the repository, the environment, or anywhere else — the strongest version of an
+access control is not having a secret to leak.
 
-**Access control.** Publishing runs in the `release` GitHub environment, so it can be gated
-on a required reviewer, and the npm token lives there rather than in repository secrets.
+The trusted publisher registered on npm names this repository, this workflow file and the
+`release` environment. Renaming any of the three stops publishing until npm is told, which
+is the property that makes it an access control rather than a convenience. The environment
+survives the token's removal for its other job: gating on a required reviewer.
+
+It needs npm 11.5.1 or later, which is newer than the npm bundled with any Node, so the
+workflow installs it explicitly. Node's own floor of 22.14.0 is already cleared by the
+pinned 24.
+
+**Provenance: on, and now inherent.** Trusted publishing generates attestations
+automatically for a public repository, so the earlier `NPM_CONFIG_PROVENANCE` is gone.
+`publishConfig.provenance` stays in each manifest, which is deliberate belt-and-braces: it
+also makes a local `npm publish` fail, because a laptop has no OIDC identity to sign with.
+
 `publishConfig.access` is `public` on every package — including the FSL ones, since
 source-available means the terms are restrictive, not that the package is hidden.
 
@@ -93,9 +105,10 @@ npm deprecate @kajay/core@1.0.1 "Broken export map; use 1.0.2"
 **Publication remains a separate, explicit decision**, exactly as ADR-0024 said it would.
 Completing the walkthrough permits a release; it does not perform one.
 
-Two things still stand between this and npm, both deliberate:
+What stands between this and npm, as of 2026-08-05:
 
-- every package is still `private: true`; and
+- **no trusted publisher is registered on npm**, so the workflow has no identity to publish
+  with. This replaced `private: true`, which has been removed from all five packages; and
 - the artifact-level dry run ADR-0024 requires has not been run against the real scope.
 
 ## Consequences
@@ -106,9 +119,9 @@ Two things still stand between this and npm, both deliberate:
 - The compatibility promise gives the ledger a second job. It was a documentation aid; it is
   now the thing consumers rely on, so removing a name from it is a breaking change even when
   the export survives.
-- Flipping `private` is now the single remaining mechanical step, which is a smaller and more
-  visible surface than the four brakes that preceded it. That is intended: the last brake
-  should be one deliberate act rather than several partial ones.
+- The last brake is registering the trusted publisher, which happens on npm rather than in
+  this repository. That is a better place for it than a flag in a manifest: it cannot be
+  flipped by a commit, and it is the one step that requires the account owner.
 
 ## Parent and related links
 

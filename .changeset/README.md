@@ -8,8 +8,8 @@ Release tooling for the single version train
 **It can version. It still cannot publish — but the path now exists.**
 `pnpm release` and `.github/workflows/release.yml` were added deliberately, so the brake is
 no longer "nothing is wired". What stops a publish today is that every package is
-`private: true`, which npm refuses independently of anything here, and that the `kajay`
-scope is unclaimed. [ADR-0024](../docs/adr/0024-publication-hold.md)'s hold still stands as
+no trusted publisher has been registered on npm, so the workflow has no identity to
+publish with. [ADR-0024](../docs/adr/0024-publication-hold.md)'s hold still stands as
 the decision, rather than as an absence of tooling.
 
 The workflow is **manual only** — no push, tag or merge triggers it. It asks for the version

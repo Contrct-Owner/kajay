@@ -38,6 +38,15 @@ test('Creator documentation is part of the same catalog', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Load and save definitions' })).toBeVisible();
 });
 
+test('the MCP guide documents the public read-only contract', async ({ page }) => {
+  await page.goto('/docs/integration/model-context-protocol');
+
+  await expect(page.getByRole('heading', { name: 'Use Kajay docs over MCP' })).toBeVisible();
+  await expect(page.getByText('https://kajay.io/mcp', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('search_kajay_docs', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Know the read-only boundary' })).toBeVisible();
+});
+
 test('generated definition and API detail routes resolve through the reference registry', async ({
   page,
 }) => {

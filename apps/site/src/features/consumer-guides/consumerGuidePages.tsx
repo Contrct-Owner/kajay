@@ -7,7 +7,7 @@ import {
   questionExtensionSections,
   themeSections,
 } from './content/extensionGuides';
-import { fileSections, remoteSections } from './content/integrationGuides';
+import { fileSections, mcpSections, remoteSections } from './content/integrationGuides';
 import {
   accessibilitySections,
   compatibilitySections,
@@ -50,6 +50,14 @@ export const consumerGuidePages = [
     section: 'Integration', status: 'preview', audience: 'consumer', sdk: 'typescript', framework: 'react',
     toc: tocOf(fileSections),
     content: <GuideContent sections={fileSections} />,
+  },
+  {
+    slug: 'integration/model-context-protocol',
+    title: 'Use Kajay docs over MCP',
+    description: 'Connect coding agents to Kajay guides and generated reference facts through a read-only MCP server.',
+    section: 'Integration', status: 'preview', audience: 'advanced', sdk: 'neutral', framework: 'neutral',
+    toc: tocOf(mcpSections),
+    content: <GuideContent sections={mcpSections} />,
   },
   {
     slug: 'customization/themes-and-components',
@@ -100,4 +108,3 @@ export const consumerGuidePages = [
     content: <GuideContent sections={compatibilitySections} />,
   },
 ] as const satisfies readonly DocPageDefinition[];
-

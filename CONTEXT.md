@@ -38,6 +38,7 @@ are consumed through framework adapters and proved through a separate host appli
 | Definition shape | active | Jarod | [Generated survey schema](./contracts/survey-schema.json) |
 | Runtime compatibility | active, one adapter | Jarod | [Conformance v1](./conformance/v1/README.md) |
 | Publishing and licensing | publication hold | Jarod | [ADR-0024](./docs/adr/0024-publication-hold.md) |
+| Machine-readable documentation | preview | Jarod | [ADR-0025](./docs/adr/0025-read-only-documentation-mcp.md) |
 
 ## Package graph
 
@@ -90,6 +91,8 @@ explicitly. The exact dependency and export rules are build-failing checks.
   packages through published interfaces.
 - **Publication hold** — the binding current decision to keep packages unpublished;
   it deliberately does not settle brand, scope, license, version, or release tooling.
+- **Documentation MCP server** — the read-only `kajay.io/mcp` adapter that exposes
+  generated reference facts and documentation search without survey runtime authority.
 
 ## Verification
 
@@ -123,3 +126,5 @@ meaning of each test seam.
   runtime package value in the public-interface ledger.
 - 2026-08-04: Recorded an explicit publication hold while release-policy choices await
   an owner walkthrough.
+- 2026-08-04: Defined the read-only MCP contract for machine-readable consumer
+  documentation.

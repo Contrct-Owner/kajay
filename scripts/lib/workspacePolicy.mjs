@@ -92,6 +92,9 @@ export const WORKSPACE_PACKAGE_POLICIES = Object.freeze([
       '@kajay/creator-react',
       '@kajay/react',
       '@kajay/themes',
+      // The public documentation endpoint speaks MCP through the official Web Standard
+      // transport. It remains an application concern and never enters a published package.
+      '@modelcontextprotocol/sdk',
       '@tanstack/react-router',
       '@tanstack/react-start',
       'class-variance-authority',
@@ -104,6 +107,8 @@ export const WORKSPACE_PACKAGE_POLICIES = Object.freeze([
       'react',
       'react-dom',
       'tailwind-merge',
+      // MCP tool inputs are untrusted protocol data and are validated at the feature seam.
+      'zod',
     ],
   }),
 ]);

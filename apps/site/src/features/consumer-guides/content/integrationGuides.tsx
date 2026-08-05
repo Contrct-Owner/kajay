@@ -2,6 +2,15 @@ import type { GuideSectionDefinition } from '../components/GuideContent';
 import { GuideNote, ResponsibilityList } from '../components/GuideContent';
 import { FILE_SEAMS, REMOTE_CHOICES, SERVER_VALIDATION } from '../examples/consumerExamples';
 
+const MCP_CLIENT_CONFIGURATION = `{
+  "mcpServers": {
+    "kajay-docs": {
+      "type": "http",
+      "url": "https://kajay.io/mcp"
+    }
+  }
+}`;
+
 export const remoteSections: readonly GuideSectionDefinition[] = [
   {
     id: 'choose-a-loading-seam',
@@ -54,3 +63,27 @@ export const fileSections: readonly GuideSectionDefinition[] = [
   },
 ];
 
+export const mcpSections: readonly GuideSectionDefinition[] = [
+  {
+    id: 'connect-a-client',
+    title: 'Connect an MCP client',
+    body: <><p>The Model Context Protocol (MCP) lets compatible agents discover external context and tools. Point a client that supports Streamable HTTP at <code>https://kajay.io/mcp</code>. The exact configuration shape belongs to the client; this example shows the common fields.</p><GuideNote><p>The endpoint and this guide are preview features. No API key is required because the server exposes only public documentation.</p></GuideNote></>,
+    code: MCP_CLIENT_CONFIGURATION,
+    codeLabel: 'Illustrative MCP client configuration',
+  },
+  {
+    id: 'discover-documentation',
+    title: 'Discover documentation',
+    body: <ResponsibilityList><li>Read <code>kajay://docs/index</code> for the documentation catalog and browser links.</li><li>Read <code>kajay://docs/reference-manifest</code> for generated definition, diagnostic, expression, and API reference facts.</li><li>Call <code>search_kajay_docs</code> with a plain-language query to find authored guides and reference entries.</li></ResponsibilityList>,
+  },
+  {
+    id: 'understand-search-results',
+    title: 'Follow search results',
+    body: <p>Every result includes a kind, title, description, and canonical documentation URL. Generated reference facts are available directly through MCP. Authored guides remain browser-first, so their search results lead to the corresponding page on <code>kajay.io</code>.</p>,
+  },
+  {
+    id: 'read-only-boundary',
+    title: 'Know the read-only boundary',
+    body: <GuideNote><p>The documentation server cannot create, edit, validate, execute, or save a survey. It exposes no prompts and keeps no MCP session state. Those capabilities would require a separate compatibility and security contract.</p></GuideNote>,
+  },
+];

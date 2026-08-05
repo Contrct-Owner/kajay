@@ -1,4 +1,5 @@
 export { docsReferenceManifest } from './generated/docsReferenceManifest.js';
+export { authoredDocsManifest } from './generated/authoredDocsManifest.js';
 export {
   createDocumentationSearchIndex,
   queryDocumentationSearch,

@@ -18,7 +18,12 @@ import { InlineText } from './InlineText.js';
  * when the model's text really changed underneath: an undo, or an edit applied from the
  * JSON view.
  */
-const EDITABLE: ReadonlyMap<string, CreatorStringKey> = new Map([['title', 'titleOf']]);
+const EDITABLE: ReadonlyMap<string, CreatorStringKey> = new Map([
+  ['title', 'titleOf'],
+  // A panel's own prose. It is the one page element with words beyond a title, and the only
+  // one a designer writes purely for the people reading it.
+  ['description', 'descriptionOf'],
+]);
 
 export function useInlineTextRenderer(surface: DesignSurface): TextRenderer {
   const label = useCreatorText();

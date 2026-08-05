@@ -138,13 +138,17 @@ function Adorner({
           }}
         >
           {/*
-            **The type when it is the only thing saying it, the name when it is not.** On the
-            selected element the picker beside this says the type, and two chips saying
-            `text` was the most visible waste left in the row. The name is the better second
-            word anyway: it is what logic and the results refer to, and it is the one fact
-            about a question that is nowhere else on the canvas.
+            **Always the name.** It used to be the type until the element was selected and
+            then the name, on the reasoning that the type picker beside it already says the
+            type — true, and beside the point: a chip that means one thing until you click
+            it and another afterwards is a worse label than either, and a designer tracking
+            an element watches it change word under them.
+
+            The name is the right one to keep. The type is legible from the question itself
+            — a radiogroup looks like radios — while the name appears nowhere else on the
+            canvas, and it is what logic references and what the results are keyed by.
           */}
-          {surface.isSelected(element) ? element.name : element.type}
+          {element.name}
         </Button>
         {surface.isSelected(element) ? (
           <SelectedBar surface={surface} element={element} />

@@ -42,6 +42,7 @@ import type { EditRefusal } from './EditRefusal.js';
 import type { DesignSurfaceOptions, EditOptions } from './DesignSurfaceOptions.js';
 import { PlacementSessionModel } from './PlacementSession.js';
 import type { PlacementSession } from './PlacementSession.js';
+import { elementNamedIn } from './elementLookup.js';
 
 /**
  * The survey being designed, and what is selected in it — checklist K3.
@@ -314,6 +315,19 @@ export class DesignSurface {
 
   readonly #isContainerType = (type: string): boolean =>
     this.#document.registry.getChildCollection(type, 'elements') !== undefined;
+
+  /**
+   * The element of that name, wherever it is — the model-side twin of {@link locate}.
+   *
+   * `Survey.getQuestionByName` finds questions, and a panel is not one. Anything editing an
+   * element it knows only by name — which, after ADR-0009 decision 3, is everything that
+   * survives a re-parse — needs to resolve a *page element*, not a question. P10 found this
+   * the first time somebody typed on a panel's description and nothing happened.
+   */
+  elementNamed(name: string): PageElement | undefined {
+    return elementNamedIn(this.pages, name);
+  }
+
 
   /** Where an element sits: which container holds it, and at what index. */
   locate(name: string): DropSlot | undefined { return locate(this.definition, name); }

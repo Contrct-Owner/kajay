@@ -147,3 +147,18 @@ test('parity/K3-design-surface: a survey with no pages says so', async () => {
 
   await expect.element(screen.getByRole('status')).toHaveTextContent('no pages yet');
 });
+
+test('parity/K3-chip: the chip says the name, selected or not', async () => {
+  const designed = surface();
+  const screen = await render(<DesignSurfacePanel surface={designed} />);
+
+  // It used to say the type until you clicked, and the name afterwards. A chip that means
+  // one thing until you select and another after is a worse label than either — a designer
+  // tracking an element watches the word change under them. Nothing pinned it either way,
+  // which is why it drifted.
+  const chip = screen.getByTestId('select-plan');
+  await expect.element(chip).toHaveTextContent('plan');
+
+  await chip.click();
+  await expect.element(screen.getByTestId('select-plan')).toHaveTextContent('plan');
+});

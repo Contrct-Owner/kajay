@@ -1,12 +1,13 @@
 import { Panel } from '@kajay/core';
 import type { PageElement, Survey } from '@kajay/core';
-import type { ReactElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import type { CSSProperties } from 'react';
 import { PageElementSlot } from './PageElementSlot.js';
 import type { PageElementRendererProps } from './PageElementRendererRegistry.js';
 import { useQuestionRenderers } from './QuestionRenderersContext.js';
 import { useCssClass } from './SurveyCssContext.js';
 import { useSurveyComponents } from './SurveyComponents.js';
+import { useTextRenderer } from './TextRendererContext.js';
 
 export function PanelRenderer({ survey, element }: PageElementRendererProps): ReactElement {
   if (!(element instanceof Panel)) {
@@ -27,7 +28,9 @@ export function PanelRenderer({ survey, element }: PageElementRendererProps): Re
     >
       <PanelLegend panel={element} contentId={contentId} isCollapsed={isCollapsed} />
       {element.description.length > 0 && !isCollapsed ? (
-        <p className="kajay-panel__description">{element.description}</p>
+        <p className="kajay-panel__description">
+          <PanelText panel={element} text={element.description} kind="description" />
+        </p>
       ) : null}
       {isCollapsed ? null : (
         <div className="kajay-panel__content" id={contentId} style={columns}>
@@ -67,7 +70,11 @@ function PanelLegend({ panel, contentId, isCollapsed }: PanelLegendProps): React
     return null;
   }
   if (panel.state === 'default') {
-    return <legend className="kajay-panel__title">{panel.title}</legend>;
+    return (
+      <legend className="kajay-panel__title">
+        <PanelText panel={panel} text={panel.title} kind="title" />
+      </legend>
+    );
   }
   return (
     <legend className="kajay-panel__title">
@@ -80,8 +87,29 @@ function PanelLegend({ panel, contentId, isCollapsed }: PanelLegendProps): React
           panel.setCollapsed(!panel.isCollapsed);
         }}
       >
-        {panel.title}
+        <PanelText panel={panel} text={panel.title} kind="title" />
       </Button>
     </legend>
   );
+}
+
+/**
+ * A panel's own words, through the text seam — checklist P10.
+ *
+ * A panel is the one page element with prose of its own beyond a title, and the only one a
+ * designer names purely for the people reading it. Going through the seam is what lets the
+ * Creator make these editable where they sit; a host who supplies no `renderText` gets the
+ * string, exactly as before.
+ */
+function PanelText({
+  panel,
+  text,
+  kind,
+}: {
+  readonly panel: Panel;
+  readonly text: string;
+  readonly kind: 'title' | 'description';
+}): ReactNode {
+  const renderText = useTextRenderer();
+  return renderText(text, { kind, owner: panel.name, property: kind });
 }

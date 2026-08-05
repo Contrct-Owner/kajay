@@ -90,7 +90,7 @@ export function InlineText({ surface, text, subject, label }: InlineTextProps): 
 
 /** Writes the edited text back. Says whether it landed. */
 function writeText(surface: DesignSurface, subject: TextSubject, typed: string): boolean {
-  const element = surface.survey.getQuestionByName(subject.owner);
+  const element = surface.elementNamed(subject.owner);
   if (element === undefined) {
     return false;
   }
@@ -101,7 +101,7 @@ function writeText(surface: DesignSurface, subject: TextSubject, typed: string):
 }
 
 function select(surface: DesignSurface, owner: string): void {
-  const element = surface.survey.getQuestionByName(owner);
+  const element = surface.elementNamed(owner);
   if (element !== undefined && !surface.isSelected(element)) {
     surface.select(element);
   }

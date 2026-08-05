@@ -72,3 +72,39 @@ test('parity/P10-inline: typing on a question selects it', async () => {
   // different answers to "what am I working on".
   await expect.poll(() => designed.selected?.getPropertyValue('name')).toBe('who');
 });
+
+test('parity/P10-inline: a panel’s title and description are editable in place', async () => {
+  const designed = surface({
+    pages: [
+      {
+        name: 'p1',
+        elements: [
+          {
+            type: 'panel',
+            name: 'about',
+            title: 'About you',
+            description: 'A few details.',
+            elements: [{ type: 'text', name: 'who', title: 'Your name' }],
+          },
+        ],
+      },
+    ],
+  });
+  const screen = await render(<DesignSurfacePanel surface={designed} />);
+
+  const description = screen.container.querySelector(
+    '[data-testid="inline-description-about"]',
+  ) as HTMLElement;
+  description.focus();
+  description.textContent = 'Tell us who you are.';
+  description.blur();
+
+  await expect.poll(() => designed.definition['pages']).toBeDefined();
+  expect(JSON.stringify(designed.definition)).toContain('Tell us who you are.');
+
+  // The panel's title too — a container is named for the people reading it, and until now
+  // that name could only be changed in the grid.
+  await expect
+    .element(screen.getByTestId('inline-title-about'))
+    .toHaveTextContent('About you');
+});

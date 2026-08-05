@@ -3,14 +3,15 @@
 - Area: Phased delivery plan from foundation to full parity
 - Status: active
 - Owner: Jarod
-- Last updated: 2026-08-04
+- Last updated: 2026-08-05
 
 This is the single index that sequences the work into **delivery phases** with explicit
 entry and exit gates, so work has an order and each milestone has a definition of done.
 It does not restate the designs; it points at the docs that specify each phase's work.
 
 **Overall acceptance target: Phase 3 exit** — full Form Library + Creator parity,
-proven by the host application and the parity checklist. Phase 4 is horizon.
+proven by the host application and the parity checklist. **Met on 2026-08-04**; see the
+Phase 3 exit record below for what that did and did not include. Phase 4 is horizon.
 
 ## How to read this
 
@@ -334,6 +335,35 @@ verify the definition round-trips and re-loads into the Creator losslessly.**
 
 **Out:** Phase 4 items.
 
+**Exit gate met on 2026-08-04; recorded 2026-08-05.** §K–§N are green and the
+end-to-end scenario passes as written: `parity/N5-round-trip` builds a survey in the
+Creator covering every type the toolbox offers — derived from the registry rather than
+a list, so a type added tomorrow fails the scenario until it is covered — renders it,
+answers it, submits, and re-opens the definition in the Creator unchanged. The review
+model's second half is `test:pack`, which since N4 installs the tarballs into a scratch
+project outside the workspace and drives the Creator from them.
+
+**The phase grew a section it did not start with.** §P — the reference application —
+was added on the judgement that checklist-green proves *function* and not *fitness*,
+and that a library nobody has built an application with is untested in the way that
+matters. It earned its place: eleven rows, and among them a server-rendering defect no
+unit test could have found, four cases where the composition story promised something
+the public surface could not deliver, duplicate DOM ids across two surveys of one
+definition, and the silence ADR-0023 now forbids. None of those were visible from
+inside the library.
+
+**§O reviewed at this boundary, as the checklist requires.** Nothing promotes. Every
+watch item wants evidence a real consumer needs it, and there are no consumers yet —
+nothing is published. The review is therefore a formality this time and will not be at
+the next boundary.
+
+**What the phase does not include.** Publication: ADR-0024's hold stands, the `kajay`
+scope is unclaimed, and every package remains `private: true`. Licensing and versioning
+are settled — MIT runtime and FSL Creator under
+[ADR-0028](./adr/0028-mit-runtime-source-available-creator.md), all five packages at
+`1.0.0` with changelogs — so what remains between here and npm is a decision and an
+account claim rather than any engineering.
+
 ## Phase 4 — Horizon
 
 Opportunity-driven, on evidence of need: PDF export, dashboard/analytics, Vue and
@@ -362,7 +392,10 @@ TypeScript implementation. Each starts with its own ADR and checklist section.
 
 - **Phases 0–2** close on internal build gates (checklist + CI).
 - **Phase 3** closes on the external-consumer proof: the host-demo acceptance
-  scenario and the pack test standing in for a real third-party integration.
+  scenario and the pack test standing in for a real third-party integration. Closed
+  2026-08-04. In the event a *third* proof was added — §P's reference application —
+  because a tarball that compiles and a scenario that passes both answer "does it
+  work" and neither answers "is it any good to build with".
 - **Phase 4** is opportunity-driven.
 
 ## Open questions

@@ -40,6 +40,12 @@ public sealed class DefinitionConformanceTests
         AssertDefinitionCase("quiz-properties-round-trip");
     }
 
+    [Fact]
+    public void LocalizedTextIsPreservedOnlyForLocalizableProperties()
+    {
+        AssertDefinitionCase("localized-strings-round-trip");
+    }
+
     private static void AssertDefinitionCase(string id)
     {
         using JsonDocument corpus = OpenDefinitionCorpus();

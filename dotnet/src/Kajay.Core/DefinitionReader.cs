@@ -8,6 +8,7 @@ internal static class DefinitionReader
     [
         "schemaVersion",
         "title",
+        "locale",
         "maxTimeToFinish",
         "maxTimeToFinishPage",
         "showTimerPanel",
@@ -18,7 +19,16 @@ internal static class DefinitionReader
     private static readonly string[] PageProperties =
         ["name", "title", "maxTimeToFinish", "elements"];
     private static readonly string[] ElementProperties =
-        ["type", "name", "isRequired", "inputType", "choices", "correctAnswer"];
+    [
+        "type",
+        "name",
+        "title",
+        "isRequired",
+        "inputType",
+        "visibleIf",
+        "choices",
+        "correctAnswer",
+    ];
 
     internal static JsonObject Read(
         JsonObject input,
@@ -30,13 +40,14 @@ internal static class DefinitionReader
             string.Empty,
             diagnostics);
         var output = new JsonObject { ["schemaVersion"] = 1 };
-        CopyStringProperty(
+        CopyLocalizedTextProperty(
             input,
             output,
             "title",
             string.Empty,
             "/title",
             diagnostics);
+        CopyStringProperty(input, output, "locale", string.Empty, "/locale", diagnostics);
         CopyProperty(input, output, "maxTimeToFinish");
         CopyProperty(input, output, "maxTimeToFinishPage");
         CopyProperty(input, output, "showTimerPanel");
@@ -73,8 +84,22 @@ internal static class DefinitionReader
         var output = new JsonObject();
         CopyProperty(input, output, "type");
         CopyProperty(input, output, "name");
+        CopyLocalizedTextProperty(
+            input,
+            output,
+            "title",
+            string.Empty,
+            $"{path}/title",
+            diagnostics);
         CopyProperty(input, output, "isRequired", JsonValue.Create(false));
         CopyProperty(input, output, "inputType", JsonValue.Create("text"));
+        CopyStringProperty(
+            input,
+            output,
+            "visibleIf",
+            string.Empty,
+            $"{path}/visibleIf",
+            diagnostics);
         CopyChoices(input, output);
         CopyProperty(input, output, "correctAnswer");
         AppendUnknown(output, unknown);
@@ -142,6 +167,29 @@ internal static class DefinitionReader
             "property-type-mismatch",
             path,
             DiagnosticSeverity.Error));
+    }
+
+    private static void CopyLocalizedTextProperty(
+        JsonObject input,
+        JsonObject output,
+        string propertyName,
+        string defaultValue,
+        string path,
+        ICollection<DefinitionDiagnostic> diagnostics)
+    {
+        if (input[propertyName] is JsonObject localized)
+        {
+            output[propertyName] = localized.DeepClone();
+            return;
+        }
+
+        CopyStringProperty(
+            input,
+            output,
+            propertyName,
+            defaultValue,
+            path,
+            diagnostics);
     }
 
     private static void CopyChildren(

@@ -16,6 +16,12 @@ public sealed class DefinitionConformanceTests
         AssertDefinitionCase("explicit-defaults-are-elided");
     }
 
+    [Fact]
+    public void UnknownPropertiesArePreservedAndReported()
+    {
+        AssertDefinitionCase("unknown-properties-round-trip");
+    }
+
     private static void AssertDefinitionCase(string id)
     {
         using JsonDocument corpus = OpenDefinitionCorpus();
@@ -27,10 +33,28 @@ public sealed class DefinitionConformanceTests
         SurveyDefinitionParseResult result = SurveyDefinition.Parse(
             testCase.GetProperty("input").GetRawText());
 
-        Assert.Empty(result.Diagnostics);
         Assert.Equal(
             JsonSerializer.Serialize(testCase.GetProperty("canonical")),
             result.Definition.ToCanonicalJson());
+        AssertDiagnostics(testCase.GetProperty("diagnostics"), result.Diagnostics);
+    }
+
+    private static void AssertDiagnostics(
+        JsonElement expected,
+        IReadOnlyList<DefinitionDiagnostic> actual)
+    {
+        Assert.Equal(expected.GetArrayLength(), actual.Count);
+        int index = 0;
+        foreach (JsonElement expectedDiagnostic in expected.EnumerateArray())
+        {
+            DefinitionDiagnostic actualDiagnostic = actual[index];
+            Assert.Equal(expectedDiagnostic.GetProperty("code").GetString(), actualDiagnostic.Code);
+            Assert.Equal(expectedDiagnostic.GetProperty("path").GetString(), actualDiagnostic.Path);
+            Assert.Equal(
+                expectedDiagnostic.GetProperty("severity").GetString(),
+                actualDiagnostic.Severity.ToString().ToLowerInvariant());
+            index += 1;
+        }
     }
 
     private static JsonDocument OpenDefinitionCorpus()

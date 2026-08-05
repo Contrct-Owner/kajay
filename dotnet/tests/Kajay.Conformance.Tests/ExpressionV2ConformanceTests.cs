@@ -8,19 +8,19 @@ public sealed class ExpressionV2ConformanceTests
     [Fact]
     public void DecimalTextWithAnExponentIsNumeric()
     {
-        AssertNumericTextCase("decimal-text-with-exponent-is-numeric");
+        AssertEvaluationCase("decimal-text-with-exponent-is-numeric");
     }
 
     [Fact]
     public void LeadingDecimalPointIsNumeric()
     {
-        AssertNumericTextCase("leading-decimal-point-is-numeric");
+        AssertEvaluationCase("leading-decimal-point-is-numeric");
     }
 
     [Fact]
     public void ContractWhitespaceIsTrimmedFromNumericText()
     {
-        AssertNumericTextCase("contract-whitespace-is-trimmed-from-numeric-text");
+        AssertEvaluationCase("contract-whitespace-is-trimmed-from-numeric-text");
     }
 
     [Fact]
@@ -29,46 +29,24 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("hexadecimal-text-is-not-numeric");
     }
 
-    private static void AssertNumericTextCase(string caseId)
+    [Fact]
+    public void BooleanIsNotNumeric()
     {
-        ExpressionEvaluationResult evaluated = EvaluateCase(caseId, out JsonDocument corpus);
-        using (corpus)
-        {
-            JsonElement testCase = FindCase(corpus, caseId);
-            Assert.Empty(evaluated.Errors);
-            Assert.Equal(KajayValueKind.Number, evaluated.Value.Kind);
-            Assert.Equal(
-                testCase.GetProperty("result").GetProperty("value").GetDouble(),
-                evaluated.Value.GetNumber());
-        }
+        AssertEvaluationCase("boolean-is-not-numeric");
     }
 
     private static void AssertEvaluationCase(string caseId)
     {
-        ExpressionEvaluationResult evaluated = EvaluateCase(caseId, out JsonDocument corpus);
-        using (corpus)
-        {
-            JsonElement expected = FindCase(corpus, caseId).GetProperty("result");
-            Assert.Empty(evaluated.Errors);
-            Assert.Equal(expected.GetProperty("value").GetBoolean(), evaluated.Value.GetBoolean());
-        }
-    }
-
-    private static ExpressionEvaluationResult EvaluateCase(
-        string caseId,
-        out JsonDocument corpus)
-    {
-        corpus = OpenExpressionCorpus();
+        using JsonDocument corpus = OpenExpressionCorpus();
         JsonElement testCase = FindCase(corpus, caseId);
         DateTimeOffset clock = DateTimeOffset.Parse(
             corpus.RootElement.GetProperty("clock").GetString()!,
             CultureInfo.InvariantCulture,
             DateTimeStyles.RoundtripKind);
-        var values = new Dictionary<string, KajayValue>(StringComparer.Ordinal)
-        {
-            ["amount"] = KajayValue.From(
-                testCase.GetProperty("data").GetProperty("amount").GetString()!),
-        };
+        IReadOnlyDictionary<string, KajayValue> values =
+            testCase.TryGetProperty("data", out JsonElement data)
+                ? ConformanceJsonValue.ReadObject(data)
+                : new Dictionary<string, KajayValue>(StringComparer.Ordinal);
 
         ExpressionParseResult parsed = SurveyExpression.Parse(
             testCase.GetProperty("source").GetString()!);
@@ -76,7 +54,12 @@ public sealed class ExpressionV2ConformanceTests
             new ExpressionEvaluationContext(clock, values));
 
         Assert.Empty(parsed.Errors);
-        return evaluated;
+        Assert.Equal(
+            testCase.GetProperty("errorCodes").EnumerateArray().Select(item => item.GetString()),
+            evaluated.Errors.Select(error => error.Code));
+        Assert.Equal(
+            ConformanceJsonValue.ReadTagged(testCase.GetProperty("result")),
+            evaluated.Value);
     }
 
     private static JsonElement FindCase(JsonDocument corpus, string caseId)

@@ -40,9 +40,6 @@ export function toNumber(value: unknown): number | undefined {
   if (typeof normalized === 'number') {
     return Number.isFinite(normalized) ? normalized : undefined;
   }
-  if (typeof normalized === 'boolean') {
-    return normalized ? 1 : 0;
-  }
   if (typeof normalized === 'string') {
     const text = normalized.trim();
     if (!DECIMAL_NUMBER.test(text)) {

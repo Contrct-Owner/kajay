@@ -10,6 +10,7 @@ const implementedExpressionIds = [
   'leading-decimal-point-is-numeric',
   'contract-whitespace-is-trimmed-from-numeric-text',
   'hexadecimal-text-is-not-numeric',
+  'boolean-is-not-numeric',
 ];
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));

@@ -89,3 +89,22 @@ the default assembly is a privileged consumer that imports whatever it likes. A 
 not. See §P9 for the audit, and ADR-0021, whose composition claim has the same exposure
 and was checked at the same time — the Creator's property-editor seam passed, with two
 specialised sub-editors noted as deliberate exclusions.
+
+## Amendment (2026-08-04) — semantic ownership is a paired proof, not a syntax ban
+
+The package graph proves dependency direction and DOM freedom. It cannot prove that a
+validation rule, lifecycle decision, or answer transformation was not duplicated inside
+a React component. Attempts to infer that from file size, helper names, branches, or loops
+would reject necessary event and accessibility logic while still missing a misplaced
+one-line rule.
+
+Accepted capabilities now carry a proof at both sides of the rendering seam. A green row
+exercised in a React browser test must also have a unit proof in a framework-independent
+package for the same row. Rows whose complete contract is DOM identity, focus, layout,
+component composition, or browser-event translation are explicit, justified exceptions.
+The enforced policy and its current exceptions live in the
+[headless adapter contract](../headless-adapter-contract.md).
+
+This is deliberately a narrower claim than “React contains no business logic.” The paired
+proof demonstrates an independently executable headless interface and makes semantic
+locality reviewable; code review still decides whether the adapter duplicated that meaning.

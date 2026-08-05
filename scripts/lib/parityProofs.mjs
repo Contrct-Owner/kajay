@@ -2,12 +2,14 @@ import { readFileSync } from 'node:fs';
 import { relative } from 'node:path';
 import ts from 'typescript';
 import { listSourceFiles } from './workspace.mjs';
+import { WORKSPACE_PACKAGE_POLICIES } from './workspacePolicy.mjs';
 
 const PARITY_PROOF = /\bparity\/[A-Za-z0-9-]+\b/gu;
 const GREEN_ROW = /^\|\s*([A-Z][0-9]+)\s*\|/u;
 const DISABLED_FILE = /(?:^|[/.])(?:skip|todo|disabled)(?:[/.]|$)/u;
 const TEST_ROOTS = new Set(['describe', 'it', 'test']);
 const DISABLED_CALLS = new Set(['skip', 'skipIf', 'todo']);
+const ADAPTER_ONLY_HEADING = '## Adapter-owned acceptance rows';
 
 function uniqueMatches(source, pattern) {
   return [...new Set(source.match(pattern) ?? [])];
@@ -34,6 +36,41 @@ export function parseGreenProofRows(markdown) {
     .split('\n')
     .map((line) => greenProofRow(line))
     .filter((row) => row !== undefined);
+}
+
+/**
+ * Rows listed here are capabilities whose observable contract genuinely belongs to a
+ * framework adapter: DOM identity, focus, event translation, composition, or layout.
+ * Keeping the rationale in Markdown makes each exception a reviewable architecture
+ * decision instead of a magic allow-list in the checker.
+ */
+export function parseAdapterOnlyRows(markdown) {
+  const headingStart = markdown.indexOf(ADAPTER_ONLY_HEADING);
+  if (headingStart < 0) {
+    return { rows: new Map(), violations: [`Missing "${ADAPTER_ONLY_HEADING}" section.`] };
+  }
+  const sectionStart = headingStart + ADAPTER_ONLY_HEADING.length;
+  const nextHeading = markdown.indexOf('\n## ', sectionStart);
+  const section = markdown.slice(sectionStart, nextHeading < 0 ? undefined : nextHeading);
+  const rows = new Map();
+  const violations = [];
+
+  for (const line of section.split('\n')) {
+    const match = /^\|\s*([A-Z][0-9]+)\s*\|\s*(.*?)\s*\|\s*$/u.exec(line);
+    if (match === null) {
+      continue;
+    }
+    const [, id, rationale] = match;
+    if (rows.has(id)) {
+      violations.push(`Adapter-owned row ${id} is listed more than once.`);
+    } else if (rationale.length === 0) {
+      violations.push(`Adapter-owned row ${id} needs a rationale.`);
+    } else {
+      rows.set(id, rationale);
+    }
+  }
+
+  return { rows, violations };
 }
 
 function callParts(expression) {
@@ -133,6 +170,82 @@ export function repositoryParityProofs(repoRoot) {
     }
   }
   return proofs;
+}
+
+function rowIdOf(proof) {
+  return /^parity\/([A-Z][0-9]+)-/u.exec(proof)?.[1];
+}
+
+function packagePolicyForLocation(location) {
+  return WORKSPACE_PACKAGE_POLICIES.find(({ directory }) =>
+    location === directory || location.startsWith(`${directory}/`));
+}
+
+function proofKinds(enabledProofs) {
+  const adapterRows = new Set();
+  const frameworkIndependentRows = new Set();
+
+  for (const [proof, locations] of enabledProofs) {
+    const rowId = rowIdOf(proof);
+    if (rowId === undefined) {
+      continue;
+    }
+    for (const location of locations) {
+      const policy = packagePolicyForLocation(location);
+      if (policy?.role === 'ui' && /\/test\/browser\//u.test(location)) {
+        adapterRows.add(rowId);
+      }
+      if (
+        (policy?.role === 'core' || policy?.role === 'assets') &&
+        /\/test\/unit\//u.test(location)
+      ) {
+        frameworkIndependentRows.add(rowId);
+      }
+    }
+  }
+
+  return { adapterRows, frameworkIndependentRows };
+}
+
+/**
+ * A green capability demonstrated through a UI adapter also needs a unit proof in a
+ * framework-independent package, unless the capability is explicitly adapter-owned.
+ *
+ * This is an ownership proof, not a source-code oracle: it demonstrates that the
+ * capability has an independently executable headless interface. It does not claim
+ * that React source contains no duplicated or newly misplaced semantic decision.
+ */
+export function adapterHeadlessOwnershipViolations(rows, enabledProofs, adapterOnlyRows) {
+  const violations = [];
+  const greenRows = new Set(rows.map(({ id }) => id));
+  const { adapterRows, frameworkIndependentRows } = proofKinds(enabledProofs);
+
+  for (const id of adapterRows) {
+    if (
+      greenRows.has(id) &&
+      !frameworkIndependentRows.has(id) &&
+      !adapterOnlyRows.has(id)
+    ) {
+      violations.push(
+        `[${id}] has a React-adapter proof but no framework-independent unit proof. ` +
+        'Move its semantics behind a headless interface, or document why the row is adapter-owned.',
+      );
+    }
+  }
+
+  for (const id of adapterOnlyRows.keys()) {
+    if (!greenRows.has(id)) {
+      violations.push(`[${id}] is an adapter-owned exception but is not a green checklist row.`);
+    } else if (!adapterRows.has(id)) {
+      violations.push(`[${id}] is an adapter-owned exception but has no React browser proof.`);
+    } else if (frameworkIndependentRows.has(id)) {
+      violations.push(
+        `[${id}] now has a framework-independent unit proof; remove its adapter-owned exception.`,
+      );
+    }
+  }
+
+  return violations;
 }
 
 function commandIsVerified(command, manifest) {

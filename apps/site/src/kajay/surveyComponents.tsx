@@ -21,8 +21,8 @@ import { cn } from '@/lib/utils';
  * costs one extra object literal and buys a survey and a designer that look like the same
  * product.
  *
- * Every component below is the same `src/components/ui/` source the site's own pages use.
- * Nothing is written twice.
+ * Button, Input, Textarea and Checkbox adapt the same `src/components/ui/` primitives the
+ * site's pages use. Radio is the intentionally small native exception explained below.
  */
 
 function Button({ children, ...props }: SurveyButtonProps): ReactElement {

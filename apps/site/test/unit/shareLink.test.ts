@@ -4,7 +4,7 @@ import {
   decodeDefinition,
   encodeDefinition,
   shareLink,
-} from '../../src/playground/usePlaygroundDocument.js';
+} from '../../src/features/playground/playgroundDocument.js';
 
 /**
  * The playground's share link — checklist P3.

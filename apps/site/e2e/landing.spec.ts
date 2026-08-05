@@ -45,6 +45,19 @@ test('parity/P8-landing: the hero survey is drawn with the site’s own componen
   await expect(control).toBeVisible();
 });
 
+test('parity/P8-landing: the component-map claim matches the renderer API', async ({ page }) => {
+  await page.goto('/');
+
+  const example = page.getByTestId('survey-components-example');
+  await expect(example).toContainText(
+    "import { KAJAY_SURVEY_COMPONENTS } from '@/kajay/surveyComponents'",
+  );
+  await expect(example).toContainText('components={KAJAY_SURVEY_COMPONENTS}');
+  await expect(example).not.toContainText('Select');
+  await expect(page.getByText('Button, Input, Textarea, Checkbox and Radio')).toBeVisible();
+  await expect(page.getByText(/Kajay draws every control through your design system/u)).toHaveCount(0);
+});
+
 test('parity/P8-landing: it does not tell anyone to install something that is not there', async ({
   page,
 }) => {

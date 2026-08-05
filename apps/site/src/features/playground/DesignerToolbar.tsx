@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
  * **The library's `HistoryPanel` is not used here**, and that is the seam working rather
  * than failing. It draws two labelled buttons, which is the right default for a host with
  * no toolbar of its own; this page has one, and wants icons in it. So it does what
- * [ADR-0021](../../../../docs/adr/0021-creator-composition.md) invites — puts undo in its
+ * [ADR-0021](../../../../../docs/adr/0021-creator-composition.md) invites — puts undo in its
  * own toolbar — by calling `surface.undo()` directly.
  *
  * That needs `useSurfaceVersion`, which the library kept private until this file wanted it.

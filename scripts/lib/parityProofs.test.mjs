@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  adapterHeadlessOwnershipViolations,
   enabledParityProofs,
+  parseAdapterOnlyRows,
   parseGreenProofRows,
   parityProofViolations,
 } from './parityProofs.mjs';
@@ -55,5 +57,77 @@ test('missing, skipped, and unverified proof references are violations', () => {
     '[A2] names parity/A2-missing, but no enabled test or suite carries it.',
     '[N4] has no enabled test or verified command proof.',
     '[N4] names pnpm run test:pack, but it is absent from the verify chain.',
+  ]);
+});
+
+test('adapter-owned rows are reviewable decisions with rationales', () => {
+  const parsed = parseAdapterOnlyRows(`
+# Contract
+
+## Adapter-owned acceptance rows
+
+| Row | Adapter-owned responsibility |
+| --- | --- |
+| A4 | React component dispatch. |
+| A4 | Duplicate. |
+| P2 |  |
+`);
+
+  assert.deepEqual([...parsed.rows], [['A4', 'React component dispatch.']]);
+  assert.deepEqual(parsed.violations, [
+    'Adapter-owned row A4 is listed more than once.',
+    'Adapter-owned row P2 needs a rationale.',
+  ]);
+});
+
+test('React acceptance requires a framework-independent proof or a reviewed exception', () => {
+  const rows = [
+    { id: 'A1', parityProofs: [], commandProofs: [] },
+    { id: 'A2', parityProofs: [], commandProofs: [] },
+    { id: 'A3', parityProofs: [], commandProofs: [] },
+  ];
+  const proofs = new Map([
+    ['parity/A1-behavior', [
+      'packages/react/test/browser/a.test.tsx',
+      'packages/core/test/unit/a.test.ts',
+    ]],
+    ['parity/A2-layout', ['packages/react/test/browser/b.test.tsx']],
+    ['parity/A3-model', [
+      'packages/creator-react/test/browser/c.test.tsx',
+      'packages/creator-core/test/unit/c.test.ts',
+    ]],
+  ]);
+
+  assert.deepEqual(adapterHeadlessOwnershipViolations(rows, proofs, new Map()), [
+    '[A2] has a React-adapter proof but no framework-independent unit proof. ' +
+      'Move its semantics behind a headless interface, or document why the row is adapter-owned.',
+  ]);
+  assert.deepEqual(
+    adapterHeadlessOwnershipViolations(rows, proofs, new Map([['A2', 'DOM layout.']])),
+    [],
+  );
+});
+
+test('adapter-owned exceptions fail when stale or superseded by a headless proof', () => {
+  const rows = [
+    { id: 'A1', parityProofs: [], commandProofs: [] },
+    { id: 'A2', parityProofs: [], commandProofs: [] },
+  ];
+  const proofs = new Map([
+    ['parity/A1-behavior', [
+      'packages/react/test/browser/a.test.tsx',
+      'packages/core/test/unit/a.test.ts',
+    ]],
+  ]);
+  const exceptions = new Map([
+    ['A1', 'No longer true.'],
+    ['A2', 'No adapter proof.'],
+    ['A3', 'No green row.'],
+  ]);
+
+  assert.deepEqual(adapterHeadlessOwnershipViolations(rows, proofs, exceptions), [
+    '[A1] now has a framework-independent unit proof; remove its adapter-owned exception.',
+    '[A2] is an adapter-owned exception but has no React browser proof.',
+    '[A3] is an adapter-owned exception but is not a green checklist row.',
   ]);
 });

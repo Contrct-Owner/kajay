@@ -25,6 +25,12 @@ public sealed class ExpressionParsingConformanceTests
     }
 
     [Fact]
+    public void CompositeReferencesCanonicalizeThroughThePublicExpressionSeam()
+    {
+        AssertParsingCase("composite-reference");
+    }
+
+    [Fact]
     public void UnterminatedStringsProduceAStableParseError()
     {
         AssertParsingCase("unterminated-string");

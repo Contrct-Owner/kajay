@@ -26,6 +26,13 @@ if (parsed.Diagnostics.Count != 0 || parsed.Definition.ToCanonicalJson() != expe
     throw new InvalidOperationException("Installed package failed definition canonicalization.");
 }
 
+ExpressionParseResult expression = SurveyExpression.Parse("{a} = 1 && {b} <> 2");
+if (expression.Errors.Count != 0
+    || expression.Expression?.ToCanonicalString() != "{a} == 1 and {b} != 2")
+{
+    throw new InvalidOperationException("Installed package failed expression canonicalization.");
+}
+
 Console.WriteLine("dotnet pack smoke: ok");
 `;
 

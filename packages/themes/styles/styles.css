@@ -962,6 +962,12 @@
 .kajay-properties {
   display: grid;
   gap: var(--kajay-spacing);
+  /* **A container, so the rows below measure this panel rather than the window.** The
+     stacking rule was a `@media` query, which asks how wide the *viewport* is — and a
+     property grid in a 15rem sidebar on a 2000px monitor is exactly the case where those
+     two numbers disagree. The fields were being crushed to a few pixels while the media
+     query reported plenty of room. */
+  container-type: inline-size;
 }
 
 .kajay-properties__empty {
@@ -1042,7 +1048,10 @@
   font-size: var(--kajay-font-size-sm);
 }
 
-@media (max-width: 40rem) {
+/* Stacked when *this panel* is narrow, whatever the window is doing. The threshold is
+   generous on purpose: a nested collection item indents its own contents, so a row inside
+   one has less room than the panel's own width suggests. */
+@container (max-width: 26rem) {
   .kajay-properties__row {
     grid-template-columns: 1fr;
   }

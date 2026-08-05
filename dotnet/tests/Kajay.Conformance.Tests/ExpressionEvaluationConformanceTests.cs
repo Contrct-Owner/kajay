@@ -234,6 +234,36 @@ public sealed class ExpressionEvaluationConformanceTests
         Assert.Equal(expected, evaluated.Value.GetInstant());
     }
 
+    [Fact]
+    public void CurrentDateReturnsTheExplicitClockInstant()
+    {
+        using JsonDocument corpus = OpenExpressionCorpus();
+        JsonElement testCase = corpus.RootElement
+            .GetProperty("evaluation")
+            .EnumerateArray()
+            .Single(candidate =>
+                candidate.GetProperty("id").GetString()
+                == "current-date-uses-the-explicit-clock");
+        DateTimeOffset clock = DateTimeOffset.Parse(
+            corpus.RootElement.GetProperty("clock").GetString()!,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind);
+        DateTimeOffset expected = DateTimeOffset.Parse(
+            testCase.GetProperty("result").GetProperty("value").GetString()!,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind);
+
+        ExpressionParseResult parsed = SurveyExpression.Parse(
+            testCase.GetProperty("source").GetString()!);
+        ExpressionEvaluationResult evaluated = parsed.Expression!.Evaluate(
+            new ExpressionEvaluationContext(clock));
+
+        Assert.Empty(parsed.Errors);
+        Assert.Empty(evaluated.Errors);
+        Assert.Equal(KajayValueKind.Instant, evaluated.Value.Kind);
+        Assert.Equal(expected, evaluated.Value.GetInstant());
+    }
+
     private static JsonDocument OpenExpressionCorpus()
     {
         string path = Path.Combine(

@@ -4,7 +4,8 @@ internal static class KajayBuiltInFunctions
 {
     public static bool IsRegistered(string name)
     {
-        return name.Equals("today", StringComparison.OrdinalIgnoreCase);
+        return name.Equals("today", StringComparison.OrdinalIgnoreCase)
+            || name.Equals("currentDate", StringComparison.OrdinalIgnoreCase);
     }
 
     public static KajayValue Evaluate(
@@ -12,8 +13,13 @@ internal static class KajayBuiltInFunctions
         IReadOnlyList<KajayValue> arguments,
         DateTimeOffset clock)
     {
-        return name.Equals("today", StringComparison.OrdinalIgnoreCase)
-            ? EvaluateToday(arguments, clock)
+        if (name.Equals("today", StringComparison.OrdinalIgnoreCase))
+        {
+            return EvaluateToday(arguments, clock);
+        }
+
+        return name.Equals("currentDate", StringComparison.OrdinalIgnoreCase)
+            ? KajayValue.From(clock)
             : KajayValue.Absent;
     }
 

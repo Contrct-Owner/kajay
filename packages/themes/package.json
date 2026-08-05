@@ -1,6 +1,6 @@
 {
   "name": "@kajay/themes",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "CSS-variable design tokens and theme presets.",
@@ -22,6 +22,7 @@
     "./package.json": "./package.json"
   },
   "files": [
+    "CHANGELOG.md",
     "LICENSE",
     "dist",
     "styles"

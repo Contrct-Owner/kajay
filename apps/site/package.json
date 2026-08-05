@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "kajay.io \u2014 the reference application. Proves the packages are pleasant to build with, not merely capable, by consuming them the way an adopter does: through public exports, with the adopter's own design system supplying the chrome.",
+  "description": "kajay.io — the reference application. Proves the packages are pleasant to build with, not merely capable, by consuming them the way an adopter does: through public exports, with the adopter's own design system supplying the chrome.",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",

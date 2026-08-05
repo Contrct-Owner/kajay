@@ -205,6 +205,34 @@ public sealed class ExpressionEvaluationConformanceTests
         Assert.False(evaluated.Value.GetBoolean());
     }
 
+    [Fact]
+    public void UnknownFunctionsProduceAStableEvaluationDiagnostic()
+    {
+        using JsonDocument corpus = OpenExpressionCorpus();
+        JsonElement testCase = corpus.RootElement
+            .GetProperty("evaluation")
+            .EnumerateArray()
+            .Single(candidate =>
+                candidate.GetProperty("id").GetString() == "unknown-function-is-an-error");
+        DateTimeOffset clock = DateTimeOffset.Parse(
+            corpus.RootElement.GetProperty("clock").GetString()!,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind);
+
+        ExpressionParseResult parsed = SurveyExpression.Parse(
+            testCase.GetProperty("source").GetString()!);
+        ExpressionEvaluationResult evaluated = parsed.Expression!.Evaluate(
+            new ExpressionEvaluationContext(clock));
+
+        Assert.Empty(parsed.Errors);
+        Assert.Equal(KajayValue.Absent, evaluated.Value);
+        Assert.Equal(
+            testCase.GetProperty("errorCodes")
+                .EnumerateArray()
+                .Select(code => code.GetString()),
+            evaluated.Errors.Select(error => error.Code));
+    }
+
     private static JsonDocument OpenExpressionCorpus()
     {
         string path = Path.Combine(

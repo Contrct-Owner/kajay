@@ -28,6 +28,31 @@ public sealed class AsyncFunctionConformanceTests
             evaluated.Errors.Select(error => error.Code));
     }
 
+    [Fact]
+    public void PendingAsyncFunctionsProduceTheAbsentValueWithoutAnError()
+    {
+        using JsonDocument corpus = OpenExpressionCorpus();
+        JsonElement testCase = FindCase(
+            corpus,
+            "async-function-is-absent-while-pending");
+        ExpressionFunctionRegistry functions = ExpressionFunctionRegistry.Empty.AddAsync(
+            testCase.GetProperty("asyncFunction").GetProperty("name").GetString()!,
+            static (_, _, _) => ValueTask.FromResult(KajayValue.Null));
+        ExpressionEvaluationContext context = new(
+            ReadClock(corpus),
+            Array.Empty<KeyValuePair<string, KajayValue>>(),
+            functions,
+            new FixedAsyncFunctionValueSource(AsyncFunctionValue.Pending));
+
+        ExpressionParseResult parsed = SurveyExpression.Parse(
+            testCase.GetProperty("source").GetString()!);
+        ExpressionEvaluationResult evaluated = parsed.Expression!.Evaluate(context);
+
+        Assert.Empty(parsed.Errors);
+        Assert.Empty(evaluated.Errors);
+        Assert.Equal(KajayValue.Absent, evaluated.Value);
+    }
+
     private static JsonElement FindCase(JsonDocument corpus, string caseId)
     {
         return corpus.RootElement
@@ -52,5 +77,16 @@ public sealed class AsyncFunctionConformanceTests
             "v1",
             "expressions.json");
         return JsonDocument.Parse(File.ReadAllBytes(path));
+    }
+
+    private sealed class FixedAsyncFunctionValueSource(AsyncFunctionValue value)
+        : IAsyncFunctionValueSource
+    {
+        public AsyncFunctionValue GetValue(
+            string name,
+            IReadOnlyList<KajayValue> arguments)
+        {
+            return value;
+        }
     }
 }

@@ -84,8 +84,7 @@ internal static class ExpressionEvaluator
 
         if (context.Functions.IsAsync(call.Name))
         {
-            errors.Add(new ExpressionError("async-unavailable", call.Span));
-            return KajayValue.Absent;
+            return EvaluateAsyncCall(call, context, errors);
         }
 
         ExpressionFunction? implementation = context.Functions.Get(call.Name);
@@ -109,6 +108,32 @@ internal static class ExpressionEvaluator
 
         errors.Add(new ExpressionError("unknown-function", call.Span));
         return KajayValue.Absent;
+    }
+
+    private static KajayValue EvaluateAsyncCall(
+        ExpressionNode.Call call,
+        ExpressionEvaluationContext context,
+        List<ExpressionError> errors)
+    {
+        IAsyncFunctionValueSource? values = context.AsyncFunctionValues;
+        if (values is null)
+        {
+            errors.Add(new ExpressionError("async-unavailable", call.Span));
+            return KajayValue.Absent;
+        }
+
+        IReadOnlyList<KajayValue> arguments = call.Arguments
+            .Select(argument => EvaluateNode(argument, context, errors))
+            .ToArray();
+        AsyncFunctionValue outcome = values.GetValue(call.Name, arguments);
+        if (outcome.Kind == AsyncFunctionValueKind.Failed)
+        {
+            errors.Add(new ExpressionError("function-failed", call.Span));
+        }
+
+        return outcome.Kind == AsyncFunctionValueKind.Resolved
+            ? outcome.Value
+            : KajayValue.Absent;
     }
 
     private static KajayValue EvaluateBinary(

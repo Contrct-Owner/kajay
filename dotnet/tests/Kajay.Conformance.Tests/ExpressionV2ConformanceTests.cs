@@ -35,6 +35,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("boolean-is-not-numeric");
     }
 
+    [Fact]
+    public void BooleanArithmeticIsAbsent()
+    {
+        AssertEvaluationCase("boolean-arithmetic-is-absent");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

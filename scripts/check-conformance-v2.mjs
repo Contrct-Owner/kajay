@@ -11,6 +11,7 @@ const implementedExpressionIds = [
   'contract-whitespace-is-trimmed-from-numeric-text',
   'hexadecimal-text-is-not-numeric',
   'boolean-is-not-numeric',
+  'boolean-arithmetic-is-absent',
 ];
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));

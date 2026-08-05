@@ -59,6 +59,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("empty-array-is-false");
     }
 
+    [Fact]
+    public void EmptyObjectIsTrue()
+    {
+        AssertEvaluationCase("empty-object-is-true");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

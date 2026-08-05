@@ -53,6 +53,13 @@ internal static class ExpressionEvaluator
     {
         KajayValue left = EvaluateNode(binary.Left, context, errors);
         KajayValue right = EvaluateNode(binary.Right, context, errors);
+        if (binary.Operator is ExpressionOperator.Equal or ExpressionOperator.NotEqual)
+        {
+            bool equal = KajayExpressionEquality.Equals(left, right);
+            return KajayValue.From(
+                binary.Operator == ExpressionOperator.Equal ? equal : !equal);
+        }
+
         if (!KajayNumber.TryConvert(left, out double leftNumber)
             || !KajayNumber.TryConvert(right, out double rightNumber))
         {

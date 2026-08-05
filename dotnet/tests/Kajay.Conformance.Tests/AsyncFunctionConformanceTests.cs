@@ -53,6 +53,34 @@ public sealed class AsyncFunctionConformanceTests
         Assert.Equal(KajayValue.Absent, evaluated.Value);
     }
 
+    [Fact]
+    public void ResolvedAsyncFunctionsReadTheSettledValue()
+    {
+        using JsonDocument corpus = OpenExpressionCorpus();
+        JsonElement testCase = FindCase(
+            corpus,
+            "async-function-reads-a-settled-value");
+        ExpressionFunctionRegistry functions = ExpressionFunctionRegistry.Empty.AddAsync(
+            testCase.GetProperty("asyncFunction").GetProperty("name").GetString()!,
+            static (_, _, _) => ValueTask.FromResult(KajayValue.Null));
+        KajayValue settledValue = KajayValue.From(
+            testCase.GetProperty("result").GetProperty("value").GetDouble());
+        ExpressionEvaluationContext context = new(
+            ReadClock(corpus),
+            Array.Empty<KeyValuePair<string, KajayValue>>(),
+            functions,
+            new FixedAsyncFunctionValueSource(
+                AsyncFunctionValue.Resolved(settledValue)));
+
+        ExpressionParseResult parsed = SurveyExpression.Parse(
+            testCase.GetProperty("source").GetString()!);
+        ExpressionEvaluationResult evaluated = parsed.Expression!.Evaluate(context);
+
+        Assert.Empty(parsed.Errors);
+        Assert.Empty(evaluated.Errors);
+        Assert.Equal(settledValue, evaluated.Value);
+    }
+
     private static JsonElement FindCase(JsonDocument corpus, string caseId)
     {
         return corpus.RootElement

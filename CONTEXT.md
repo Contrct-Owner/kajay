@@ -25,9 +25,10 @@ published implementation is TypeScript; C# is the second runtime in development.
 - **C# SDK: implementation underway.** `Kajay.Core` targets
   `net10.0`; [ADR-0030](./docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md)
   fixes its package posture and Kajay's v2 value, date, pattern, performance, and
-  support semantics. The installed package now parses and canonically serializes the
-  minimal v1 definition case. TypeScript remains the only passing adapter: it passes
-  all of v1, while v2 is structurally checked specification with both adapters pending.
+  support semantics. The installed package's definition operation passes all seven v1
+  definition cases, including diagnostics and fixed-point canonical serialization.
+  TypeScript remains the only complete passing adapter: it passes all of v1, while v2
+  is structurally checked specification with both adapters pending.
 
 ## Topic index
 
@@ -130,8 +131,8 @@ meaning of each test seam.
 
 ## Change log
 
-- 2026-08-05: Began the native runtime through the public definition seam; the
-  installed NuGet package passes the minimal v1 canonicalization tracer.
+- 2026-08-05: Completed the C# adapter's v1 definition operation: all seven cases and
+  their fixed-point canonicalization rule pass through the public definition seam.
 - 2026-08-05: Recorded the published TypeScript 1.0.0 posture and established the
   `Kajay.Core` native SDK, Kajay value/pattern vocabulary, and conformance v2 status.
 - 2026-08-04: Created the root context index, glossary, and explicit distinction

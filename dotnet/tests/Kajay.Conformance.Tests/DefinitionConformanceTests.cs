@@ -61,6 +61,10 @@ public sealed class DefinitionConformanceTests
             JsonSerializer.Serialize(testCase.GetProperty("canonical")),
             result.Definition.ToCanonicalJson());
         AssertDiagnostics(testCase.GetProperty("diagnostics"), result.Diagnostics);
+
+        string canonical = result.Definition.ToCanonicalJson();
+        SurveyDefinitionParseResult fixedPoint = SurveyDefinition.Parse(canonical);
+        Assert.Equal(canonical, fixedPoint.Definition.ToCanonicalJson());
     }
 
     private static void AssertDiagnostics(

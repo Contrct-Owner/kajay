@@ -11,9 +11,11 @@ must produce the same observable results for these cases. The TypeScript adapter
 same four operations: canonicalize a definition, parse an expression, evaluate an
 expression, and execute a lifecycle scenario.
 
-Only the TypeScript adapter exists today. V1 is therefore an executable portability
-contract, not evidence of compatibility between two runtimes. That claim requires at
-least two maintained adapters passing this same version.
+Only the TypeScript adapter implements all four operations today. The C# adapter's
+definition operation passes all seven definition cases and their fixed-point checks,
+but does not yet implement expressions or lifecycle. V1 is therefore an executable
+portability contract, not evidence of compatibility between two complete runtimes.
+That claim requires at least two maintained adapters passing this same version.
 
 ## Value representation
 

@@ -87,18 +87,38 @@ export function LivePane({
 
   return (
     <section className="flex min-w-0 flex-col gap-3" aria-label="Live survey">
-      <div className="flex items-center gap-2">
-        <p className="text-muted-foreground text-sm">Live — answer it as a respondent would.</p>
-        <Button size="sm" variant="outline" data-testid="live-restart" onClick={onRestart}>
-          Restart
-        </Button>
-      </div>
-      <div className="border-border min-w-0 rounded-lg border p-4" data-testid="live-survey">
-        <Survey
-          key={session.run}
-          model={session.survey}
-          components={KAJAY_SURVEY_COMPONENTS}
-        />
+      {/*
+        **Framed as a surface inside an application, because that is the claim.** This pane
+        was a plain bordered box — the weakest-styled thing on a page whose whole argument is
+        that a Kajay survey looks like it belongs in your product. It was also the only thing
+        that made the two columns read as *tool and output* rather than as two columns, and
+        it was not doing it.
+
+        The chrome bar absorbs the row that used to sit above: "Live" and Restart are facts
+        about this surface, so they belong on it rather than floating over it.
+      */}
+      <div className="bg-card ring-border min-w-0 overflow-hidden rounded-xl shadow-sm ring-1">
+        <div className="bg-muted/40 border-border flex items-center gap-2 border-b px-4 py-2">
+          <span
+            className="bg-primary size-2 shrink-0 rounded-full"
+            aria-hidden
+          />
+          <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+            Live — answer it as a respondent would
+          </p>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="ml-auto"
+            data-testid="live-restart"
+            onClick={onRestart}
+          >
+            Restart
+          </Button>
+        </div>
+        <div className="min-w-0 p-5" data-testid="live-survey">
+          <Survey key={session.run} model={session.survey} components={KAJAY_SURVEY_COMPONENTS} />
+        </div>
       </div>
     </section>
   );

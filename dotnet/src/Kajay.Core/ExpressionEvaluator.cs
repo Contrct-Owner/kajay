@@ -82,6 +82,14 @@ internal static class ExpressionEvaluator
                 binary.Operator == ExpressionOperator.Equal ? equal : !equal);
         }
 
+        if (binary.Operator is ExpressionOperator.Contains
+            or ExpressionOperator.NotContains
+            or ExpressionOperator.AnyOf
+            or ExpressionOperator.AllOf)
+        {
+            return KajayValue.From(KajayMembership.Evaluate(binary.Operator, left, right));
+        }
+
         if (!KajayNumber.TryConvert(left, out double leftNumber)
             || !KajayNumber.TryConvert(right, out double rightNumber))
         {

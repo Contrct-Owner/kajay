@@ -17,6 +17,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertNumericTextCase("leading-decimal-point-is-numeric");
     }
 
+    [Fact]
+    public void ContractWhitespaceIsTrimmedFromNumericText()
+    {
+        AssertNumericTextCase("contract-whitespace-is-trimmed-from-numeric-text");
+    }
+
     private static void AssertNumericTextCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

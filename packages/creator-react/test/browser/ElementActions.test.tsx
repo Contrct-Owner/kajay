@@ -87,27 +87,9 @@ test('parity/K5-paste: it lands after the selection', async () => {
   expect(names(designed)).toEqual(['who', 'tier2', 'tier']);
 });
 
-test('parity/K5-convert: the type picker changes the question in place', async () => {
-  const designed = surface();
-  const screen = await render(<DesignSurfacePanel surface={designed} />);
-  await screen.getByTestId('select-tier').click();
-
-  await screen.getByLabelText('Type of tier').selectOptions('dropdown');
-
-  // The same question, drawn by a different renderer — and its choices came with it,
-  // because `choices` is a child collection the dropdown also declares.
-  expect(designed.survey.getQuestionByName('tier')?.type).toBe('dropdown');
-  await expect.element(screen.getByRole('combobox', { name: /Which tier/u })).toBeInTheDocument();
-  expect(names(designed)).toEqual(['who', 'tier']);
-});
-
-test('parity/K5-convert: the picker shows what the question is now', async () => {
-  const designed = surface();
-  const screen = await render(<DesignSurfacePanel surface={designed} />);
-  await screen.getByTestId('select-tier').click();
-
-  await expect.element(screen.getByLabelText('Type of tier')).toHaveValue('radiogroup');
-});
+// **The conversion scenarios moved to the property grid** — checklist P11. The picker is
+// no longer in the adorner, so `DesignSurfacePanel` alone cannot reach it; see
+// `PropertyGrid.test.tsx`, which renders the grid the picker now lives in.
 
 test('parity/K7-delete: the button removes the question', async () => {
   const designed = surface();

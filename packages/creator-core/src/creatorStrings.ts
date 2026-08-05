@@ -61,6 +61,7 @@ export const CREATOR_STRING_DEFINITIONS = [
   { key: 'descriptionOf', en: 'Description of {0}' },
   { key: 'choiceLabel', en: 'Label for the choice {0}' },
   { key: 'typeOf', en: 'Type of {0}' },
+  { key: 'typeHint', en: 'Changing this keeps what the new type understands and drops the rest.' },
   { key: 'sortableItem', en: 'Sortable item' },
 
   // --- The property grid ----------------------------------------------------

@@ -4,6 +4,7 @@ import type { ReactElement } from 'react';
 import { CollectionEditor } from './CollectionEditor.js';
 import { useCreatorText } from './CreatorStringsContext.js';
 import { PropertySection } from './PropertyFields.js';
+import { TypeField } from './TypeField.js';
 import { useSurfaceVersion } from './useSurfaceVersion.js';
 
 export interface PropertyGridPanelProps {
@@ -81,6 +82,12 @@ function SelectedElement({
 
   return (
     <>
+      {/*
+        **Above `name`, because it is the more fundamental fact** — checklist P11. It used
+        to sit inline in the adorner; see `TypeField` for why that was the wrong home for a
+        rare and lossy edit.
+      */}
+      <TypeField surface={surface} element={element} scope={scope} />
       {surface.properties(element, grid).map((category) => (
         <PropertySection
           key={category.name}

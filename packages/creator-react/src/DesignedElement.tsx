@@ -151,45 +151,9 @@ function Adorner({
           {element.name}
         </Button>
         {surface.isSelected(element) ? (
-          <SelectedBar surface={surface} element={element} />
+          <ElementActions surface={surface} element={element} />
         ) : null}
       </div>
     </div>
-  );
-}
-
-/**
- * The selected element's own controls: what it is, what it is called, what to do to it.
- *
- * Its own component because it is a different thing from the chip an unselected element
- * shows — and because the two together outgrew the function-length limit, which is usually
- * the file saying the same thing.
- */
-function SelectedBar({
-  surface,
-  element,
-}: Pick<DesignedElementProps, 'surface' | 'element'>): ReactElement {
-  const { Select } = useCreatorComponents();
-  const text = useCreatorText();
-
-  return (
-    <>
-      <Select
-        className="kajay-designer__type"
-        aria-label={text('typeOf', element.name)}
-        data-testid={`type-${element.name}`}
-        value={element.type}
-        options={surface.convertibleTypes.map((type) => ({ value: type, label: type }))}
-        onValueChange={(type) => {
-          surface.convert(element.name, type);
-        }}
-      />
-      {/*
-        **The title input is gone** — checklist P10. K3 put one here, so a designer read the
-        title on the canvas and typed it into a box above it. The title on the canvas is the
-        editor now; this bar keeps what has no visible representation to click.
-      */}
-      <ElementActions surface={surface} element={element} />
-    </>
   );
 }

@@ -185,3 +185,28 @@ test('parity/L1-grid: selecting a page shows the page’s own properties', async
   await expect.element(screen.getByLabelText('Name', { exact: true })).toHaveValue('p1');
   await expect.element(screen.getByLabelText('Max time to finish', { exact: true })).toBeInTheDocument();
 });
+
+test('parity/K5-convert: the type picker changes the question in place', async () => {
+  const designed = select(surface(), 'who');
+  const screen = await render(<PropertyGridPanel surface={designed} />);
+
+  await screen.getByLabelText('Type of who').selectOptions('comment');
+
+  // The same question under a different renderer, carrying everything the new type also
+  // declares. What it has no place for is dropped, and P6 says so.
+  expect(designed.survey.getQuestionByName('who')?.type).toBe('comment');
+});
+
+test('parity/P11-type: the picker is in the grid, above the name', async () => {
+  const designed = select(surface(), 'who');
+  const screen = await render(<PropertyGridPanel surface={designed} />);
+
+  // It sat inline in the adorner on every selected element, which it had not earned:
+  // converting is rare, the rendered question already says what type it is, and it was the
+  // only lossy edit on the canvas permanently under the cursor. Above `name` because the
+  // type is the more fundamental fact — it decides which properties exist at all.
+  await expect.element(screen.getByLabelText('Type of who')).toHaveValue('text');
+
+  const rows = [...screen.container.querySelectorAll<HTMLElement>('[data-property]')];
+  expect(rows[0]?.dataset['property']).toBe('type');
+});

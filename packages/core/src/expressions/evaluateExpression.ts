@@ -67,20 +67,34 @@ function evaluateArithmetic(
     return;
   }
 
+  let result: number;
   switch (operator) {
     case '+':
-      return a + b;
+      result = a + b;
+      break;
     case '-':
-      return a - b;
+      result = a - b;
+      break;
     case '*':
-      return a * b;
+      result = a * b;
+      break;
     case '/':
-      return b === 0 ? undefined : a / b;
+      if (b === 0) {
+        return;
+      }
+      result = a / b;
+      break;
     case '%':
-      return b === 0 ? undefined : a % b;
+      if (b === 0) {
+        return;
+      }
+      result = a % b;
+      break;
     case '^':
-      return a ** b;
+      result = a ** b;
+      break;
   }
+  return Number.isFinite(result) ? result : undefined;
 }
 
 function evaluateMembership(

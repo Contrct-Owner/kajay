@@ -8,10 +8,19 @@ public sealed class ExpressionV2ConformanceTests
     [Fact]
     public void DecimalTextWithAnExponentIsNumeric()
     {
+        AssertNumericTextCase("decimal-text-with-exponent-is-numeric");
+    }
+
+    [Fact]
+    public void LeadingDecimalPointIsNumeric()
+    {
+        AssertNumericTextCase("leading-decimal-point-is-numeric");
+    }
+
+    private static void AssertNumericTextCase(string caseId)
+    {
         using JsonDocument corpus = OpenExpressionCorpus();
-        JsonElement testCase = FindCase(
-            corpus,
-            "decimal-text-with-exponent-is-numeric");
+        JsonElement testCase = FindCase(corpus, caseId);
         DateTimeOffset clock = DateTimeOffset.Parse(
             corpus.RootElement.GetProperty("clock").GetString()!,
             CultureInfo.InvariantCulture,

@@ -7,6 +7,7 @@ import { CoreConformanceAdapter } from './core-conformance-adapter.mjs';
 
 const implementedExpressionIds = [
   'decimal-text-with-exponent-is-numeric',
+  'leading-decimal-point-is-numeric',
 ];
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));

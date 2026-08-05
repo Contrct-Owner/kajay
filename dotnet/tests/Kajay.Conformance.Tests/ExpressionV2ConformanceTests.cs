@@ -47,6 +47,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("non-finite-arithmetic-is-absent");
     }
 
+    [Fact]
+    public void BooleanTextIsNotABoolean()
+    {
+        AssertEvaluationCase("boolean-text-is-not-a-boolean");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

@@ -51,19 +51,19 @@ export class BooleanQuestion extends Question {
   /**
    * The answer as a plain boolean, or undefined while it is unanswered.
    *
-   * `valuesAreEqual` rather than `===`: a restored `data` payload may carry `"true"`
-   * where the definition said `true`, and a survey that forgot the respondent's answer
-   * because it came back from JSON as a string would be a poor kind of resume.
+   * A restored `data` payload may carry `"true"` where the definition said `true`.
+   * That compatibility belongs to answer restoration here, not to expression equality,
+   * where booleans and strings are deliberately different Kajay value kinds.
    */
   get checkedValue(): boolean | undefined {
     const value = this.value;
     if (value === null || value === undefined) {
       return undefined;
     }
-    if (valuesAreEqual(value, this.valueTrue)) {
+    if (matchesBooleanAnswer(value, this.valueTrue)) {
       return true;
     }
-    return valuesAreEqual(value, this.valueFalse) ? false : undefined;
+    return matchesBooleanAnswer(value, this.valueFalse) ? false : undefined;
   }
 
   /** Records an answer, or clears it when given undefined. */
@@ -83,4 +83,15 @@ export class BooleanQuestion extends Question {
     }
     return checked ? this.labelTrue : this.labelFalse;
   }
+}
+
+function matchesBooleanAnswer(value: unknown, configured: PropertyValue): boolean {
+  if (valuesAreEqual(value, configured)) {
+    return true;
+  }
+  return (
+    typeof value === 'string' &&
+    typeof configured === 'boolean' &&
+    value === String(configured)
+  );
 }

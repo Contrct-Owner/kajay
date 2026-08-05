@@ -34,6 +34,12 @@ public sealed class DefinitionConformanceTests
         AssertDefinitionCase("scalar-child-shorthand-expands");
     }
 
+    [Fact]
+    public void QuizPropertiesRoundTripInMetadataOrder()
+    {
+        AssertDefinitionCase("quiz-properties-round-trip");
+    }
+
     private static void AssertDefinitionCase(string id)
     {
         using JsonDocument corpus = OpenDefinitionCorpus();

@@ -4,10 +4,21 @@ namespace Kajay;
 
 internal static class DefinitionReader
 {
-    private static readonly string[] RootProperties = ["schemaVersion", "title", "pages"];
-    private static readonly string[] PageProperties = ["name", "title", "elements"];
+    private static readonly string[] RootProperties =
+    [
+        "schemaVersion",
+        "title",
+        "maxTimeToFinish",
+        "maxTimeToFinishPage",
+        "showTimerPanel",
+        "showTimerPanelMode",
+        "progressBarType",
+        "pages",
+    ];
+    private static readonly string[] PageProperties =
+        ["name", "title", "maxTimeToFinish", "elements"];
     private static readonly string[] ElementProperties =
-        ["type", "name", "isRequired", "inputType", "choices"];
+        ["type", "name", "isRequired", "inputType", "choices", "correctAnswer"];
 
     internal static JsonObject Read(
         JsonObject input,
@@ -26,6 +37,11 @@ internal static class DefinitionReader
             string.Empty,
             "/title",
             diagnostics);
+        CopyProperty(input, output, "maxTimeToFinish");
+        CopyProperty(input, output, "maxTimeToFinishPage");
+        CopyProperty(input, output, "showTimerPanel");
+        CopyProperty(input, output, "showTimerPanelMode", JsonValue.Create("all"));
+        CopyProperty(input, output, "progressBarType");
         CopyChildren(input, output, "pages", (child, index) =>
             ReadPage(child, $"/pages/{index}", diagnostics));
         AppendUnknown(output, unknown);
@@ -41,6 +57,7 @@ internal static class DefinitionReader
         var output = new JsonObject();
         CopyProperty(input, output, "name");
         CopyProperty(input, output, "title", JsonValue.Create(string.Empty));
+        CopyProperty(input, output, "maxTimeToFinish");
         CopyChildren(input, output, "elements", (child, index) =>
             ReadElement(child, $"{path}/elements/{index}", diagnostics));
         AppendUnknown(output, unknown);
@@ -59,6 +76,7 @@ internal static class DefinitionReader
         CopyProperty(input, output, "isRequired", JsonValue.Create(false));
         CopyProperty(input, output, "inputType", JsonValue.Create("text"));
         CopyChoices(input, output);
+        CopyProperty(input, output, "correctAnswer");
         AppendUnknown(output, unknown);
         return output;
     }

@@ -82,6 +82,31 @@ internal static class ExpressionEvaluator
             return KajayBuiltInFunctions.Evaluate(call.Name, arguments, context.Clock);
         }
 
+        if (context.Functions.IsAsync(call.Name))
+        {
+            errors.Add(new ExpressionError("async-unavailable", call.Span));
+            return KajayValue.Absent;
+        }
+
+        ExpressionFunction? implementation = context.Functions.Get(call.Name);
+        if (implementation is not null)
+        {
+            IReadOnlyList<KajayValue> arguments = call.Arguments
+                .Select(argument => EvaluateNode(argument, context, errors))
+                .ToArray();
+            try
+            {
+                return implementation(
+                    arguments,
+                    new ExpressionFunctionContext(context.Clock));
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                errors.Add(new ExpressionError("function-failed", call.Span));
+                return KajayValue.Absent;
+            }
+        }
+
         errors.Add(new ExpressionError("unknown-function", call.Span));
         return KajayValue.Absent;
     }

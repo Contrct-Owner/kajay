@@ -1,4 +1,5 @@
 import type { DesignSurface } from '@kajay/creator-core';
+import type { SurveyElement } from '@kajay/core';
 import type { TextSubject } from '@kajay/react';
 import { useRef } from 'react';
 import type { ReactElement } from 'react';
@@ -59,7 +60,7 @@ export function InlineText({ surface, text, subject, label }: InlineTextProps): 
       suppressContentEditableWarning
       role="textbox"
       aria-label={label}
-      data-testid={`inline-${subject.property}-${subject.owner}`}
+      data-testid={`inline-${subject.property}-${subject.item ?? subject.owner}`}
       // A click on a question's title is a click on that question. Without this, editing
       // the words of something would leave the property grid showing something else.
       onFocus={() => {
@@ -94,10 +95,50 @@ function writeText(surface: DesignSurface, subject: TextSubject, typed: string):
   if (element === undefined) {
     return false;
   }
+  const target = subject.item === undefined ? element : childOf(element, subject);
+  if (target === undefined) {
+    return false;
+  }
   // Through `setProperty` rather than a direct write, so a localizable property merges into
   // the locale being edited instead of flattening every other language — J1's rule, and the
   // reason `propertyEdits.merged` exists.
-  return surface.setProperty(element, subject.property, typed) === undefined;
+  return surface.setProperty(target, propertyOf(subject), written(subject, typed)) === undefined;
+}
+
+/**
+ * The child a subject names, found by its key rather than its position.
+ *
+ * A choice list is reordered, filtered and paged; the value is what still identifies a
+ * choice afterwards, and it is also what the collected answers are keyed by.
+ */
+function childOf(element: SurveyElement, subject: TextSubject): SurveyElement | undefined {
+  return element
+    .getChildren(subject.property)
+    .find((child) => String(child.getPropertyValue('value')) === subject.item);
+}
+
+/**
+ * What is actually written.
+ *
+ * **A choice's label is `text`; `value` is never touched.** They are different things: the
+ * label is what a respondent reads, the value is the answer key that every collected
+ * response is already stored under. Fixing a typo in a label must not silently invalidate
+ * data — which is why editing the value stays a deliberate act in the property grid.
+ */
+function propertyOf(subject: TextSubject): string {
+  return subject.item === undefined ? subject.property : 'text';
+}
+
+/**
+ * **A label equal to its value stays bare.**
+ *
+ * Fast entry writes `great` when the label and the key match and `great|Great` when they
+ * differ, so growing a redundant `text` would change the shape of the round-trip output
+ * because somebody clicked on a word and typed the same word back. The empty string is the
+ * registered default for a string, which canonical form elides.
+ */
+function written(subject: TextSubject, typed: string): string {
+  return subject.item !== undefined && typed === subject.item ? '' : typed;
 }
 
 function select(surface: DesignSurface, owner: string): void {

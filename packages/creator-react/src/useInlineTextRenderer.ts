@@ -23,6 +23,7 @@ const EDITABLE: ReadonlyMap<string, CreatorStringKey> = new Map([
   // A panel's own prose. It is the one page element with words beyond a title, and the only
   // one a designer writes purely for the people reading it.
   ['description', 'descriptionOf'],
+  ['choice', 'choiceLabel'],
 ]);
 
 export function useInlineTextRenderer(surface: DesignSurface): TextRenderer {
@@ -34,14 +35,14 @@ export function useInlineTextRenderer(surface: DesignSurface): TextRenderer {
         return text;
       }
       return createElement(InlineText, {
-        key: `${subject.owner}:${subject.property}:${text}`,
+        key: `${subject.owner}:${subject.property}:${subject.item ?? ''}:${text}`,
         surface,
         text,
         subject,
         // The same words the adorner's input carried, from N3's catalogue — "Title of who"
         // rather than "title". A host who renamed it keeps their word, and every scenario
         // that addressed the old input by its label still finds this.
-        label: label(labelKey, subject.owner),
+        label: label(labelKey, subject.item ?? subject.owner),
       });
     },
     [surface, label],

@@ -24,6 +24,13 @@ export interface TextSubject {
   readonly owner: string;
   /** The property it is stored under: `title`, or `choices` for an item's label. */
   readonly property: string;
-  /** Which item, when the text lives in a child collection. Absent for a plain property. */
-  readonly index?: number | undefined;
+  /**
+   * Which item, when the text lives in a child collection — a choice's own `value`.
+   *
+   * **Its key, not its position.** An index would be wrong for the same reason a model
+   * reference would: a choice list is reordered, filtered and paged, and the one thing that
+   * still identifies a choice afterwards is the value the answer is stored under. It is
+   * also the thing an inline edit must never change.
+   */
+  readonly item?: string | undefined;
 }

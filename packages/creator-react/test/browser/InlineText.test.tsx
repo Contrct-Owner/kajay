@@ -108,3 +108,53 @@ test('parity/P10-inline: a panel’s title and description are editable in place
     .element(screen.getByTestId('inline-title-about'))
     .toHaveTextContent('About you');
 });
+
+const CHOICES = {
+  pages: [
+    {
+      name: 'p1',
+      elements: [
+        {
+          type: 'radiogroup',
+          name: 'mood',
+          title: 'How was it?',
+          choices: [{ value: 'great', text: 'Great' }, 'fine'],
+        },
+      ],
+    },
+  ],
+};
+
+function editChoice(screen: { container: Element }, key: string, typed: string): void {
+  const node = screen.container.querySelector(
+    `[data-testid="inline-choices-${key}"]`,
+  ) as HTMLElement;
+  node.focus();
+  node.textContent = typed;
+  node.blur();
+}
+
+test('parity/P10-choices: editing a label never touches the answer key', async () => {
+  const designed = surface(CHOICES);
+  const screen = await render(<DesignSurfacePanel surface={designed} />);
+
+  editChoice(screen, 'great', 'Absolutely great');
+
+  // **The sharpest risk in the whole row.** `value` is what every collected response is
+  // already stored under; fixing a typo in what a respondent reads must not silently
+  // invalidate data. Changing the key stays a deliberate act in the property grid.
+  await expect.poll(() => JSON.stringify(designed.definition)).toContain('Absolutely great');
+  const choices = designed.definition['pages'] as unknown as string;
+  expect(JSON.stringify(choices)).toContain('"value":"great"');
+});
+
+test('parity/P10-choices: a label equal to its value stays bare', async () => {
+  const designed = surface(CHOICES);
+  const screen = await render(<DesignSurfacePanel surface={designed} />);
+
+  // `fine` was authored bare. Typing the same word back must not grow a redundant `text`,
+  // or the round-trip output changes shape because somebody clicked on it.
+  editChoice(screen, 'fine', 'fine');
+
+  await expect.poll(() => JSON.stringify(designed.definition)).not.toContain('"text":"fine"');
+});

@@ -2,6 +2,7 @@ import type { ItemValue, SelectQuestion } from '@kajay/core';
 import type { ReactElement } from 'react';
 import { readOnlyControl, whenEditable } from './readOnly.js';
 import { useSurveyComponents } from './SurveyComponents.js';
+import { useTextRenderer } from './TextRendererContext.js';
 
 export interface ChoiceInputProps {
   readonly question: SelectQuestion;
@@ -23,6 +24,7 @@ export function ChoiceInput({
   isMultiple,
 }: ChoiceInputProps): ReactElement {
   const { Checkbox, Radio } = useSurveyComponents();
+  const renderText = useTextRenderer();
   // Two entries in the map, chosen here: a design system's checkbox and its radio are
   // different components with different keyboard contracts, and picking between them is
   // the library's job rather than every host's.
@@ -42,7 +44,14 @@ export function ChoiceInput({
           question.select(choice.value);
         })}
       />
-      <span>{choice.text}</span>
+      <span>
+        {renderText(choice.text, {
+          kind: 'choice',
+          owner: question.name,
+          property: 'choices',
+          item: String(choice.value),
+        })}
+      </span>
     </label>
   );
 }

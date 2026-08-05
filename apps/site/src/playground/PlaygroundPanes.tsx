@@ -30,6 +30,11 @@ export type EditorMode = 'design' | 'json';
  * live survey rather than one tab away from a preview — is the only way to find out whether
  * that is true. It is: everything below is a public export taking a public model.
  *
+ * **The switch that chooses between them is in the page header**, not here: it is one of
+ * four control rows this page used to stack above any content, and on a laptop that put the
+ * survey below the fold. A pane should not own the control that decides whether it is the
+ * pane on screen.
+ *
  * The designer and the JSON share one `workspace`, so switching between them is switching a
  * view rather than handing a document across. Editing JSON and switching back shows the
  * change on the canvas because M2's session applies through the same surface K6's undo
@@ -38,32 +43,14 @@ export type EditorMode = 'design' | 'json';
 export function EditorPane({
   workspace,
   mode,
-  onModeChange,
 }: {
   readonly workspace: CreatorWorkspace;
   readonly mode: EditorMode;
-  readonly onModeChange: (mode: EditorMode) => void;
 }): ReactElement {
   const placement = useDesignerPlacement(workspace.surface);
 
   return (
     <section className="flex min-w-0 flex-col gap-3" aria-label="Editor">
-      <div className="flex items-center gap-2">
-        {(['design', 'json'] as const).map((name) => (
-          <Button
-            key={name}
-            size="sm"
-            variant={mode === name ? 'default' : 'outline'}
-            data-testid={`editor-mode-${name}`}
-            aria-current={mode === name ? 'page' : undefined}
-            onClick={() => {
-              onModeChange(name);
-            }}
-          >
-            {name === 'design' ? 'Design' : 'JSON'}
-          </Button>
-        ))}
-      </div>
       {mode === 'design' ? (
         // **The canvas takes the width; the two side panels stack.** A toolbox is read
         // top-to-bottom and a property grid is a column of labelled fields — neither wants

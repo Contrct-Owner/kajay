@@ -180,3 +180,30 @@ test('parity/P3-playground: the sidebar scrolls without taking the canvas with i
   // the canvas away — so a designer was editing something they could no longer see.
   expect(after?.y).toBe(before?.y);
 });
+
+test('parity/P3-playground: the page says how to start', async ({ page }) => {
+  await page.goto(PLAYGROUND);
+
+  // The subtitle described the layout and left the one thing nobody arrives knowing unsaid:
+  // that clicking a type is how anything happens. A demonstration nobody can start is a
+  // screenshot.
+  // Not `getByRole('banner')`: a `<header>` inside `<main>` is not a landmark, which is
+  // correct HTML and a thing worth getting wrong only once.
+  await expect(page.getByText('Click a question type to add it')).toBeVisible();
+});
+
+test('parity/P3-playground: it says what it did unasked', async ({ page }) => {
+  await page.goto(PLAYGROUND);
+  await canvas(page).getByTestId('select-name').click();
+  // Copy and Paste live in P4's overflow menu now, which is why the adorner stopped
+  // overflowing the canvas.
+  await canvas(page).getByTestId('actions-name').click();
+  await page.getByTestId('copy-name').click();
+  await canvas(page).getByTestId('actions-name').click();
+  await page.getByTestId('paste-name').click();
+
+  // P6 built the announcement channel and this page dropped every one on the floor, so the
+  // application demonstrating ADR-0023 was the one place staying silent. A paste that
+  // renumbers a name is exactly the case: the designer goes looking for `name`.
+  await expect(page.getByRole('status')).toContainText('Names already in use were renumbered');
+});

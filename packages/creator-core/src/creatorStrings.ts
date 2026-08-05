@@ -138,7 +138,13 @@ export const CREATOR_STRING_DEFINITIONS = [
   // --- What the Creator did unasked (ADR-0023) -----------------------------
   // Past tense and specific. Each says what changed and, where something was lost, how
   // much — a designer who reads "some settings were dropped" still has to go and look.
-  { key: 'noticeRenamedOnPaste', en: '{0} pasted names were already in use and have been renumbered.' },
+  // **The count is parenthetical, not the subject of the sentence.** "1 pasted names were
+  // already in use" is what a count-agreeing template produces at one, and the reference
+  // application produced it on the first paste anybody tried. The fix is not a singular and
+  // a plural key: English needs two forms, Polish needs four and Arabic six, so a pair would
+  // be right in one language and wrong in most. Wording that never agrees with the number is
+  // right in all of them.
+  { key: 'noticeRenamedOnPaste', en: 'Pasted. Names already in use were renumbered ({0}).' },
   { key: 'noticePropertiesDropped', en: 'Changed “{0}” — {1} settings the new type has no place for were dropped.' },
   { key: 'noticeRemovedWithChildren', en: 'Deleted “{0}” and the {1} elements inside it.' },
   { key: 'noticeStarterContent', en: 'Added “{0}” with starter content — replace it with your own.' },

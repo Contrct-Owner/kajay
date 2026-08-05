@@ -29,6 +29,15 @@ public sealed class SurveyExpression
         return ExpressionPrinter.Print(_root);
     }
 
+    /// <summary>Evaluates this expression against explicit immutable inputs.</summary>
+    /// <param name="context">Answer values, clock, and future extension inputs.</param>
+    /// <returns>The evaluated value and all recoverable evaluation errors.</returns>
+    public ExpressionEvaluationResult Evaluate(ExpressionEvaluationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        return ExpressionEvaluator.Evaluate(_root, context);
+    }
+
     /// <inheritdoc />
     public override string ToString()
     {

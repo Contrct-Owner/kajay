@@ -33,6 +33,17 @@ if (expression.Errors.Count != 0
     throw new InvalidOperationException("Installed package failed expression canonicalization.");
 }
 
+ExpressionParseResult arithmetic = SurveyExpression.Parse("1 + 2 * 3");
+ExpressionEvaluationResult evaluated = arithmetic.Expression!.Evaluate(
+    new ExpressionEvaluationContext(DateTimeOffset.UnixEpoch));
+if (arithmetic.Errors.Count != 0
+    || evaluated.Errors.Count != 0
+    || evaluated.Value.Kind != KajayValueKind.Number
+    || evaluated.Value.GetNumber() != 7)
+{
+    throw new InvalidOperationException("Installed package failed expression evaluation.");
+}
+
 Console.WriteLine("dotnet pack smoke: ok");
 `;
 

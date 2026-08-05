@@ -11,13 +11,12 @@ must produce the same observable results for these cases. The TypeScript adapter
 same four operations: canonicalize a definition, parse an expression, evaluate an
 expression, and execute a lifecycle scenario.
 
-Only the TypeScript adapter implements all four operations today. The C# adapter's
-definition operation passes all seven definition cases and their fixed-point checks,
-and its expression parser passes all five parsing cases. Expression evaluation and
-its public value/evaluator seam passes all fifteen evaluation cases. Lifecycle passes
-three of four scenarios. V1 is therefore an executable portability contract, not evidence of
-compatibility between two complete runtimes. That claim requires at least two maintained
-adapters passing this same version.
+The TypeScript adapter and C# conformance project both implement all four operations.
+The C# public seams pass all seven definition cases and their fixed-point checks, all
+five expression parsing cases, all fifteen expression evaluation cases, and all four
+lifecycle scenarios. V1 therefore has two maintained implementations. It remains a
+narrow portability contract rather than evidence of full headless feature parity;
+conformance v2 and the C# parity ledger define that larger claim.
 
 ## Value representation
 

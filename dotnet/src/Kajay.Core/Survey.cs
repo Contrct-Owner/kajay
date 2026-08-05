@@ -8,13 +8,19 @@ public sealed class Survey
     private bool _isLoading;
     private bool _isPreviewing;
     private bool _isCompleted;
+    private int _currentPageIndex;
 
     internal Survey(
         SurveyRuntimeDefinition definition,
         TimeProvider timeProvider)
     {
         _pageCount = definition.PageCount;
-        Timer = new SurveyTimer(this, timeProvider, definition.SurveyTimeLimit);
+        Timer = new SurveyTimer(
+            this,
+            timeProvider,
+            definition.SurveyTimeLimit,
+            definition.DefaultPageTimeLimit,
+            definition.PageTimeLimits);
     }
 
     /// <summary>Gets the current lifecycle state.</summary>
@@ -141,6 +147,20 @@ public sealed class Survey
         }
 
         return _pageCount > 0 ? SurveyState.Running : SurveyState.Empty;
+    }
+
+    internal int CurrentPageIndex => _currentPageIndex;
+
+    internal void AdvanceFromTimer()
+    {
+        if (_currentPageIndex + 1 < _pageCount)
+        {
+            _currentPageIndex += 1;
+            Timer.RestartPage();
+            return;
+        }
+
+        Complete();
     }
 
     private void RaiseStateChanged()

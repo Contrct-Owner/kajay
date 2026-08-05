@@ -45,6 +45,20 @@ public sealed class LifecycleConformanceTests
         AssertScenario(scenario, new ManualTimeProvider(start));
     }
 
+    [Fact]
+    public void PageTimerAdvancesThenCompletesAtSuccessiveDeadlines()
+    {
+        using JsonDocument corpus = OpenLifecycleCorpus();
+        JsonElement scenario = FindScenario(
+            corpus,
+            "page-timer-turns-then-completes");
+        DateTimeOffset start = DateTimeOffset.Parse(
+            scenario.GetProperty("clock").GetString()!,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind);
+        AssertScenario(scenario, new ManualTimeProvider(start));
+    }
+
     private static void AssertScenario(
         JsonElement scenario,
         ManualTimeProvider clock)

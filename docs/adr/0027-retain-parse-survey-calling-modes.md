@@ -1,9 +1,14 @@
-# ADR-0023 — Retain both `parseSurvey` calling modes
+# ADR-0027 — Retain both `parseSurvey` calling modes
 
 - Area: Core serialization interface
 - Status: accepted
 - Owner: Jarod
-- Last updated: 2026-08-04
+- Last updated: 2026-08-04 (renumbered from 0023)
+
+> Filed as ADR-0023 and renumbered to 0027: two concurrent sessions took the same number
+> on the same day. The other 0023 — [the Creator says what happened](./0023-the-creator-says-what-happened.md)
+> — keeps it, because ten files cite it against this one's two. Nothing about the decision
+> below changed.
 
 ## Context
 

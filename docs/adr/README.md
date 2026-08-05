@@ -46,10 +46,10 @@ recorded here (status `superseded`) **and** in the
 | [0021](./0021-creator-composition.md) | Creator composition: pieces, with a default assembly on top | accepted | 2026-08-03 |
 | [0022](./0022-design-system-primitives.md) | The host's design system draws the chrome | accepted | 2026-08-03 |
 | [0023](./0023-the-creator-says-what-happened.md) | The Creator says what happened | accepted | 2026-08-04 |
-| [0023](./0023-retain-parse-survey-calling-modes.md) | Retain both `parseSurvey` calling modes | accepted | 2026-08-04 |
 | [0024](./0024-publication-hold.md) | Publication hold pending an explicit release walkthrough | accepted | 2026-08-04 |
 | [0025](./0025-read-only-documentation-mcp.md) | Expose Kajay documentation through a read-only MCP server | accepted | 2026-08-04 |
 | [0026](./0026-canvas-affordances.md) | What the canvas edits, and what the grid does | accepted | 2026-08-04 |
+| [0027](./0027-retain-parse-survey-calling-modes.md) | Retain both `parseSurvey` calling modes | accepted | 2026-08-04 |
 
 ## Parent and related links
 

@@ -5,7 +5,8 @@ internal static class KajayBuiltInFunctions
     public static bool IsRegistered(string name)
     {
         return name.Equals("today", StringComparison.OrdinalIgnoreCase)
-            || name.Equals("currentDate", StringComparison.OrdinalIgnoreCase);
+            || name.Equals("currentDate", StringComparison.OrdinalIgnoreCase)
+            || name.Equals("diffDays", StringComparison.OrdinalIgnoreCase);
     }
 
     public static KajayValue Evaluate(
@@ -18,8 +19,13 @@ internal static class KajayBuiltInFunctions
             return EvaluateToday(arguments, clock);
         }
 
-        return name.Equals("currentDate", StringComparison.OrdinalIgnoreCase)
-            ? KajayValue.From(clock)
+        if (name.Equals("currentDate", StringComparison.OrdinalIgnoreCase))
+        {
+            return KajayValue.From(clock);
+        }
+
+        return name.Equals("diffDays", StringComparison.OrdinalIgnoreCase)
+            ? EvaluateDiffDays(arguments)
             : KajayValue.Absent;
     }
 
@@ -47,5 +53,18 @@ internal static class KajayBuiltInFunctions
         {
             return KajayValue.Absent;
         }
+    }
+
+    private static KajayValue EvaluateDiffDays(IReadOnlyList<KajayValue> arguments)
+    {
+        if (arguments.Count < 2
+            || !KajayInstant.TryConvert(arguments[0], out DateTimeOffset from)
+            || !KajayInstant.TryConvert(arguments[1], out DateTimeOffset to))
+        {
+            return KajayValue.Absent;
+        }
+
+        double days = (to.UtcDateTime.Date - from.UtcDateTime.Date).TotalDays;
+        return KajayValue.From(days);
     }
 }

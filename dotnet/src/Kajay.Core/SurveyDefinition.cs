@@ -36,4 +36,12 @@ public sealed class SurveyDefinition
         return _canonical.ToJsonString();
     }
 
+    /// <summary>Creates an independent mutable survey instance.</summary>
+    /// <returns>A survey whose initial state reflects whether pages exist.</returns>
+    public Survey CreateSurvey()
+    {
+        bool hasPages = _canonical["pages"] is JsonArray { Count: > 0 };
+        return new Survey(hasPages);
+    }
+
 }

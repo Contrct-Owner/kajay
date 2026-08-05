@@ -37,6 +37,22 @@ selection of the eventual licensing model. `UNLICENSED` continues to mean that n
 license grant has been made; the long-term package and repository license choices
 remain deferred until the release walkthrough.
 
+## Repository made public (2026-08-05)
+
+The repository is public at `github.com/Contrct-Owner/kajay`. The "stays private" decision
+above is spent.
+
+Two things forced it together. MIT source that nobody can read is a contradiction — the
+licence grants rights over code the grantee cannot obtain. And **npm provenance requires a
+public repository**: an attestation is only meaningful if the build it points at can be
+verified, so [ADR-0029](./0029-release-walkthrough.md)'s gate-5 choice of provenance and a
+private repository could not both hold. That interaction was invisible until the push was
+attempted, which is the honest reason it is recorded here rather than in the walkthrough.
+
+The Creator's source is public too. FSL is designed for exactly that — read it, run it,
+self-host it, do not resell it — so this is the licence working as chosen rather than a
+concession.
+
 ## Consequences
 
 - No external contributions, and no public issue tracker, for the duration.

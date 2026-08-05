@@ -32,6 +32,42 @@ public sealed class ExpressionEvaluationConformanceTests
             evaluated.Value.GetNumber());
     }
 
+    [Fact]
+    public void NumericStringReferencesCoerceThroughThePublicExpressionSeam()
+    {
+        using JsonDocument corpus = OpenExpressionCorpus();
+        JsonElement testCase = corpus.RootElement
+            .GetProperty("evaluation")
+            .EnumerateArray()
+            .Single(candidate =>
+                candidate.GetProperty("id").GetString() == "numeric-string-coercion");
+        DateTimeOffset clock = DateTimeOffset.Parse(
+            corpus.RootElement.GetProperty("clock").GetString()!,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind);
+        string amount = testCase
+            .GetProperty("data")
+            .GetProperty("amount")
+            .GetString()!;
+
+        ExpressionParseResult parsed = SurveyExpression.Parse(
+            testCase.GetProperty("source").GetString()!);
+        ExpressionEvaluationResult evaluated = parsed.Expression!.Evaluate(
+            new ExpressionEvaluationContext(
+                clock,
+                new Dictionary<string, KajayValue>
+                {
+                    ["amount"] = KajayValue.From(amount),
+                }));
+
+        Assert.Empty(parsed.Errors);
+        Assert.Empty(evaluated.Errors);
+        Assert.Equal(KajayValueKind.Number, evaluated.Value.Kind);
+        Assert.Equal(
+            testCase.GetProperty("result").GetProperty("value").GetDouble(),
+            evaluated.Value.GetNumber());
+    }
+
     private static JsonDocument OpenExpressionCorpus()
     {
         string path = Path.Combine(

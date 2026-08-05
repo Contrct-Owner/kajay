@@ -53,21 +53,20 @@ internal static class ExpressionEvaluator
     {
         KajayValue left = EvaluateNode(binary.Left, context, errors);
         KajayValue right = EvaluateNode(binary.Right, context, errors);
-        if (left.Kind != KajayValueKind.Number || right.Kind != KajayValueKind.Number)
+        if (!KajayNumber.TryConvert(left, out double leftNumber)
+            || !KajayNumber.TryConvert(right, out double rightNumber))
         {
             return KajayValue.Absent;
         }
 
         double value = binary.Operator switch
         {
-            ExpressionOperator.Add => left.GetNumber() + right.GetNumber(),
-            ExpressionOperator.Subtract => left.GetNumber() - right.GetNumber(),
-            ExpressionOperator.Multiply => left.GetNumber() * right.GetNumber(),
-            ExpressionOperator.Divide when right.GetNumber() != 0
-                => left.GetNumber() / right.GetNumber(),
-            ExpressionOperator.Remainder when right.GetNumber() != 0
-                => left.GetNumber() % right.GetNumber(),
-            ExpressionOperator.Power => Math.Pow(left.GetNumber(), right.GetNumber()),
+            ExpressionOperator.Add => leftNumber + rightNumber,
+            ExpressionOperator.Subtract => leftNumber - rightNumber,
+            ExpressionOperator.Multiply => leftNumber * rightNumber,
+            ExpressionOperator.Divide when rightNumber != 0 => leftNumber / rightNumber,
+            ExpressionOperator.Remainder when rightNumber != 0 => leftNumber % rightNumber,
+            ExpressionOperator.Power => Math.Pow(leftNumber, rightNumber),
             _ => double.NaN,
         };
         return double.IsFinite(value) ? KajayValue.From(value) : KajayValue.Absent;

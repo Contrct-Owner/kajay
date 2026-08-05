@@ -9,7 +9,7 @@ export function CreatorFeedbackGuide(): ReactElement {
     <>
       <CreatorDocSection id="refused-edits" title="Refused edits">
         <p>
-          An edit that cannot happen returns an <code>EditRefusal</code>. Its closed
+          An edit that cannot happen returns an <code>EditRefusal</code>. Its closed{' '}
           <code>kind</code> identifies the reason, and an optional <code>subject</code> names
           the value or type involved. <code>undefined</code> means the edit succeeded.
         </p>
@@ -27,7 +27,7 @@ export function CreatorFeedbackGuide(): ReactElement {
         </p>
         <p>
           They arrive through <code>surface.onNotice</code>. The default assembly renders the
-          latest one in a persistent polite live region; composed Creators can use
+          latest one in a persistent polite live region; composed Creators can use{' '}
           <code>CreatorNotices</code> or <code>useLatestNotice</code>.
         </p>
       </CreatorDocSection>
@@ -35,7 +35,7 @@ export function CreatorFeedbackGuide(): ReactElement {
         <CreatorCodeBlock label="Refusals and notices in a composed Creator" code={CREATOR_NOTICE} />
         <CreatorCallout title="Use the Creator string catalogue">
           <p>
-            Convert refusal and notice kinds with <code>refusalMessageKey</code> and
+            Convert refusal and notice kinds with <code>refusalMessageKey</code> and{' '}
             <code>noticeMessageKey</code>, then resolve the key through the Creator dictionary.
             This keeps custom UI aligned with locale and white-label overrides.
           </p>
@@ -52,4 +52,3 @@ export function CreatorFeedbackGuide(): ReactElement {
     </>
   );
 }
-

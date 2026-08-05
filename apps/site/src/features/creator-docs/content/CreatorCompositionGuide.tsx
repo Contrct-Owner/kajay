@@ -40,7 +40,7 @@ export function CreatorCompositionGuide(): ReactElement {
         <CreatorCallout title="The pieces are intentionally low-level">
           <p>
             When you replace the default assembly, you own responsive layout, which views are
-            mounted, save controls, and the placement of notices. Include
+            mounted, save controls, and the placement of notices. Include{' '}
             <code>CreatorNotices</code> once so automatic changes are not silent.
           </p>
         </CreatorCallout>
@@ -54,4 +54,3 @@ export function CreatorCompositionGuide(): ReactElement {
     </>
   );
 }
-

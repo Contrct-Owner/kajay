@@ -33,7 +33,7 @@ function AuthoredValidation(): ReactElement {
         <CodeBlock code={VALIDATION_DEFINITION_SOURCE} label="contact-survey.json" language="json" />
         <p>
           Built-in validator types are <code>numericvalidator</code>, <code>textvalidator</code>,
-          <code>regexvalidator</code>, <code>emailvalidator</code>, <code>expressionvalidator</code>, and
+          <code>regexvalidator</code>, <code>emailvalidator</code>, <code>expressionvalidator</code>, and{' '}
           <code>answercountvalidator</code>. Their optional <code>text</code> property replaces the built-in
           localized failure message.
         </p>
@@ -84,7 +84,7 @@ function AsyncValidation(): ReactElement {
   return (
     <DocSection id="async" title="Treat pending as its own state">
         <p>
-          <code>survey.nextPageOrComplete()</code> returns <code>advanced</code>, <code>blocked</code>, or
+          <code>survey.nextPageOrComplete()</code> returns <code>advanced</code>, <code>blocked</code>, or{' '}
           <code>pending</code>. Synchronous failures return <code>blocked</code> without starting remote work.
           A pending check advances automatically if it settles cleanly.
         </p>

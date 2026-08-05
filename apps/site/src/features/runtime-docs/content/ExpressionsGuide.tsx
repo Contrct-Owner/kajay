@@ -81,11 +81,11 @@ function FailureBehavior(): ReactElement {
   return (
     <DocSection id="failure" title="Handle malformed logic safely">
         <p>
-          Evaluation errors never throw out of the expression engine. Runtime logic exposes them through
+          Evaluation errors never throw out of the expression engine. Runtime logic exposes them through{' '}
           <code>survey.logicDiagnostics.expressionErrors</code>, including a stable code and source span.
         </p>
         <p>
-          Conditional properties choose a safe fallback: a broken <code>visibleIf</code> or <code>enableIf</code>
+          Conditional properties choose a safe fallback: a broken <code>visibleIf</code> or <code>enableIf</code>{' '}
           leaves content visible and enabled, while a broken <code>requiredIf</code> does not block submission.
         </p>
     </DocSection>
@@ -97,7 +97,7 @@ function OtherUses(): ReactElement {
     <DocSection id="more" title="Beyond conditional properties">
         <p>
           The same language powers calculated values, expression questions, value rules, triggers, conditional
-          completion messages, choice visibility, matrix totals, and expression validators. Use the expression
+          completion messages, choice visibility, matrix totals, and expression validators. Use the{' '}
           <a href="/docs/reference/expression-language">expression language reference</a> when you need exact
           coercion, precedence, or function behavior.
         </p>

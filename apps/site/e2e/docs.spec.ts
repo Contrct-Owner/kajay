@@ -105,3 +105,43 @@ test('the landing page exposes Docs in primary navigation', async ({ page }) => 
   await expect(page).toHaveURL(/\/docs$/u);
   await expect(page.getByRole('heading', { name: 'Kajay documentation' })).toBeVisible();
 });
+
+test('inline elements keep word boundaries in consumer prose', async ({ page }) => {
+  await page.goto('/docs');
+  const documentationLinks = await page
+    .getByRole('navigation', { name: 'Documentation' })
+    .getByRole('link')
+    .evaluateAll((links) => [...new Set(links.map((link) => link.getAttribute('href')).filter((href): href is string => href !== null))]);
+
+  const failures = (await Promise.all(documentationLinks.map(async (href) => {
+    const inspectedPage = await page.context().newPage();
+    try {
+      await inspectedPage.goto(href);
+      const joinedWords = await inspectedPage
+        .locator('main p > :is(a, code), main li > :is(a, code)')
+        .evaluateAll((nodes) => nodes.flatMap((node) => {
+          const before = node.previousSibling?.nodeType === Node.TEXT_NODE
+            ? node.previousSibling.textContent ?? ''
+            : '';
+          const after = node.nextSibling?.nodeType === Node.TEXT_NODE
+            ? node.nextSibling.textContent ?? ''
+            : '';
+          const inlineText = node.textContent ?? '';
+          const label = node.nodeName.toLocaleLowerCase('en-US');
+          return [
+            /[\p{L}\p{N}]$/u.test(before) && /^[\p{L}\p{N}]/u.test(inlineText)
+              ? `${before.slice(-18)}<${label}>${inlineText}</${label}>`
+              : undefined,
+            /[\p{L}\p{N}]$/u.test(inlineText) && /^[\p{L}\p{N}]/u.test(after)
+              ? `<${label}>${inlineText}</${label}>${after.slice(0, 18)}`
+              : undefined,
+          ].filter((value): value is string => value !== undefined);
+        }));
+      return joinedWords.map((value) => `${href}: ${value}`);
+    } finally {
+      await inspectedPage.close();
+    }
+  }))).flat();
+
+  expect(failures).toEqual([]);
+});

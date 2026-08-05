@@ -9,14 +9,14 @@ export function CreatorConfigurationGuide(): ReactElement {
     <>
       <CreatorDocSection id="configure-the-default-assembly" title="Configure the default assembly">
         <p>
-          Use <code>tabs</code> to choose the visible views and their order. Use
+          Use <code>tabs</code> to choose the visible views and their order. Use{' '}
           <code>configuration</code> for deployment restrictions that must apply beyond the
           visible controls.
         </p>
         <CreatorCodeBlock label="A restricted deployment" code={CREATOR_CONFIGURATION} />
         <p>
           Allowed and blocked types affect the toolbox, conversion, paste, and other edit
-          paths. They are enforcement rules, not merely a hidden button. An empty
+          paths. They are enforcement rules, not merely a hidden button. An empty{' '}
           <code>allowedTypes</code> list means no types may be added.
         </p>
       </CreatorDocSection>
@@ -51,4 +51,3 @@ export function CreatorConfigurationGuide(): ReactElement {
     </>
   );
 }
-

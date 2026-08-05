@@ -25,7 +25,7 @@ export function CreatorCustomizationGuide(): ReactElement {
           </p>
         </CreatorCallout>
         <p>
-          Creator chrome and the previewed survey use separate component maps. Pass
+          Creator chrome and the previewed survey use separate component maps. Pass{' '}
           <code>components</code> for Creator controls and <code>surveyComponents</code> for
           the survey renderer.
         </p>
@@ -33,7 +33,7 @@ export function CreatorCustomizationGuide(): ReactElement {
       <CreatorDocSection id="customize-words-and-theme" title="Customize words and theme">
         <p>
           Register only the Creator strings you want to replace; all other messages retain
-          their built-in values. Creator locale is separate from the survey locale, and
+          their built-in values. Creator locale is separate from the survey locale, and{' '}
           <code>creatorTheme</code> styles the tool rather than the survey being designed.
         </p>
         <CreatorCodeBlock label="White-label the Creator" code={CREATOR_STRINGS} />
@@ -45,7 +45,7 @@ export function CreatorCustomizationGuide(): ReactElement {
         </p>
         <CreatorCodeBlock label="A domain-specific property editor" code={PROPERTY_EDITOR} />
         <p>
-          Put the supplied <code>id</code> on the control and wire
+          Put the supplied <code>id</code> on the control and wire{' '}
           <code>aria-describedby</code> to the supplied hint. Write through the provided
           design surface so restrictions, undo, serialization, and notices remain intact.
         </p>
@@ -53,4 +53,3 @@ export function CreatorCustomizationGuide(): ReactElement {
     </>
   );
 }
-

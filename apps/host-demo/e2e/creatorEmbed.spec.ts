@@ -36,11 +36,13 @@ test('parity/N1-controlled: an edit comes out and the echo does not come back in
 }) => {
   await embed(page).getByTestId('select-embedName').click();
   await embed(page).getByLabel('Title of embedName').fill('Renamed by the host');
+  // P10 commits on blur; Enter is how a designer says they are done.
+  await page.keyboard.press('Enter');
 
   // The host set its state from `onChange` and passed it straight back. If the Creator
   // treated its own output as an incoming document it would have re-opened itself, losing
   // the selection and the field being typed in.
-  await expect(embed(page).getByLabel('Title of embedName')).toHaveValue('Renamed by the host');
+  await expect(embed(page).getByLabel('Title of embedName')).toHaveText('Renamed by the host');
   await expect(embed(page).getByTestId('embed-value')).toContainText('Renamed by the host');
 });
 
@@ -49,7 +51,11 @@ test('parity/N1-primitives: host controls preserve editing and focus behavior', 
 }) => {
   await embed(page).getByTestId('select-embedName').click();
 
-  const title = embed(page).getByLabel('Title of embedName');
+  // **Not the canvas title.** P10 made that its own editor rather than an `Input` — there
+  // is no design-system component for "text that is also its own editor", and routing it
+  // through one would put back the box P10 removed. The property grid is where a host's
+  // `Input` is still the right control, so that is where the contract is checked.
+  const title = embed(page).getByTestId('property-embedName-title');
   await expect(title).toHaveAttribute('data-host-primitive', 'input');
   await title.fill('Drawn by the host');
   await expect(title).toBeFocused();
@@ -72,6 +78,8 @@ test('parity/N1-primitives: host controls preserve editing and focus behavior', 
 test('parity/N1-save: auto-save reports success, and a refusal is said', async ({ page }) => {
   await embed(page).getByTestId('select-embedName').click();
   await embed(page).getByLabel('Title of embedName').fill('Fine');
+  // P10 commits on blur; Enter is how a designer says they are done.
+  await page.keyboard.press('Enter');
 
   await expect(embed(page).getByTestId('creator-save-state')).toHaveAttribute(
     'data-state',
@@ -82,6 +90,8 @@ test('parity/N1-save: auto-save reports success, and a refusal is said', async (
   // The demo's pretend backend refuses a title containing this, so the failure path is on
   // screen rather than only in a unit test.
   await embed(page).getByLabel('Title of embedName').fill('refuse-this-save');
+  // P10 commits on blur; Enter is how a designer says they are done.
+  await page.keyboard.press('Enter');
 
   await expect(embed(page).getByTestId('creator-save-state')).toHaveAttribute(
     'data-state',

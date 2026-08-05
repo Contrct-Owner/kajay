@@ -88,20 +88,36 @@ test('parity/K3-inline-title: editing the title updates the rendered question', 
   const screen = await render(<DesignSurfacePanel surface={designed} />);
   await screen.getByRole('button', { name: 'Select who' }).click();
 
-  await screen.getByLabelText('Title of who').fill('What is your name?');
+  const title = screen.getByLabelText('Title of who');
+  await title.fill('What is your name?');
+  // **Blurred, because P10 commits on blur.** Writing per keystroke would re-parse the
+  // definition per character and pull the caret out of the node being typed in.
+  await screen.getByRole('button', { name: 'Select who' }).click();
 
-  // The editor is in the adorner and the question keeps its own title, so a designer
-  // sees the label a respondent will read updating as they type.
+  // The title on the canvas *is* the editor now, so the words a respondent will read and
+  // the words the designer typed are the same node.
   await expect.element(screen.getByLabelText('What is your name?')).toBeInTheDocument();
   expect(JSON.stringify(serializeSurvey(designed.survey))).toContain('What is your name?');
 });
 
-test('parity/K3-inline-title: the editor only appears on the selected element', async () => {
-  const screen = await render(<DesignSurfacePanel surface={surface()} />);
+test('parity/P10-inline: every title is editable, and typing on one selects it', async () => {
+  const designed = surface();
+  const screen = await render(<DesignSurfacePanel surface={designed} />);
 
-  expect(screen.container.querySelectorAll('.kajay-designer__title')).toHaveLength(0);
-  await screen.getByRole('button', { name: 'Select plan' }).click();
-  expect(screen.container.querySelectorAll('.kajay-designer__title')).toHaveLength(1);
+  // **The editor is no longer gated on selection**, which is the point of the change. K3's
+  // adorner input only existed on the selected element, so renaming a question was two
+  // gestures: select it, then find the box. The words are the box now, on every element.
+  expect(screen.container.querySelectorAll('.kajay-inline').length).toBeGreaterThan(1);
+  expect(designed.selected).toBeUndefined();
+
+  const node = screen.container.querySelector(
+    '[data-testid="inline-title-plan"]',
+  ) as HTMLElement;
+  node.focus();
+
+  // Selecting on focus is what keeps the property grid honest: editing the words of one
+  // question while the grid showed another would be two answers to "what am I working on".
+  await expect.poll(() => designed.selected?.getPropertyValue('name')).toBe('plan');
 });
 
 test('parity/K3-design-surface: elements keep the layout they will have', async () => {

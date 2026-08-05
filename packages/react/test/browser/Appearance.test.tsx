@@ -114,8 +114,14 @@ test('parity/I6-text-seam: a host decides what authored prose becomes', async ()
   const screen = await render(
     <Survey
       model={build({ elements: [{ type: 'text', name: 'first', title: '*First*' }] })}
-      renderText={(text, where) =>
-        where === 'title' ? <em data-rendered-by="host">{text.replaceAll('*', '')}</em> : text
+      renderText={(text, subject) =>
+        subject.kind === 'title' ? (
+          <em data-rendered-by="host" data-owner={subject.owner} data-property={subject.property}>
+            {text.replaceAll('*', '')}
+          </em>
+        ) : (
+          text
+        )
       }
     />,
   );
@@ -124,6 +130,14 @@ test('parity/I6-text-seam: a host decides what authored prose becomes', async ()
   // their own sanitizer, and the library never inserts markup it did not build.
   await expect.element(screen.getByLabelText('First')).toBeInTheDocument();
   expect(screen.container.querySelector('[data-rendered-by="host"]')?.tagName).toBe('EM');
+
+  // **The subject says which text this is, not merely what kind** — P10. A host styling
+  // prose never needed that; a Creator turning the text into an editor cannot write back
+  // without it, and a name and a property are the two things that survive the re-parse
+  // every edit performs.
+  const rendered = screen.container.querySelector<HTMLElement>('[data-rendered-by="host"]');
+  expect(rendered?.dataset['owner']).toBe('first');
+  expect(rendered?.dataset['property']).toBe('title');
 });
 
 test('parity/I6-text-seam: without one, the text is the text', async () => {

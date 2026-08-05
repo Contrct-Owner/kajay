@@ -65,7 +65,12 @@ export { reorderAnnouncement } from './reorderAnnouncement.js';
 export type { ReorderEventKind } from './reorderAnnouncement.js';
 export { Survey } from './Survey.js';
 export type { SurveyCss } from './SurveyCssContext.js';
+// Exported for the Creator's design surface (P10): it draws elements one at a time rather
+// than through `<Survey>`, so it needs its own way to say how authored text is drawn — and
+// inline editing is exactly that, a host deciding the words are an editor.
+export { TextRendererProvider } from './TextRendererContext.js';
 export type { TextRenderer } from './TextRendererContext.js';
+export type { TextSubject } from './TextSubject.js';
 export type { SurveyProps } from './Survey.js';
 export { useReorder } from './useReorder.js';
 export type { Reorder, ReorderItemProps } from './useReorder.js';

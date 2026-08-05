@@ -50,6 +50,9 @@ test('parity/N1-controlled: an edit is reported once, as a definition', async ()
 
   await screen.getByTestId('select-who').click();
   await screen.getByLabelText('Title of who').fill('Renamed');
+  // P10 commits on blur, so the host hears about it when the designer is done rather than
+  // once per keystroke — which is also what makes it one entry on the undo stack.
+  await screen.getByTestId('creator-tab-design').click();
 
   const last = onChange.mock.lastCall?.[0] as SurveyDefinition;
   expect(JSON.stringify(last)).toContain('Renamed');
@@ -88,11 +91,15 @@ test('parity/N1-controlled: the Creator’s own output coming back is not a chan
 
   await screen.getByTestId('select-who').click();
   await screen.getByLabelText('Title of who').fill('Renamed');
+  await screen.getByTestId('creator-tab-design').click();
 
   // The host echoed every change straight back. Without the "is this our own output"
-  // check, the editor would re-open itself on every keystroke — losing the selection and
+  // check, the editor would re-open itself on every edit — losing the selection and
   // filling the undo stack with its own output.
-  await expect.element(screen.getByLabelText('Title of who')).toHaveValue('Renamed');
+  //
+  // `toHaveTextContent`, not `toHaveValue`: the editor is the text itself now, and text
+  // has no value attribute.
+  await expect.element(screen.getByLabelText('Title of who')).toHaveTextContent('Renamed');
   await expect.element(screen.getByTestId('select-who')).toBeInTheDocument();
 });
 

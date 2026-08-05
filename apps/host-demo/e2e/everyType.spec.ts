@@ -113,6 +113,8 @@ test('parity/N5-round-trip: what came back is still editable', async ({ page }) 
   // designer did not, so a matrix on a canvas threw.
   await expect(embed(page).getByTestId('property-matrix1-title')).toBeVisible();
   await embed(page).getByLabel('Title of matrix1').fill('How strongly do you agree?');
+  // P10 commits on blur; Enter is how a designer says they are done.
+  await page.keyboard.press('Enter');
   await expect(embed(page).getByTestId('embed-value')).toContainText(
     'How strongly do you agree?',
   );

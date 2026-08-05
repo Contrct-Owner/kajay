@@ -37,6 +37,8 @@ test('parity/K3-inline-title', async ({ page }) => {
   await surface.getByRole('button', { name: 'Select draftName' }).click();
 
   await surface.getByLabel('Title of draftName').fill('What is your full name?');
+  // P10 commits on blur; Enter is how a designer says they are done.
+  await page.keyboard.press('Enter');
 
   // The rendered question updates live, and the definition the host would save with it.
   await expect(surface.getByLabel('What is your full name?')).toBeVisible();

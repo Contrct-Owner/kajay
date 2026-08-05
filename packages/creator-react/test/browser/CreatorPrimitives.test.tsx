@@ -106,10 +106,15 @@ test('parity/N1-primitives: the assembly uses host text and selection controls',
   );
 
   await screen.getByTestId('select-who').click();
-  const title = screen.getByLabelText('Title of who');
-  await expect.element(title).toHaveAttribute('data-host-primitive', 'input');
-  await title.fill('Renamed');
-  await expect.element(title).toHaveFocus();
+  // **Not the title.** P10 made the title on the canvas its own editor rather than an
+  // `Input`, and deliberately so: there is no design-system component for "text that is
+  // also its own editor", and routing it through one would put back the box P10 removed.
+  // The property grid is where a host's `Input` is still the right control, so that is
+  // where the contract is checked.
+  const name = screen.getByTestId('property-who-title');
+  await expect.element(name).toHaveAttribute('data-host-primitive', 'input');
+  await name.fill('Renamed');
+  await expect.element(name).toHaveFocus();
 
   const type = screen.getByLabelText('Type of who');
   await expect.element(type).toHaveAttribute('data-host-primitive', 'select');
@@ -126,7 +131,7 @@ test('parity/N1-primitives: the assembly inherits the provider used by standalon
 
   await screen.getByTestId('select-who').click();
   await expect
-    .element(screen.getByLabelText('Title of who'))
+    .element(screen.getByTestId('property-who-title'))
     .toHaveAttribute('data-host-primitive', 'input');
 });
 

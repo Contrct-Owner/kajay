@@ -57,6 +57,7 @@ export const PUBLIC_RUNTIME_SURFACE = Object.freeze({
     'PageElementDecoratorProvider',
     'PageElementRendererRegistry',
     'PageElementSlot',
+    'TextRendererProvider',
     'QuestionRenderersProvider',
     'QuestionErrors',
     'QuestionTitleContent',
@@ -120,6 +121,7 @@ export const PUBLIC_RUNTIME_SURFACE = Object.freeze({
     // ADR-0023's notice surface: the shipped live region, and the hook for a host who
     // would rather route notices into their own.
     'CreatorNotices',
+    'InlineText',
     'CreatorStringsProvider',
     'CreatorTabs',
     'DEFAULT_CREATOR_TABS',
@@ -143,6 +145,7 @@ export const PUBLIC_RUNTIME_SURFACE = Object.freeze({
     'useCreatorWorkspace',
     'useDesignerPlacement',
     'usePreviewVersion',
+    'useInlineTextRenderer',
     'useSurfaceVersion',
     'usePropertyEditor',
     'useThemeVersion',

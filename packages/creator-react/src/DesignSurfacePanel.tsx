@@ -3,6 +3,7 @@ import {
   defaultPageElementRenderers,
   PageElementDecoratorProvider,
   PageElementSlot,
+  TextRendererProvider,
   QuestionRenderersProvider,
 } from '@kajay/react';
 import type { PageElementDecorator, PageElementRendererResolver } from '@kajay/react';
@@ -14,6 +15,7 @@ import { historyShortcut, isTextEntry } from './historyShortcut.js';
 import { PageAdorner } from './PageAdorner.js';
 import { useSurfaceVersion } from './useSurfaceVersion.js';
 import type { DesignerPlacement } from './useDesignerPlacement.js';
+import { useInlineTextRenderer } from './useInlineTextRenderer.js';
 
 export interface DesignSurfacePanelProps {
   readonly surface: DesignSurface;
@@ -74,6 +76,7 @@ export function DesignSurfacePanel({
   const slot = placement?.activeSlot;
   const activeSlot = slot?.list.of === 'elements' ? slot : undefined;
   const decorate = useDesignerDecorator(surface, placement, activeSlot);
+  const renderText = useInlineTextRenderer(surface);
 
   return (
     <div
@@ -107,9 +110,17 @@ export function DesignSurfacePanel({
         exactly the gap an overall AC exists to close.
       */}
       <QuestionRenderersProvider renderers={renderers}>
-        <PageElementDecoratorProvider decorate={decorate}>
-          <CanvasBody surface={surface} renderers={renderers} />
-        </PageElementDecoratorProvider>
+        {/*
+          **The words on the canvas are the editor** — checklist P10. The renderer asks how
+          authored text should be drawn, and the Creator answers "as something you can type
+          in". Nothing here knows the shape of any renderer's markup, which is what keeps
+          this working for a host's own question type.
+        */}
+        <TextRendererProvider renderText={renderText}>
+          <PageElementDecoratorProvider decorate={decorate}>
+            <CanvasBody surface={surface} renderers={renderers} />
+          </PageElementDecoratorProvider>
+        </TextRendererProvider>
       </QuestionRenderersProvider>
       {activeSlot?.list.of === 'elements' &&
       activeSlot.list.container === page?.name &&

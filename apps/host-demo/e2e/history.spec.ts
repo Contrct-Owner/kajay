@@ -55,6 +55,8 @@ test('parity/K6-undo: a deleted page comes back with its questions', async ({ pa
 test('parity/K6-undo: renaming is one undo, not one per keystroke', async ({ page }) => {
   await page.getByTestId('select-draftName').click();
   await page.getByLabel('Title of draftName').fill('What is your full name?');
+  // P10 commits on blur; Enter is how a designer says they are done.
+  await page.keyboard.press('Enter');
 
   await page.getByTestId('undo').click();
 

@@ -19,7 +19,11 @@ export function QuestionTitleContent({
   const renderText = useTextRenderer();
   return (
     <>
-      {renderText(question.title, 'title')}
+      {renderText(question.title, {
+        kind: 'title',
+        owner: question.name,
+        property: 'title',
+      })}
       {question.isRequired ? (
         <span className="kajay-question__required" aria-hidden="true">
           {' *'}

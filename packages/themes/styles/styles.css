@@ -2079,3 +2079,26 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Authored text on the canvas, which is also the editor — checklist P10. A dashed
+   underline rather than a box: a box on a canvas full of real fields reads as a field the
+   respondent will see, and this is the same text in the same place that happens to take a
+   caret. */
+.kajay-inline {
+  border-radius: 3px;
+  padding: 0 2px;
+  margin: 0 -2px;
+  cursor: text;
+  border-bottom: 1px dashed var(--kajay-color-border);
+}
+
+.kajay-inline:hover {
+  background: color-mix(in srgb, var(--kajay-color-accent) 10%, transparent);
+}
+
+.kajay-inline:focus {
+  outline: none;
+  background: var(--kajay-color-surface);
+  box-shadow: 0 0 0 2px var(--kajay-color-accent);
+  border-bottom-color: transparent;
+}

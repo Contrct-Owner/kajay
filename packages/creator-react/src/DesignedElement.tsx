@@ -165,7 +165,7 @@ function SelectedBar({
   surface,
   element,
 }: Pick<DesignedElementProps, 'surface' | 'element'>): ReactElement {
-  const { Input, Select } = useCreatorComponents();
+  const { Select } = useCreatorComponents();
   const text = useCreatorText();
 
   return (
@@ -180,14 +180,11 @@ function SelectedBar({
           surface.convert(element.name, type);
         }}
       />
-      <Input
-        className="kajay-designer__title"
-        value={element.title}
-        onValueChange={(value) => {
-          surface.setTitle(element, value);
-        }}
-        aria-label={text('titleOf', element.name)}
-      />
+      {/*
+        **The title input is gone** — checklist P10. K3 put one here, so a designer read the
+        title on the canvas and typed it into a box above it. The title on the canvas is the
+        editor now; this bar keeps what has no visible representation to click.
+      */}
       <ElementActions surface={surface} element={element} />
     </>
   );

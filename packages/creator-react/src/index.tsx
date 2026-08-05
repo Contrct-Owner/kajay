@@ -5,6 +5,9 @@
 // the design surface, and will be built from nothing but what is exported here.
 
 export { CreatorNotices, useLatestNotice } from './CreatorNotices.js';
+export { InlineText } from './InlineText.js';
+export type { InlineTextProps } from './InlineText.js';
+export { useInlineTextRenderer } from './useInlineTextRenderer.js';
 export type { CreatorNoticesProps } from './CreatorNotices.js';
 export { CreatorStringsProvider, useCreatorText } from './CreatorStringsContext.js';
 export type { CreatorStringsProviderProps, CreatorText } from './CreatorStringsContext.js';

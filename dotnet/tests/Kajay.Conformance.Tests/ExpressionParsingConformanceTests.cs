@@ -16,6 +16,12 @@ public sealed class ExpressionParsingConformanceTests
         AssertParsingCase("unterminated-string");
     }
 
+    [Fact]
+    public void UnknownBareIdentifiersProduceAStableParseError()
+    {
+        AssertParsingCase("unknown-identifier");
+    }
+
     private static void AssertParsingCase(string id)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

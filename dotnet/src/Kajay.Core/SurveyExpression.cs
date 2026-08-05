@@ -24,6 +24,13 @@ public sealed class SurveyExpression
                 [new ExpressionError("unterminated-string", span)]);
         }
 
+        if (IsUnknownBareIdentifier(source))
+        {
+            return new ExpressionParseResult(
+                null,
+                [new ExpressionError("unknown-identifier", new TextSpan(0, source.Length))]);
+        }
+
         string canonical = source
             .Replace(" = ", " == ", StringComparison.Ordinal)
             .Replace(" && ", " and ", StringComparison.Ordinal)
@@ -78,5 +85,33 @@ public sealed class SurveyExpression
         }
 
         return null;
+    }
+
+    private static bool IsUnknownBareIdentifier(string source)
+    {
+        if (source.Length == 0 || !IsIdentifierStart(source[0]))
+        {
+            return false;
+        }
+
+        for (int index = 1; index < source.Length; index += 1)
+        {
+            if (!IsIdentifierPart(source[index]))
+            {
+                return false;
+            }
+        }
+
+        return source is not ("true" or "false" or "null" or "undefined");
+    }
+
+    private static bool IsIdentifierStart(char value)
+    {
+        return value is >= 'A' and <= 'Z' or >= 'a' and <= 'z' or '_';
+    }
+
+    private static bool IsIdentifierPart(char value)
+    {
+        return IsIdentifierStart(value) || value is >= '0' and <= '9';
     }
 }

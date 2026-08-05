@@ -40,8 +40,19 @@ public sealed class SurveyDefinition
     /// <returns>A survey whose initial state reflects whether pages exist.</returns>
     public Survey CreateSurvey()
     {
-        bool hasPages = _canonical["pages"] is JsonArray { Count: > 0 };
-        return new Survey(hasPages);
+        return CreateSurvey(new SurveyOptions());
+    }
+
+    /// <summary>Creates an independent mutable survey with host-provided services.</summary>
+    /// <param name="options">Explicit clocks and future host services.</param>
+    /// <returns>A new survey instance.</returns>
+    public Survey CreateSurvey(SurveyOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(options.TimeProvider);
+        return new Survey(
+            SurveyRuntimeDefinition.From(_canonical),
+            options.TimeProvider);
     }
 
 }

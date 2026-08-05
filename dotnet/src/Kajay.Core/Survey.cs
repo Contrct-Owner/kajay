@@ -3,19 +3,28 @@ namespace Kajay;
 /// <summary>A mutable, single-owner instance of a parsed survey definition.</summary>
 public sealed class Survey
 {
-    private readonly bool _hasPages;
+    private readonly int _pageCount;
     private readonly Dictionary<string, KajayValue> _answers = new(StringComparer.Ordinal);
     private bool _isLoading;
     private bool _isPreviewing;
     private bool _isCompleted;
 
-    internal Survey(bool hasPages)
+    internal Survey(
+        SurveyRuntimeDefinition definition,
+        TimeProvider timeProvider)
     {
-        _hasPages = hasPages;
+        _pageCount = definition.PageCount;
+        Timer = new SurveyTimer(this, timeProvider, definition.SurveyTimeLimit);
     }
 
     /// <summary>Gets the current lifecycle state.</summary>
     public SurveyState State => ResolveState();
+
+    /// <summary>Gets whether this survey has completed.</summary>
+    public bool IsCompleted => _isCompleted;
+
+    /// <summary>Gets the deterministic clocks owned by this survey.</summary>
+    public SurveyTimer Timer { get; }
 
     /// <summary>Raised after a lifecycle transition is committed.</summary>
     public event EventHandler<SurveyStateChangedEventArgs>? StateChanged;
@@ -109,6 +118,7 @@ public sealed class Survey
 
         _isCompleted = true;
         _isPreviewing = false;
+        Timer.Stop();
         Completed?.Invoke(this, new SurveyCompletedEventArgs(_answers));
         RaiseStateChanged();
     }
@@ -130,7 +140,7 @@ public sealed class Survey
             return SurveyState.Preview;
         }
 
-        return _hasPages ? SurveyState.Running : SurveyState.Empty;
+        return _pageCount > 0 ? SurveyState.Running : SurveyState.Empty;
     }
 
     private void RaiseStateChanged()

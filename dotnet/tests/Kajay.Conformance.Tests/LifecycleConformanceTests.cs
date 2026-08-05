@@ -28,8 +28,30 @@ public sealed class LifecycleConformanceTests
     {
         using JsonDocument corpus = OpenLifecycleCorpus();
         JsonElement scenario = FindScenario(corpus, "running-preview-complete");
+        AssertScenario(
+            scenario,
+            new ManualTimeProvider(DateTimeOffset.UnixEpoch));
+    }
+
+    [Fact]
+    public void SurveyTimerCompletesAtTheOverallDeadline()
+    {
+        using JsonDocument corpus = OpenLifecycleCorpus();
+        JsonElement scenario = FindScenario(corpus, "survey-timer-completes");
+        DateTimeOffset start = DateTimeOffset.Parse(
+            scenario.GetProperty("clock").GetString()!,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind);
+        AssertScenario(scenario, new ManualTimeProvider(start));
+    }
+
+    private static void AssertScenario(
+        JsonElement scenario,
+        ManualTimeProvider clock)
+    {
         Survey survey = SurveyDefinition.Parse(
-            scenario.GetProperty("definition").GetRawText()).Definition.CreateSurvey();
+            scenario.GetProperty("definition").GetRawText()).Definition.CreateSurvey(
+                new SurveyOptions { TimeProvider = clock });
         var events = new List<ObservedLifecycleEvent>();
         survey.StateChanged += (_, args) => events.Add(
             ObservedLifecycleEvent.StateChanged(args.State));
@@ -46,14 +68,17 @@ public sealed class LifecycleConformanceTests
         {
             events.Clear();
 
-            ApplyAction(survey, action);
+            ApplyAction(survey, action, clock);
 
             Assert.Equal(ReadState(action.GetProperty("state")), survey.State);
             AssertEvents(action.GetProperty("events"), events);
         }
     }
 
-    private static void ApplyAction(Survey survey, JsonElement action)
+    private static void ApplyAction(
+        Survey survey,
+        JsonElement action,
+        ManualTimeProvider clock)
     {
         switch (action.GetProperty("kind").GetString())
         {
@@ -73,6 +98,14 @@ public sealed class LifecycleConformanceTests
                 break;
             case "complete":
                 survey.Complete();
+                break;
+            case "start-timer":
+                survey.Timer.Start();
+                break;
+            case "advance-clock":
+                clock.Advance(TimeSpan.FromSeconds(
+                    action.GetProperty("seconds").GetDouble()));
+                survey.Timer.Tick();
                 break;
             default:
                 throw new InvalidOperationException("Unknown lifecycle action.");
@@ -200,6 +233,21 @@ public sealed class LifecycleConformanceTests
             IReadOnlyDictionary<string, KajayValue> data)
         {
             return new ObservedLifecycleEvent("complete", Data: data);
+        }
+    }
+
+    private sealed class ManualTimeProvider(DateTimeOffset now) : TimeProvider
+    {
+        private DateTimeOffset _now = now;
+
+        public override DateTimeOffset GetUtcNow()
+        {
+            return _now;
+        }
+
+        public void Advance(TimeSpan duration)
+        {
+            _now += duration;
         }
     }
 }

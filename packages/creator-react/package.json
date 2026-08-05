@@ -1,8 +1,7 @@
 {
   "name": "@kajay/creator-react",
   "version": "1.0.0",
-  "private": true,
-  "type": "module",
+    "type": "module",
   "description": "React designer UI over @kajay/creator-core: the Creator's pieces, and the default assembly built from them.",
   "license": "SEE LICENSE IN LICENSE",
   "sideEffects": false,

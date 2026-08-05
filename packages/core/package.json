@@ -1,8 +1,7 @@
 {
   "name": "@kajay/core",
   "version": "1.0.0",
-  "private": true,
-  "type": "module",
+    "type": "module",
   "description": "Headless survey model, metadata registry, and serializer.",
   "license": "MIT",
   "sideEffects": false,

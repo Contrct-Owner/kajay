@@ -1,8 +1,7 @@
 {
   "name": "@kajay/react",
   "version": "1.0.0",
-  "private": true,
-  "type": "module",
+    "type": "module",
   "description": "React renderer over @kajay/core.",
   "license": "MIT",
   "sideEffects": false,

@@ -119,6 +119,36 @@ public sealed class ExpressionEvaluationConformanceTests
         Assert.NotEqual(KajayValue.Absent, KajayValue.Null);
     }
 
+    [Fact]
+    public void EmptyArraysSatisfyTheEmptyPostfixOperator()
+    {
+        using JsonDocument corpus = OpenExpressionCorpus();
+        JsonElement testCase = corpus.RootElement
+            .GetProperty("evaluation")
+            .EnumerateArray()
+            .Single(candidate =>
+                candidate.GetProperty("id").GetString() == "empty-array-is-empty");
+        DateTimeOffset clock = DateTimeOffset.Parse(
+            corpus.RootElement.GetProperty("clock").GetString()!,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind);
+
+        ExpressionParseResult parsed = SurveyExpression.Parse(
+            testCase.GetProperty("source").GetString()!);
+        ExpressionEvaluationResult evaluated = parsed.Expression!.Evaluate(
+            new ExpressionEvaluationContext(
+                clock,
+                new Dictionary<string, KajayValue>
+                {
+                    ["values"] = KajayValue.FromArray([]),
+                }));
+
+        Assert.Empty(parsed.Errors);
+        Assert.Empty(evaluated.Errors);
+        Assert.Equal(KajayValueKind.Boolean, evaluated.Value.Kind);
+        Assert.True(evaluated.Value.GetBoolean());
+    }
+
     private static JsonDocument OpenExpressionCorpus()
     {
         string path = Path.Combine(

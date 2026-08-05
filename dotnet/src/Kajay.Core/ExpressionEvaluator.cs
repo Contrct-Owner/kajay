@@ -20,6 +20,8 @@ internal static class ExpressionEvaluator
         {
             ExpressionNode.Literal literal => EvaluateLiteral(literal),
             ExpressionNode.Reference reference => EvaluateReference(reference, context),
+            ExpressionNode.Array array => EvaluateArray(array, context, errors),
+            ExpressionNode.Postfix postfix => EvaluatePostfix(postfix, context, errors),
             ExpressionNode.Binary binary => EvaluateBinary(binary, context, errors),
             _ => KajayValue.Absent,
         };
@@ -44,6 +46,26 @@ internal static class ExpressionEvaluator
         return context.Values.TryGetValue(reference.Path, out KajayValue value)
             ? value
             : KajayValue.Absent;
+    }
+
+    private static KajayValue EvaluateArray(
+        ExpressionNode.Array array,
+        ExpressionEvaluationContext context,
+        List<ExpressionError> errors)
+    {
+        return KajayValue.FromArray(
+            array.Items.Select(item => EvaluateNode(item, context, errors)));
+    }
+
+    private static KajayValue EvaluatePostfix(
+        ExpressionNode.Postfix postfix,
+        ExpressionEvaluationContext context,
+        List<ExpressionError> errors)
+    {
+        bool empty = KajayValueSemantics.IsEmpty(
+            EvaluateNode(postfix.Operand, context, errors));
+        return KajayValue.From(
+            postfix.Operator == ExpressionOperator.Empty ? empty : !empty);
     }
 
     private static KajayValue EvaluateBinary(

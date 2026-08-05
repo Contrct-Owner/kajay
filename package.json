@@ -13,6 +13,7 @@
     "build": "tsc -b",
     "changeset": "changeset",
     "changeset:version": "changeset version",
+    "release": "pnpm run build && changeset publish",
     "clean": "tsc -b --clean && rm -rf .tsbuild",
     "lint": "oxlint --deny-warnings",
     "typecheck": "pnpm run typecheck:tsc7 && pnpm run typecheck:tsc",

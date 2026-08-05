@@ -47,10 +47,19 @@ paragraph above is now partly out of date and this records exactly how far it mo
 
 **Configuration and versioning exist. Publication does not.** `.changeset/config.json`
 sets up the fixed group of five packages; `changeset` and `changeset:version` are root
-scripts. There is deliberately **no `release` script, no `changeset publish`, and no CI
-workflow** that runs either, and every package is still `private: true` — three
-independent brakes, so lifting the hold stays a decision somebody takes rather than
-something a script does.
+scripts.
+
+*Amended the same day:* the owner then asked for the release path, so `release` and
+`.github/workflows/release.yml` exist too. **What stops a publish is no longer the absence
+of tooling** — it is that every package is `private: true`, which npm refuses regardless,
+and that the `kajay` scope is unclaimed. ADR-0024's hold now stands as a decision rather
+than as a gap, which is the more honest place for it: a hold that depends on nobody having
+written a script is not a hold.
+
+The workflow is manual-only and refuses more than it accepts. It takes the version and a
+typed `RELEASE` confirmation, checks that all five manifests agree with that version and
+that no changesets are pending, and runs the whole `verify` chain before publishing — the
+one failure worth engineering against is shipping a version CI never proved.
 
 `privatePackages: { version: true, tag: false }` is what lets the train be rehearsed at
 all: changesets otherwise skips private packages entirely, so neither the bump nor the

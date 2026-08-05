@@ -1,0 +1,88 @@
+name: Release
+
+# **Manual only.** Nothing here runs on a push, a tag or a merge. Publishing is a decision
+# somebody takes, and ADR-0024's hold means the decision has not been taken — so the trigger
+# is a person opening this workflow and typing the version they mean.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version being published, exactly as it appears in package.json (e.g. 1.0.0)'
+        required: true
+        type: string
+      confirm:
+        description: 'Type RELEASE to confirm. Anything else stops before publishing.'
+        required: true
+        type: string
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '24'
+
+jobs:
+  release:
+    name: Publish
+    runs-on: ubuntu-latest
+    # A publish that a maintainer could trigger from a fork, or that a bot could reach, is
+    # not a publish anybody controls.
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Refuse unless confirmed
+        if: inputs.confirm != 'RELEASE'
+        run: |
+          echo "Confirmation was '${{ inputs.confirm }}', not RELEASE. Nothing published."
+          exit 1
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Refuse if the working tree still has pending changesets
+        run: |
+          if ls .changeset/*.md 2>/dev/null | grep -qv 'README.md'; then
+            echo "Pending changesets exist. Run 'pnpm changeset:version' and commit before releasing."
+            exit 1
+          fi
+          echo "No pending changesets."
+
+      - name: Refuse if the manifests disagree with the version being released
+        run: |
+          for pkg in core react themes creator-core creator-react; do
+            found=$(node -p "require('./packages/$pkg/package.json').version")
+            if [ "$found" != "${{ inputs.version }}" ]; then
+              echo "packages/$pkg is $found, not ${{ inputs.version }}."
+              echo "The single version train (ADR-0005) means all five move together."
+              exit 1
+            fi
+          done
+          echo "All five packages are at ${{ inputs.version }}."
+
+      # **The full chain, not a subset.** Publishing code that CI has not proven is the one
+      # failure this workflow exists to make impossible; the gates take minutes and a bad
+      # version on npm is forever.
+      - name: Verify
+        run: pnpm run verify
+
+      - name: Publish
+        run: pnpm run release
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: 'true'
+
+      - name: Push the tags changesets created
+        run: git push --follow-tags

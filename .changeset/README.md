@@ -5,13 +5,16 @@ Release tooling for the single version train
 
 ## What this is set up to do, and what it deliberately cannot
 
-**It can version. It cannot publish.**
-[ADR-0024](../docs/adr/0024-publication-hold.md)'s hold is still in force, so there is no
-`release` script, no `changeset publish`, and no CI workflow that runs either. Every package
-is also still `private: true`, which npm refuses to publish independently of anything here.
+**It can version. It still cannot publish — but the path now exists.**
+`pnpm release` and `.github/workflows/release.yml` were added deliberately, so the brake is
+no longer "nothing is wired". What stops a publish today is that every package is
+`private: true`, which npm refuses independently of anything here, and that the `kajay`
+scope is unclaimed. [ADR-0024](../docs/adr/0024-publication-hold.md)'s hold still stands as
+the decision, rather than as an absence of tooling.
 
-Those are three separate brakes on purpose. Removing the hold should be a decision somebody
-takes deliberately, in one place, not something that happens because a script existed.
+The workflow is **manual only** — no push, tag or merge triggers it. It asks for the version
+and a typed `RELEASE` confirmation, refuses if any package disagrees with that version or if
+changesets are still pending, and runs the full `verify` chain before it publishes anything.
 
 ## The configuration, and why
 

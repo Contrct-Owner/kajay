@@ -7,21 +7,35 @@ public sealed class ExpressionParsingConformanceTests
     [Fact]
     public void AlternativeOperatorsCanonicalizeThroughThePublicExpressionSeam()
     {
+        AssertParsingCase("alternative-operators-canonicalize");
+    }
+
+    [Fact]
+    public void UnterminatedStringsProduceAStableParseError()
+    {
+        AssertParsingCase("unterminated-string");
+    }
+
+    private static void AssertParsingCase(string id)
+    {
         using JsonDocument corpus = OpenExpressionCorpus();
         JsonElement testCase = corpus.RootElement
             .GetProperty("parsing")
             .EnumerateArray()
-            .Single(candidate =>
-                candidate.GetProperty("id").GetString() == "alternative-operators-canonicalize");
+            .Single(candidate => candidate.GetProperty("id").GetString() == id);
 
         ExpressionParseResult result = SurveyExpression.Parse(
             testCase.GetProperty("source").GetString()!);
 
-        Assert.Empty(result.Errors);
-        Assert.NotNull(result.Expression);
+        JsonElement expectedCanonical = testCase.GetProperty("canonical");
         Assert.Equal(
-            testCase.GetProperty("canonical").GetString(),
-            result.Expression.ToCanonicalString());
+            expectedCanonical.ValueKind == JsonValueKind.Null
+                ? null
+                : expectedCanonical.GetString(),
+            result.Expression?.ToCanonicalString());
+        Assert.Equal(
+            testCase.GetProperty("errorCodes").EnumerateArray().Select(code => code.GetString()),
+            result.Errors.Select(error => error.Code));
     }
 
     private static JsonDocument OpenExpressionCorpus()

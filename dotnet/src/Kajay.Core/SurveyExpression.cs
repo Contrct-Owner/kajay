@@ -16,6 +16,14 @@ public sealed class SurveyExpression
     public static ExpressionParseResult Parse(string source)
     {
         ArgumentNullException.ThrowIfNull(source);
+        TextSpan? unterminatedString = FindUnterminatedString(source);
+        if (unterminatedString is TextSpan span)
+        {
+            return new ExpressionParseResult(
+                null,
+                [new ExpressionError("unterminated-string", span)]);
+        }
+
         string canonical = source
             .Replace(" = ", " == ", StringComparison.Ordinal)
             .Replace(" && ", " and ", StringComparison.Ordinal)
@@ -36,5 +44,39 @@ public sealed class SurveyExpression
     public override string ToString()
     {
         return ToCanonicalString();
+    }
+
+    private static TextSpan? FindUnterminatedString(string source)
+    {
+        for (int start = 0; start < source.Length; start += 1)
+        {
+            char quote = source[start];
+            if (quote is not ('\'' or '"'))
+            {
+                continue;
+            }
+
+            for (int index = start + 1; index < source.Length; index += 1)
+            {
+                if (source[index] == '\\' && index + 1 < source.Length)
+                {
+                    index += 1;
+                    continue;
+                }
+
+                if (source[index] == quote)
+                {
+                    start = index;
+                    goto NextCharacter;
+                }
+            }
+
+            return new TextSpan(start, source.Length);
+
+        NextCharacter:
+            continue;
+        }
+
+        return null;
     }
 }

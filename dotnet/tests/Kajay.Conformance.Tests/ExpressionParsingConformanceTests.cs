@@ -11,6 +11,20 @@ public sealed class ExpressionParsingConformanceTests
     }
 
     [Fact]
+    public void PrecedenceAndAssociativityCanonicalizeThroughThePublicExpressionSeam()
+    {
+        AssertParsingCase("precedence-and-associativity");
+
+        ExpressionParseResult redundantGrouping = SurveyExpression.Parse("1 + (2 * 3 ^ 2)");
+        ExpressionParseResult requiredGrouping = SurveyExpression.Parse("(1 + 2) * 3");
+
+        Assert.Empty(redundantGrouping.Errors);
+        Assert.Equal("1 + 2 * 3 ^ 2", redundantGrouping.Expression?.ToCanonicalString());
+        Assert.Empty(requiredGrouping.Errors);
+        Assert.Equal("(1 + 2) * 3", requiredGrouping.Expression?.ToCanonicalString());
+    }
+
+    [Fact]
     public void UnterminatedStringsProduceAStableParseError()
     {
         AssertParsingCase("unterminated-string");

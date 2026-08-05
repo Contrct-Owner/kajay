@@ -3,11 +3,11 @@ namespace Kajay;
 /// <summary>A parsed Kajay expression with canonical source representation.</summary>
 public sealed class SurveyExpression
 {
-    private readonly string _canonical;
+    private readonly ExpressionNode _root;
 
-    private SurveyExpression(string canonical)
+    private SurveyExpression(ExpressionNode root)
     {
-        _canonical = canonical;
+        _root = root;
     }
 
     /// <summary>Parses authored Kajay expression source.</summary>
@@ -16,102 +16,22 @@ public sealed class SurveyExpression
     public static ExpressionParseResult Parse(string source)
     {
         ArgumentNullException.ThrowIfNull(source);
-        TextSpan? unterminatedString = FindUnterminatedString(source);
-        if (unterminatedString is TextSpan span)
-        {
-            return new ExpressionParseResult(
-                null,
-                [new ExpressionError("unterminated-string", span)]);
-        }
-
-        if (IsUnknownBareIdentifier(source))
-        {
-            return new ExpressionParseResult(
-                null,
-                [new ExpressionError("unknown-identifier", new TextSpan(0, source.Length))]);
-        }
-
-        string canonical = source
-            .Replace(" = ", " == ", StringComparison.Ordinal)
-            .Replace(" && ", " and ", StringComparison.Ordinal)
-            .Replace(" <> ", " != ", StringComparison.Ordinal);
+        ExpressionParseTreeResult parsed = ExpressionParser.Parse(source);
         return new ExpressionParseResult(
-            new SurveyExpression(canonical),
-            Array.Empty<ExpressionError>());
+            parsed.Errors.Count == 0 ? new SurveyExpression(parsed.Root) : null,
+            parsed.Errors);
     }
 
     /// <summary>Returns the stable expression spelling.</summary>
     /// <returns>Canonical Kajay expression source.</returns>
     public string ToCanonicalString()
     {
-        return _canonical;
+        return ExpressionPrinter.Print(_root);
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
         return ToCanonicalString();
-    }
-
-    private static TextSpan? FindUnterminatedString(string source)
-    {
-        for (int start = 0; start < source.Length; start += 1)
-        {
-            char quote = source[start];
-            if (quote is not ('\'' or '"'))
-            {
-                continue;
-            }
-
-            for (int index = start + 1; index < source.Length; index += 1)
-            {
-                if (source[index] == '\\' && index + 1 < source.Length)
-                {
-                    index += 1;
-                    continue;
-                }
-
-                if (source[index] == quote)
-                {
-                    start = index;
-                    goto NextCharacter;
-                }
-            }
-
-            return new TextSpan(start, source.Length);
-
-        NextCharacter:
-            continue;
-        }
-
-        return null;
-    }
-
-    private static bool IsUnknownBareIdentifier(string source)
-    {
-        if (source.Length == 0 || !IsIdentifierStart(source[0]))
-        {
-            return false;
-        }
-
-        for (int index = 1; index < source.Length; index += 1)
-        {
-            if (!IsIdentifierPart(source[index]))
-            {
-                return false;
-            }
-        }
-
-        return source is not ("true" or "false" or "null" or "undefined");
-    }
-
-    private static bool IsIdentifierStart(char value)
-    {
-        return value is >= 'A' and <= 'Z' or >= 'a' and <= 'z' or '_';
-    }
-
-    private static bool IsIdentifierPart(char value)
-    {
-        return IsIdentifierStart(value) || value is >= '0' and <= '9';
     }
 }

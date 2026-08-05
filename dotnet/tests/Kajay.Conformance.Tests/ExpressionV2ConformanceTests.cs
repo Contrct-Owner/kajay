@@ -53,6 +53,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("boolean-text-is-not-a-boolean");
     }
 
+    [Fact]
+    public void EmptyArrayIsFalse()
+    {
+        AssertEvaluationCase("empty-array-is-false");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

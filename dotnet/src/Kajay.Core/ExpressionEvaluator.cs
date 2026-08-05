@@ -21,6 +21,7 @@ internal static class ExpressionEvaluator
             ExpressionNode.Literal literal => EvaluateLiteral(literal),
             ExpressionNode.Reference reference => EvaluateReference(reference, context),
             ExpressionNode.Array array => EvaluateArray(array, context, errors),
+            ExpressionNode.Unary unary => EvaluateUnary(unary, context, errors),
             ExpressionNode.Postfix postfix => EvaluatePostfix(postfix, context, errors),
             ExpressionNode.Binary binary => EvaluateBinary(binary, context, errors),
             ExpressionNode.Call call => EvaluateCall(call, context, errors),
@@ -67,6 +68,22 @@ internal static class ExpressionEvaluator
             EvaluateNode(postfix.Operand, context, errors));
         return KajayValue.From(
             postfix.Operator == ExpressionOperator.Empty ? empty : !empty);
+    }
+
+    private static KajayValue EvaluateUnary(
+        ExpressionNode.Unary unary,
+        ExpressionEvaluationContext context,
+        List<ExpressionError> errors)
+    {
+        KajayValue operand = EvaluateNode(unary.Operand, context, errors);
+        if (unary.Operator == ExpressionOperator.Not)
+        {
+            return KajayValue.From(!KajayValueSemantics.IsTruthy(operand));
+        }
+
+        return KajayNumber.TryConvert(operand, out double number)
+            ? KajayValue.From(-number)
+            : KajayValue.Absent;
     }
 
     private static KajayValue EvaluateCall(

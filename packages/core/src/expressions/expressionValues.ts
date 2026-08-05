@@ -32,6 +32,8 @@ export function normalizeValue(value: unknown): unknown {
   return value instanceof Date ? value.getTime() : value;
 }
 
+const DECIMAL_NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/u;
+
 /** A finite number, or undefined when the value is not numeric. */
 export function toNumber(value: unknown): number | undefined {
   const normalized = normalizeValue(value);
@@ -41,8 +43,12 @@ export function toNumber(value: unknown): number | undefined {
   if (typeof normalized === 'boolean') {
     return normalized ? 1 : 0;
   }
-  if (typeof normalized === 'string' && normalized.trim().length > 0) {
-    const parsed = Number(normalized);
+  if (typeof normalized === 'string') {
+    const text = normalized.trim();
+    if (!DECIMAL_NUMBER.test(text)) {
+      return undefined;
+    }
+    const parsed = Number(text);
     return Number.isFinite(parsed) ? parsed : undefined;
   }
   return undefined;

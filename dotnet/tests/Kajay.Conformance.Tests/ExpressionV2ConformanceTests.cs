@@ -65,6 +65,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("empty-object-is-true");
     }
 
+    [Fact]
+    public void NumericZeroIsFalse()
+    {
+        AssertEvaluationCase("numeric-zero-is-false");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

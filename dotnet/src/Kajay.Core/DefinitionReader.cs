@@ -6,7 +6,8 @@ internal static class DefinitionReader
 {
     private static readonly string[] RootProperties = ["schemaVersion", "title", "pages"];
     private static readonly string[] PageProperties = ["name", "title", "elements"];
-    private static readonly string[] ElementProperties = ["type", "name", "isRequired", "inputType"];
+    private static readonly string[] ElementProperties =
+        ["type", "name", "isRequired", "inputType", "choices"];
 
     internal static JsonObject Read(
         JsonObject input,
@@ -57,8 +58,27 @@ internal static class DefinitionReader
         CopyProperty(input, output, "name");
         CopyProperty(input, output, "isRequired", JsonValue.Create(false));
         CopyProperty(input, output, "inputType", JsonValue.Create("text"));
+        CopyChoices(input, output);
         AppendUnknown(output, unknown);
         return output;
+    }
+
+    private static void CopyChoices(JsonObject input, JsonObject output)
+    {
+        if (input["choices"] is not JsonArray choices)
+        {
+            return;
+        }
+
+        var canonical = new JsonArray();
+        foreach (JsonNode? choice in choices)
+        {
+            canonical.Add(choice is JsonObject choiceObject
+                ? choiceObject.DeepClone()
+                : new JsonObject { ["value"] = choice?.DeepClone() });
+        }
+
+        output["choices"] = canonical;
     }
 
     private static void CopyProperty(

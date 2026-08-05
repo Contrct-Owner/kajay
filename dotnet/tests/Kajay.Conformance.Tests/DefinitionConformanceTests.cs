@@ -28,6 +28,12 @@ public sealed class DefinitionConformanceTests
         AssertDefinitionCase("wrong-property-type-is-reported-and-ignored");
     }
 
+    [Fact]
+    public void ScalarChoiceShorthandExpandsToCanonicalChildren()
+    {
+        AssertDefinitionCase("scalar-child-shorthand-expands");
+    }
+
     private static void AssertDefinitionCase(string id)
     {
         using JsonDocument corpus = OpenDefinitionCorpus();

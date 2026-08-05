@@ -81,6 +81,40 @@ public sealed class AsyncFunctionConformanceTests
         Assert.Equal(settledValue, evaluated.Value);
     }
 
+    [Fact]
+    public void FailedAsyncFunctionsReportTheFailureAtTheCallSite()
+    {
+        using JsonDocument corpus = OpenExpressionCorpus();
+        JsonElement testCase = FindCase(corpus, "async-function-failure-is-reported");
+        JsonElement outcome = testCase
+            .GetProperty("asyncFunction")
+            .GetProperty("outcome");
+        string failure = outcome.GetProperty("message").GetString()!;
+        ExpressionFunctionRegistry functions = ExpressionFunctionRegistry.Empty.AddAsync(
+            testCase.GetProperty("asyncFunction").GetProperty("name").GetString()!,
+            static (_, _, _) => ValueTask.FromResult(KajayValue.Null));
+        ExpressionEvaluationContext context = new(
+            ReadClock(corpus),
+            Array.Empty<KeyValuePair<string, KajayValue>>(),
+            functions,
+            new FixedAsyncFunctionValueSource(AsyncFunctionValue.Failed(failure)));
+
+        ExpressionParseResult parsed = SurveyExpression.Parse(
+            testCase.GetProperty("source").GetString()!);
+        ExpressionEvaluationResult evaluated = parsed.Expression!.Evaluate(context);
+
+        Assert.Empty(parsed.Errors);
+        Assert.Equal(KajayValue.Absent, evaluated.Value);
+        ExpressionError error = Assert.Single(evaluated.Errors);
+        Assert.Equal(
+            testCase.GetProperty("errorCodes")[0].GetString(),
+            error.Code);
+        Assert.Equal(failure, error.Message);
+        Assert.Equal(
+            new TextSpan(0, testCase.GetProperty("source").GetString()!.Length),
+            error.Span);
+    }
+
     private static JsonElement FindCase(JsonDocument corpus, string caseId)
     {
         return corpus.RootElement

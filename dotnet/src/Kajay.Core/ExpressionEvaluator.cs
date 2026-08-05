@@ -101,7 +101,10 @@ internal static class ExpressionEvaluator
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {
-                errors.Add(new ExpressionError("function-failed", call.Span));
+                errors.Add(new ExpressionError(
+                    "function-failed",
+                    call.Span,
+                    exception.Message));
                 return KajayValue.Absent;
             }
         }
@@ -128,7 +131,10 @@ internal static class ExpressionEvaluator
         AsyncFunctionValue outcome = values.GetValue(call.Name, arguments);
         if (outcome.Kind == AsyncFunctionValueKind.Failed)
         {
-            errors.Add(new ExpressionError("function-failed", call.Span));
+            errors.Add(new ExpressionError(
+                "function-failed",
+                call.Span,
+                outcome.Failure));
         }
 
         return outcome.Kind == AsyncFunctionValueKind.Resolved

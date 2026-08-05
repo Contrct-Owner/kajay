@@ -18,6 +18,14 @@ if (schema.RootElement.GetProperty("$id").GetString() != "urn:kajay:survey-defin
     throw new InvalidOperationException("Installed package exposed the wrong survey contract.");
 }
 
+const string definition = """{"pages":[{"name":"p1","elements":[{"type":"text","name":"q1"}]}]}""";
+const string expected = """{"schemaVersion":1,"pages":[{"name":"p1","elements":[{"type":"text","name":"q1"}]}]}""";
+SurveyDefinitionParseResult parsed = SurveyDefinition.Parse(definition);
+if (parsed.Diagnostics.Count != 0 || parsed.Definition.ToCanonicalJson() != expected)
+{
+    throw new InvalidOperationException("Installed package failed definition canonicalization.");
+}
+
 Console.WriteLine("dotnet pack smoke: ok");
 `;
 
@@ -66,7 +74,11 @@ try {
 }
 
 function run(command, args) {
-  execFileSync(command, args, { cwd: repositoryRoot, stdio: 'inherit' });
+  execFileSync(command, args, {
+    cwd: repositoryRoot,
+    env: { ...process.env, NUGET_PACKAGES: join(scratch, 'nuget-packages') },
+    stdio: 'inherit',
+  });
 }
 
 function consumerProject(packageVersion) {

@@ -22,11 +22,12 @@ published implementation is TypeScript; C# is the second runtime in development.
   module-depth, enforcement, documentation, public-interface, and integration slices
   are complete. The [architecture remediation plan](./docs/architecture-remediation-plan.md)
   supplied the release evidence behind 1.0.
-- **C# SDK: contract established, implementation pending.** `Kajay.Core` targets
+- **C# SDK: implementation underway.** `Kajay.Core` targets
   `net10.0`; [ADR-0030](./docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md)
   fixes its package posture and Kajay's v2 value, date, pattern, performance, and
-  support semantics. TypeScript remains the only passing adapter: it passes v1, while
-  v2 is structurally checked specification with both adapters pending.
+  support semantics. The installed package now parses and canonically serializes the
+  minimal v1 definition case. TypeScript remains the only passing adapter: it passes
+  all of v1, while v2 is structurally checked specification with both adapters pending.
 
 ## Topic index
 
@@ -41,7 +42,7 @@ published implementation is TypeScript; C# is the second runtime in development.
 | Published package interfaces | active | Jarod | [Public interface ledger](./docs/public-package-interfaces.md) |
 | Definition shape | active | Jarod | [Generated survey schema](./contracts/survey-schema.json) |
 | Runtime compatibility | v1: one adapter; v2: specified | Jarod | [Conformance v1](./conformance/v1/README.md), [v2](./conformance/v2/README.md) |
-| Native C# SDK | implementation pending | Jarod | [ADR-0030](./docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md), [parity §Q](./docs/feature-parity-checklist.md#q--c-headless-sdk) |
+| Native C# SDK | implementation underway | Jarod | [ADR-0030](./docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md), [parity §Q](./docs/feature-parity-checklist.md#q--c-headless-sdk) |
 | Publishing and licensing | 1.0.0 published | Jarod | [ADR-0029](./docs/adr/0029-release-walkthrough.md) |
 | Machine-readable documentation | preview | Jarod | [ADR-0025](./docs/adr/0025-read-only-documentation-mcp.md) |
 
@@ -129,6 +130,8 @@ meaning of each test seam.
 
 ## Change log
 
+- 2026-08-05: Began the native runtime through the public definition seam; the
+  installed NuGet package passes the minimal v1 canonicalization tracer.
 - 2026-08-05: Recorded the published TypeScript 1.0.0 posture and established the
   `Kajay.Core` native SDK, Kajay value/pattern vocabulary, and conformance v2 status.
 - 2026-08-04: Created the root context index, glossary, and explicit distinction

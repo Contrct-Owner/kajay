@@ -18,7 +18,13 @@ internal static class DefinitionReader
             string.Empty,
             diagnostics);
         var output = new JsonObject { ["schemaVersion"] = 1 };
-        CopyProperty(input, output, "title", JsonValue.Create(string.Empty));
+        CopyStringProperty(
+            input,
+            output,
+            "title",
+            string.Empty,
+            "/title",
+            diagnostics);
         CopyChildren(input, output, "pages", (child, index) =>
             ReadPage(child, $"/pages/{index}", diagnostics));
         AppendUnknown(output, unknown);
@@ -68,6 +74,36 @@ internal static class DefinitionReader
         }
 
         output[propertyName] = value?.DeepClone();
+    }
+
+    private static void CopyStringProperty(
+        JsonObject input,
+        JsonObject output,
+        string propertyName,
+        string defaultValue,
+        string path,
+        ICollection<DefinitionDiagnostic> diagnostics)
+    {
+        if (!input.TryGetPropertyValue(propertyName, out JsonNode? value))
+        {
+            return;
+        }
+
+        if (value is JsonValue jsonValue
+            && jsonValue.TryGetValue(out string? text))
+        {
+            if (!string.Equals(text, defaultValue, StringComparison.Ordinal))
+            {
+                output[propertyName] = text;
+            }
+
+            return;
+        }
+
+        diagnostics.Add(new DefinitionDiagnostic(
+            "property-type-mismatch",
+            path,
+            DiagnosticSeverity.Error));
     }
 
     private static void CopyChildren(

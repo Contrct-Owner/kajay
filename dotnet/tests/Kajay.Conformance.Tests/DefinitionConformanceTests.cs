@@ -22,6 +22,12 @@ public sealed class DefinitionConformanceTests
         AssertDefinitionCase("unknown-properties-round-trip");
     }
 
+    [Fact]
+    public void WrongPropertyTypesAreReportedAndIgnored()
+    {
+        AssertDefinitionCase("wrong-property-type-is-reported-and-ignored");
+    }
+
     private static void AssertDefinitionCase(string id)
     {
         using JsonDocument corpus = OpenDefinitionCorpus();

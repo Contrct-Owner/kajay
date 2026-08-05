@@ -17,6 +17,14 @@ apps/host-demo/dist/
 .pack-scratch/
 *.tgz
 
+# Secrets. Nothing here today, and this exists so that stays true: the repository is
+# public and CI holds a publish token.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
 # Editor / OS
 .DS_Store
 .idea/

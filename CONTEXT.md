@@ -3,7 +3,7 @@
 - Area: Repository orientation and current project state
 - Status: active
 - Owner: Jarod
-- Last updated: 2026-08-04
+- Last updated: 2026-08-05
 
 Kajay Survey is a TypeScript-native survey runtime and Creator whose headless packages
 are consumed through framework adapters and proved through a separate host application.
@@ -12,10 +12,12 @@ are consumed through framework adapters and proved through a separate host appli
 
 - **Functional parity: delivered.** Checklist sections A–N and the N5 assembled-Creator
   acceptance proof are green. This establishes the functional Phase 3 exit evidence.
-- **Publication: explicitly on hold.** All packages remain private, `0.0.0`, and
-  `UNLICENSED`. Brand/scope, license, first version, version train, and release tooling
-  are deliberately deferred until an owner walkthrough; see
-  [ADR-0024](./docs/adr/0024-publication-hold.md).
+- **Publication: walked through, not yet performed.** The owner took all five gates in
+  [ADR-0029](./docs/adr/0029-release-walkthrough.md), superseding the hold. The `kajay`
+  npm scope is claimed, every package is `1.0.0` and publishable, and licensing is
+  settled by [ADR-0028](./docs/adr/0028-mit-runtime-source-available-creator.md) — MIT
+  for `core`/`react`/`themes`, `FSL-1.1-ALv2` for the two Creator packages. Nothing has
+  been published: the release workflow is manual and has not been run.
 - **Architecture remediation: implemented for the unpublished posture.** Correctness,
   module-depth, enforcement, documentation, public-interface, and integration slices
   are complete. The [architecture remediation plan](./docs/architecture-remediation-plan.md)

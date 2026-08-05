@@ -40,6 +40,12 @@ reconfirmed.
 Changesets remains an inert root development dependency. There is intentionally no
 configuration, release script, or publishing workflow while the hold is active.
 
+## Ratified (2026-08-05)
+
+[ADR-0029](./0029-release-walkthrough.md) took gate 4 of ADR-0024's walkthrough
+explicitly: the single version train and Changesets are the chosen policy and module,
+not merely the installed ones. **This ADR returns to accepted.**
+
 ## Scaffolding amendment (2026-08-04)
 
 The owner asked for the configuration to be created ahead of the walkthrough, so the

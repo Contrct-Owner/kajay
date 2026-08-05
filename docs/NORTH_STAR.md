@@ -339,15 +339,16 @@ The host app exists to make embeddability falsifiable:
 
 ### Still open
 
-- [ ] Walk through and explicitly decide the brand/scope, licensing model, first
-      version, version train, and release tooling before activating any release work
-      ([ADR-0024](./adr/0024-publication-hold.md)).
-- [ ] Claim the `kajay` npm organization; promote ADR-0006 to accepted or pick a
-      replacement scope before publication. Scaffolding is complete, so this is now a
-      release-readiness gate rather than a Phase 0 implementation gate.
-- [ ] Confirm that housing a survey engine under `@kajay/*` is the intended umbrella
-      branding rather than an artifact of scope availability
-      ([ADR-0006](./adr/0006-npm-scope.md)).
+- [x] **All five release decisions walked through and recorded** — brand and scope,
+      licensing, first version and compatibility promise, version train and release
+      module, and the workflow with its provenance, access control and rollback policy
+      ([ADR-0029](./adr/0029-release-walkthrough.md), superseding ADR-0024).
+- [x] **The `kajay` npm organization is claimed**, so ADR-0006's conditional acceptance
+      is now unconditional.
+- [x] **Kajay is the product, not an umbrella.** The survey engine *is* Kajay, so the
+      packages keep the names they have rather than becoming `@kajay/survey-*`. Decided
+      before the first publish, when the rename was still nearly free
+      ([ADR-0029](./adr/0029-release-walkthrough.md)).
 
 ---
 

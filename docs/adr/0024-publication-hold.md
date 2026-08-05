@@ -1,9 +1,12 @@
 # ADR-0024 — Publication hold pending an explicit release walkthrough
 
 - Area: Release policy
-- Status: accepted
+- Status: superseded by ADR-0029
 - Owner: Jarod
 - Last updated: 2026-08-04
+
+
+> **Superseded by [ADR-0029](./0029-release-walkthrough.md) (2026-08-05).** The owner walked through all five gates; the decisions are recorded there. Publication itself remains a separate, explicit act, which is what this ADR asked for.
 
 ## Context
 

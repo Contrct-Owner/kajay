@@ -5,6 +5,11 @@
 - Owner: Jarod
 - Last updated: 2026-08-04
 
+> **Condition met (2026-08-05).** The owner has claimed the `kajay` organization, so the
+> conditional acceptance below is now unconditional. [ADR-0029](./0029-release-walkthrough.md)
+> also settles the second question this ADR raised: Kajay is the product rather than an
+> umbrella, so the packages keep the names they have.
+
 ## Context
 
 `@survey/*` entered the corpus as an explicit placeholder. The scope is load-bearing

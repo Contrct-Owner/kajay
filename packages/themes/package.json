@@ -12,6 +12,10 @@
     "node": ">=22.12.0",
     "npm": ">=10"
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

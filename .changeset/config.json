@@ -13,7 +13,7 @@
     ]
   ],
   "linked": [],
-  "access": "restricted",
+  "access": "public",
   "ignore": ["@kajay/host-demo", "@kajay/site"],
   "privatePackages": { "version": true, "tag": false }
 }

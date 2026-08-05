@@ -50,6 +50,7 @@ recorded here (status `superseded`) **and** in the
 | [0025](./0025-read-only-documentation-mcp.md) | Expose Kajay documentation through a read-only MCP server | accepted | 2026-08-04 |
 | [0026](./0026-canvas-affordances.md) | What the canvas edits, and what the grid does | accepted | 2026-08-04 |
 | [0027](./0027-retain-parse-survey-calling-modes.md) | Retain both `parseSurvey` calling modes | accepted | 2026-08-04 |
+| [0028](./0028-mit-runtime-source-available-creator.md) | MIT runtime, source-available Creator | accepted | 2026-08-04 |
 
 ## Parent and related links
 

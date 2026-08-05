@@ -1,5 +1,9 @@
 # ADR-0007 — Private repo, unlicensed, decision deferred to Phase 2 exit
 
+> **Completed by [ADR-0028](./0028-mit-runtime-source-available-creator.md) (2026-08-04):**
+> MIT for the runtime, `FSL-1.1-Apache-2.0` for the Creator. The deferral below did its
+> job — it was waiting for information that §K–§N and §P produced.
+
 - Area: Licensing and distribution posture
 - Status: accepted
 - Owner: Jarod

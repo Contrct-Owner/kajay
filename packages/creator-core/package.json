@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Headless survey designer model over @kajay/core: the design surface, toolbox, property grid, logic, translations and theme editors.",
-  "license": "UNLICENSED",
+  "license": "SEE LICENSE IN LICENSE",
   "sideEffects": false,
   "engines": {
     "node": ">=22.12.0",
@@ -18,6 +18,7 @@
     "./package.json": "./package.json"
   },
   "files": [
+    "LICENSE",
     "dist"
   ],
   "dependencies": {

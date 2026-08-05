@@ -40,7 +40,7 @@ Three things independently argue for opening the runtime:
   map; many legal teams have blanket MIT approval where Apache-2.0 needs per-case review,
   and for a library whose whole pitch is low friction that difference is the pitch.
 - **`@kajay/creator-core`, `@kajay/creator-react` — Functional Source License,
-  `FSL-1.1-Apache-2.0`.** Read it, run it, self-host it; do not resell it as a competing
+  `FSL-1.1-ALv2`.** Read it, run it, self-host it; do not resell it as a competing
   product. It converts to Apache-2.0 after two years, so the commercial reservation has an
   expiry rather than being permanent.
 
@@ -49,16 +49,17 @@ holds and every package stays `private: true`; picking a licence says what the t
 when something ships, not that anything ships. The npm scope
 ([ADR-0006](./0006-npm-scope.md)) is still unclaimed.
 
-### Outstanding: the Creator's licence text is not in the repository
+### The licence text is canonical, not reconstructed
 
-The two Creator packages **remain `UNLICENSED`** until the canonical FSL text is added.
-That is deliberate and it is the honest state: `UNLICENSED` means no grant has been made,
-which is true, and it stays true until the real text is present. A `LICENSE` file containing
-an approximation of a licence would be worse than none — it would look like a grant while
-being unenforceable and wrong in ways only a lawyer would find.
+Both Creator packages carry the FSL text verbatim from its canonical source, with only the
+template's two placeholders — year and licensor — filled in. It was supplied rather than
+fetched: two attempts to reach `fsl.software` failed, and reproducing a licence from memory
+is the kind of error that looks harmless and is not, so the packages stayed `UNLICENSED`
+until the real text arrived.
 
-The text must be copied verbatim from the canonical source at `fsl.software` rather than
-reproduced from memory or paraphrased.
+`"license": "SEE LICENSE IN LICENSE"` in both manifests. `FSL-1.1-ALv2` is not an SPDX
+identifier, so naming it in that field would make every install warn; this is npm's own form
+for a non-SPDX licence, and what the parity target uses for exactly this case.
 
 ## Consequences
 

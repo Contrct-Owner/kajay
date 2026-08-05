@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Kajay.Core</AssemblyName>
+    <RootNamespace>Kajay</RootNamespace>
+    <PackageId>Kajay.Core</PackageId>
+    <Version>0.1.0-alpha.1</Version>
+    <Title>Kajay.Core</Title>
+    <Description>Native .NET implementation of the Kajay headless survey runtime.</Description>
+    <Authors>Jarod</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Contrct-Owner/kajay</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Contrct-Owner/kajay.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <IsAotCompatible>true</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="../../../contracts/survey-schema.json"
+                      LogicalName="Kajay.Core.Contracts.survey-schema.json" />
+    <EmbeddedResource Include="../../../contracts/runtime-metadata.json"
+                      LogicalName="Kajay.Core.Contracts.runtime-metadata.json" />
+    <EmbeddedResource Include="../../../contracts/runtime-diagnostics.json"
+                      LogicalName="Kajay.Core.Contracts.runtime-diagnostics.json" />
+    <None Include="../../README.md" Pack="true" PackagePath="/" Link="README.md" />
+    <None Include="../../../packages/core/LICENSE" Pack="true" PackagePath="/" Link="LICENSE" />
+  </ItemGroup>
+</Project>

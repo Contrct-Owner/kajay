@@ -12,10 +12,15 @@ test-results/
 __screenshots__/
 .vitest-attachments/
 apps/host-demo/dist/
+dotnet/artifacts/
+**/bin/
+**/obj/
 
 # Pack test scratch area (created outside the workspace, but ignore any stray local copy)
 .pack-scratch/
 *.tgz
+*.nupkg
+*.snupkg
 
 # Secrets. Nothing here today, and this exists so that stays true: the repository is
 # public and CI holds a publish token.

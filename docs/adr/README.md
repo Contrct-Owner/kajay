@@ -52,6 +52,7 @@ recorded here (status `superseded`) **and** in the
 | [0027](./0027-retain-parse-survey-calling-modes.md) | Retain both `parseSurvey` calling modes | accepted | 2026-08-04 |
 | [0028](./0028-mit-runtime-source-available-creator.md) | MIT runtime, source-available Creator | accepted | 2026-08-04 |
 | [0029](./0029-release-walkthrough.md) | The release walkthrough | accepted | 2026-08-05 |
+| [0030](./0030-native-csharp-sdk-and-v2-runtime-semantics.md) | Native C# SDK and v2 runtime semantics | accepted | 2026-08-05 |
 
 ## Parent and related links
 

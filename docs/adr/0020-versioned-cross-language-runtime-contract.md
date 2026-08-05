@@ -3,7 +3,7 @@
 - Area: Runtime portability and SDK conformance
 - Status: accepted
 - Owner: Jarod
-- Last updated: 2026-08-04
+- Last updated: 2026-08-05
 
 ## Context
 
@@ -61,6 +61,13 @@ fifth operation are designed as the first shared v2 change alongside that runtim
 before either adapter claims v2 compatibility. Scoring remains TypeScript-specified
 until that concrete second caller exists.
 
+That trigger has now occurred. [ADR-0030](./0030-native-csharp-sdk-and-v2-runtime-semantics.md)
+selects C# as the second maintained runtime and specifies v2 before either adapter
+implements it. Rather than adding a scoring-only fifth operation, v2 replaces the
+narrow lifecycle operation with one general survey-scenario operation that can observe
+lifecycle, validation, and scoring without growing an operation per headless feature.
+The committed v2 corpus remains adapters-pending until an implementation passes it.
+
 Contract generation and conformance are separate CI gates. Shape can remain unchanged
 while behavior drifts, and behavior can remain unchanged while metadata drifts; one
 check would hide that distinction.
@@ -98,3 +105,5 @@ check would hide that distinction.
 - [ADR-0003](./0003-hand-rolled-expression-parser.md)
 - [ADR-0011](./0011-contract-identity-and-format-version.md)
 - [Conformance v1](../../conformance/v1/README.md)
+- [ADR-0030](./0030-native-csharp-sdk-and-v2-runtime-semantics.md)
+- [Conformance v2](../../conformance/v2/README.md)

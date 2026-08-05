@@ -1,0 +1,17 @@
+{
+  "contractVersion": 2,
+  "status": "specified",
+  "inheritsVersion": 1,
+  "operations": [
+    "canonicalize-definition",
+    "parse-expression",
+    "evaluate-expression",
+    "execute-survey-scenario"
+  ],
+  "suites": [
+    { "operation": "canonicalize-definition", "path": "definitions.json" },
+    { "operation": "parse-expression", "path": "expressions.json", "section": "parsing" },
+    { "operation": "evaluate-expression", "path": "expressions.json", "section": "evaluation" },
+    { "operation": "execute-survey-scenario", "path": "scenarios.json" }
+  ]
+}

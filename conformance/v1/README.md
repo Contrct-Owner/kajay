@@ -3,7 +3,7 @@
 - Area: Runtime contract and SDK portability
 - Status: established
 - Owner: Jarod
-- Last updated: 2026-08-04
+- Last updated: 2026-08-05
 
 This directory is executable specification, not example data. Every runtime adapter
 must produce the same observable results for these cases. The TypeScript adapter is
@@ -109,6 +109,12 @@ second maintained runtime that needs it, before either adapter claims v2 compati
 it will not be guessed into the contract in advance. Until then scoring is specified
 by the TypeScript suite alone, which is exactly the limitation ADR-0020 requires us to
 state rather than hide.
+
+The second maintained runtime and the v2 design now exist: ADR-0030 selects
+`Kajay.Core`, and [conformance v2](../v2/README.md) replaces the lifecycle-only
+operation with a general survey-scenario operation that can observe scoring. This v1
+limitation remains part of the v1 contract; the new v2 files are specified with both
+adapters still pending.
 
 Changing existing v1 expectations is a contract change and requires an ADR. Additive
 cases may be appended when they clarify behavior already intended. An incompatible

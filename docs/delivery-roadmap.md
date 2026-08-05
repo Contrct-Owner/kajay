@@ -20,8 +20,8 @@ Phase 3 exit record below for what that did and did not include. Phase 4 is hori
   workstreams inside a phase can run in parallel.
 - Each phase lists its **primary docs** and what is **explicitly out** so scope does
   not creep.
-- Status vocabulary distinguishes **complete/delivered**, **publication hold**, and
-  **horizon** work.
+- Status vocabulary distinguishes **complete/delivered**, **published**, **active**,
+  and **horizon** work.
 - The [feature-parity checklist](./feature-parity-checklist.md) is the acceptance
   ledger; phases reference its sections rather than restating features.
 
@@ -32,8 +32,8 @@ Phase 3 exit record below for what that did and did not include. Phase 4 is hori
 | **0 — Foundation** | Monorepo + metadata kernel + one question end-to-end | A JSON definition renders in host-demo via public API only, round-trips, and all CI gates are green | **complete (2026-08-02)** |
 | **1 — Runtime core** | Expression engine, core question types, logic, validation, flow | Checklist §A–§E green via host-demo scenarios, less the rows that name later-phase surface | **complete (2026-08-02)** |
 | **2 — Form Library parity** | Matrix family, dynamic panels, quiz, theming, localization, a11y | Checklist §A–§J (all Form Library sections) green | **delivered 2026-08-03**, but for A4/A5 (Phase 3) |
-| **3 — Creator parity** ⭐ | Drag-drop designer, property grid, logic/JSON/translation/theme editors | Checklist §K–§N green; build→render→round-trip proven in host-demo | **functional exit proof delivered 2026-08-04; publication on hold** |
-| **4 — Horizon** | PDF, dashboard, other frameworks/runtimes, SSR | Opportunity-driven | horizon |
+| **3 — Creator parity** ⭐ | Drag-drop designer, property grid, logic/JSON/translation/theme editors | Checklist §K–§N green; build→render→round-trip proven in host-demo | **delivered 2026-08-04; 1.0.0 published 2026-08-05** |
+| **4 — Horizon** | PDF, dashboard, other frameworks/runtimes, SSR | Opportunity-driven; each promoted workstream gets its own gate | **C# SDK active; remaining items horizon** |
 
 ## Phase 0 — Foundation & scaffolding
 
@@ -313,10 +313,9 @@ seen.
 **Goal:** the drag-and-drop designer, embeddable like SurveyJS Survey Creator.
 
 **Current state:** the checklist and N5 host-demo exit proof are green. Functional
-acceptance is delivered; publication is explicitly on hold under
-[ADR-0024](./adr/0024-publication-hold.md). Packages remain private at `0.0.0` while
-the brand/scope, license, first version, version train, and release tooling await an
-owner walkthrough. See the [project context](../CONTEXT.md).
+acceptance is delivered and all five packages are published at 1.0.0 under the policy
+recorded in [ADR-0029](./adr/0029-release-walkthrough.md). See the
+[project context](../CONTEXT.md).
 
 **In scope**
 
@@ -352,25 +351,38 @@ the public surface could not deliver, duplicate DOM ids across two surveys of on
 definition, and the silence ADR-0023 now forbids. None of those were visible from
 inside the library.
 
-**§O reviewed at this boundary, as the checklist requires.** Nothing promotes. Every
-watch item wants evidence a real consumer needs it, and there are no consumers yet —
-nothing is published. The review is therefore a formality this time and will not be at
-the next boundary.
+**§O reviewed at this boundary, as the checklist requires.** Nothing promoted. Every
+watch item wanted evidence a real consumer needed it, and at that boundary there were
+no consumers because nothing had been published. The review was therefore a formality;
+future reviews use the evidence gathered after 1.0.0.
 
-**What the phase does not include.** Publication: ADR-0024's hold stands, the `kajay`
-scope is unclaimed, and every package remains `private: true`. Licensing and versioning
-are settled — MIT runtime and FSL Creator under
-[ADR-0028](./adr/0028-mit-runtime-source-available-creator.md), all five packages at
-`1.0.0` with changelogs — so what remains between here and npm is a decision and an
-account claim rather than any engineering.
+**What the phase did not include.** Publication remained a separate owner action after
+the functional exit. That action is now complete under ADR-0029; it does not change the
+historical Phase 3 gate or make later native runtimes part of Phase 3.
 
 ## Phase 4 — Horizon
 
 Opportunity-driven, on evidence of need: PDF export, dashboard/analytics, Vue and
 Angular adapters, SSR/Next integration polish, SurveyJS-JSON import/compat mode,
-rich-text authoring, and native runtimes such as .NET. A second runtime begins at the
-versioned contract and conformance seam from ADR-0020 rather than translating the
-TypeScript implementation. Each starts with its own ADR and checklist section.
+rich-text authoring, and native runtimes.
+
+The first promoted Phase 4 workstream is the native C# SDK. It begins at the versioned
+contract and conformance seam rather than translating TypeScript implementation code.
+[ADR-0030](./adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md) fixes the
+`Kajay.Core` package, `net10.0` floor, independent versioning, v2 values/dates/patterns,
+performance targets, and support policy. [Checklist §Q](./feature-parity-checklist.md#q--c-headless-sdk)
+is its acceptance ledger.
+
+The C# workstream exits only when:
+
+- the TypeScript 2.x and C# adapters pass inherited v1 plus conformance v2;
+- every §Q row is green through an installed NuGet package proof;
+- the supported OS/runtime matrix, trimming, Native AOT, package validation, API
+  compatibility, Source Link, symbols, and benchmark gates pass; and
+- C# 1.0 documentation and migration guidance are published.
+
+The remaining Phase 4 items stay horizon. Each promoted item gets its own ADR and
+checklist section rather than borrowing the C# workstream's active status.
 
 ## Cross-cutting invariants (every phase)
 
@@ -400,9 +412,8 @@ TypeScript implementation. Each starts with its own ADR and checklist section.
 
 ## Open questions
 
-Two roadmap-level questions remain resolved. The earlier release-policy answer was
-returned to deferred status on 2026-08-04 pending the explicit walkthrough in
-[ADR-0024](./adr/0024-publication-hold.md).
+The roadmap-level release and format questions are resolved. Runtime-specific choices
+are recorded by the ADR for the workstream that needs them.
 
 - [x] **Round-trip bar** — fixed-point equivalence, not byte stability
       ([ADR-0002](./adr/0002-round-trip-fixed-point.md)).
@@ -410,10 +421,12 @@ returned to deferred status on 2026-08-04 pending the explicit walkthrough in
       phases. The definition format is our own by decision
       ([ADR-0001](./adr/0001-own-definition-format.md)), so there is no compatibility
       to pull forward; an import converter stays Phase 4 and opportunity-driven.
-- [ ] **Versioning/release policy** — the previous proposal was a single version
-      train with Changesets and `1.0.0` at Phase 3 exit; the first version, train, and
-      tooling now require explicit reconfirmation
-      ([ADR-0005](./adr/0005-single-version-train.md)).
+- [x] **TypeScript versioning/release policy** — the single train, 1.0.0 first release,
+      Changesets workflow, licensing, and trusted publishing were ratified and used
+      ([ADR-0029](./adr/0029-release-walkthrough.md)).
+- [x] **C# runtime/package policy** — `Kajay.Core`, `net10.0`, independent package
+      versions, conformance v2, performance, and support targets
+      ([ADR-0030](./adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md)).
 
 Remaining open items now live in [North Star §11](./NORTH_STAR.md#11-decisions).
 

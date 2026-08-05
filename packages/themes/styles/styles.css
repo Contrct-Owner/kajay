@@ -1158,6 +1158,20 @@
   overflow: hidden;
 }
 
+/* **Stop asking for a column that is not there.** `grid-column: 2` is right beside a label
+   and wrong once the row has stacked to one: a grid asked for a column it does not declare
+   *invents* one, and that implicit column took the space the field needed — 38px of input
+   beside 65px of label, in a row whose four siblings had already stacked to the full 108px.
+   Only expression fields have a suggestion list, which is why they alone stayed cramped.
+
+   It has to sit *after* the rule above rather than beside the row's own stacking rule:
+   same specificity, so source order decides, and the first attempt lost silently. */
+@container (max-width: 26rem) {
+  .kajay-suggestions {
+    grid-column: auto;
+  }
+}
+
 /* No options, no box: an empty bordered strip under every expression field would be
    four pieces of furniture on a question that has none. */
 .kajay-suggestions:not(:empty) {

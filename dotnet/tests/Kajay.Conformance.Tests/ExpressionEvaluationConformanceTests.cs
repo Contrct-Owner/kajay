@@ -68,6 +68,31 @@ public sealed class ExpressionEvaluationConformanceTests
             evaluated.Value.GetNumber());
     }
 
+    [Fact]
+    public void DivisionByZeroProducesTheDistinctAbsentValue()
+    {
+        using JsonDocument corpus = OpenExpressionCorpus();
+        JsonElement testCase = corpus.RootElement
+            .GetProperty("evaluation")
+            .EnumerateArray()
+            .Single(candidate =>
+                candidate.GetProperty("id").GetString() == "division-by-zero-is-undefined");
+        DateTimeOffset clock = DateTimeOffset.Parse(
+            corpus.RootElement.GetProperty("clock").GetString()!,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind);
+
+        ExpressionParseResult parsed = SurveyExpression.Parse(
+            testCase.GetProperty("source").GetString()!);
+        ExpressionEvaluationResult evaluated = parsed.Expression!.Evaluate(
+            new ExpressionEvaluationContext(clock));
+
+        Assert.Empty(parsed.Errors);
+        Assert.Empty(evaluated.Errors);
+        Assert.Equal(KajayValueKind.Absent, evaluated.Value.Kind);
+        Assert.Equal(KajayValue.Absent, evaluated.Value);
+    }
+
     private static JsonDocument OpenExpressionCorpus()
     {
         string path = Path.Combine(

@@ -14,9 +14,10 @@ expression, and execute a lifecycle scenario.
 Only the TypeScript adapter implements all four operations today. The C# adapter's
 definition operation passes all seven definition cases and their fixed-point checks,
 and its expression parser passes all five parsing cases. Expression evaluation and
-lifecycle remain pending. V1 is therefore an executable portability contract, not
-evidence of compatibility between two complete runtimes. That claim requires at least
-two maintained adapters passing this same version.
+its public value/evaluator seam passes three of the fifteen evaluation cases. Lifecycle
+remains pending. V1 is therefore an executable portability contract, not evidence of
+compatibility between two complete runtimes. That claim requires at least two maintained
+adapters passing this same version.
 
 ## Value representation
 

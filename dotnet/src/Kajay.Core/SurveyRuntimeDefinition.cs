@@ -4,6 +4,7 @@ namespace Kajay;
 
 internal sealed record SurveyRuntimeDefinition(
     IReadOnlyList<SurveyRuntimePage> Pages,
+    IReadOnlyList<SurveyRuntimeCalculatedValue> CalculatedValues,
     TimeSpan SurveyTimeLimit,
     TimeSpan DefaultPageTimeLimit,
     IReadOnlyList<TimeSpan> PageTimeLimits)
@@ -16,11 +17,19 @@ internal sealed record SurveyRuntimeDefinition(
         SurveyRuntimePage[] runtimePages = pages is null
             ? []
             : pages.Select(SurveyRuntimePage.From).ToArray();
+        JsonArray? calculatedValues = definition["calculatedValues"] as JsonArray;
+        SurveyRuntimeCalculatedValue[] runtimeCalculatedValues = calculatedValues is null
+            ? []
+            : calculatedValues
+                .OfType<JsonObject>()
+                .Select(SurveyRuntimeCalculatedValue.From)
+                .ToArray();
         TimeSpan[] pageTimeLimits = pages is null
             ? []
             : pages.Select(page => ReadSeconds(page?["maxTimeToFinish"])).ToArray();
         return new SurveyRuntimeDefinition(
             runtimePages,
+            runtimeCalculatedValues,
             ReadSeconds(definition["maxTimeToFinish"]),
             ReadSeconds(definition["maxTimeToFinishPage"]),
             pageTimeLimits);

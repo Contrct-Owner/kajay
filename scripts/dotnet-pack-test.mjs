@@ -144,6 +144,21 @@ if (advance != SurveyAdvanceOutcome.Advanced
     throw new InvalidOperationException("Installed package failed survey navigation.");
 }
 
+Survey calculated = SurveyDefinition.Parse(
+    """{"calculatedValues":[{"name":"subtotal","expression":"{price} * 2"},{"name":"total","expression":"{subtotal} + 5","includeIntoResult":true}],"pages":[{"name":"one"}]}""")
+    .Definition
+    .CreateSurvey();
+calculated.SetValue("price", KajayValue.From(20));
+if (!calculated.TryGetCalculatedValue("subtotal", out KajayValue subtotal)
+    || subtotal != KajayValue.From(40)
+    || !calculated.TryGetValue("total", out KajayValue total)
+    || total != KajayValue.From(45)
+    || calculated.Data["total"] != KajayValue.From(45)
+    || calculated.Data.ContainsKey("subtotal"))
+{
+    throw new InvalidOperationException("Installed package failed calculated values.");
+}
+
 Console.WriteLine("dotnet pack smoke: ok");
 `;
 

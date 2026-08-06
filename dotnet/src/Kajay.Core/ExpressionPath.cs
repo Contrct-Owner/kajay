@@ -4,6 +4,12 @@ namespace Kajay;
 
 internal sealed record ExpressionPath(IReadOnlyList<ExpressionPathSegment> Segments)
 {
+    internal static ExpressionPath FromName(string name)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+        return new ExpressionPath([ExpressionPathSegment.FromName(name)]);
+    }
+
     internal static ExpressionPath Parse(
         string raw,
         TextSpan span,

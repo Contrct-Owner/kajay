@@ -6,6 +6,9 @@ public sealed class Survey
     private readonly int _pageCount;
     private readonly SurveyRuntimeDefinition _definition;
     private readonly Dictionary<string, KajayValue> _answers = new(StringComparer.Ordinal);
+    private readonly SurveyCalculatedValues _calculatedValues;
+    private readonly TimeProvider _timeProvider;
+    private readonly ExpressionFunctionRegistry _expressionFunctions;
     private bool _isLoading;
     private bool _isPreviewing;
     private bool _isCompleted;
@@ -13,10 +16,13 @@ public sealed class Survey
 
     internal Survey(
         SurveyRuntimeDefinition definition,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        ExpressionFunctionRegistry expressionFunctions)
     {
         _definition = definition;
         _pageCount = definition.PageCount;
+        _timeProvider = timeProvider;
+        _expressionFunctions = expressionFunctions;
         Validation = new SurveyValidation(this, definition);
         Timer = new SurveyTimer(
             this,
@@ -24,6 +30,8 @@ public sealed class Survey
             definition.SurveyTimeLimit,
             definition.DefaultPageTimeLimit,
             definition.PageTimeLimits);
+        _calculatedValues = new SurveyCalculatedValues(this, definition.CalculatedValues);
+        _calculatedValues.SettleAll();
     }
 
     /// <summary>Gets the current lifecycle state.</summary>
@@ -75,10 +83,37 @@ public sealed class Survey
     /// <summary>Raised after the current effective page changes.</summary>
     public event EventHandler<SurveyCurrentPageChangedEventArgs>? CurrentPageChanged;
 
-    /// <summary>Gets an immutable snapshot of the current answers.</summary>
-    public IReadOnlyDictionary<string, KajayValue> Data =>
-        new System.Collections.ObjectModel.ReadOnlyDictionary<string, KajayValue>(
-            new Dictionary<string, KajayValue>(_answers, StringComparer.Ordinal));
+    /// <summary>Gets an immutable snapshot of answers and included calculated values.</summary>
+    public IReadOnlyDictionary<string, KajayValue> Data
+    {
+        get
+        {
+            var data = new Dictionary<string, KajayValue>(_answers, StringComparer.Ordinal);
+            _calculatedValues.CopyIncludedTo(data);
+            return new System.Collections.ObjectModel.ReadOnlyDictionary<string, KajayValue>(data);
+        }
+    }
+
+    /// <summary>Gets an answer, or otherwise a calculated value, by exact name.</summary>
+    /// <param name="name">The exact ordinal value name.</param>
+    /// <param name="value">The resolved value when present.</param>
+    /// <returns>True when an answer or calculated value exists.</returns>
+    public bool TryGetValue(string name, out KajayValue value)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+        return _answers.TryGetValue(name, out value)
+            || _calculatedValues.TryGetValue(name, out value);
+    }
+
+    /// <summary>Gets a calculated value without falling back to an answer of the same name.</summary>
+    /// <param name="name">The exact ordinal calculated-value name.</param>
+    /// <param name="value">The current calculated value when present.</param>
+    /// <returns>True when the named calculated value has a result.</returns>
+    public bool TryGetCalculatedValue(string name, out KajayValue value)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+        return _calculatedValues.TryGetValue(name, out value);
+    }
 
     /// <summary>Reports whether the host is waiting for external work.</summary>
     /// <param name="isLoading">Whether loading currently outranks other states.</param>
@@ -143,9 +178,15 @@ public sealed class Survey
             _answers[name] = value;
         }
 
-        ValueChanged?.Invoke(
-            this,
-            new SurveyValueChangedEventArgs(name, previousValue, value));
+        List<SurveyValueChangedEventArgs> changes =
+        [
+            new SurveyValueChangedEventArgs(name, previousValue, value),
+        ];
+        _calculatedValues.Settle(ExpressionPath.FromName(name), changes);
+        foreach (SurveyValueChangedEventArgs change in changes)
+        {
+            ValueChanged?.Invoke(this, change);
+        }
     }
 
     /// <summary>Completes once, publishing data before the state transition.</summary>
@@ -159,7 +200,7 @@ public sealed class Survey
         _isCompleted = true;
         _isPreviewing = false;
         Timer.Stop();
-        Completed?.Invoke(this, new SurveyCompletedEventArgs(_answers));
+        Completed?.Invoke(this, new SurveyCompletedEventArgs(Data));
         RaiseStateChanged();
     }
 
@@ -253,7 +294,25 @@ public sealed class Survey
 
     internal KajayValue GetValue(string name)
     {
-        return _answers.GetValueOrDefault(name);
+        return TryGetValue(name, out KajayValue value) ? value : KajayValue.Absent;
+    }
+
+    internal ExpressionEvaluationContext CreateExpressionContext()
+    {
+        var values = new Dictionary<string, KajayValue>(_answers, StringComparer.Ordinal);
+        foreach (SurveyRuntimeCalculatedValue definition in _definition.CalculatedValues)
+        {
+            if (!values.ContainsKey(definition.Name)
+                && _calculatedValues.TryGetValue(definition.Name, out KajayValue value))
+            {
+                values.Add(definition.Name, value);
+            }
+        }
+
+        return new ExpressionEvaluationContext(
+            _timeProvider.GetUtcNow(),
+            values,
+            _expressionFunctions);
     }
 
     internal void AdvanceFromTimer()

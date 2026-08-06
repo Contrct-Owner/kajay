@@ -50,9 +50,11 @@ public sealed class SurveyDefinition
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(options.TimeProvider);
+        ArgumentNullException.ThrowIfNull(options.ExpressionFunctions);
         return new Survey(
             SurveyRuntimeDefinition.From(_canonical),
-            options.TimeProvider);
+            options.TimeProvider,
+            options.ExpressionFunctions);
     }
 
 }

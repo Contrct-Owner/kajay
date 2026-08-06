@@ -107,6 +107,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("text-order-is-ordinal-utf16");
     }
 
+    [Fact]
+    public void PositiveMidpointRoundsAwayFromZero()
+    {
+        AssertEvaluationCase("round-positive-midpoint-away-from-zero");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

@@ -1,0 +1,291 @@
+{
+  "contractVersion": 2,
+  "scenarios": [
+    {
+      "id": "portable-pattern-matches-and-rejects",
+      "definition": {
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "text",
+                "name": "code",
+                "validators": [
+                  { "type": "regexvalidator", "regex": "^(KJ|QZ)-[A-Z]{2}\\d{4}$" }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "expectInitial": { "state": "running", "diagnostics": [] },
+      "steps": [
+        {
+          "action": { "kind": "set-value", "name": "code", "value": "KJ-AB0042" },
+          "expect": {
+            "state": "running",
+            "events": [
+              {
+                "type": "value-changed",
+                "name": "code",
+                "previousValue": { "kind": "undefined" },
+                "value": { "kind": "json", "value": "KJ-AB0042" }
+              }
+            ]
+          }
+        },
+        {
+          "action": { "kind": "validate-current-page" },
+          "expect": {
+            "state": "running",
+            "events": [],
+            "observation": { "kind": "validation", "isValid": true, "errors": [] }
+          }
+        },
+        {
+          "action": { "kind": "set-value", "name": "code", "value": "KJ-ab0042" },
+          "expect": {
+            "state": "running",
+            "events": [
+              {
+                "type": "value-changed",
+                "name": "code",
+                "previousValue": { "kind": "json", "value": "KJ-AB0042" },
+                "value": { "kind": "json", "value": "KJ-ab0042" }
+              }
+            ]
+          }
+        },
+        {
+          "action": { "kind": "validate-current-page" },
+          "expect": {
+            "state": "running",
+            "events": [],
+            "observation": {
+              "kind": "validation",
+              "isValid": false,
+              "errors": [{ "name": "code", "kind": "regexvalidator" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "pattern-searches-unless-anchored",
+      "definition": {
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "text",
+                "name": "code",
+                "validators": [{ "type": "regexvalidator", "regex": "KJ-\\d+" }]
+              }
+            ]
+          }
+        ]
+      },
+      "expectInitial": { "state": "running", "diagnostics": [] },
+      "steps": [
+        {
+          "action": { "kind": "set-value", "name": "code", "value": "prefix KJ-42 suffix" },
+          "expect": {
+            "state": "running",
+            "events": [
+              {
+                "type": "value-changed",
+                "name": "code",
+                "previousValue": { "kind": "undefined" },
+                "value": { "kind": "json", "value": "prefix KJ-42 suffix" }
+              }
+            ]
+          }
+        },
+        {
+          "action": { "kind": "validate-current-page" },
+          "expect": {
+            "state": "running",
+            "events": [],
+            "observation": { "kind": "validation", "isValid": true, "errors": [] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "pattern-classes-and-dot-use-defined-scalars",
+      "definition": {
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "text",
+                "name": "asciiDigit",
+                "validators": [{ "type": "regexvalidator", "regex": "^\\d$" }]
+              },
+              {
+                "type": "text",
+                "name": "oneScalar",
+                "validators": [{ "type": "regexvalidator", "regex": "^.$" }]
+              }
+            ]
+          }
+        ]
+      },
+      "expectInitial": { "state": "running", "diagnostics": [] },
+      "steps": [
+        {
+          "action": { "kind": "set-value", "name": "asciiDigit", "value": "٤" },
+          "expect": {
+            "state": "running",
+            "events": [
+              {
+                "type": "value-changed",
+                "name": "asciiDigit",
+                "previousValue": { "kind": "undefined" },
+                "value": { "kind": "json", "value": "٤" }
+              }
+            ]
+          }
+        },
+        {
+          "action": { "kind": "set-value", "name": "oneScalar", "value": "😀" },
+          "expect": {
+            "state": "running",
+            "events": [
+              {
+                "type": "value-changed",
+                "name": "oneScalar",
+                "previousValue": { "kind": "undefined" },
+                "value": { "kind": "json", "value": "😀" }
+              }
+            ]
+          }
+        },
+        {
+          "action": { "kind": "validate-current-page" },
+          "expect": {
+            "state": "running",
+            "events": [],
+            "observation": {
+              "kind": "validation",
+              "isValid": false,
+              "errors": [{ "name": "asciiDigit", "kind": "regexvalidator" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "invalid-pattern-is-an-author-error-not-a-respondent-rule",
+      "definition": {
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "text",
+                "name": "code",
+                "validators": [{ "type": "regexvalidator", "regex": "(?=KJ-)KJ-\\d+" }]
+              }
+            ]
+          }
+        ]
+      },
+      "expectInitial": {
+        "state": "running",
+        "diagnostics": [
+          {
+            "code": "invalid-pattern",
+            "path": "/pages/0/elements/0/validators/0/regex",
+            "severity": "error"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "action": { "kind": "set-value", "name": "code", "value": "anything" },
+          "expect": {
+            "state": "running",
+            "events": [
+              {
+                "type": "value-changed",
+                "name": "code",
+                "previousValue": { "kind": "undefined" },
+                "value": { "kind": "json", "value": "anything" }
+              }
+            ]
+          }
+        },
+        {
+          "action": { "kind": "validate-current-page" },
+          "expect": {
+            "state": "running",
+            "events": [],
+            "observation": { "kind": "validation", "isValid": true, "errors": [] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "survey-scenario-observes-quiz-score",
+      "definition": {
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              { "type": "text", "name": "answer", "correctAnswer": "42" }
+            ]
+          }
+        ]
+      },
+      "expectInitial": { "state": "running", "diagnostics": [] },
+      "steps": [
+        {
+          "action": { "kind": "measure-score" },
+          "expect": {
+            "state": "running",
+            "events": [],
+            "observation": {
+              "kind": "score",
+              "earned": 0,
+              "possible": 1,
+              "questionCount": 1,
+              "ratio": 0
+            }
+          }
+        },
+        {
+          "action": { "kind": "set-value", "name": "answer", "value": "42" },
+          "expect": {
+            "state": "running",
+            "events": [
+              {
+                "type": "value-changed",
+                "name": "answer",
+                "previousValue": { "kind": "undefined" },
+                "value": { "kind": "json", "value": "42" }
+              }
+            ]
+          }
+        },
+        {
+          "action": { "kind": "measure-score" },
+          "expect": {
+            "state": "running",
+            "events": [],
+            "observation": {
+              "kind": "score",
+              "earned": 1,
+              "possible": 1,
+              "questionCount": 1,
+              "ratio": 1
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

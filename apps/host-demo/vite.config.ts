@@ -9,7 +9,7 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     // The demo intentionally exercises the whole public product in one route. Its current
-    // minified entry is ~503 kB; keep a tight measured ceiling so real growth still warns.
-    chunkSizeWarningLimit: 510,
+    // minified entry is ~524 kB; keep a tight measured ceiling so real growth still warns.
+    chunkSizeWarningLimit: 525,
   },
 });

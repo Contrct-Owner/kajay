@@ -15,6 +15,7 @@ import { Survey } from '../model/Survey.js';
 import type { SurveyOptions } from '../model/SurveyOptions.js';
 import type { SurveyElement } from '../model/SurveyElement.js';
 import type { Diagnostic } from './Diagnostic.js';
+import { collectPatternDiagnostics } from './patternDiagnostics.js';
 import { CURRENT_SCHEMA_VERSION, UnsupportedSchemaVersionError } from './schemaVersion.js';
 
 export interface ParseResult {
@@ -259,6 +260,8 @@ function readProperty(
     });
     return;
   }
+
+  context.diagnostics.push(...collectPatternDiagnostics(className, key, value, path));
 
   element.setPropertyValue(key, value);
 }

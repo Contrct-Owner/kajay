@@ -3,7 +3,7 @@
 - Area: Runtime contract and SDK portability
 - Status: established
 - Owner: Jarod
-- Last updated: 2026-08-04
+- Last updated: 2026-08-05
 
 This directory is executable specification, not example data. Every runtime adapter
 must produce the same observable results for these cases. The TypeScript adapter is
@@ -11,9 +11,12 @@ must produce the same observable results for these cases. The TypeScript adapter
 same four operations: canonicalize a definition, parse an expression, evaluate an
 expression, and execute a lifecycle scenario.
 
-Only the TypeScript adapter exists today. V1 is therefore an executable portability
-contract, not evidence of compatibility between two runtimes. That claim requires at
-least two maintained adapters passing this same version.
+The TypeScript adapter and C# conformance project both implement all four operations.
+The C# public seams pass all seven definition cases and their fixed-point checks, all
+five expression parsing cases, all fifteen expression evaluation cases, and all four
+lifecycle scenarios. V1 therefore has two maintained implementations. It remains a
+narrow portability contract rather than evidence of full headless feature parity;
+conformance v2 and the C# parity ledger define that larger claim.
 
 ## Value representation
 
@@ -109,6 +112,12 @@ second maintained runtime that needs it, before either adapter claims v2 compati
 it will not be guessed into the contract in advance. Until then scoring is specified
 by the TypeScript suite alone, which is exactly the limitation ADR-0020 requires us to
 state rather than hide.
+
+The second maintained runtime and the v2 design now exist: ADR-0030 selects
+`Kajay.Core`, and [conformance v2](../v2/README.md) replaces the lifecycle-only
+operation with a general survey-scenario operation that can observe scoring. This v1
+limitation remains part of the v1 contract; the new v2 files are specified with both
+adapters still pending.
 
 Changing existing v1 expectations is a contract change and requires an ADR. Additive
 cases may be appended when they clarify behavior already intended. An incompatible

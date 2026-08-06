@@ -1,0 +1,87 @@
+{
+  "contractVersion": 2,
+  "cases": [
+    {
+      "id": "unsupported-pattern-is-preserved-and-reported",
+      "input": {
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "text",
+                "name": "code",
+                "validators": [
+                  { "type": "regexvalidator", "regex": "^(?=KJ-)KJ-\\d{4}$" }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": {
+        "schemaVersion": 1,
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "text",
+                "name": "code",
+                "validators": [
+                  { "type": "regexvalidator", "regex": "^(?=KJ-)KJ-\\d{4}$" }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "code": "invalid-pattern",
+          "path": "/pages/0/elements/0/validators/0/regex",
+          "severity": "error"
+        }
+      ]
+    },
+    {
+      "id": "malformed-pattern-is-preserved-and-reported",
+      "input": {
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "text",
+                "name": "code",
+                "validators": [{ "type": "regexvalidator", "regex": "[A-Z" }]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": {
+        "schemaVersion": 1,
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "text",
+                "name": "code",
+                "validators": [{ "type": "regexvalidator", "regex": "[A-Z" }]
+              }
+            ]
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "code": "invalid-pattern",
+          "path": "/pages/0/elements/0/validators/0/regex",
+          "severity": "error"
+        }
+      ]
+    }
+  ]
+}

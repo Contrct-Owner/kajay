@@ -3,28 +3,31 @@
 - Area: Repository orientation and current project state
 - Status: active
 - Owner: Jarod
-- Last updated: 2026-08-05
+- Last updated: 2026-08-06
 
-Kajay Survey is a TypeScript-native survey runtime and Creator whose headless packages
-are consumed through framework adapters and proved through a separate host application.
+Kajay Survey is an embedded survey runtime and Creator whose authoritative JSON
+definition and versioned behavior contract support maintained native runtimes. The
+published implementation is TypeScript; C# is the second runtime in development.
 
 ## Current state
 
 - **Functional parity: delivered.** Checklist sections A–N and the N5 assembled-Creator
   acceptance proof are green. This establishes the functional Phase 3 exit evidence.
-- **Publication: walked through, not yet performed.** The owner took all five gates in
-  [ADR-0029](./docs/adr/0029-release-walkthrough.md), superseding the hold. The `kajay`
-  npm scope is claimed, every package is `1.0.0` and publishable, and licensing is
-  settled by [ADR-0028](./docs/adr/0028-mit-runtime-source-available-creator.md) — MIT
-  for `core`/`react`/`themes`, `FSL-1.1-ALv2` for the two Creator packages. Nothing has
-  been published: the release workflow is manual and has not been run.
-- **Architecture remediation: implemented for the unpublished posture.** Correctness,
+- **TypeScript 1.0.0: published.** All five packages are published under `@kajay/*`
+  through the release policy in
+  [ADR-0029](./docs/adr/0029-release-walkthrough.md). Licensing is MIT for
+  `core`/`react`/`themes` and `FSL-1.1-ALv2` for the two Creator packages under
+  [ADR-0028](./docs/adr/0028-mit-runtime-source-available-creator.md).
+- **Architecture remediation: implemented for the 1.0 posture.** Correctness,
   module-depth, enforcement, documentation, public-interface, and integration slices
   are complete. The [architecture remediation plan](./docs/architecture-remediation-plan.md)
-  closes release activation through the explicit publication hold.
-- **Cross-runtime compatibility: one adapter.** The versioned corpus is real and the
-  TypeScript adapter passes it, but no second runtime adapter exists. Quiz scoring is
-  intentionally outside conformance v1.
+  supplied the release evidence behind 1.0.
+- **C# SDK: implementation underway.** `Kajay.Core` targets
+  `net10.0`; [ADR-0030](./docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md)
+  fixes its package posture and Kajay's v2 value, date, pattern, performance, and
+  support semantics. The TypeScript 2.x candidate and C# adapters pass the inherited
+  v1 corpus and all 32 new v2 cases through public runtime seams. Full C# headless
+  parity and the §Q release gates remain in progress.
 
 ## Topic index
 
@@ -35,11 +38,13 @@ are consumed through framework adapters and proved through a separate host appli
 | Functional acceptance evidence | active | Jarod | [Feature-parity checklist](./docs/feature-parity-checklist.md) |
 | Development and test policy | active | Jarod | [Library development guidelines](./docs/library-development-guidelines-details.md) |
 | Architecture decisions | active | Jarod | [ADR index](./docs/adr/README.md) |
-| Current remediation work | complete for unpublished posture | Jarod | [Architecture remediation plan](./docs/architecture-remediation-plan.md) |
+| Current remediation work | complete for 1.0 posture | Jarod | [Architecture remediation plan](./docs/architecture-remediation-plan.md) |
 | Published package interfaces | active | Jarod | [Public interface ledger](./docs/public-package-interfaces.md) |
 | Definition shape | active | Jarod | [Generated survey schema](./contracts/survey-schema.json) |
-| Runtime compatibility | active, one adapter | Jarod | [Conformance v1](./conformance/v1/README.md) |
-| Publishing and licensing | publication hold | Jarod | [ADR-0024](./docs/adr/0024-publication-hold.md) |
+| Runtime compatibility | v1: TypeScript 1.x; v2: two candidate adapters passing | Jarod | [Conformance v1](./conformance/v1/README.md), [v2](./conformance/v2/README.md) |
+| Native C# SDK | implementation underway | Jarod | [ADR-0030](./docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md), [parity §Q](./docs/feature-parity-checklist.md#q--c-headless-sdk) |
+| SDK demos | dual-runtime comparison active | Jarod | [Demo guide](./docs/sdk-demos.md), [ADR-0033](./docs/adr/0033-dual-runtime-compatibility-demo.md) |
+| Publishing and licensing | 1.0.0 published | Jarod | [ADR-0029](./docs/adr/0029-release-walkthrough.md) |
 | Machine-readable documentation | preview | Jarod | [ADR-0025](./docs/adr/0025-read-only-documentation-mcp.md) |
 
 ## Package graph
@@ -89,6 +94,12 @@ explicitly. The exact dependency and export rules are build-failing checks.
 - **Runtime adapter** — one runtime's implementation of the conformance operations.
   A single adapter makes the contract executable; two maintained adapters passing the
   same corpus version are the minimum evidence for cross-runtime compatibility.
+- **Kajay value** — one member of the closed cross-runtime expression algebra: absent,
+  null, boolean, finite number, string, UTC instant, array, or object.
+- **Kajay pattern** — a portable, bounded validation pattern from Pattern Profile v1;
+  it is neither an ECMAScript nor a .NET regular expression.
+- **Native SDK** — a language-native implementation of the embedded headless runtime,
+  distributed independently while declaring the schema and conformance it supports.
 - **Host** — consuming application that supplies environment policy and composes the
   packages through published interfaces.
 - **Publication hold** — the binding current decision to keep packages unpublished;
@@ -120,6 +131,10 @@ meaning of each test seam.
 
 ## Change log
 
+- 2026-08-05: Completed the C# adapter's v1 definition operation: all seven cases and
+  their fixed-point canonicalization rule pass through the public definition seam.
+- 2026-08-05: Recorded the published TypeScript 1.0.0 posture and established the
+  `Kajay.Core` native SDK, Kajay value/pattern vocabulary, and conformance v2 status.
 - 2026-08-04: Created the root context index, glossary, and explicit distinction
   between functional acceptance and release readiness.
 - 2026-08-04: Made the difference between an executable conformance contract and

@@ -3,7 +3,7 @@
 - Area: Package architecture, TypeScript configuration, and automated testing
 - Status: active
 - Owner: Jarod
-- Last updated: 2026-08-04
+- Last updated: 2026-08-05
 
 These guidelines define the default shape of code and tests in this repository. A
 change is acceptable only when it preserves package ownership and dependency
@@ -33,6 +33,11 @@ packaged artifacts*.
   grants one.
 - **React is a peer dependency** of UI packages, never a dependency.
 - **Warnings are errors** — tsc, oxlint, and CI all treat them so.
+- **The native SDK targets .NET 10 and later.** It enables nullable reference types,
+  implicit usings, deterministic builds, package validation, trim and Native AOT
+  analysis, and the latest recommended .NET analyzers. Compiler, analyzer, and style
+  warnings are errors. `Kajay.Core` carries no runtime package dependencies unless an
+  ADR grants one.
 - **File and function size limits are 300 and 50 lines, and are not counted against
   comments** (`max-lines` and `max-lines-per-function` both run with `skipComments`).
   The limits exist to bound
@@ -66,6 +71,12 @@ they execute, not by how fast they run.
 | Unit | Prove deterministic model/engine logic in isolation | In-process objects and explicit values only; Node environment; no DOM |
 | Rendering integration | Prove renderer + model behavior through a real browser | Vitest browser mode on real Chromium; the packages' public APIs |
 | Host E2E / parity scenarios | Prove the embeddable product end-to-end, as a consumer | Playwright against the running host-demo app; public APIs only |
+
+The C# solution mirrors those boundaries without importing the TypeScript
+implementation. `Kajay.Core.Tests` proves deterministic library behavior through the
+public NuGet seam. `Kajay.Conformance.Tests` adapts the shared JSON corpus to that
+same seam. Installed-package smoke tests restore the locally packed `.nupkg` into a
+fresh consumer project so solution references cannot conceal packaging failures.
 
 ## Unit-test policy
 
@@ -149,9 +160,12 @@ via `AGENTS.md`.
 - **Contract drift check** as described above.
 - **Cross-language conformance:** canonical definitions, expression behavior, stable
   errors, value semantics, and lifecycle event order run through the public core seam.
+- **Native SDK checks:** restore from the locked central package graph, verify
+  formatting, build Release with analyzers, run unit and conformance projects, pack
+  `Kajay.Core`, and compile and execute a fresh installed-package consumer.
 - **CI gates:** lint/typecheck (TypeScript 7 + TypeScript 6), architecture, unit, rendering
-  integration, host E2E, contract, conformance, pack test — separate jobs behind the single
-  required `survey-checks` gate.
+  integration, host E2E, contract, conformance, TypeScript pack test, and native SDK
+  verification — separate jobs behind the single required `survey-checks` gate.
 
 Checks must report the violated rule and the file or package responsible, so the
 response is to correct the design, not suppress the failure.
@@ -164,6 +178,9 @@ response is to correct the design, not suppress the failure.
 - Unit tests are pure logic with no environment substitutes; DOM behavior is proven
   only in real browsers.
 - The TypeScript runtime passes the current versioned cross-language conformance corpus.
+- The C# SDK builds warning-free for `net10.0`, packs with no runtime dependencies,
+  and passes its installed-package smoke test. It claims a conformance version only
+  after its adapter passes every executable case in that version.
 - Every parity-checklist item that is marked green maps to a passing public-API
   scenario; the pack test passes on every PR.
 - The suite runs order-independently and in parallel, locally and sharded in CI.

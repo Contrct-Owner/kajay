@@ -3,7 +3,7 @@
 - Area: Product vision, architecture, and guiding principles
 - Status: active
 - Owner: Jarod
-- Last updated: 2026-08-04
+- Last updated: 2026-08-06
 
 ---
 
@@ -225,6 +225,14 @@ turn the core into a network service; an HTTP/RPC deployment remains a separate 
 Today only the TypeScript adapter exists, so the corpus is an executable portability
 contract, not yet evidence that two runtimes are compatible.
 
+The second maintained runtime is now decided: one native NuGet package,
+`Kajay.Core`, targeting `net10.0` and implementing the headless runtime rather than a
+transport or JavaScript host. Its package versions independently and declares the
+schema and conformance versions it supports. Conformance v2 replaces host-language
+coercion, dates, rounding, and regex behavior with Kajay-owned value and pattern
+semantics before either v2 adapter implements them
+([ADR-0030](./adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md)).
+
 ---
 
 ## 7. Extensibility model
@@ -356,6 +364,12 @@ The host app exists to make embeddability falsifiable:
 
 | Date | Decision |
 | --- | --- |
+| 2026-08-06 | **The SDK demo can run both maintained runtimes together as symmetric HTTP peers.** A `compare` Compose profile fans each operation out to C# and TypeScript, compares stable contract facts, displays divergence, and fails closed. Individual profiles remain available. This supersedes ADR-0032's mutually exclusive deployment and browser-local TypeScript adapter. [ADR-0033](./adr/0033-dual-runtime-compatibility-demo.md). |
+| 2026-08-06 | **SDK demonstrations share one renderer and Creator frontend while Docker Compose profiles select runtime authority.** The `dotnet` profile uses a C# 14 API through a same-origin proxy; the `typescript` profile runs locally in the browser. Both use the same authored definition and application contract, while conformance remains the semantic authority. [ADR-0032](./adr/0032-compose-sdk-demo-profiles.md). |
+| 2026-08-05 | **`Kajay.Core` remains one deep package while its source and specialized public interface are organized by capability.** The everyday runtime stays in `Kajay`; expressions, extensibility, hosting, and validation have focused namespaces. Conformance uses public interfaces, calibrated measurements move to a benchmark project, and C# structural limits become enforced. This replaces the unpublished 1.0 API baseline before NuGet publication. [ADR-0031](./adr/0031-csharp-sdk-source-and-namespace-architecture.md). |
+| 2026-08-05 | **The second maintained runtime is the native `Kajay.Core` NuGet package for `net10.0` and later.** It is one deep headless package, versions independently, and earns compatibility through the same versioned corpus. Conformance v2 owns strict values, dates, midpoint rounding, a bounded linear-time Kajay Pattern Profile, scoring, and the general survey-scenario operation; changing TypeScript to those rules requires 2.0.0. [ADR-0030](./adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md), [conformance v2](../conformance/v2/README.md). |
+| 2026-08-05 | **`Kajay.Core` 1.0.0 has met its implementation and release-readiness gates.** All C# parity rows, conformance v1/v2, supported-scale budgets, installed-package smoke, public API baseline, and release documentation are green. NuGet publication remains an explicit maintainer action. [Checklist §Q](./feature-parity-checklist.md#q--c-headless-sdk), [ADR-0030](./adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md). |
+| 2026-08-05 | **The five TypeScript packages are published at 1.0.0 under `@kajay/*`.** The release uses the reviewed single train, licenses, public-interface ledger, and trusted-publishing workflow from ADR-0029. [ADR-0029](./adr/0029-release-walkthrough.md). |
 | 2026-08-04 | **Publication is on hold until the release choices are walked through explicitly.** Packages remain private at `0.0.0` with `UNLICENSED` metadata; `@kajay/*` remains a working source scope; and no Changesets configuration, release workflow, scope claim, or registry publication is authorized. Brand/scope, licensing, first version, version train, and tooling remain deliberately undecided. Lifting the hold does not itself authorize publication. [ADR-0024](./adr/0024-publication-hold.md). |
 | 2026-08-04 | **Creator placement and lifetime are headless modules, not React state.** `DesignSurface.placement` owns the complete preview/commit/abandon lifecycle and structured narration facts. `CreatorWorkspace` owns coherent registry/configuration, session construction, and disposal for both the default assembly and host-owned layouts; pieces still take only the narrow model they draw. [ADR-0009](./adr/0009-creator-drag-and-drop.md), [ADR-0021](./adr/0021-creator-composition.md). |
 | 2026-08-04 | **`parseSurvey` retains its options-only and registry-plus-options modes.** Both have concrete production, Creator, test, pack, and conformance callers; replacing them with a bag now would add a transitional third interface without deepening the parser. A single options bag has explicit caller and release triggers. [ADR-0027](./adr/0027-retain-parse-survey-calling-modes.md). |

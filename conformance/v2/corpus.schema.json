@@ -1,0 +1,317 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kajay.io/conformance/v2/corpus.schema.json",
+  "$defs": {
+    "jsonValue": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "boolean" },
+        { "type": "number" },
+        { "type": "string" },
+        { "type": "array", "items": { "$ref": "#/$defs/jsonValue" } },
+        {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/jsonValue" }
+        }
+      ]
+    },
+    "taggedValue": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "json" },
+            "value": { "$ref": "#/$defs/jsonValue" }
+          },
+          "required": ["kind", "value"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": { "kind": { "const": "undefined" } },
+          "required": ["kind"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "date" },
+            "value": { "type": "string" }
+          },
+          "required": ["kind", "value"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "diagnostic": {
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "path": { "type": "string" },
+        "severity": { "enum": ["warning", "error"] }
+      },
+      "required": ["code", "path", "severity"],
+      "additionalProperties": false
+    },
+    "event": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "value-changed" },
+            "name": { "type": "string" },
+            "previousValue": { "$ref": "#/$defs/taggedValue" },
+            "value": { "$ref": "#/$defs/taggedValue" }
+          },
+          "required": ["type", "name", "previousValue", "value"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "state-changed" },
+            "state": { "type": "string" }
+          },
+          "required": ["type", "state"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "complete" },
+            "data": { "type": "object", "additionalProperties": { "$ref": "#/$defs/jsonValue" } }
+          },
+          "required": ["type", "data"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "action": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "set-value" },
+            "name": { "type": "string", "minLength": 1 },
+            "value": { "$ref": "#/$defs/jsonValue" }
+          },
+          "required": ["kind", "name", "value"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": { "kind": { "const": "validate-current-page" } },
+          "required": ["kind"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": { "kind": { "const": "measure-score" } },
+          "required": ["kind"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": { "kind": { "const": "start-timer" } },
+          "required": ["kind"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "advance-clock" },
+            "seconds": { "type": "number", "minimum": 0 }
+          },
+          "required": ["kind", "seconds"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "set-loading" },
+            "value": { "type": "boolean" }
+          },
+          "required": ["kind", "value"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "enum": ["enter-preview", "cancel-preview", "complete"] }
+          },
+          "required": ["kind"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "observation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "validation" },
+            "isValid": { "type": "boolean" },
+            "errors": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "kind": { "type": "string" },
+                  "path": { "type": "string" }
+                },
+                "required": ["name", "kind"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": ["kind", "isValid", "errors"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "score" },
+            "earned": { "type": "number", "minimum": 0 },
+            "possible": { "type": "number", "minimum": 0 },
+            "questionCount": { "type": "integer", "minimum": 0 },
+            "ratio": { "type": "number", "minimum": 0, "maximum": 1 }
+          },
+          "required": ["kind", "earned", "possible", "questionCount", "ratio"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "stepExpectation": {
+      "type": "object",
+      "properties": {
+        "state": { "type": "string" },
+        "events": { "type": "array", "items": { "$ref": "#/$defs/event" } },
+        "observation": { "$ref": "#/$defs/observation" }
+      },
+      "required": ["state", "events"],
+      "additionalProperties": false
+    },
+    "manifest": {
+      "type": "object",
+      "properties": {
+        "contractVersion": { "const": 2 },
+        "status": { "const": "specified" },
+        "inheritsVersion": { "const": 1 },
+        "operations": {
+          "const": [
+            "canonicalize-definition",
+            "parse-expression",
+            "evaluate-expression",
+            "execute-survey-scenario"
+          ]
+        },
+        "suites": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "object",
+            "properties": {
+              "operation": { "type": "string" },
+              "path": { "type": "string" },
+              "section": { "type": "string" }
+            },
+            "required": ["operation", "path"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["contractVersion", "status", "inheritsVersion", "operations", "suites"],
+      "additionalProperties": false
+    },
+    "definitionsSuite": {
+      "type": "object",
+      "properties": {
+        "contractVersion": { "const": 2 },
+        "cases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "input": { "type": "object" },
+              "canonical": { "type": "object" },
+              "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } }
+            },
+            "required": ["id", "input", "canonical", "diagnostics"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["contractVersion", "cases"],
+      "additionalProperties": false
+    },
+    "expressionsSuite": {
+      "type": "object",
+      "properties": {
+        "contractVersion": { "const": 2 },
+        "clock": { "type": "string" },
+        "parsing": { "type": "array" },
+        "evaluation": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "source": { "type": "string" },
+              "data": { "type": "object", "additionalProperties": { "$ref": "#/$defs/jsonValue" } },
+              "result": { "$ref": "#/$defs/taggedValue" },
+              "errorCodes": { "type": "array", "items": { "type": "string" } }
+            },
+            "required": ["id", "source", "result", "errorCodes"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["contractVersion", "clock", "parsing", "evaluation"],
+      "additionalProperties": false
+    },
+    "scenariosSuite": {
+      "type": "object",
+      "properties": {
+        "contractVersion": { "const": 2 },
+        "scenarios": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "clock": { "type": "string" },
+              "definition": { "type": "object" },
+              "expectInitial": {
+                "type": "object",
+                "properties": {
+                  "state": { "type": "string" },
+                  "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } }
+                },
+                "required": ["state", "diagnostics"],
+                "additionalProperties": false
+              },
+              "steps": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "action": { "$ref": "#/$defs/action" },
+                    "expect": { "$ref": "#/$defs/stepExpectation" }
+                  },
+                  "required": ["action", "expect"],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": ["id", "definition", "expectInitial", "steps"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["contractVersion", "scenarios"],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,202 @@
+using System.Globalization;
+using System.Text.Json;
+
+namespace Kajay.Conformance.Tests;
+
+public sealed class ExpressionV2ConformanceTests
+{
+    [Fact]
+    public void DecimalTextWithAnExponentIsNumeric()
+    {
+        AssertEvaluationCase("decimal-text-with-exponent-is-numeric");
+    }
+
+    [Fact]
+    public void LeadingDecimalPointIsNumeric()
+    {
+        AssertEvaluationCase("leading-decimal-point-is-numeric");
+    }
+
+    [Fact]
+    public void ContractWhitespaceIsTrimmedFromNumericText()
+    {
+        AssertEvaluationCase("contract-whitespace-is-trimmed-from-numeric-text");
+    }
+
+    [Fact]
+    public void HexadecimalTextIsNotNumeric()
+    {
+        AssertEvaluationCase("hexadecimal-text-is-not-numeric");
+    }
+
+    [Fact]
+    public void BooleanIsNotNumeric()
+    {
+        AssertEvaluationCase("boolean-is-not-numeric");
+    }
+
+    [Fact]
+    public void BooleanArithmeticIsAbsent()
+    {
+        AssertEvaluationCase("boolean-arithmetic-is-absent");
+    }
+
+    [Fact]
+    public void NonFiniteArithmeticIsAbsent()
+    {
+        AssertEvaluationCase("non-finite-arithmetic-is-absent");
+    }
+
+    [Fact]
+    public void BooleanTextIsNotABoolean()
+    {
+        AssertEvaluationCase("boolean-text-is-not-a-boolean");
+    }
+
+    [Fact]
+    public void EmptyArrayIsFalse()
+    {
+        AssertEvaluationCase("empty-array-is-false");
+    }
+
+    [Fact]
+    public void EmptyObjectIsTrue()
+    {
+        AssertEvaluationCase("empty-object-is-true");
+    }
+
+    [Fact]
+    public void NumericZeroIsFalse()
+    {
+        AssertEvaluationCase("numeric-zero-is-false");
+    }
+
+    [Fact]
+    public void NonEmptyNumericTextIsTrue()
+    {
+        AssertEvaluationCase("non-empty-numeric-text-is-true");
+    }
+
+    [Fact]
+    public void BooleanTextConversionIsInvariant()
+    {
+        AssertEvaluationCase("boolean-text-conversion-is-invariant");
+    }
+
+    [Fact]
+    public void ObjectsCompareStructurally()
+    {
+        AssertEvaluationCase("objects-compare-structurally");
+    }
+
+    [Fact]
+    public void DifferentObjectsAreNotEqual()
+    {
+        AssertEvaluationCase("different-objects-are-not-equal");
+    }
+
+    [Fact]
+    public void ObjectsDoNotConcatenateThroughHostText()
+    {
+        AssertEvaluationCase("objects-do-not-concatenate-through-host-text");
+    }
+
+    [Fact]
+    public void TextOrderingUsesOrdinalUtf16CodeUnits()
+    {
+        AssertEvaluationCase("text-order-is-ordinal-utf16");
+    }
+
+    [Fact]
+    public void PositiveMidpointRoundsAwayFromZero()
+    {
+        AssertEvaluationCase("round-positive-midpoint-away-from-zero");
+    }
+
+    [Fact]
+    public void NegativeMidpointRoundsAwayFromZero()
+    {
+        AssertEvaluationCase("round-negative-midpoint-away-from-zero");
+    }
+
+    [Fact]
+    public void DateOnlyTextIsMidnightUtc()
+    {
+        AssertEvaluationCase("date-only-is-midnight-utc");
+    }
+
+    [Fact]
+    public void OffsetDateTimeNormalizesToUtc()
+    {
+        AssertEvaluationCase("offset-date-time-normalizes-to-utc");
+    }
+
+    [Fact]
+    public void FractionalDateTimeNormalizesToMilliseconds()
+    {
+        AssertEvaluationCase("fractional-date-time-normalizes-to-milliseconds");
+    }
+
+    [Fact]
+    public void LocalDateTimeIsInvalid()
+    {
+        AssertEvaluationCase("local-date-time-is-invalid");
+    }
+
+    [Fact]
+    public void RolloverDateIsInvalid()
+    {
+        AssertEvaluationCase("rollover-date-is-invalid");
+    }
+
+    [Fact]
+    public void SubMillisecondDateTimeIsInvalid()
+    {
+        AssertEvaluationCase("sub-millisecond-date-time-is-invalid");
+    }
+
+    private static void AssertEvaluationCase(string caseId)
+    {
+        using JsonDocument corpus = OpenExpressionCorpus();
+        JsonElement testCase = FindCase(corpus, caseId);
+        DateTimeOffset clock = DateTimeOffset.Parse(
+            corpus.RootElement.GetProperty("clock").GetString()!,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind);
+        IReadOnlyDictionary<string, KajayValue> values =
+            testCase.TryGetProperty("data", out JsonElement data)
+                ? ConformanceJsonValue.ReadObject(data)
+                : new Dictionary<string, KajayValue>(StringComparer.Ordinal);
+
+        ExpressionParseResult parsed = SurveyExpression.Parse(
+            testCase.GetProperty("source").GetString()!);
+        ExpressionEvaluationResult evaluated = parsed.Expression!.Evaluate(
+            new ExpressionEvaluationContext(clock, values));
+
+        Assert.Empty(parsed.Errors);
+        Assert.Equal(
+            testCase.GetProperty("errorCodes").EnumerateArray().Select(item => item.GetString()),
+            evaluated.Errors.Select(error => error.Code));
+        Assert.Equal(
+            ConformanceJsonValue.ReadTagged(testCase.GetProperty("result")),
+            evaluated.Value);
+    }
+
+    private static JsonElement FindCase(JsonDocument corpus, string caseId)
+    {
+        return corpus.RootElement
+            .GetProperty("evaluation")
+            .EnumerateArray()
+            .Single(candidate => candidate.GetProperty("id").GetString() == caseId);
+    }
+
+    private static JsonDocument OpenExpressionCorpus()
+    {
+        string path = Path.Combine(
+            AppContext.BaseDirectory,
+            "Conformance",
+            "v2",
+            "expressions.json");
+        return JsonDocument.Parse(File.ReadAllBytes(path));
+    }
+}

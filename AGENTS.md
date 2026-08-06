@@ -9,6 +9,10 @@ Before planning, implementing, or reviewing code or tests, read
   `isolatedDeclarations` and `erasableSyntaxOnly` and type-check identically under
   tsc and tsgo (TypeScript 7). No `namespace`, no runtime `enum`, no parameter
   properties, no deprecated compiler options.
+- The native SDK is one `Kajay.Core` NuGet package targeting `net10.0`. Keep nullable
+  reference types, warnings-as-errors, package validation, trimming, Native AOT, Source
+  Link, and the installed-package smoke green. It has no third-party runtime dependency
+  unless an ADR grants one. See ADR-0030 and checklist §Q.
 - Preserve the package seam: dependency direction is `core ← react`,
   `core ← creator-core ← creator-react`, nothing else. Core packages
   (`@kajay/core`, `@kajay/creator-core`) never import UI packages, never touch the
@@ -27,6 +31,9 @@ Before planning, implementing, or reviewing code or tests, read
 - Cross-language behavior is versioned under `conformance/v*/`. Changes to definition
   canonicalization, expression semantics, diagnostics, or lifecycle ordering must add
   or update adapter-neutral cases and keep `check:conformance` green.
+- Conformance v2 is specified but adapters are pending. Do not describe the TypeScript
+  or C# runtime as v2-compatible until its public-seam adapter passes inherited v1 plus
+  every v2 case.
 - Keep unit and browser/E2E tests in separate projects. Unit tests are pure logic:
   no DOM, no jsdom (banned repo-wide), no browser, no network, no mocks of our own
   packages. DOM behavior is proven in real Chromium (Vitest browser mode) or
@@ -62,6 +69,7 @@ pnpm run test:browser # Vitest browser mode, real Chromium
 pnpm run test:e2e     # Playwright against apps/host-demo
 pnpm run check:contract # regenerate the committed contracts, fail on drift
 pnpm run check:conformance # run the TypeScript runtime against the shared corpus
+pnpm run verify:dotnet # restore, format-check, build, test, pack, installed consumer
 pnpm run test:pack    # pnpm pack all packages, install tarballs in scratch project,
                       # compile (tsc + tsgo) and run smoke scenario
 ```

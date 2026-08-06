@@ -3,7 +3,7 @@
 - Area: Decision record index
 - Status: established
 - Owner: Jarod
-- Last updated: 2026-08-04
+- Last updated: 2026-08-06
 
 Non-trivial decisions get an ADR. An ADR states the context, the decision, and the
 consequences that follow from it — including the costs accepted. Reversals are
@@ -52,6 +52,10 @@ recorded here (status `superseded`) **and** in the
 | [0027](./0027-retain-parse-survey-calling-modes.md) | Retain both `parseSurvey` calling modes | accepted | 2026-08-04 |
 | [0028](./0028-mit-runtime-source-available-creator.md) | MIT runtime, source-available Creator | accepted | 2026-08-04 |
 | [0029](./0029-release-walkthrough.md) | The release walkthrough | accepted | 2026-08-05 |
+| [0030](./0030-native-csharp-sdk-and-v2-runtime-semantics.md) | Native C# SDK and v2 runtime semantics | accepted | 2026-08-05 |
+| [0031](./0031-csharp-sdk-source-and-namespace-architecture.md) | C# SDK source and namespace architecture | accepted | 2026-08-05 |
+| [0032](./0032-compose-sdk-demo-profiles.md) | One SDK demo frontend with Compose runtime profiles | superseded by 0033 | 2026-08-06 |
+| [0033](./0033-dual-runtime-compatibility-demo.md) | Compare C# and TypeScript through symmetric HTTP peers | accepted | 2026-08-06 |
 
 ## Parent and related links
 

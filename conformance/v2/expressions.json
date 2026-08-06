@@ -1,0 +1,171 @@
+{
+  "contractVersion": 2,
+  "clock": "2026-08-02T12:34:56.000Z",
+  "parsing": [],
+  "evaluation": [
+    {
+      "id": "decimal-text-with-exponent-is-numeric",
+      "source": "{amount} + 50",
+      "data": { "amount": " \t-1.5e2 " },
+      "result": { "kind": "json", "value": -100 },
+      "errorCodes": []
+    },
+    {
+      "id": "leading-decimal-point-is-numeric",
+      "source": "{amount} + 0.5",
+      "data": { "amount": ".5" },
+      "result": { "kind": "json", "value": 1 },
+      "errorCodes": []
+    },
+    {
+      "id": "contract-whitespace-is-trimmed-from-numeric-text",
+      "source": "{amount} + 1",
+      "data": { "amount": " 42 " },
+      "result": { "kind": "json", "value": 43 },
+      "errorCodes": []
+    },
+    {
+      "id": "hexadecimal-text-is-not-numeric",
+      "source": "{amount} == 16",
+      "data": { "amount": "0x10" },
+      "result": { "kind": "json", "value": false },
+      "errorCodes": []
+    },
+    {
+      "id": "boolean-is-not-numeric",
+      "source": "true == 1",
+      "result": { "kind": "json", "value": false },
+      "errorCodes": []
+    },
+    {
+      "id": "boolean-arithmetic-is-absent",
+      "source": "true + 1",
+      "result": { "kind": "undefined" },
+      "errorCodes": []
+    },
+    {
+      "id": "non-finite-arithmetic-is-absent",
+      "source": "1e308 * 1e308",
+      "result": { "kind": "undefined" },
+      "errorCodes": []
+    },
+    {
+      "id": "boolean-text-is-not-a-boolean",
+      "source": "{flag} == 'true'",
+      "data": { "flag": true },
+      "result": { "kind": "json", "value": false },
+      "errorCodes": []
+    },
+    {
+      "id": "empty-array-is-false",
+      "source": "not {value}",
+      "data": { "value": [] },
+      "result": { "kind": "json", "value": true },
+      "errorCodes": []
+    },
+    {
+      "id": "empty-object-is-true",
+      "source": "not {value}",
+      "data": { "value": {} },
+      "result": { "kind": "json", "value": false },
+      "errorCodes": []
+    },
+    {
+      "id": "numeric-zero-is-false",
+      "source": "not 0",
+      "result": { "kind": "json", "value": true },
+      "errorCodes": []
+    },
+    {
+      "id": "non-empty-numeric-text-is-true",
+      "source": "not '0'",
+      "result": { "kind": "json", "value": false },
+      "errorCodes": []
+    },
+    {
+      "id": "boolean-text-conversion-is-invariant",
+      "source": "'flag=' + true",
+      "result": { "kind": "json", "value": "flag=true" },
+      "errorCodes": []
+    },
+    {
+      "id": "objects-compare-structurally",
+      "source": "{left} == {right}",
+      "data": {
+        "left": { "name": "Ada", "scores": [1, 2] },
+        "right": { "scores": [1, 2], "name": "Ada" }
+      },
+      "result": { "kind": "json", "value": true },
+      "errorCodes": []
+    },
+    {
+      "id": "different-objects-are-not-equal",
+      "source": "{left} == {right}",
+      "data": { "left": { "x": 1 }, "right": { "y": 1 } },
+      "result": { "kind": "json", "value": false },
+      "errorCodes": []
+    },
+    {
+      "id": "objects-do-not-concatenate-through-host-text",
+      "source": "{value} + 'x'",
+      "data": { "value": { "x": 1 } },
+      "result": { "kind": "undefined" },
+      "errorCodes": []
+    },
+    {
+      "id": "text-order-is-ordinal-utf16",
+      "source": "{bmp} > {astral}",
+      "data": { "bmp": "", "astral": "𐀀" },
+      "result": { "kind": "json", "value": true },
+      "errorCodes": []
+    },
+    {
+      "id": "round-positive-midpoint-away-from-zero",
+      "source": "round(2.5)",
+      "result": { "kind": "json", "value": 3 },
+      "errorCodes": []
+    },
+    {
+      "id": "round-negative-midpoint-away-from-zero",
+      "source": "round(-1.5)",
+      "result": { "kind": "json", "value": -2 },
+      "errorCodes": []
+    },
+    {
+      "id": "date-only-is-midnight-utc",
+      "source": "getDate('2026-08-02')",
+      "result": { "kind": "date", "value": "2026-08-02T00:00:00.000Z" },
+      "errorCodes": []
+    },
+    {
+      "id": "offset-date-time-normalizes-to-utc",
+      "source": "getDate('2026-08-02T07:34:56-05:00')",
+      "result": { "kind": "date", "value": "2026-08-02T12:34:56.000Z" },
+      "errorCodes": []
+    },
+    {
+      "id": "fractional-date-time-normalizes-to-milliseconds",
+      "source": "getDate('2026-08-02T12:34:56.1Z')",
+      "result": { "kind": "date", "value": "2026-08-02T12:34:56.100Z" },
+      "errorCodes": []
+    },
+    {
+      "id": "local-date-time-is-invalid",
+      "source": "getDate('2026-08-02T12:34:56')",
+      "result": { "kind": "undefined" },
+      "errorCodes": []
+    },
+    {
+      "id": "rollover-date-is-invalid",
+      "source": "getDate('2026-02-30')",
+      "result": { "kind": "undefined" },
+      "errorCodes": []
+    },
+    {
+      "id": "sub-millisecond-date-time-is-invalid",
+      "source": "getDate('2026-08-02T12:34:56.1234Z')",
+      "result": { "kind": "undefined" },
+      "errorCodes": []
+    }
+  ]
+}

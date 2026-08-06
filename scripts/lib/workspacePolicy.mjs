@@ -77,6 +77,27 @@ export const WORKSPACE_PACKAGE_POLICIES = Object.freeze([
     ],
   }),
   definePackage({
+    name: '@kajay/sdk-demo',
+    directory: 'apps/sdk-demo',
+    role: 'application',
+    published: false,
+    dependencies: [
+      '@kajay/core',
+      '@kajay/creator-react',
+      '@kajay/react',
+      '@kajay/themes',
+      'react',
+      'react-dom',
+    ],
+  }),
+  definePackage({
+    name: '@kajay/sdk-demo-api',
+    directory: 'apps/sdk-demo-api',
+    role: 'application',
+    published: false,
+    dependencies: ['@kajay/core'],
+  }),
+  definePackage({
     name: '@kajay/site',
     directory: 'apps/site',
     role: 'application',

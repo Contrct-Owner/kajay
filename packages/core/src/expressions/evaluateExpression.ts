@@ -8,6 +8,7 @@ import {
   isTruthy,
   toArray,
   toNumber,
+  toText,
   valuesAreEqual,
 } from './expressionValues.js';
 
@@ -58,7 +59,7 @@ function evaluateArithmetic(
     (typeof left === 'string' || typeof right === 'string') &&
     (toNumber(left) === undefined || toNumber(right) === undefined)
   ) {
-    return `${left ?? ''}${right ?? ''}`;
+    return evaluateTextAddition(left, right);
   }
 
   const a = toNumber(left);
@@ -67,20 +68,42 @@ function evaluateArithmetic(
     return;
   }
 
+  let result: number;
   switch (operator) {
     case '+':
-      return a + b;
+      result = a + b;
+      break;
     case '-':
-      return a - b;
+      result = a - b;
+      break;
     case '*':
-      return a * b;
+      result = a * b;
+      break;
     case '/':
-      return b === 0 ? undefined : a / b;
+      if (b === 0) {
+        return;
+      }
+      result = a / b;
+      break;
     case '%':
-      return b === 0 ? undefined : a % b;
+      if (b === 0) {
+        return;
+      }
+      result = a % b;
+      break;
     case '^':
-      return a ** b;
+      result = a ** b;
+      break;
   }
+  return Number.isFinite(result) ? result : undefined;
+}
+
+function evaluateTextAddition(left: unknown, right: unknown): string | undefined {
+  const textLeft = toText(left);
+  const textRight = toText(right);
+  return textLeft === undefined || textRight === undefined
+    ? undefined
+    : `${textLeft}${textRight}`;
 }
 
 function evaluateMembership(

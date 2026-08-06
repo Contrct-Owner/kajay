@@ -1,0 +1,47 @@
+name: kajay-sdk-demo
+
+services:
+  kajay-workos-emulate:
+    profiles: [workflow]
+    image: ghcr.io/workos/emulate:0.6.0
+    platform: linux/amd64
+    command:
+      - --host
+      - 0.0.0.0
+      - --interactive
+      - --issuer
+      - http://localhost:4100
+    environment:
+      WORKOS_EMULATE_DISABLE_UPDATE_CHECK: "1"
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:4100/health]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    ports:
+      - "127.0.0.1:4100:4100"
+    volumes:
+      - ./dotnet/apps/Kajay.Workflow.Host/Development/workos-emulate.config.yaml:/app/workos-emulate.config.yaml:ro
+
+  kajay-workflow-host:
+    depends_on:
+      kajay-workos-emulate:
+        condition: service_healthy
+    environment:
+      WorkOS__ApiBaseUrl: http://kajay-workos-emulate:4100
+      WorkOS__Audience: client_kajay_local
+      WorkOS__ClientId: client_kajay_local
+      WorkOS__Issuer: http://localhost:4100
+      WorkOS__RequireHttpsMetadata: "false"
+      WorkOS__Session__ApiKey: sk_test_default
+      WorkOS__Session__BrowserBaseUrl: http://localhost:4100
+      WorkOS__Session__CallbackUrl: http://localhost:5082/auth/callback
+      WorkOS__Session__DataProtectionKeysPath: /var/lib/kajay/data-protection
+      WorkOS__Session__Enabled: "true"
+      WorkOS__Session__PostLoginRedirectUrl: http://localhost:5082/auth/session
+      WorkOS__Session__PostLogoutRedirectUrl: http://localhost:5082/health
+    volumes:
+      - kajay-workflow-data-protection:/var/lib/kajay/data-protection
+
+volumes:
+  kajay-workflow-data-protection:

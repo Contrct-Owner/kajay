@@ -1,0 +1,226 @@
+# Workflow host
+
+- Area: Durable workflow execution and definition promotion
+- Status: active foundation
+- Owner: Jarod
+- Last updated: 2026-08-06
+
+`Kajay.Workflow.Host` is the host-owned C# 14 modular monolith around `Kajay.Core`.
+It persists immutable Definition Releases and Workflow Instances in PostgreSQL while
+keeping survey execution and Response Snapshot semantics in the SDK.
+
+## Run with Docker Compose
+
+### Local WorkOS Emulate stack
+
+The recommended local stack runs the workflow host, PostgreSQL, and a pinned WorkOS
+Emulate container together:
+
+```bash
+docker compose \
+  -f compose.yaml \
+  -f compose.workos-emulate.yaml \
+  --profile workflow up --build
+```
+
+Open <http://localhost:5082/auth/login?loginHint=admin%40kajay.local> to walk the
+interactive AuthKit login. The callback stores a data-protected HTTP-only session and
+redirects to <http://localhost:5082/auth/session>, which reports the authenticated
+subject, organization, and permissions. Logout is `POST /auth/logout`.
+
+| Local identity | Role purpose |
+| --- | --- |
+| `admin@kajay.local` | Every Kajay permission |
+| `author@kajay.local` | Definition manage and promote, without approval |
+| `operator@kajay.local` | Workflow read and execute |
+| `approver@kajay.local` | Definition promote and production approve |
+
+Interactive Emulate selects by email; every seeded password is `kajay-local` for
+direct password-grant experiments. The emulator is exposed only on
+`127.0.0.1:4100`. Plain HTTP, `sk_test_default`, and its in-memory data are local-test
+facilities, never deployment defaults.
+
+### Real WorkOS environment
+
+Set the public WorkOS Client ID for the AuthKit environment whose access tokens the
+host accepts. The default issuer and API base are the WorkOS production endpoints;
+set the latter two variables when the WorkOS environment uses different endpoints.
+
+```bash
+export WORKOS_CLIENT_ID=client_...
+# Optional when AuthKit is configured with an API Resource Indicator:
+export WORKOS_AUDIENCE=https://workflow.example.com
+export WORKOS_ISSUER=https://api.workos.com/
+export WORKOS_API_BASE_URL=https://api.workos.com
+```
+
+The host remains a bearer-only resource server by default. To let it own browser login,
+set `WORKOS_SESSION_ENABLED=true`, `WORKOS_API_KEY`, `WORKOS_BROWSER_BASE_URL`,
+`WORKOS_CALLBACK_URL`, `WORKOS_POST_LOGIN_REDIRECT_URL`, and
+`WORKOS_POST_LOGOUT_REDIRECT_URL`. The included cookie adapter is local/demo
+infrastructure. Treating the host as a production BFF needs a separate design for
+distributed refresh coordination, cookie size and revocation, CSRF protection, HTTPS,
+and durable Data Protection key storage.
+
+```bash
+docker compose --profile workflow up --build
+```
+
+The API is published at <http://localhost:5082>, PostgreSQL remains internal to the
+Compose network, and a named volume retains state. The application applies committed
+EF Core migrations before its API and workers start. Remove the volume only when a
+full local reset is intended:
+
+```bash
+docker compose --profile workflow down --volumes
+```
+
+## Module shape
+
+```mermaid
+flowchart LR
+    AuthKit["WorkOS AuthKit"] --> HTTP["Authenticated HTTP adapters"]
+    HTTP --> Promotion["PromotionApplication"]
+    HTTP --> Workflow["WorkflowApplication"]
+    Promotion --> Store["EF Core / PostgreSQL"]
+    Workflow --> SDK["Kajay.Core"]
+    Workflow --> Store
+    Store --> Timer["Scheduled-action worker"]
+    Store --> Outbox["Outbox worker"]
+    Timer --> Workflow
+    Outbox --> Effect["IWorkflowEffectHandler"]
+    Outbox --> Workflow
+```
+
+`Definitions`, `Workflows`, `Delivery`, `Persistence`, and `Api` are capability
+folders inside one deployable application. They are not separately published
+packages. Controllers do not reproduce release validation, snapshot restoration,
+concurrency, idempotency, audit, timer, or outbox choreography.
+
+## Workflow Definition format v1
+
+The first host format is deliberately linear and acyclic. It supports `survey`,
+`delay`, `effect`, and `end` steps:
+
+```json
+{
+  "formatVersion": 1,
+  "initialStep": "profile",
+  "steps": [
+    {
+      "key": "profile",
+      "kind": "survey",
+      "surveyDefinitionDigest": "sha256:<64 lowercase hex characters>",
+      "next": "wait"
+    },
+    {
+      "key": "wait",
+      "kind": "delay",
+      "delaySeconds": 60,
+      "next": "notify"
+    },
+    {
+      "key": "notify",
+      "kind": "effect",
+      "effectType": "example.notification",
+      "payload": { "template": "welcome" },
+      "next": "end"
+    },
+    { "key": "end", "kind": "end" }
+  ]
+}
+```
+
+Every referenced survey must be present in the release bundle under its Definition
+Digest. Instances remain pinned to the release selected when they started; later
+Activation changes affect only new instances.
+
+## HTTP interface
+
+Every application request carries a WorkOS access token as `Authorization: Bearer
+<token>`. The host validates its JWKS signature, RS256 algorithm, issuer, audience,
+expiry, `sub`, and `org_id`. The organization claim is the tenant boundary and the
+subject claim is the audit actor; caller-selected identity headers are ignored.
+Workflow commands additionally require `Idempotency-Key`; updates require a numeric
+`If-Match` ETag.
+
+| Operation | Required WorkOS permission | Route |
+| --- | --- | --- |
+| Preflight a target | `kajay:definition:manage` | `POST /api/management/releases/preflight?environmentName=...` |
+| Install a `.kajay` bundle | `kajay:definition:promote` | `POST /api/management/releases/install` |
+| Export an installed bundle | `kajay:definition:manage` | `GET /api/management/releases/{digest}/bundle` |
+| Set a binding reference | `kajay:definition:manage` | `PUT /api/management/environments/{environment}/bindings/{name}` |
+| Activate or roll back | `kajay:definition:promote` | `PUT /api/management/environments/{environment}/activations/{name}` |
+| Start an instance | `kajay:workflow:execute` | `POST /api/environments/{environment}/definitions/{name}/instances` |
+| Read/resume an instance | `kajay:workflow:read` | `GET /api/instances/{id}` |
+| Save a Response Snapshot | `kajay:workflow:execute` | `PUT /api/instances/{id}/response` |
+| Complete the active survey step | `kajay:workflow:execute` | `POST /api/instances/{id}/complete` |
+| Inspect audit facts | `kajay:workflow:read` | `GET /api/instances/{id}/audit` |
+| Inspect timers/effect delivery | `kajay:workflow:read` | `GET /api/instances/{id}/work` |
+
+Bundle request bodies use `application/vnd.kajay.bundle+zip`. Production Activation
+also requires `kajay:definition:approve`. Its `approvedBy` value is the authenticated
+WorkOS subject and cannot be supplied in the request body. Health is anonymous;
+OpenAPI requires `kajay:definition:manage`.
+
+Create these permission slugs in WorkOS and assign them through roles. Keep
+`kajay:definition:approve` out of routine definition-manager roles; a production
+approver role should receive both promote and approve permissions. The host checks
+permissions rather than role names so role composition can evolve without code changes.
+
+## Transaction and recovery rules
+
+- Each Workflow Command takes a transaction-scoped PostgreSQL advisory lock for its
+  tenant/idempotency key. Concurrent retries therefore return one stored result.
+- Workflow Instance `Version` is an EF concurrency token and is returned as an ETag.
+  A stale command fails with `412 Precondition Failed`.
+- Instance state, Response Snapshot, audit fact, idempotency result, and any new
+  scheduled action or outbox message commit in one database transaction.
+- Workers claim short batches with `FOR UPDATE SKIP LOCKED` and expiring leases.
+- Effects are at-least-once. `WorkflowEffect.Id` is stable so real downstream adapters
+  can deduplicate retries.
+- Failed work retries with capped exponential backoff and becomes `dead-letter` after
+  the configured maximum. Operational state remains queryable through the work route.
+- Timers store absolute UTC deadlines. Restarting the process does not reset them.
+
+## `.kajay` bundle format v1
+
+A bundle is a bounded ZIP archive with no environment substitutions:
+
+```text
+manifest.json
+workflow.json
+surveys/<definition-sha256>.json
+```
+
+The manifest names the Managed Definition, immutable version label, conformance
+version, required Environment Bindings, and every survey path/digest. Import rejects
+unsafe paths, duplicate or unexpected entries, oversized archives, definition errors,
+digest mismatches, missing dependency closure, unsupported conformance versions, and
+version-label reuse. Export returns the installed bytes. Target preflight reports
+missing binding names before idempotent install and atomic Activation.
+
+## Verification
+
+`Kajay.Workflow.Host.Tests` uses Testcontainers with PostgreSQL 18. Its HTTP tracers
+prove promotion and rollback concurrency, save/resume behavior, stale-write rejection,
+concurrent idempotency, atomic effect creation, timer recovery, outbox delivery, and
+dead-letter behavior through the same routes used by consumers. Authentication proofs
+use signed RS256 bearer tokens and the real JWT middleware to cover missing identity,
+permission denial, organization isolation, and authenticated production approval.
+The WorkOS Emulate proof additionally runs the pinned emulator on a random port and
+walks interactive PKCE login, code exchange through `WorkOS.net`, cookie-backed bearer
+validation, logout, and the exact author/operator/approver permission sets.
+
+```bash
+dotnet test dotnet/tests/Kajay.Workflow.Host.Tests
+```
+
+## Parent and related links
+
+- [Project context](../CONTEXT.md)
+- [Workflow host ownership decision](./adr/0035-workflow-host-owns-durable-orchestration.md)
+- [Definition promotion decision](./adr/0036-definition-release-promotion.md)
+- [WorkOS identity decision](./adr/0037-workos-authenticated-workflow-host.md)
+- [WorkOS Emulate decision](./adr/0038-workos-emulate-local-authentication.md)
+- [Portable Response Snapshot decision](./adr/0034-portable-response-snapshot-contract.md)

@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/apps/">
     <Project Path="apps/Kajay.Demo.Api/Kajay.Demo.Api.csproj" />
+    <Project Path="apps/Kajay.Workflow.Host/Kajay.Workflow.Host.csproj" />
   </Folder>
   <Folder Name="/benchmarks/">
     <Project Path="benchmarks/Kajay.Core.Benchmarks/Kajay.Core.Benchmarks.csproj" />
@@ -13,6 +14,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Kajay.Demo.Api.Tests/Kajay.Demo.Api.Tests.csproj" />
+    <Project Path="tests/Kajay.Workflow.Host.Tests/Kajay.Workflow.Host.Tests.csproj" />
     <Project Path="tests/Kajay.Core.Internal.Tests/Kajay.Core.Internal.Tests.csproj" />
     <Project Path="tests/Kajay.Core.Tests/Kajay.Core.Tests.csproj" />
     <Project Path="tests/Kajay.Conformance.Tests/Kajay.Conformance.Tests.csproj" />

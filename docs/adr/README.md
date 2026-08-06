@@ -59,6 +59,8 @@ recorded here (status `superseded`) **and** in the
 | [0034](./0034-portable-response-snapshot-contract.md) | Portable, definition-bound response snapshots | accepted | 2026-08-06 |
 | [0035](./0035-workflow-host-owns-durable-orchestration.md) | The workflow host owns durable orchestration | accepted | 2026-08-06 |
 | [0036](./0036-definition-release-promotion.md) | Promote immutable definition releases by digest | accepted | 2026-08-06 |
+| [0037](./0037-workos-authenticated-workflow-host.md) | WorkOS AuthKit owns workflow-host identity | accepted | 2026-08-06 |
+| [0038](./0038-workos-emulate-local-authentication.md) | WorkOS Emulate provides local workflow-host identity | accepted | 2026-08-06 |
 
 ## Parent and related links
 

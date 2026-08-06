@@ -56,3 +56,46 @@ services:
       - kajay-typescript-api
     ports:
       - "4173:80"
+
+  kajay-workflow-db:
+    profiles: [workflow]
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: kajay
+      POSTGRES_USER: kajay
+      POSTGRES_PASSWORD: kajay
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U kajay -d kajay"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - kajay-workflow-data:/var/lib/postgresql
+
+  kajay-workflow-host:
+    profiles: [workflow]
+    build:
+      context: .
+      dockerfile: dotnet/apps/Kajay.Workflow.Host/Dockerfile
+    depends_on:
+      kajay-workflow-db:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Workflow: Host=kajay-workflow-db;Port=5432;Database=kajay;Username=kajay;Password=kajay
+      WorkOS__ApiBaseUrl: ${WORKOS_API_BASE_URL:-https://api.workos.com}
+      WorkOS__Audience: ${WORKOS_AUDIENCE:-}
+      WorkOS__ClientId: ${WORKOS_CLIENT_ID:-}
+      WorkOS__Issuer: ${WORKOS_ISSUER:-https://api.workos.com/}
+      WorkOS__RequireHttpsMetadata: ${WORKOS_REQUIRE_HTTPS_METADATA:-true}
+      WorkOS__Session__ApiKey: ${WORKOS_API_KEY:-}
+      WorkOS__Session__BrowserBaseUrl: ${WORKOS_BROWSER_BASE_URL:-https://api.workos.com}
+      WorkOS__Session__CallbackUrl: ${WORKOS_CALLBACK_URL:-https://localhost:5082/auth/callback}
+      WorkOS__Session__Enabled: ${WORKOS_SESSION_ENABLED:-false}
+      WorkOS__Session__PostLoginRedirectUrl: ${WORKOS_POST_LOGIN_REDIRECT_URL:-https://localhost:5082/auth/session}
+      WorkOS__Session__PostLogoutRedirectUrl: ${WORKOS_POST_LOGOUT_REDIRECT_URL:-https://localhost:5082/health}
+      WorkflowWorkers__Enabled: "true"
+    ports:
+      - "5082:8080"
+
+volumes:
+  kajay-workflow-data:

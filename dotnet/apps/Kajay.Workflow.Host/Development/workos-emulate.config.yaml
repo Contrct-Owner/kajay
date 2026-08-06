@@ -1,0 +1,81 @@
+users:
+  - id: user_kajay_local_admin
+    email: admin@kajay.local
+    first_name: Local
+    last_name: Administrator
+    password: kajay-local
+    email_verified: true
+  - id: user_kajay_local_author
+    email: author@kajay.local
+    first_name: Local
+    last_name: Author
+    password: kajay-local
+    email_verified: true
+  - id: user_kajay_local_operator
+    email: operator@kajay.local
+    first_name: Local
+    last_name: Operator
+    password: kajay-local
+    email_verified: true
+  - id: user_kajay_local_approver
+    email: approver@kajay.local
+    first_name: Local
+    last_name: Approver
+    password: kajay-local
+    email_verified: true
+
+organizations:
+  - id: org_kajay_local
+    name: Kajay Local
+    memberships:
+      - email: admin@kajay.local
+        role: kajay-admin
+        status: active
+      - email: author@kajay.local
+        role: kajay-author
+        status: active
+      - email: operator@kajay.local
+        role: kajay-operator
+        status: active
+      - email: approver@kajay.local
+        role: kajay-approver
+        status: active
+
+roles:
+  - slug: kajay-admin
+    name: Kajay Administrator
+    permissions:
+      - kajay:workflow:read
+      - kajay:workflow:execute
+      - kajay:definition:manage
+      - kajay:definition:promote
+      - kajay:definition:approve
+  - slug: kajay-author
+    name: Kajay Definition Author
+    permissions:
+      - kajay:workflow:read
+      - kajay:definition:manage
+      - kajay:definition:promote
+  - slug: kajay-operator
+    name: Kajay Workflow Operator
+    permissions:
+      - kajay:workflow:read
+      - kajay:workflow:execute
+  - slug: kajay-approver
+    name: Kajay Production Approver
+    permissions:
+      - kajay:workflow:read
+      - kajay:definition:promote
+      - kajay:definition:approve
+
+permissions:
+  - slug: kajay:workflow:read
+    name: Read Kajay workflows
+  - slug: kajay:workflow:execute
+    name: Execute Kajay workflows
+  - slug: kajay:definition:manage
+    name: Manage Kajay definitions
+  - slug: kajay:definition:promote
+    name: Promote Kajay definitions
+  - slug: kajay:definition:approve
+    name: Approve Kajay production definitions

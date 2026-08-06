@@ -8,12 +8,34 @@ const repositoryRoot = resolve(import.meta.dirname, '..');
 const project = resolve(repositoryRoot, 'dotnet/src/Kajay.Core/Kajay.Core.csproj');
 const consumerProgram = `using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using Kajay;
 
+if (KajayContracts.SurveySchemaId != "urn:kajay:survey-definition:1"
+    || KajayContracts.CurrentSurveySchemaVersion != 1
+    || KajayContracts.RuntimeMetadataContractVersion != 1
+    || KajayContracts.RuntimeDiagnosticsContractVersion != 1
+    || !KajayContracts.SupportedSurveySchemaVersions.SequenceEqual([1])
+    || !KajayContracts.SupportedConformanceVersions.SequenceEqual([1, 2]))
+{
+    throw new InvalidOperationException("Installed package exposed the wrong contract versions.");
+}
+
+string[] resources = typeof(KajayContracts).Assembly.GetManifestResourceNames();
+if (!resources.Order(StringComparer.Ordinal).SequenceEqual(new[]
+    {
+        "Kajay.Core.Contracts.runtime-diagnostics.json",
+        "Kajay.Core.Contracts.runtime-metadata.json",
+        "Kajay.Core.Contracts.survey-schema.json",
+    }))
+{
+    throw new InvalidOperationException("Installed package exposed unexpected runtime resources.");
+}
+
 using Stream stream = KajayContracts.OpenSurveySchema();
 using JsonDocument schema = JsonDocument.Parse(stream);
-if (schema.RootElement.GetProperty("$id").GetString() != "urn:kajay:survey-definition:1")
+if (schema.RootElement.GetProperty("$id").GetString() != KajayContracts.SurveySchemaId)
 {
     throw new InvalidOperationException("Installed package exposed the wrong survey contract.");
 }

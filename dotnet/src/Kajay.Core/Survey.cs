@@ -38,6 +38,31 @@ public sealed class Survey
     /// <summary>Gets the authored answer-rule checks for this survey.</summary>
     public SurveyValidation Validation { get; }
 
+    /// <summary>Gets the number of effective pages.</summary>
+    public int PageCount => _pageCount;
+
+    /// <summary>Gets the zero-based current effective page index.</summary>
+    public int CurrentPageIndex => _currentPageIndex;
+
+    /// <summary>Gets the current page name, or an empty string when no page exists.</summary>
+    public string CurrentPageName => _pageCount == 0
+        ? string.Empty
+        : _definition.Pages[_currentPageIndex].Name;
+
+    /// <summary>Gets whether the respondent is on the first effective page.</summary>
+    public bool IsFirstPage => _currentPageIndex == 0;
+
+    /// <summary>Gets whether the respondent is on the last effective page.</summary>
+    public bool IsLastPage => _pageCount == 0 || _currentPageIndex >= _pageCount - 1;
+
+    /// <summary>Gets the respondent's effective page progress.</summary>
+    public SurveyPageProgress PageProgress => _pageCount == 0
+        ? new SurveyPageProgress(0, 0, 0)
+        : new SurveyPageProgress(
+            _currentPageIndex + 1,
+            _pageCount,
+            (double)(_currentPageIndex + 1) / _pageCount);
+
     /// <summary>Raised after a lifecycle transition is committed.</summary>
     public event EventHandler<SurveyStateChangedEventArgs>? StateChanged;
 
@@ -46,6 +71,9 @@ public sealed class Survey
 
     /// <summary>Raised once with the submitted answer snapshot.</summary>
     public event EventHandler<SurveyCompletedEventArgs>? Completed;
+
+    /// <summary>Raised after the current effective page changes.</summary>
+    public event EventHandler<SurveyCurrentPageChangedEventArgs>? CurrentPageChanged;
 
     /// <summary>Gets an immutable snapshot of the current answers.</summary>
     public IReadOnlyDictionary<string, KajayValue> Data =>
@@ -142,6 +170,67 @@ public sealed class Survey
         return QuizScorer.Score(this, _definition);
     }
 
+    /// <summary>
+    /// Runs the cancellation-aware forward gate, then moves or completes when allowed.
+    /// </summary>
+    /// <param name="cancellationToken">Cancels pending validation or host work.</param>
+    /// <returns>The committed navigation outcome.</returns>
+    public Task<SurveyAdvanceOutcome> AdvanceAsync(
+        CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromCanceled<SurveyAdvanceOutcome>(cancellationToken);
+        }
+        if (_isCompleted)
+        {
+            return Task.FromResult(SurveyAdvanceOutcome.NoChange);
+        }
+
+        if (IsLastPage)
+        {
+            Complete();
+        }
+        else
+        {
+            SetCurrentPageIndex(_currentPageIndex + 1);
+        }
+
+        return Task.FromResult(SurveyAdvanceOutcome.Advanced);
+    }
+
+    /// <summary>Moves to the preceding effective page without running the forward gate.</summary>
+    /// <returns>True when the current page changed.</returns>
+    public bool MovePrevious()
+    {
+        return !_isCompleted && SetCurrentPageIndex(_currentPageIndex - 1);
+    }
+
+    /// <summary>Moves directly to an effective page by its authored name.</summary>
+    /// <param name="pageName">The exact ordinal page name.</param>
+    /// <returns>True when the current page changed.</returns>
+    public bool GoToPage(string pageName)
+    {
+        ArgumentNullException.ThrowIfNull(pageName);
+        if (_isCompleted)
+        {
+            return false;
+        }
+
+        for (int index = 0; index < _definition.Pages.Count; index += 1)
+        {
+            if (string.Equals(
+                _definition.Pages[index].Name,
+                pageName,
+                StringComparison.Ordinal))
+            {
+                return SetCurrentPageIndex(index);
+            }
+        }
+
+        return false;
+    }
+
     private SurveyState ResolveState()
     {
         if (_isLoading)
@@ -162,8 +251,6 @@ public sealed class Survey
         return _pageCount > 0 ? SurveyState.Running : SurveyState.Empty;
     }
 
-    internal int CurrentPageIndex => _currentPageIndex;
-
     internal KajayValue GetValue(string name)
     {
         return _answers.GetValueOrDefault(name);
@@ -173,8 +260,7 @@ public sealed class Survey
     {
         if (_currentPageIndex + 1 < _pageCount)
         {
-            _currentPageIndex += 1;
-            Timer.RestartPage();
+            SetCurrentPageIndex(_currentPageIndex + 1);
             return;
         }
 
@@ -184,5 +270,21 @@ public sealed class Survey
     private void RaiseStateChanged()
     {
         StateChanged?.Invoke(this, new SurveyStateChangedEventArgs(State));
+    }
+
+    private bool SetCurrentPageIndex(int pageIndex)
+    {
+        if (pageIndex < 0 || pageIndex >= _pageCount || pageIndex == _currentPageIndex)
+        {
+            return false;
+        }
+
+        int previousPageIndex = _currentPageIndex;
+        _currentPageIndex = pageIndex;
+        Timer.RestartPage();
+        CurrentPageChanged?.Invoke(
+            this,
+            new SurveyCurrentPageChangedEventArgs(previousPageIndex, pageIndex));
+        return true;
     }
 }

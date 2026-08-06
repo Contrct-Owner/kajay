@@ -116,6 +116,34 @@ if (emptyScore.Earned != 0
     throw new InvalidOperationException("Installed package failed quiz scoring.");
 }
 
+Survey navigation = SurveyDefinition.Parse(
+    """{"pages":[{"name":"first"},{"name":"second"}]}""")
+    .Definition
+    .CreateSurvey();
+int pageChanges = 0;
+navigation.CurrentPageChanged += (_, change) =>
+{
+    bool expected = pageChanges == 0
+        ? change.PreviousPageIndex == 0 && change.CurrentPageIndex == 1
+        : change.PreviousPageIndex == 1 && change.CurrentPageIndex == 0;
+    if (!expected)
+    {
+        throw new InvalidOperationException("Installed package emitted the wrong page change.");
+    }
+    pageChanges += 1;
+};
+SurveyAdvanceOutcome advance = navigation.AdvanceAsync().GetAwaiter().GetResult();
+SurveyPageProgress advancedProgress = navigation.PageProgress;
+bool movedBack = navigation.MovePrevious();
+if (advance != SurveyAdvanceOutcome.Advanced
+    || advancedProgress != new SurveyPageProgress(2, 2, 1)
+    || !movedBack
+    || pageChanges != 2
+    || navigation.CurrentPageName != "first")
+{
+    throw new InvalidOperationException("Installed package failed survey navigation.");
+}
+
 Console.WriteLine("dotnet pack smoke: ok");
 `;
 

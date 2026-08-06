@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 namespace Kajay;
 
 internal sealed record SurveyRuntimePage(
+    string Name,
     IReadOnlyList<SurveyRuntimeQuestion> Questions)
 {
     public static SurveyRuntimePage From(JsonNode? node)
@@ -14,6 +15,8 @@ internal sealed record SurveyRuntimePage(
                 .OfType<JsonObject>()
                 .Select(SurveyRuntimeQuestion.From)
                 .ToArray();
-        return new SurveyRuntimePage(questions);
+        return new SurveyRuntimePage(
+            node?["name"]?.GetValue<string>() ?? string.Empty,
+            questions);
     }
 }

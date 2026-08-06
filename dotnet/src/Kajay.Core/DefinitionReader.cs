@@ -28,7 +28,9 @@ internal static class DefinitionReader
         "visibleIf",
         "choices",
         "correctAnswer",
+        "validators",
     ];
+    private static readonly string[] ValidatorProperties = ["type", "text", "regex"];
 
     internal static JsonObject Read(
         JsonObject input,
@@ -102,6 +104,32 @@ internal static class DefinitionReader
             diagnostics);
         CopyChoices(input, output);
         CopyProperty(input, output, "correctAnswer");
+        CopyChildren(input, output, "validators", (child, index) =>
+            ReadValidator(child, $"{path}/validators/{index}", diagnostics));
+        AppendUnknown(output, unknown);
+        return output;
+    }
+
+    private static JsonObject ReadValidator(
+        JsonObject input,
+        string path,
+        ICollection<DefinitionDiagnostic> diagnostics)
+    {
+        JsonObject unknown = CollectUnknown(input, ValidatorProperties, path, diagnostics);
+        var output = new JsonObject();
+        CopyProperty(input, output, "type");
+        CopyLocalizedTextProperty(input, output, "text", string.Empty, $"{path}/text", diagnostics);
+        CopyStringProperty(input, output, "regex", string.Empty, $"{path}/regex", diagnostics);
+        if (input["regex"] is JsonValue value
+            && value.TryGetValue(out string? pattern)
+            && !KajayPatternSyntax.IsValid(pattern))
+        {
+            diagnostics.Add(new DefinitionDiagnostic(
+                "invalid-pattern",
+                $"{path}/regex",
+                DiagnosticSeverity.Error));
+        }
+
         AppendUnknown(output, unknown);
         return output;
     }

@@ -33,6 +33,8 @@ const implementedExpressionIds = [
   'sub-millisecond-date-time-is-invalid',
 ];
 
+const implementedDefinitionIds = ['unsupported-pattern-is-preserved-and-reported'];
+
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const corePath = resolve(repoRoot, 'packages/core/dist/index.js');
 
@@ -43,11 +45,26 @@ if (!existsSync(corePath)) {
 
 const expressions = readSuite('conformance/v2/expressions.json');
 equal(expressions.contractVersion, 2, 'expressions corpus contractVersion');
+const definitions = readSuite('conformance/v2/definitions.json');
+equal(definitions.contractVersion, 2, 'definitions corpus contractVersion');
 
 const casesById = new Map(expressions.evaluation.map((testCase) => [testCase.id, testCase]));
 equal(casesById.size, expressions.evaluation.length, 'v2 expression case IDs must be unique');
 
 const adapter = new CoreConformanceAdapter(await import(corePath));
+
+const definitionsById = new Map(definitions.cases.map((testCase) => [testCase.id, testCase]));
+for (const caseId of implementedDefinitionIds) {
+  const testCase = definitionsById.get(caseId);
+  if (testCase === undefined) {
+    throw new Error(`Implemented v2 definition case is missing from the corpus: ${caseId}`);
+  }
+  deepStrictEqual(
+    adapter.canonicalizeDefinition(testCase.input),
+    { canonical: testCase.canonical, diagnostics: testCase.diagnostics },
+    `v2 definition case ${testCase.id}`,
+  );
+}
 
 for (const caseId of implementedExpressionIds) {
   const testCase = casesById.get(caseId);
@@ -64,6 +81,9 @@ for (const caseId of implementedExpressionIds) {
 
 console.log(
   `TypeScript conformance v2 progress: ${implementedExpressionIds.length}/${expressions.evaluation.length} expression cases.`,
+);
+console.log(
+  `TypeScript conformance v2 progress: ${implementedDefinitionIds.length}/${definitions.cases.length} definition cases.`,
 );
 
 function readSuite(relativePath) {

@@ -29,6 +29,11 @@ export const DEFINITION_DIAGNOSTIC_DEFINITIONS = [
     severity: 'error',
     description: 'A definition references a deployment endpoint the host did not supply.',
   },
+  {
+    code: 'invalid-pattern',
+    severity: 'error',
+    description: 'A validation pattern is outside Kajay Pattern Profile v1.',
+  },
 ] as const;
 
 export type DefinitionDiagnosticCode =

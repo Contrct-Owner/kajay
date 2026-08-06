@@ -1,6 +1,7 @@
 import type { ExpressionFunctionContext } from './ExpressionFunction.js';
 import { isEmptyValue, isTruthy, toNumber } from './expressionValues.js';
 import { FunctionRegistry } from './FunctionRegistry.js';
+import { parseDateValue } from './parseDateValue.js';
 import { roundNumber } from './roundNumber.js';
 
 const MILLISECONDS_PER_DAY = 86_400_000;
@@ -17,17 +18,6 @@ function numericArguments(args: readonly unknown[]): number[] {
     }
   }
   return numbers;
-}
-
-function toDate(value: unknown): Date | undefined {
-  if (value instanceof Date) {
-    return Number.isNaN(value.getTime()) ? undefined : value;
-  }
-  if (typeof value === 'number' || typeof value === 'string') {
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? undefined : date;
-  }
-  return undefined;
 }
 
 function atMidnight(date: Date): Date {
@@ -95,11 +85,11 @@ function registerDateFunctions(registry: FunctionRegistry): void {
     return new Date(base.getTime() + (toNumber(args[0]) ?? 0) * MILLISECONDS_PER_DAY);
   });
 
-  registry.override('getDate', (args) => toDate(args[0]));
+  registry.override('getDate', (args) => parseDateValue(args[0]));
 
   registry.override('diffDays', (args) => {
-    const from = toDate(args[0]);
-    const to = toDate(args[1]);
+    const from = parseDateValue(args[0]);
+    const to = parseDateValue(args[1]);
     if (from === undefined || to === undefined) {
       return;
     }
@@ -110,7 +100,7 @@ function registerDateFunctions(registry: FunctionRegistry): void {
 
   /** Completed years since a date, by calendar rather than by dividing days. */
   registry.override('age', (args, context: ExpressionFunctionContext) => {
-    const birth = toDate(args[0]);
+    const birth = parseDateValue(args[0]);
     if (birth === undefined) {
       return;
     }

@@ -137,6 +137,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("fractional-date-time-normalizes-to-milliseconds");
     }
 
+    [Fact]
+    public void LocalDateTimeIsInvalid()
+    {
+        AssertEvaluationCase("local-date-time-is-invalid");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

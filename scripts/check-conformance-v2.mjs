@@ -28,6 +28,7 @@ const implementedExpressionIds = [
   'date-only-is-midnight-utc',
   'offset-date-time-normalizes-to-utc',
   'fractional-date-time-normalizes-to-milliseconds',
+  'local-date-time-is-invalid',
 ];
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));

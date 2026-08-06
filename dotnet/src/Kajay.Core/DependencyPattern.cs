@@ -48,4 +48,10 @@ internal sealed record DependencyPattern(IReadOnlyList<DependencyPatternSegment>
 
         return true;
     }
+
+    internal string? RootName => Segments.Count > 0
+        && !Segments[0].IsAnyIndex
+        && !Segments[0].PathSegment.IsIndex
+            ? Segments[0].PathSegment.Name
+            : null;
 }

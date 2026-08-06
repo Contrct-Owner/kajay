@@ -5,6 +5,9 @@ internal sealed class DependencyGraph
     private readonly Dictionary<string, DependencyNode> _nodes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string[]> _outgoing = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string[]> _predecessors = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string[]> _readersByRoot = new(StringComparer.Ordinal);
+    private string[] _rootAgnosticReaders = [];
+    private string[] _sortedKeys = [];
     private bool _edgesAreCurrent;
 
     internal void AddNode(DependencyNode node)
@@ -75,7 +78,7 @@ internal sealed class DependencyGraph
         HashSet<string> affected,
         Queue<string> queue)
     {
-        foreach (string key in SortedKeys())
+        foreach (string key in CandidateReaders(path))
         {
             DependencyNode node = _nodes[key];
             if (node.Reads.Any(pattern => pattern.Overlaps(path)) && affected.Add(key))
@@ -110,9 +113,12 @@ internal sealed class DependencyGraph
 
             states[key] = VisitState.Visiting;
             stack.Add(key);
-            foreach (string predecessor in PredecessorsOf(key, affected))
+            foreach (string predecessor in _predecessors[key])
             {
-                Visit(predecessor);
+                if (affected.Contains(predecessor))
+                {
+                    Visit(predecessor);
+                }
             }
 
             stack.RemoveAt(stack.Count - 1);
@@ -120,7 +126,7 @@ internal sealed class DependencyGraph
             order.Add(key);
         }
 
-        foreach (string key in SortedKeys())
+        foreach (string key in _sortedKeys)
         {
             if (affected.Contains(key))
             {
@@ -129,15 +135,6 @@ internal sealed class DependencyGraph
         }
 
         return new DependencyPlan(order.ToArray(), errors.ToArray());
-    }
-
-    private string[] PredecessorsOf(
-        string key,
-        HashSet<string> affected)
-    {
-        return _predecessors[key]
-            .Where(affected.Contains)
-            .ToArray();
     }
 
     private void EnsureEdges()
@@ -149,37 +146,90 @@ internal sealed class DependencyGraph
 
         _outgoing.Clear();
         _predecessors.Clear();
-        string[] keys = SortedKeys();
-        foreach (string key in keys)
+        _readersByRoot.Clear();
+        _sortedKeys = _nodes.Keys.Order(StringComparer.Ordinal).ToArray();
+        var outgoing = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        var predecessors = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        foreach (string key in _sortedKeys)
         {
-            _outgoing[key] = [];
-            _predecessors[key] = [];
+            outgoing[key] = [];
+            predecessors[key] = [];
         }
 
-        foreach (string writerKey in keys)
+        BuildReaderIndex();
+        foreach (string writerKey in _sortedKeys)
         {
             if (_nodes[writerKey].Writes is not ExpressionPath written)
             {
                 continue;
             }
 
-            string[] dependents = keys
-                .Where(dependent => _nodes[dependent].Reads.Any(
-                    pattern => pattern.Overlaps(written)))
-                .ToArray();
-            _outgoing[writerKey] = dependents;
-            foreach (string dependent in dependents)
+            foreach (string dependent in CandidateReaders(written))
             {
-                _predecessors[dependent] = [.. _predecessors[dependent], writerKey];
+                if (_nodes[dependent].Reads.Any(pattern => pattern.Overlaps(written)))
+                {
+                    outgoing[writerKey].Add(dependent);
+                    predecessors[dependent].Add(writerKey);
+                }
             }
+        }
+
+        foreach (string key in _sortedKeys)
+        {
+            _outgoing[key] = outgoing[key].ToArray();
+            _predecessors[key] = predecessors[key].ToArray();
         }
 
         _edgesAreCurrent = true;
     }
 
-    private string[] SortedKeys()
+    private void BuildReaderIndex()
     {
-        return _nodes.Keys.Order(StringComparer.Ordinal).ToArray();
+        var readersByRoot = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        List<string> rootAgnostic = [];
+        foreach (string key in _sortedKeys)
+        {
+            string?[] roots = _nodes[key].Reads
+                .Select(pattern => pattern.RootName)
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+            if (roots.Any(root => root is null))
+            {
+                rootAgnostic.Add(key);
+            }
+            foreach (string root in roots.OfType<string>())
+            {
+                if (!readersByRoot.TryGetValue(root, out List<string>? readers))
+                {
+                    readers = [];
+                    readersByRoot.Add(root, readers);
+                }
+
+                readers.Add(key);
+            }
+        }
+
+        foreach ((string root, List<string> readers) in readersByRoot)
+        {
+            _readersByRoot[root] = readers.ToArray();
+        }
+        _rootAgnosticReaders = rootAgnostic.ToArray();
+    }
+
+    private IEnumerable<string> CandidateReaders(ExpressionPath path)
+    {
+        string? root = path.Segments.Count > 0 && !path.Segments[0].IsIndex
+            ? path.Segments[0].Name
+            : null;
+        if (root is null)
+        {
+            return _sortedKeys;
+        }
+
+        IEnumerable<string> rooted = _readersByRoot.TryGetValue(root, out string[]? readers)
+            ? readers
+            : Array.Empty<string>();
+        return rooted.Concat(_rootAgnosticReaders).Distinct(StringComparer.Ordinal);
     }
 
     private enum VisitState

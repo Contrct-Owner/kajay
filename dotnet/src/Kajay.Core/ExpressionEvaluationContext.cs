@@ -45,15 +45,6 @@ public sealed class ExpressionEvaluationContext
         DateTimeOffset clock,
         IEnumerable<KeyValuePair<string, KajayValue>> values,
         ExpressionFunctionRegistry functions)
-        : this(clock, values, functions, null)
-    {
-    }
-
-    internal ExpressionEvaluationContext(
-        DateTimeOffset clock,
-        IEnumerable<KeyValuePair<string, KajayValue>> values,
-        ExpressionFunctionRegistry functions,
-        IAsyncFunctionValueSource? asyncFunctionValues)
     {
         ArgumentNullException.ThrowIfNull(values);
         ArgumentNullException.ThrowIfNull(functions);
@@ -73,6 +64,29 @@ public sealed class ExpressionEvaluationContext
 
         Values = new ReadOnlyDictionary<string, KajayValue>(copy);
         Functions = functions;
+    }
+
+    internal ExpressionEvaluationContext(
+        DateTimeOffset clock,
+        IReadOnlyDictionary<string, KajayValue> values,
+        ExpressionFunctionRegistry functions,
+        IAsyncFunctionValueSource? asyncFunctionValues)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        ArgumentNullException.ThrowIfNull(functions);
+        Clock = clock.ToUniversalTime();
+        Values = values;
+        Functions = functions;
+        AsyncFunctionValues = asyncFunctionValues;
+    }
+
+    internal ExpressionEvaluationContext(
+        DateTimeOffset clock,
+        IEnumerable<KeyValuePair<string, KajayValue>> values,
+        ExpressionFunctionRegistry functions,
+        IAsyncFunctionValueSource? asyncFunctionValues)
+        : this(clock, values, functions)
+    {
         AsyncFunctionValues = asyncFunctionValues;
     }
 

@@ -535,24 +535,9 @@ public sealed partial class Survey
     internal ExpressionEvaluationContext CreateExpressionContext(
         IEnumerable<KeyValuePair<string, KajayValue>> additionalValues)
     {
-        var values = new Dictionary<string, KajayValue>(_answers, StringComparer.Ordinal);
-        foreach (SurveyRuntimeCalculatedValue definition in _definition.CalculatedValues)
-        {
-            if (!values.ContainsKey(definition.Name)
-                && _calculatedValues.TryGetValue(definition.Name, out KajayValue value))
-            {
-                values.Add(definition.Name, value);
-            }
-        }
-
-        foreach ((string name, KajayValue value) in additionalValues)
-        {
-            values[name] = value;
-        }
-
         return new ExpressionEvaluationContext(
             _timeProvider.GetUtcNow(),
-            values,
+            new SurveyExpressionValues(this, additionalValues),
             _expressionFunctions,
             _asyncFunctionValues);
     }

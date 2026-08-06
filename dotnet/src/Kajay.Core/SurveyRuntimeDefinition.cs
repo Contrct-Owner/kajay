@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 namespace Kajay;
 
 internal sealed record SurveyRuntimeDefinition(
+    SurveyDefinitionRegistry Registry,
     SurveyLocalizedText Title,
     SurveyLocalizedText Description,
     string Locale,
@@ -21,12 +22,14 @@ internal sealed record SurveyRuntimeDefinition(
         .SelectMany(page => page.ElementConditions.Prepend(page.Condition))
         .ToArray();
 
-    public static SurveyRuntimeDefinition From(JsonObject definition)
+    public static SurveyRuntimeDefinition From(
+        JsonObject definition,
+        SurveyDefinitionRegistry registry)
     {
         JsonArray? pages = definition["pages"] as JsonArray;
         SurveyRuntimePage[] runtimePages = pages is null
             ? []
-            : pages.Select(SurveyRuntimePage.From).ToArray();
+            : pages.Select((page, index) => SurveyRuntimePage.From(page, index, registry)).ToArray();
         JsonArray? calculatedValues = definition["calculatedValues"] as JsonArray;
         SurveyRuntimeCalculatedValue[] runtimeCalculatedValues = calculatedValues is null
             ? []
@@ -46,6 +49,7 @@ internal sealed record SurveyRuntimeDefinition(
             ? []
             : pages.Select(page => ReadSeconds(page?["maxTimeToFinish"])).ToArray();
         return new SurveyRuntimeDefinition(
+            registry,
             SurveyLocalizedText.From(definition["title"]),
             SurveyLocalizedText.From(definition["description"]),
             definition["locale"]?.GetValue<string>() ?? string.Empty,

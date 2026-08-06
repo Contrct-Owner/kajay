@@ -7,10 +7,12 @@ namespace Kajay;
 public sealed class SurveyDefinition
 {
     private readonly JsonObject _canonical;
+    private readonly SurveyDefinitionRegistry _registry;
 
-    private SurveyDefinition(JsonObject canonical)
+    private SurveyDefinition(JsonObject canonical, SurveyDefinitionRegistry registry)
     {
         _canonical = canonical;
+        _registry = registry;
     }
 
     /// <summary>Reads authored JSON into a canonical survey definition.</summary>
@@ -18,14 +20,26 @@ public sealed class SurveyDefinition
     /// <returns>The usable definition and every authored diagnostic.</returns>
     public static SurveyDefinitionParseResult Parse(string json)
     {
+        return Parse(json, SurveyDefinitionRegistry.Default);
+    }
+
+    /// <summary>Reads authored JSON through an immutable host extension registry.</summary>
+    /// <param name="json">A JSON object containing the survey definition.</param>
+    /// <param name="registry">The metadata and native factories used by this definition.</param>
+    /// <returns>The usable definition and every authored diagnostic.</returns>
+    public static SurveyDefinitionParseResult Parse(
+        string json,
+        SurveyDefinitionRegistry registry)
+    {
         ArgumentNullException.ThrowIfNull(json);
+        ArgumentNullException.ThrowIfNull(registry);
         JsonObject input = JsonNode.Parse(json) as JsonObject
             ?? throw new JsonException("A survey definition must be a JSON object.");
         var diagnostics = new List<DefinitionDiagnostic>();
-        JsonObject canonical = DefinitionReader.Read(input, diagnostics);
+        JsonObject canonical = DefinitionReader.Read(input, registry.Metadata, diagnostics);
 
         return new SurveyDefinitionParseResult(
-            new SurveyDefinition(canonical),
+            new SurveyDefinition(canonical, registry),
             diagnostics.ToArray());
     }
 
@@ -53,7 +67,7 @@ public sealed class SurveyDefinition
         ArgumentNullException.ThrowIfNull(options.ExpressionFunctions);
         ArgumentNullException.ThrowIfNull(options.Endpoints);
         return new Survey(
-            SurveyRuntimeDefinition.From(_canonical),
+            SurveyRuntimeDefinition.From(_canonical, _registry),
             options.TimeProvider,
             options);
     }

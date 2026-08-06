@@ -658,6 +658,26 @@ public sealed partial class Survey
 
     private SurveyQuestion CreateQuestion(SurveyRuntimeQuestion definition)
     {
+        if (_definition.Registry.TryGetQuestionFactory(
+            definition.Type,
+            out SurveyQuestionFactory factory))
+        {
+            SurveyQuestion question = factory(new SurveyQuestionFactoryContext(
+                this,
+                definition,
+                _definition.Registry))
+                ?? throw new InvalidOperationException(
+                    $"Question factory for '{definition.Type}' returned null.");
+            if (!ReferenceEquals(question.Owner, this)
+                || !string.Equals(question.Type, definition.Type, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException(
+                    $"Question factory for '{definition.Type}' returned a question for another context.");
+            }
+
+            return question;
+        }
+
         return definition.Type switch
         {
             "checkbox" or "dropdown" or "imagepicker" or "radiogroup" or "ranking"

@@ -70,7 +70,7 @@ internal sealed class DefinitionRegistry
             .ToArray();
     }
 
-    private bool IsSubclassOf(string className, string ancestorName)
+    internal bool IsSubclassOf(string className, string ancestorName)
     {
         string? current = className;
         while (current is not null)
@@ -84,6 +84,97 @@ internal sealed class DefinitionRegistry
         }
 
         return false;
+    }
+
+    internal DefinitionRegistry AddClass(DefinitionClassDescriptor descriptor)
+    {
+        if (_classes.ContainsKey(descriptor.Name))
+        {
+            throw new ArgumentException(
+                $"Class '{descriptor.Name}' is already registered.",
+                nameof(descriptor));
+        }
+        if (descriptor.Parent is not null && !_classes.ContainsKey(descriptor.Parent))
+        {
+            throw new ArgumentException(
+                $"Parent class '{descriptor.Parent}' is not registered.",
+                nameof(descriptor));
+        }
+        foreach (DefinitionChildCollectionDescriptor collection in descriptor.DeclaredChildCollections)
+        {
+            if (!_classes.ContainsKey(collection.ElementBaseType))
+            {
+                throw new ArgumentException(
+                    $"Child base class '{collection.ElementBaseType}' is not registered.",
+                    nameof(descriptor));
+            }
+        }
+
+        EnsureUniqueMembers(descriptor);
+        var classes = new Dictionary<string, DefinitionClassDescriptor>(
+            _classes,
+            StringComparer.Ordinal)
+        {
+            [descriptor.Name] = descriptor,
+        };
+        return new DefinitionRegistry(classes);
+    }
+
+    internal DefinitionRegistry AddProperty(
+        string className,
+        DefinitionPropertyDescriptor property)
+    {
+        DefinitionClassDescriptor descriptor = GetClass(className);
+        if (GetProperties(className).Any(existing => string.Equals(
+            existing.Name,
+            property.Name,
+            StringComparison.Ordinal)))
+        {
+            throw new ArgumentException(
+                $"Class '{className}' already declares property '{property.Name}'.",
+                nameof(property));
+        }
+
+        DefinitionClassDescriptor replacement = descriptor with
+        {
+            DeclaredProperties = Array.AsReadOnly(
+                descriptor.DeclaredProperties.Append(property).ToArray()),
+        };
+        var classes = new Dictionary<string, DefinitionClassDescriptor>(
+            _classes,
+            StringComparer.Ordinal)
+        {
+            [className] = replacement,
+        };
+        return new DefinitionRegistry(classes);
+    }
+
+    private static void EnsureUniqueMembers(DefinitionClassDescriptor descriptor)
+    {
+        if (descriptor.DeclaredProperties.Select(property => property.Name)
+            .Distinct(StringComparer.Ordinal).Count() != descriptor.DeclaredProperties.Count)
+        {
+            throw new ArgumentException(
+                $"Class '{descriptor.Name}' declares a property more than once.",
+                nameof(descriptor));
+        }
+        if (descriptor.DeclaredChildCollections.Select(collection => collection.Property)
+            .Distinct(StringComparer.Ordinal).Count() != descriptor.DeclaredChildCollections.Count)
+        {
+            throw new ArgumentException(
+                $"Class '{descriptor.Name}' declares a child collection more than once.",
+                nameof(descriptor));
+        }
+        if (descriptor.DeclaredProperties.Any(property => descriptor.DeclaredChildCollections
+            .Any(collection => string.Equals(
+                collection.Property,
+                property.Name,
+                StringComparison.Ordinal))))
+        {
+            throw new ArgumentException(
+                $"Class '{descriptor.Name}' uses one name for a property and child collection.",
+                nameof(descriptor));
+        }
     }
 
     private static DefinitionRegistry ReadEmbeddedMetadata()

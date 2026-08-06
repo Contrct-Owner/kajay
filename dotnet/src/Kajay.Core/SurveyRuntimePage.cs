@@ -9,19 +9,22 @@ internal sealed record SurveyRuntimePage(
     IReadOnlyList<SurveyRuntimeCondition> ElementConditions,
     IReadOnlyList<SurveyRuntimeQuestion> Questions)
 {
-    public static SurveyRuntimePage From(JsonNode? node, int pageIndex)
+    public static SurveyRuntimePage From(
+        JsonNode? node,
+        int pageIndex,
+        SurveyDefinitionRegistry registry)
     {
         JsonArray? elements = node?["elements"] as JsonArray;
         SurveyRuntimeQuestion[] questions = elements is null
             ? []
-            : SurveyRuntimeQuestion.FromElements(elements);
+            : SurveyRuntimeQuestion.FromElements(elements, registry);
         return new SurveyRuntimePage(
             node?["name"]?.GetValue<string>() ?? string.Empty,
             SurveyLocalizedText.From(node?["title"]),
             SurveyRuntimeCondition.Page(node, pageIndex),
             elements is null
                 ? []
-                : SurveyRuntimeCondition.FromElements(elements, pageIndex),
+                : SurveyRuntimeCondition.FromElements(elements, pageIndex, registry),
             questions);
     }
 

@@ -32,13 +32,14 @@ internal sealed record SurveyRuntimeCondition(
 
     internal static SurveyRuntimeCondition[] FromElements(
         JsonArray elements,
-        int pageIndex)
+        int pageIndex,
+        SurveyDefinitionRegistry registry)
     {
-        HashSet<string> questionTypes = DefinitionRegistry.Default
+        HashSet<string> questionTypes = registry.Metadata
             .GetConcreteSubclasses("question")
             .ToHashSet(StringComparer.Ordinal);
         List<SurveyRuntimeCondition> conditions = [];
-        Collect(elements, pageIndex, null, "element", questionTypes, conditions);
+        Collect(elements, pageIndex, null, "element", questionTypes, registry, conditions);
         return conditions.ToArray();
     }
 
@@ -48,6 +49,7 @@ internal sealed record SurveyRuntimeCondition(
         string? parentKey,
         string path,
         IReadOnlySet<string> questionTypes,
+        SurveyDefinitionRegistry registry,
         ICollection<SurveyRuntimeCondition> conditions)
     {
         int index = 0;
@@ -57,7 +59,7 @@ internal sealed record SurveyRuntimeCondition(
             string type = element["type"]?.GetValue<string>() ?? string.Empty;
             SurveyElementKind kind = questionTypes.Contains(type)
                 ? SurveyElementKind.Question
-                : type is "panel" or "paneldynamic"
+                : registry.Metadata.IsSubclassOf(type, "panel")
                     ? SurveyElementKind.Panel
                     : SurveyElementKind.Element;
             conditions.Add(new SurveyRuntimeCondition(
@@ -71,15 +73,26 @@ internal sealed record SurveyRuntimeCondition(
                 Parse(element["visibleIf"]),
                 Parse(element["enableIf"]),
                 kind == SurveyElementKind.Question ? Parse(element["requiredIf"]) : null));
-            if (element["elements"] is JsonArray children)
+            IEnumerable<DefinitionChildCollectionDescriptor> nestedCollections =
+                kind == SurveyElementKind.Question
+                    ? []
+                    : registry.Metadata.GetChildCollections(type)
+                        .Where(collection => registry.Metadata.IsSubclassOf(
+                            collection.ElementBaseType,
+                            "pageelement"));
+            foreach (DefinitionChildCollectionDescriptor collection in nestedCollections)
             {
-                Collect(
-                    children,
-                    pageIndex,
-                    key,
-                    $"{path}:{index:D8}:element",
-                    questionTypes,
-                    conditions);
+                if (element[collection.Property] is JsonArray children)
+                {
+                    Collect(
+                        children,
+                        pageIndex,
+                        key,
+                        $"{path}:{index:D8}:{collection.Property}",
+                        questionTypes,
+                        registry,
+                        conditions);
+                }
             }
 
             index += 1;

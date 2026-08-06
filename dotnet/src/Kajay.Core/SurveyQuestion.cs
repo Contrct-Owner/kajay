@@ -11,6 +11,15 @@ public abstract class SurveyQuestion
         Definition = definition;
     }
 
+    /// <summary>Initializes a host-defined question from its registered factory context.</summary>
+    /// <param name="context">The context supplied to the registered factory.</param>
+    protected SurveyQuestion(SurveyQuestionFactoryContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        _survey = context.Survey;
+        Definition = context.Definition;
+    }
+
     internal SurveyRuntimeQuestion Definition { get; }
 
     internal Survey Owner => _survey;

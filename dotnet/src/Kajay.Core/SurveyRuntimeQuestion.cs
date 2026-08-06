@@ -6,6 +6,7 @@ internal sealed record SurveyRuntimeQuestion(
     string Type,
     string Name,
     string ValueKey,
+    JsonObject Properties,
     SurveyLocalizedText Title,
     SurveyLocalizedText Description,
     IReadOnlyList<KajayValue> Choices,
@@ -24,17 +25,21 @@ internal sealed record SurveyRuntimeQuestion(
     KajayValue CorrectAnswer,
     IReadOnlyList<SurveyRuntimeValidator> Validators)
 {
-    internal static SurveyRuntimeQuestion[] FromElements(JsonArray elements)
+    internal static SurveyRuntimeQuestion[] FromElements(
+        JsonArray elements,
+        SurveyDefinitionRegistry registry)
     {
-        HashSet<string> questionTypes = DefinitionRegistry.Default
+        HashSet<string> questionTypes = registry.Metadata
             .GetConcreteSubclasses("question")
             .ToHashSet(StringComparer.Ordinal);
         List<SurveyRuntimeQuestion> questions = [];
-        Collect(elements, questionTypes, questions);
+        Collect(elements, questionTypes, registry, questions);
         return questions.ToArray();
     }
 
-    public static SurveyRuntimeQuestion From(JsonObject element)
+    public static SurveyRuntimeQuestion From(
+        JsonObject element,
+        SurveyDefinitionRegistry registry)
     {
         JsonArray? validators = element["validators"] as JsonArray;
         SurveyRuntimeValidator[] runtimeValidators = validators is null
@@ -52,14 +57,15 @@ internal sealed record SurveyRuntimeQuestion(
             element["type"]?.GetValue<string>() ?? string.Empty,
             element["name"]?.GetValue<string>() ?? string.Empty,
             ReadValueKey(element),
+            (JsonObject)element.DeepClone(),
             SurveyLocalizedText.From(element["title"]),
             SurveyLocalizedText.From(element["description"]),
             Array.AsReadOnly(choiceItems.Select(item => item.Value).ToArray()),
             choiceItems,
             ReadChoiceSettings(element),
             ReadItems(element["rows"] as JsonArray),
-            ReadMatrixSettings(element),
-            ReadRecordSettings(element),
+            ReadMatrixSettings(element, registry),
+            ReadRecordSettings(element, registry),
             ReadFileSettings(element),
             ReadSignatureSettings(element),
             element["isRequired"]?.GetValue<bool>() ?? false,
@@ -153,7 +159,9 @@ internal sealed record SurveyRuntimeQuestion(
         }).ToArray());
     }
 
-    private static SurveyRuntimeRecordSettings? ReadRecordSettings(JsonObject element)
+    private static SurveyRuntimeRecordSettings? ReadRecordSettings(
+        JsonObject element,
+        SurveyDefinitionRegistry registry)
     {
         string type = element["type"]?.GetValue<string>() ?? string.Empty;
         return type switch
@@ -165,7 +173,7 @@ internal sealed record SurveyRuntimeQuestion(
                 element["allowRemoveRows"]?.GetValue<bool>() ?? true,
                 ReadRecord(element["defaultRowValue"]),
                 element["defaultValueFromLastRow"]?.GetValue<bool>() ?? false,
-                ReadFields(element["columns"] as JsonArray)),
+                ReadFields(element["columns"] as JsonArray, registry)),
             "paneldynamic" => new SurveyRuntimeRecordSettings(
                 ReadCount(element["minPanelCount"], 1),
                 ReadCount(element["maxPanelCount"], 0),
@@ -173,12 +181,14 @@ internal sealed record SurveyRuntimeQuestion(
                 element["allowRemovePanel"]?.GetValue<bool>() ?? true,
                 ReadRecord(element["defaultPanelValue"]),
                 false,
-                ReadFields(element["templateElements"] as JsonArray)),
+                ReadFields(element["templateElements"] as JsonArray, registry)),
             _ => null,
         };
     }
 
-    private static SurveyRuntimeMatrixSettings? ReadMatrixSettings(JsonObject element)
+    private static SurveyRuntimeMatrixSettings? ReadMatrixSettings(
+        JsonObject element,
+        SurveyDefinitionRegistry registry)
     {
         string type = element["type"]?.GetValue<string>() ?? string.Empty;
         return type is "matrix" or "matrixcells"
@@ -186,16 +196,18 @@ internal sealed record SurveyRuntimeQuestion(
                 element["isAllRowRequired"]?.GetValue<bool>() ?? false,
                 element["eachRowUnique"]?.GetValue<bool>() ?? false,
                 type == "matrixcells"
-                    ? ReadFields(element["columns"] as JsonArray)
+                    ? ReadFields(element["columns"] as JsonArray, registry)
                     : Array.Empty<SurveyRuntimeQuestion>())
             : null;
     }
 
-    private static IReadOnlyList<SurveyRuntimeQuestion> ReadFields(JsonArray? fields)
+    private static IReadOnlyList<SurveyRuntimeQuestion> ReadFields(
+        JsonArray? fields,
+        SurveyDefinitionRegistry registry)
     {
         return fields is null
             ? Array.Empty<SurveyRuntimeQuestion>()
-            : Array.AsReadOnly(FromElements(fields));
+            : Array.AsReadOnly(FromElements(fields, registry));
     }
 
     private static SurveyExpression? ReadExpression(JsonNode? node)
@@ -257,6 +269,7 @@ internal sealed record SurveyRuntimeQuestion(
     private static void Collect(
         JsonArray elements,
         IReadOnlySet<string> questionTypes,
+        SurveyDefinitionRegistry registry,
         ICollection<SurveyRuntimeQuestion> questions)
     {
         foreach (JsonObject element in elements.OfType<JsonObject>())
@@ -264,12 +277,20 @@ internal sealed record SurveyRuntimeQuestion(
             string type = element["type"]?.GetValue<string>() ?? string.Empty;
             if (questionTypes.Contains(type))
             {
-                questions.Add(From(element));
+                questions.Add(From(element, registry));
+                continue;
             }
 
-            if (element["elements"] is JsonArray children)
+            foreach (DefinitionChildCollectionDescriptor collection in registry.Metadata
+                         .GetChildCollections(type)
+                         .Where(collection => registry.Metadata.IsSubclassOf(
+                             collection.ElementBaseType,
+                             "pageelement")))
             {
-                Collect(children, questionTypes, questions);
+                if (element[collection.Property] is JsonArray children)
+                {
+                    Collect(children, questionTypes, registry, questions);
+                }
             }
         }
     }

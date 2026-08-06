@@ -17,3 +17,28 @@ if (q9Survey.Title != "Survey" || !q9Locales.SequenceEqual(["en-US"]))
 {
     throw new InvalidOperationException("Installed package failed Q9 locale switching.");
 }
+
+SurveyDefinitionRegistry q9Registry = SurveyDefinitionRegistry.Default.WithClass(
+    new SurveyDefinitionClassRegistration(
+        "packbadge",
+        parent: "text",
+        properties:
+        [
+            new SurveyDefinitionPropertyRegistration(
+                "badgeText",
+                SurveyDefinitionPropertyType.Text,
+                isLocalizable: true),
+            new SurveyDefinitionPropertyRegistration(
+                "weight",
+                SurveyDefinitionPropertyType.Number,
+                System.Text.Json.Nodes.JsonValue.Create(2.5)),
+        ],
+        questionFactory: context => new Q9PackQuestion(context)));
+Survey q9Extended = SurveyDefinition.Parse(
+    """{"locale":"fr-CA","pages":[{"name":"one","elements":[{"type":"packbadge","name":"badge","badgeText":{"default":"Badge","fr":"Insigne"}}]}]}""",
+    q9Registry).Definition.CreateSurvey();
+Q9PackQuestion q9Badge = (Q9PackQuestion)q9Extended.GetQuestion("badge")!;
+if (q9Badge.BadgeText != "Insigne" || q9Badge.Weight != 2.5)
+{
+    throw new InvalidOperationException("Installed package failed Q9 extension-registry parity.");
+}

@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path';
 const repositoryRoot = resolve(import.meta.dirname, '..');
 const project = resolve(repositoryRoot, 'dotnet/src/Kajay.Core/Kajay.Core.csproj');
 const dotnetSmoke = ['dotnet-pack-question-model-smoke.cs', 'dotnet-pack-host-io-smoke.cs', 'dotnet-pack-portability-smoke.cs'].map((file) => readFileSync(resolve(repositoryRoot, `scripts/${file}`), 'utf8')).join('\n');
+const dotnetTypes = readFileSync(resolve(repositoryRoot, 'scripts/dotnet-pack-portability-types.cs'), 'utf8');
 const consumerProgram = `using System;
 using System.Collections.Generic;
 using System.IO;
@@ -231,11 +232,11 @@ catch (OperationCanceledException) { }
 if (cancellable.Validation.IsValidating || cancellable.CurrentPageName != "one") throw new InvalidOperationException("Installed package failed cancellation cleanup.");
 ${dotnetSmoke}
 Console.WriteLine("dotnet pack smoke: ok");
+${dotnetTypes}
 `;
 const scratch = mkdtempSync(join(tmpdir(), 'kajay-dotnet-pack-'));
 const packageDirectory = join(scratch, 'packages');
 const consumerDirectory = join(scratch, 'consumer');
-
 try {
   mkdirSync(packageDirectory);
   mkdirSync(consumerDirectory);
@@ -275,7 +276,6 @@ try {
 } finally {
   rmSync(scratch, { recursive: true, force: true });
 }
-
 function run(command, args) {
   execFileSync(command, args, {
     cwd: repositoryRoot,

@@ -10,6 +10,7 @@ internal static class DefinitionReader
 
     internal static JsonObject Read(
         JsonObject input,
+        DefinitionRegistry registry,
         ICollection<DefinitionDiagnostic> diagnostics)
     {
         ValidateSchemaVersion(input);
@@ -18,6 +19,7 @@ internal static class DefinitionReader
             "survey",
             "survey",
             string.Empty,
+            registry,
             diagnostics,
             [SchemaVersionProperty]);
         canonical.Insert(0, SchemaVersionProperty, KajayContracts.CurrentSurveySchemaVersion);
@@ -29,10 +31,10 @@ internal static class DefinitionReader
         string className,
         string impliedType,
         string path,
+        DefinitionRegistry registry,
         ICollection<DefinitionDiagnostic> diagnostics,
         IReadOnlyCollection<string> reservedProperties)
     {
-        DefinitionRegistry registry = DefinitionRegistry.Default;
         IReadOnlyList<DefinitionPropertyDescriptor> properties = registry.GetProperties(className);
         IReadOnlyList<DefinitionChildCollectionDescriptor> childCollections =
             registry.GetChildCollections(className);
@@ -116,7 +118,7 @@ internal static class DefinitionReader
 
         foreach (DefinitionChildCollectionDescriptor collection in childCollections)
         {
-            ReadChildren(input, output, collection, className, path, diagnostics);
+            ReadChildren(input, output, collection, className, path, registry, diagnostics);
         }
 
         foreach ((string propertyName, JsonNode? value) in unknown)
@@ -133,6 +135,7 @@ internal static class DefinitionReader
         DefinitionChildCollectionDescriptor collection,
         string className,
         string path,
+        DefinitionRegistry registry,
         ICollection<DefinitionDiagnostic> diagnostics)
     {
         if (!input.TryGetPropertyValue(collection.Property, out JsonNode? raw))
@@ -150,7 +153,7 @@ internal static class DefinitionReader
             return;
         }
 
-        IReadOnlyList<string> allowedTypes = DefinitionRegistry.Default.GetConcreteSubclasses(
+        IReadOnlyList<string> allowedTypes = registry.GetConcreteSubclasses(
             collection.ElementBaseType);
         var canonical = new JsonArray();
         for (int index = 0; index < children.Count; index += 1)
@@ -184,6 +187,7 @@ internal static class DefinitionReader
                 childType,
                 collection.ElementBaseType,
                 childPath,
+                registry,
                 diagnostics,
                 []));
         }

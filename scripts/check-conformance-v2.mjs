@@ -33,7 +33,10 @@ const implementedExpressionIds = [
   'sub-millisecond-date-time-is-invalid',
 ];
 
-const implementedDefinitionIds = ['unsupported-pattern-is-preserved-and-reported'];
+const implementedDefinitionIds = [
+  'unsupported-pattern-is-preserved-and-reported',
+  'malformed-pattern-is-preserved-and-reported',
+];
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const corePath = resolve(repoRoot, 'packages/core/dist/index.js');

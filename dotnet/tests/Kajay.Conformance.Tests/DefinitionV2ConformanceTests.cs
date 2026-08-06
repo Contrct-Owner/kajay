@@ -10,6 +10,12 @@ public sealed class DefinitionV2ConformanceTests
         AssertDefinitionCase("unsupported-pattern-is-preserved-and-reported");
     }
 
+    [Fact]
+    public void MalformedPatternIsPreservedAndReported()
+    {
+        AssertDefinitionCase("malformed-pattern-is-preserved-and-reported");
+    }
+
     private static void AssertDefinitionCase(string caseId)
     {
         using JsonDocument corpus = OpenDefinitionCorpus();

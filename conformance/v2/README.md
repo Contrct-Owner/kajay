@@ -131,7 +131,6 @@ respondent rule. The author can fix it; the respondent is never blocked by it.
 
 No adapter passes v2 yet. TypeScript 1.x continues to pass v1. The executable progress
 gates prove that both public runtime seams pass all 25 new expression-evaluation cases;
-both also pass 1 of the 2 new definition cases. The remaining definition and all new
-survey-scenario cases are pending.
+both also pass all 2 new definition cases. All new survey-scenario cases are pending.
 Cross-runtime v2 compatibility may be claimed only after both the TypeScript 2.x and
 C# adapters pass the inherited and v2 cases through their public runtime seams.

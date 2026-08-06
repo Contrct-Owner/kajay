@@ -43,20 +43,49 @@ export function isLocalizedText(value: unknown): value is LocalizedText {
 /**
  * The string to show, for one locale.
  *
- * Exact match, then the **base language**, then `default`, then empty. The middle step
- * is what makes `fr-CA` usable in a survey translated into `fr`: without it a regional
- * locale falls all the way back to the default and a French-Canadian respondent reads
- * English, which is the failure this whole row exists to prevent.
+ * ASCII-case-insensitive exact match, then the tag with its final BCP 47 subtag
+ * removed, then `default`, then empty. The middle step is what makes `fr-CA` usable in
+ * a survey translated into `fr`: without it a regional locale falls all the way back
+ * to the default and a French-Canadian respondent reads English.
  *
  * Empty rather than a placeholder when nothing matches, because empty is what every
  * caller already treats as "nothing was authored" — a title falls back to the name, a
  * choice falls back to its value, and a description simply is not drawn.
  */
 export function resolveLocalizedText(text: LocalizedText, locale: string): string {
-  return text[locale] ?? text[baseLanguage(locale)] ?? text['default'] ?? '';
+  return (
+    findLocale(text, locale) ??
+    findLocale(text, parentLocale(locale)) ??
+    findLocale(text, 'default') ??
+    ''
+  );
 }
 
-function baseLanguage(locale: string): string {
-  const separator = locale.indexOf('-');
+/** Locale tags use the contract's ASCII-only case-insensitive comparison. */
+export function localeTagEquals(left: string, right: string): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+  for (let index = 0; index < left.length; index += 1) {
+    if (
+      foldAscii(left.codePointAt(index) ?? -1) !== foldAscii(right.codePointAt(index) ?? -1)
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function findLocale(text: LocalizedText, locale: string): string | undefined {
+  const key = Object.keys(text).find((candidate) => localeTagEquals(candidate, locale));
+  return key === undefined ? undefined : text[key];
+}
+
+function parentLocale(locale: string): string {
+  const separator = locale.lastIndexOf('-');
   return separator > 0 ? locale.slice(0, separator) : locale;
+}
+
+function foldAscii(value: number): number {
+  return value >= 65 && value <= 90 ? value + 32 : value;
 }

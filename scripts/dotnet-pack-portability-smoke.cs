@@ -35,10 +35,18 @@ SurveyDefinitionRegistry q9Registry = SurveyDefinitionRegistry.Default.WithClass
         ],
         questionFactory: context => new Q9PackQuestion(context)));
 Survey q9Extended = SurveyDefinition.Parse(
-    """{"locale":"fr-CA","pages":[{"name":"one","elements":[{"type":"packbadge","name":"badge","badgeText":{"default":"Badge","fr":"Insigne"}}]}]}""",
+    """{"locale":"fr-CA","pages":[{"name":"one","elements":[{"type":"packbadge","name":"badge","badgeText":{"default":"Badge","fr":"Insigne"},"validators":[{"type":"regexvalidator","regex":"^(ab|cd)+\\d{2}$"}]}]}]}""",
     q9Registry).Definition.CreateSurvey();
 Q9PackQuestion q9Badge = (Q9PackQuestion)q9Extended.GetQuestion("badge")!;
-if (q9Badge.BadgeText != "Insigne" || q9Badge.Weight != 2.5)
+q9Badge.SetValue(KajayValue.From("abX2"));
+SurveyExpression q9Date = SurveyExpression.Parse(
+    "getDate('2030-01-02T03:04:05+05:30')").Expression!;
+KajayValue q9Instant = q9Date.Evaluate(new ExpressionEvaluationContext(
+    new DateTimeOffset(2040, 1, 1, 0, 0, 0, TimeSpan.FromHours(-8)))).Value;
+if (q9Badge.BadgeText != "Insigne"
+    || q9Badge.Weight != 2.5
+    || q9Extended.Validation.ValidateCurrentPage().IsValid
+    || q9Instant != KajayValue.From(new DateTimeOffset(2030, 1, 1, 21, 34, 5, TimeSpan.Zero)))
 {
     throw new InvalidOperationException("Installed package failed Q9 extension-registry parity.");
 }

@@ -1,5 +1,6 @@
 import { RepeatingQuestion } from './RepeatingQuestion.js';
 import type { Survey } from './Survey.js';
+import { localeTagEquals } from './localizedText.js';
 
 /**
  * Switches the language the survey is read in — checklist J1.
@@ -18,7 +19,7 @@ import type { Survey } from './Survey.js';
  * this line is why it is allowed to.
  */
 export function applyLocale(survey: Survey, locale: string): void {
-  if (survey.localeScope.locale === locale) {
+  if (localeTagEquals(survey.localeScope.locale, locale)) {
     return;
   }
   survey.localeScope.locale = locale;

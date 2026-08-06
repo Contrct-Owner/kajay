@@ -4,9 +4,11 @@ namespace Kajay;
 
 internal sealed record SurveyRuntimePage(
     string Name,
+    SurveyRuntimeCondition Condition,
+    IReadOnlyList<SurveyRuntimeCondition> ElementConditions,
     IReadOnlyList<SurveyRuntimeQuestion> Questions)
 {
-    public static SurveyRuntimePage From(JsonNode? node)
+    public static SurveyRuntimePage From(JsonNode? node, int pageIndex)
     {
         JsonArray? elements = node?["elements"] as JsonArray;
         SurveyRuntimeQuestion[] questions = elements is null
@@ -14,6 +16,10 @@ internal sealed record SurveyRuntimePage(
             : SurveyRuntimeQuestion.FromElements(elements);
         return new SurveyRuntimePage(
             node?["name"]?.GetValue<string>() ?? string.Empty,
+            SurveyRuntimeCondition.Page(node, pageIndex),
+            elements is null
+                ? []
+                : SurveyRuntimeCondition.FromElements(elements, pageIndex),
             questions);
     }
 

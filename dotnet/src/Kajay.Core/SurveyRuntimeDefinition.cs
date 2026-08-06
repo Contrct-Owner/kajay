@@ -12,6 +12,10 @@ internal sealed record SurveyRuntimeDefinition(
 {
     public int PageCount => Pages.Count;
 
+    public IReadOnlyList<SurveyRuntimeCondition> Conditions => Pages
+        .SelectMany(page => page.ElementConditions.Prepend(page.Condition))
+        .ToArray();
+
     public static SurveyRuntimeDefinition From(JsonObject definition)
     {
         JsonArray? pages = definition["pages"] as JsonArray;

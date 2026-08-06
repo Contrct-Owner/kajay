@@ -170,6 +170,20 @@ if (!triggered.TryGetValue("result", out KajayValue triggeredResult)
     throw new InvalidOperationException("Installed package failed trigger settlement.");
 }
 
+Survey conditional = SurveyDefinition.Parse(
+    """{"pages":[{"name":"start"},{"name":"branch","visibleIf":"{show} = true","elements":[{"type":"text","name":"answer","enableIf":"{edit} = true"}]}]}""")
+    .Definition
+    .CreateSurvey();
+conditional.SetValue("show", KajayValue.From(true));
+conditional.SetValue("edit", KajayValue.From(true));
+if (conditional.PageCount != 2
+    || !conditional.IsPageVisible("branch")
+    || !conditional.TryGetQuestionState("answer", out SurveyQuestionState answerState)
+    || answerState != new SurveyQuestionState(true, true, false, true))
+{
+    throw new InvalidOperationException("Installed package failed conditional state.");
+}
+
 Console.WriteLine("dotnet pack smoke: ok");
 `;
 

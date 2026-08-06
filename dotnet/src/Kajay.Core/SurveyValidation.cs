@@ -17,16 +17,20 @@ public sealed class SurveyValidation
     public SurveyValidationResult ValidateCurrentPage()
     {
         if (_survey.State != SurveyState.Running
-            || _survey.CurrentPageIndex >= _definition.Pages.Count)
+            || _survey.CurrentAuthoredPageIndex < 0)
         {
             return new SurveyValidationResult(true, []);
         }
 
         var errors = new List<SurveyValidationError>();
         foreach (SurveyRuntimeQuestion question in
-            _definition.Pages[_survey.CurrentPageIndex].Questions)
+            _definition.Pages[_survey.CurrentAuthoredPageIndex].Questions)
         {
-            ValidateQuestion(question, errors);
+            if (_survey.TryGetQuestionState(question.Name, out SurveyQuestionState state)
+                && state.IsReachable)
+            {
+                ValidateQuestion(question, errors);
+            }
         }
 
         return new SurveyValidationResult(errors.Count == 0, errors.AsReadOnly());

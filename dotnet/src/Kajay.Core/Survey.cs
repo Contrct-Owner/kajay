@@ -4,10 +4,10 @@ namespace Kajay;
 public sealed class Survey
 {
     private const int LogicCascadeLimit = 128;
-    private readonly int _pageCount;
     private readonly SurveyRuntimeDefinition _definition;
     private readonly Dictionary<string, KajayValue> _answers = new(StringComparer.Ordinal);
     private readonly SurveyCalculatedValues _calculatedValues;
+    private readonly SurveyConditions _conditions;
     private readonly SurveyTriggers _triggers;
     private readonly TimeProvider _timeProvider;
     private readonly ExpressionFunctionRegistry _expressionFunctions;
@@ -15,6 +15,7 @@ public sealed class Survey
     private bool _isPreviewing;
     private bool _isCompleted;
     private int _currentPageIndex;
+    private int[] _visiblePageIndexes = [];
 
     internal Survey(
         SurveyRuntimeDefinition definition,
@@ -22,7 +23,6 @@ public sealed class Survey
         ExpressionFunctionRegistry expressionFunctions)
     {
         _definition = definition;
-        _pageCount = definition.PageCount;
         _timeProvider = timeProvider;
         _expressionFunctions = expressionFunctions;
         Validation = new SurveyValidation(this, definition);
@@ -34,6 +34,9 @@ public sealed class Survey
             definition.PageTimeLimits);
         _calculatedValues = new SurveyCalculatedValues(this, definition.CalculatedValues);
         _calculatedValues.SettleAll();
+        _conditions = new SurveyConditions(this, definition);
+        _conditions.Establish();
+        _visiblePageIndexes = _conditions.GetVisiblePageIndexes();
         _triggers = new SurveyTriggers(this, definition.Triggers);
         _triggers.Establish();
     }
@@ -51,29 +54,33 @@ public sealed class Survey
     public SurveyValidation Validation { get; }
 
     /// <summary>Gets the number of effective pages.</summary>
-    public int PageCount => _pageCount;
+    public int PageCount => _visiblePageIndexes.Length;
 
     /// <summary>Gets the zero-based current effective page index.</summary>
     public int CurrentPageIndex => _currentPageIndex;
 
+    internal int CurrentAuthoredPageIndex => PageCount == 0
+        ? -1
+        : _visiblePageIndexes[_currentPageIndex];
+
     /// <summary>Gets the current page name, or an empty string when no page exists.</summary>
-    public string CurrentPageName => _pageCount == 0
+    public string CurrentPageName => PageCount == 0
         ? string.Empty
-        : _definition.Pages[_currentPageIndex].Name;
+        : _definition.Pages[_visiblePageIndexes[_currentPageIndex]].Name;
 
     /// <summary>Gets whether the respondent is on the first effective page.</summary>
     public bool IsFirstPage => _currentPageIndex == 0;
 
     /// <summary>Gets whether the respondent is on the last effective page.</summary>
-    public bool IsLastPage => _pageCount == 0 || _currentPageIndex >= _pageCount - 1;
+    public bool IsLastPage => PageCount == 0 || _currentPageIndex >= PageCount - 1;
 
     /// <summary>Gets the respondent's effective page progress.</summary>
-    public SurveyPageProgress PageProgress => _pageCount == 0
+    public SurveyPageProgress PageProgress => PageCount == 0
         ? new SurveyPageProgress(0, 0, 0)
         : new SurveyPageProgress(
             _currentPageIndex + 1,
-            _pageCount,
-            (double)(_currentPageIndex + 1) / _pageCount);
+            PageCount,
+            (double)(_currentPageIndex + 1) / PageCount);
 
     /// <summary>Raised after a lifecycle transition is committed.</summary>
     public event EventHandler<SurveyStateChangedEventArgs>? StateChanged;
@@ -86,6 +93,9 @@ public sealed class Survey
 
     /// <summary>Raised after the current effective page changes.</summary>
     public event EventHandler<SurveyCurrentPageChangedEventArgs>? CurrentPageChanged;
+
+    /// <summary>Raised after expression-derived element states finish settling.</summary>
+    public event EventHandler<SurveyElementStateChangedEventArgs>? ElementStateChanged;
 
     /// <summary>Gets an immutable snapshot of answers and included calculated values.</summary>
     public IReadOnlyDictionary<string, KajayValue> Data
@@ -117,6 +127,35 @@ public sealed class Survey
     {
         ArgumentNullException.ThrowIfNull(name);
         return _calculatedValues.TryGetValue(name, out value);
+    }
+
+    /// <summary>Reports whether the named authored page is currently effective.</summary>
+    /// <param name="pageName">The exact ordinal page name.</param>
+    /// <returns>True only when a matching page exists and its condition is visible.</returns>
+    public bool IsPageVisible(string pageName)
+    {
+        ArgumentNullException.ThrowIfNull(pageName);
+        for (int index = 0; index < _definition.Pages.Count; index += 1)
+        {
+            if (string.Equals(_definition.Pages[index].Name, pageName, StringComparison.Ordinal))
+            {
+                return _conditions.IsPageVisible(index);
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>Gets the current computed state for a named question.</summary>
+    /// <param name="questionName">The exact ordinal question name.</param>
+    /// <param name="questionState">The computed state when the question exists.</param>
+    /// <returns>True when a matching question exists.</returns>
+    public bool TryGetQuestionState(
+        string questionName,
+        out SurveyQuestionState questionState)
+    {
+        ArgumentNullException.ThrowIfNull(questionName);
+        return _conditions.TryGetQuestionState(questionName, out questionState);
     }
 
     /// <summary>Reports whether the host is waiting for external work.</summary>
@@ -162,16 +201,26 @@ public sealed class Survey
     public void SetValue(string name, KajayValue value)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
+        SurveyState previousState = State;
         List<SurveyValueChangedEventArgs> changes = [];
+        List<SurveyElementStateChangedEventArgs> stateChanges = [];
         if (!WriteValue(name, value, changes))
         {
             return;
         }
 
-        SettleLogic([ExpressionPath.FromName(name)], changes);
+        SettleLogic([ExpressionPath.FromName(name)], changes, stateChanges);
         foreach (SurveyValueChangedEventArgs change in changes)
         {
             ValueChanged?.Invoke(this, change);
+        }
+        foreach (SurveyElementStateChangedEventArgs change in stateChanges)
+        {
+            ElementStateChanged?.Invoke(this, change);
+        }
+        if (State != previousState && State is SurveyState.Empty or SurveyState.Running)
+        {
+            RaiseStateChanged();
         }
     }
 
@@ -273,10 +322,11 @@ public sealed class Survey
             return false;
         }
 
-        for (int index = 0; index < _definition.Pages.Count; index += 1)
+        for (int index = 0; index < _visiblePageIndexes.Length; index += 1)
         {
+            int authoredIndex = _visiblePageIndexes[index];
             if (string.Equals(
-                _definition.Pages[index].Name,
+                _definition.Pages[authoredIndex].Name,
                 pageName,
                 StringComparison.Ordinal))
             {
@@ -294,9 +344,9 @@ public sealed class Survey
             return true;
         }
 
-        for (int index = 0; index < _definition.Pages.Count; index += 1)
+        for (int index = 0; index < _visiblePageIndexes.Length; index += 1)
         {
-            if (_definition.Pages[index].ContainsQuestion(name))
+            if (_definition.Pages[_visiblePageIndexes[index]].ContainsQuestion(name))
             {
                 return SetCurrentPageIndex(index);
             }
@@ -322,12 +372,17 @@ public sealed class Survey
             return SurveyState.Preview;
         }
 
-        return _pageCount > 0 ? SurveyState.Running : SurveyState.Empty;
+        return PageCount > 0 ? SurveyState.Running : SurveyState.Empty;
     }
 
     internal KajayValue GetValue(string name)
     {
         return TryGetValue(name, out KajayValue value) ? value : KajayValue.Absent;
+    }
+
+    internal bool IsAuthoredPageVisible(int pageIndex)
+    {
+        return _conditions.IsPageVisible(pageIndex);
     }
 
     internal ExpressionEvaluationContext CreateExpressionContext()
@@ -350,7 +405,8 @@ public sealed class Survey
 
     private void SettleLogic(
         IReadOnlyList<ExpressionPath> initialChanges,
-        ICollection<SurveyValueChangedEventArgs> changes)
+        ICollection<SurveyValueChangedEventArgs> changes,
+        ICollection<SurveyElementStateChangedEventArgs> stateChanges)
     {
         IReadOnlyList<ExpressionPath> pending = initialChanges;
         for (int cascade = 0; cascade < LogicCascadeLimit; cascade += 1)
@@ -358,20 +414,24 @@ public sealed class Survey
             IReadOnlyList<ExpressionPath> calculatedWrites =
                 _calculatedValues.Recalculate(pending, changes);
             ExpressionPath[] triggerInputs = [.. pending, .. calculatedWrites];
+            _conditions.Settle(triggerInputs, stateChanges);
+            _visiblePageIndexes = _conditions.GetVisiblePageIndexes();
             IReadOnlyList<ExpressionPath> triggerWrites =
                 _triggers.Settle(triggerInputs, changes);
             if (triggerWrites.Count == 0)
             {
-                return;
+                break;
             }
 
             pending = triggerWrites;
         }
+
+        ClampCurrentPage();
     }
 
     internal void AdvanceFromTimer()
     {
-        if (_currentPageIndex + 1 < _pageCount)
+        if (_currentPageIndex + 1 < PageCount)
         {
             SetCurrentPageIndex(_currentPageIndex + 1);
             return;
@@ -387,7 +447,7 @@ public sealed class Survey
 
     private bool SetCurrentPageIndex(int pageIndex)
     {
-        if (pageIndex < 0 || pageIndex >= _pageCount || pageIndex == _currentPageIndex)
+        if (pageIndex < 0 || pageIndex >= PageCount || pageIndex == _currentPageIndex)
         {
             return false;
         }
@@ -399,5 +459,13 @@ public sealed class Survey
             this,
             new SurveyCurrentPageChangedEventArgs(previousPageIndex, pageIndex));
         return true;
+    }
+
+    private void ClampCurrentPage()
+    {
+        if (PageCount > 0 && _currentPageIndex >= PageCount)
+        {
+            _ = SetCurrentPageIndex(PageCount - 1);
+        }
     }
 }

@@ -84,7 +84,7 @@ public sealed class SurveyTimer
             return TimeSpan.Zero;
         }
 
-        int pageIndex = _survey.CurrentPageIndex;
+        int pageIndex = _survey.CurrentAuthoredPageIndex;
         TimeSpan ownLimit = pageIndex < _pageLimits.Count
             ? _pageLimits[pageIndex]
             : TimeSpan.Zero;

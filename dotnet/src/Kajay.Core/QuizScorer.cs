@@ -7,7 +7,11 @@ internal static class QuizScorer
         SurveyRuntimeDefinition definition)
     {
         SurveyRuntimeQuestion[] questions = definition.Pages
+            .Where((_, index) => survey.IsAuthoredPageVisible(index))
             .SelectMany(page => page.Questions)
+            .Where(question => survey.TryGetQuestionState(
+                question.Name,
+                out SurveyQuestionState state) && state.IsReachable)
             .Where(question => question.HasCorrectAnswer)
             .ToArray();
         double earned = questions.Count(question =>

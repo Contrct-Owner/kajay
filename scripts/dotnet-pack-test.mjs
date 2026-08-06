@@ -159,6 +159,17 @@ if (!calculated.TryGetCalculatedValue("subtotal", out KajayValue subtotal)
     throw new InvalidOperationException("Installed package failed calculated values.");
 }
 
+Survey triggered = SurveyDefinition.Parse(
+    """{"triggers":[{"type":"setvalue","expression":"{start} = true","setToName":"result","setValue":42}],"pages":[{"name":"one"}]}""")
+    .Definition
+    .CreateSurvey();
+triggered.SetValue("start", KajayValue.From(true));
+if (!triggered.TryGetValue("result", out KajayValue triggeredResult)
+    || triggeredResult != KajayValue.From(42))
+{
+    throw new InvalidOperationException("Installed package failed trigger settlement.");
+}
+
 Console.WriteLine("dotnet pack smoke: ok");
 `;
 

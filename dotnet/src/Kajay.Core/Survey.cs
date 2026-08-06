@@ -3,10 +3,12 @@ namespace Kajay;
 /// <summary>A mutable, single-owner instance of a parsed survey definition.</summary>
 public sealed class Survey
 {
+    private const int LogicCascadeLimit = 128;
     private readonly int _pageCount;
     private readonly SurveyRuntimeDefinition _definition;
     private readonly Dictionary<string, KajayValue> _answers = new(StringComparer.Ordinal);
     private readonly SurveyCalculatedValues _calculatedValues;
+    private readonly SurveyTriggers _triggers;
     private readonly TimeProvider _timeProvider;
     private readonly ExpressionFunctionRegistry _expressionFunctions;
     private bool _isLoading;
@@ -32,6 +34,8 @@ public sealed class Survey
             definition.PageTimeLimits);
         _calculatedValues = new SurveyCalculatedValues(this, definition.CalculatedValues);
         _calculatedValues.SettleAll();
+        _triggers = new SurveyTriggers(this, definition.Triggers);
+        _triggers.Establish();
     }
 
     /// <summary>Gets the current lifecycle state.</summary>
@@ -158,12 +162,30 @@ public sealed class Survey
     public void SetValue(string name, KajayValue value)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
+        List<SurveyValueChangedEventArgs> changes = [];
+        if (!WriteValue(name, value, changes))
+        {
+            return;
+        }
+
+        SettleLogic([ExpressionPath.FromName(name)], changes);
+        foreach (SurveyValueChangedEventArgs change in changes)
+        {
+            ValueChanged?.Invoke(this, change);
+        }
+    }
+
+    internal bool WriteValue(
+        string name,
+        KajayValue value,
+        ICollection<SurveyValueChangedEventArgs> changes)
+    {
         bool hadPrevious = _answers.TryGetValue(name, out KajayValue previousValue);
         if (value.Kind == KajayValueKind.Absent)
         {
             if (!hadPrevious)
             {
-                return;
+                return false;
             }
 
             _answers.Remove(name);
@@ -172,21 +194,14 @@ public sealed class Survey
         {
             if (hadPrevious && previousValue == value)
             {
-                return;
+                return false;
             }
 
             _answers[name] = value;
         }
 
-        List<SurveyValueChangedEventArgs> changes =
-        [
-            new SurveyValueChangedEventArgs(name, previousValue, value),
-        ];
-        _calculatedValues.Settle(ExpressionPath.FromName(name), changes);
-        foreach (SurveyValueChangedEventArgs change in changes)
-        {
-            ValueChanged?.Invoke(this, change);
-        }
+        changes.Add(new SurveyValueChangedEventArgs(name, previousValue, value));
+        return true;
     }
 
     /// <summary>Completes once, publishing data before the state transition.</summary>
@@ -272,6 +287,24 @@ public sealed class Survey
         return false;
     }
 
+    internal bool GoToPageOrQuestion(string name)
+    {
+        if (GoToPage(name))
+        {
+            return true;
+        }
+
+        for (int index = 0; index < _definition.Pages.Count; index += 1)
+        {
+            if (_definition.Pages[index].ContainsQuestion(name))
+            {
+                return SetCurrentPageIndex(index);
+            }
+        }
+
+        return false;
+    }
+
     private SurveyState ResolveState()
     {
         if (_isLoading)
@@ -313,6 +346,27 @@ public sealed class Survey
             _timeProvider.GetUtcNow(),
             values,
             _expressionFunctions);
+    }
+
+    private void SettleLogic(
+        IReadOnlyList<ExpressionPath> initialChanges,
+        ICollection<SurveyValueChangedEventArgs> changes)
+    {
+        IReadOnlyList<ExpressionPath> pending = initialChanges;
+        for (int cascade = 0; cascade < LogicCascadeLimit; cascade += 1)
+        {
+            IReadOnlyList<ExpressionPath> calculatedWrites =
+                _calculatedValues.Recalculate(pending, changes);
+            ExpressionPath[] triggerInputs = [.. pending, .. calculatedWrites];
+            IReadOnlyList<ExpressionPath> triggerWrites =
+                _triggers.Settle(triggerInputs, changes);
+            if (triggerWrites.Count == 0)
+            {
+                return;
+            }
+
+            pending = triggerWrites;
+        }
     }
 
     internal void AdvanceFromTimer()

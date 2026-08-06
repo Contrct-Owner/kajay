@@ -11,12 +11,17 @@ internal sealed record SurveyRuntimePage(
         JsonArray? elements = node?["elements"] as JsonArray;
         SurveyRuntimeQuestion[] questions = elements is null
             ? []
-            : elements
-                .OfType<JsonObject>()
-                .Select(SurveyRuntimeQuestion.From)
-                .ToArray();
+            : SurveyRuntimeQuestion.FromElements(elements);
         return new SurveyRuntimePage(
             node?["name"]?.GetValue<string>() ?? string.Empty,
             questions);
+    }
+
+    internal bool ContainsQuestion(string questionName)
+    {
+        return Questions.Any(question => string.Equals(
+            question.Name,
+            questionName,
+            StringComparison.Ordinal));
     }
 }

@@ -52,14 +52,14 @@ internal sealed class SurveyCalculatedValues
         Settle(_graph.PlanAll(), null);
     }
 
-    internal void Settle(
-        ExpressionPath changedPath,
+    internal IReadOnlyList<ExpressionPath> Recalculate(
+        IReadOnlyList<ExpressionPath> changedPaths,
         ICollection<SurveyValueChangedEventArgs> changes)
     {
-        Settle(_graph.Plan([changedPath]), changes);
+        return Settle(_graph.Plan(changedPaths), changes);
     }
 
-    private void Settle(
+    private List<ExpressionPath> Settle(
         DependencyPlan plan,
         ICollection<SurveyValueChangedEventArgs>? changes)
     {
@@ -67,6 +67,7 @@ internal sealed class SurveyCalculatedValues
             .Where(error => string.Equals(error.Code, "cycle", StringComparison.Ordinal))
             .SelectMany(error => error.Nodes)
             .ToHashSet(StringComparer.Ordinal);
+        List<ExpressionPath> writes = [];
 
         foreach (string key in plan.Order)
         {
@@ -90,6 +91,7 @@ internal sealed class SurveyCalculatedValues
             }
 
             _values[rule.Name] = evaluation.Value;
+            writes.Add(ExpressionPath.FromName(rule.Name));
             if (changes is not null && rule.IncludeIntoResult)
             {
                 changes.Add(new SurveyValueChangedEventArgs(
@@ -98,5 +100,7 @@ internal sealed class SurveyCalculatedValues
                     evaluation.Value));
             }
         }
+
+        return writes;
     }
 }

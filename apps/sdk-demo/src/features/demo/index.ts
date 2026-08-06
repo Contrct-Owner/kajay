@@ -1,2 +1,3 @@
 export { DemoWorkspace } from './components/DemoWorkspace.js';
-export { createDemoRuntime } from './api/createDemoRuntime.js';
+export { createDemoRuntimes } from './api/createDemoRuntime.js';
+export type { DemoRuntimeCatalog } from './api/createDemoRuntime.js';

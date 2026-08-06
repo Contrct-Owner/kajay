@@ -1,0 +1,14 @@
+{
+  "name": "@kajay/sdk-demo-api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Node HTTP host demonstrating the TypeScript Kajay SDK through the shared demo contract.",
+  "scripts": {
+    "build": "tsc -b",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@kajay/core": "workspace:*"
+  }
+}

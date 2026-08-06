@@ -9,6 +9,7 @@
     { "path": "./packages/themes" },
     { "path": "./apps/host-demo" },
     { "path": "./apps/sdk-demo" },
+    { "path": "./apps/sdk-demo-api" },
     { "path": "./apps/site" },
     { "path": "./tsconfig.tests.json" }
   ]

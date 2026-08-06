@@ -1,12 +1,20 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
-import { createDemoRuntime, DemoWorkspace } from '../features/demo/index.js';
+import { createDemoRuntimes, DemoWorkspace } from '../features/demo/index.js';
+import type { DemoRuntimeName } from '../features/demo/api/DemoRuntimeTypes.js';
+
+const runtimeLabels: Readonly<Record<DemoRuntimeName, string>> = {
+  compare: 'Compare',
+  dotnet: '.NET',
+  typescript: 'TypeScript',
+};
 
 export function App(): ReactElement {
-  const runtime = useMemo(
-    () => createDemoRuntime(import.meta.env['VITE_KAJAY_RUNTIME']),
+  const catalog = useMemo(
+    () => createDemoRuntimes(import.meta.env['VITE_KAJAY_RUNTIME']),
     [],
   );
+  const [runtime, setRuntime] = useState(catalog.initial);
 
   return (
     <div className="app-shell">
@@ -15,13 +23,42 @@ export function App(): ReactElement {
           <p className="eyebrow">Kajay SDK</p>
           <h1>One product, two runtimes</h1>
           <p>
-            The same renderer and Creator frontend is backed by the{' '}
-            <strong>{runtime.name}</strong> SDK profile.
+            Direct every authoritative request to one SDK, or ask both and compare their
+            stable results.
           </p>
         </div>
-        <span className="runtime-badge">{runtime.name}</span>
+        <RuntimeSelector
+          runtimes={catalog.available}
+          selected={runtime}
+          onSelected={setRuntime}
+        />
       </header>
-      <DemoWorkspace runtime={runtime} />
+      <DemoWorkspace key={runtime.name} runtime={runtime} />
     </div>
+  );
+}
+
+function RuntimeSelector({
+  runtimes,
+  selected,
+  onSelected,
+}: {
+  readonly runtimes: ReturnType<typeof createDemoRuntimes>['available'];
+  readonly selected: ReturnType<typeof createDemoRuntimes>['initial'];
+  readonly onSelected: (runtime: ReturnType<typeof createDemoRuntimes>['initial']) => void;
+}): ReactElement {
+  return (
+    <nav className="runtime-selector" aria-label="Runtime authority">
+      {runtimes.map((runtime) => (
+        <button
+          type="button"
+          key={runtime.name}
+          aria-pressed={runtime === selected}
+          onClick={() => { onSelected(runtime); }}
+        >
+          {runtimeLabels[runtime.name]}
+        </button>
+      ))}
+    </nav>
   );
 }

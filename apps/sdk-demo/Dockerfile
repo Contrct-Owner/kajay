@@ -20,8 +20,12 @@ RUN pnpm --filter @kajay/sdk-demo... run build
 
 FROM nginx:1.29-alpine AS typescript
 COPY --from=build /workspace/apps/sdk-demo/dist /usr/share/nginx/html
-COPY apps/sdk-demo/nginx/static.conf /etc/nginx/conf.d/default.conf
+COPY apps/sdk-demo/nginx/typescript.conf /etc/nginx/conf.d/default.conf
 
 FROM nginx:1.29-alpine AS dotnet
 COPY --from=build /workspace/apps/sdk-demo/dist /usr/share/nginx/html
 COPY apps/sdk-demo/nginx/dotnet.conf /etc/nginx/conf.d/default.conf
+
+FROM nginx:1.29-alpine AS compare
+COPY --from=build /workspace/apps/sdk-demo/dist /usr/share/nginx/html
+COPY apps/sdk-demo/nginx/compare.conf /etc/nginx/conf.d/default.conf

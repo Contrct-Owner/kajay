@@ -13,7 +13,7 @@ function isObject(value: unknown): value is Record<string, unknown> {
 }
 
 function readRuntime(value: unknown): DemoRuntimeName {
-  if (value === 'dotnet' || value === 'typescript') return value;
+  if (value === 'dotnet' || value === 'typescript' || value === 'compare') return value;
   throw new TypeError('Demo response has an unsupported runtime.');
 }
 

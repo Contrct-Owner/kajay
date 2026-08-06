@@ -5,82 +5,83 @@
 - Owner: Jarod
 - Last updated: 2026-08-06
 
-The SDK demo is one TypeScript renderer and Creator application with two runtime
-profiles. The screen and definition stay the same; the profile selects which SDK owns
-definition validation and final submission.
+The SDK demo is one TypeScript renderer and Creator application backed by equivalent
+C# and TypeScript HTTP APIs. The screen and authored definition stay constant while a
+runtime selector chooses which SDK is authoritative or compares both live.
 
 ## Run with Docker Compose
 
-Choose one profile at a time because both publish the demo at
-<http://localhost:4173>.
+The recommended profile starts both runtimes and publishes the demo at
+<http://localhost:4173>:
+
+```bash
+docker compose --profile compare up --build
+```
+
+Use **Compare** to send each operation to both runtimes concurrently, or select
+**.NET** or **TypeScript** to direct requests to one API. The comparison checks
+canonical definitions, diagnostic identity, validation identity, lifecycle outcome,
+response data, and quiz score. Message wording is intentionally ignored. A mismatch is
+visible and rejected; an answer-validation mismatch blocks navigation.
+
+The individual profiles remain useful when inspecting one integration:
 
 ```bash
 docker compose --profile dotnet up --build
-```
-
-The `dotnet` profile starts the C# 14 ASP.NET Core API and an Nginx-hosted frontend.
-Nginx keeps the browser on one origin and proxies `/api` and `/openapi` to the API.
-
-```bash
 docker compose --profile typescript up --build
 ```
 
-The `typescript` profile starts only the frontend. Its local adapter runs
-`@kajay/core` in the browser.
-
-Stop either profile with `docker compose --profile <profile> down`.
+Each profile publishes port 4173, so run one frontend profile at a time. Stop it with
+`docker compose --profile <profile> down`.
 
 ## Run from source
 
-For the .NET profile, use two terminals:
+Start the two APIs and frontend in separate terminals:
 
 ```bash
 dotnet run --project dotnet/apps/Kajay.Demo.Api --urls http://localhost:5080
-VITE_KAJAY_RUNTIME=dotnet pnpm --filter @kajay/sdk-demo dev
+pnpm --filter @kajay/sdk-demo-api build
+PORT=5081 pnpm --filter @kajay/sdk-demo-api start
+VITE_KAJAY_RUNTIME=compare pnpm --filter @kajay/sdk-demo dev
 ```
 
-For TypeScript only:
+Use its TypeScript build in watch mode when iterating on the API. Vite serves
+<http://localhost:5174> and proxies the runtime-qualified API paths to ports 5080 and
+5081.
 
-```bash
-VITE_KAJAY_RUNTIME=typescript pnpm --filter @kajay/sdk-demo dev
-```
+## API behavior demonstrated
 
-Vite serves the app at <http://localhost:5174> and proxies `/api` to port 5080 in
-the .NET mode.
-
-## What the .NET profile demonstrates
-
-The API consumes `Kajay.Core` through its public interface and exposes:
+Both hosts expose the same application operations:
 
 | Endpoint | SDK behavior |
 | --- | --- |
-| `GET /api/demo/definition` | Parse and canonicalize the embedded definition |
+| `GET /api/demo/definition` | Parse and canonicalize the shared definition |
 | `POST /api/demo/definitions/validate` | Return stable authoring diagnostics and canonical JSON |
 | `POST /api/demo/answers/validate` | Run host/server validation inside the renderer's forward-navigation gate |
-| `POST /api/demo/submissions` | Apply JSON answers, settle logic, advance lifecycle gates, run host/server validation, and score the quiz |
-| `GET /openapi/v1.json` | Generated ASP.NET Core OpenAPI document |
+| `POST /api/demo/submissions` | Apply answers, settle logic, advance lifecycle gates, validate, and score the quiz |
 | `GET /health` | Container/API liveness |
 
-Use `blocked@example.com` in the renderer to prove that a host-supplied server
-validator can reject an otherwise valid submission. A successful result includes the
-`profileComplete` calculated value and the rating quiz score.
+The C# host additionally publishes its generated OpenAPI document at
+`/openapi/dotnet/v1.json` through the demo proxy. Use `blocked@example.com` in the
+renderer to prove that the same host-supplied validator rejects an otherwise valid
+submission in both runtimes. A successful result includes the `profileComplete`
+calculated value and rating quiz score.
 
 ## Source map
 
-- `apps/sdk-demo/src/features/demo/` owns the frontend feature and the narrow
-  `DemoRuntime` interface.
-- `HttpDemoRuntime` adapts the C# HTTP contract; `LocalDemoRuntime` adapts
-  `@kajay/core` directly.
-- `dotnet/apps/Kajay.Demo.Api/` owns the C# application use cases and thin endpoint
-  adapter.
-- `apps/sdk-demo/public/demo-survey.json` is the one authored demo definition embedded
-  by the API and served by the frontend.
+- `apps/sdk-demo/src/features/demo/` owns the frontend feature, narrow `DemoRuntime`
+  interface, HTTP adapters, and comparing decorator.
+- `apps/sdk-demo-api/` owns the Node HTTP host for public `@kajay/core` operations.
+- `dotnet/apps/Kajay.Demo.Api/` owns the C# application use cases and thin HTTP
+  endpoints over public `Kajay.Core` interfaces.
+- `apps/sdk-demo/public/demo-survey.json` is the single authored input used by both
+  APIs and the Creator.
 
-This is an integration example, not a third runtime contract. Cross-language semantic
-compatibility remains owned by `conformance/v*/`.
+This remains an integration example, not a third runtime contract. Cross-language
+semantic compatibility is versioned and exhaustively proved by `conformance/v*/`.
 
 ## Parent and related links
 
 - [Project context](../CONTEXT.md)
-- [Demo runtime decision](./adr/0032-compose-sdk-demo-profiles.md)
+- [Dual-runtime comparison decision](./adr/0033-dual-runtime-compatibility-demo.md)
 - [C# SDK decision](./adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md)

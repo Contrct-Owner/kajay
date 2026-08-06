@@ -28,16 +28,24 @@ async function post(path: string, body: unknown): Promise<unknown> {
   );
 }
 
-/** Remote adapter: every authoritative operation crosses the C# API boundary. */
+/** Remote adapter: every authoritative operation crosses one SDK API boundary. */
 export class HttpDemoRuntime implements DemoRuntime {
-  readonly name = 'dotnet' as const;
+  readonly name: 'dotnet' | 'typescript';
+  readonly #basePath: string;
+
+  constructor(name: 'dotnet' | 'typescript', basePath: string) {
+    this.name = name;
+    this.#basePath = basePath;
+  }
 
   async loadDefinition(): Promise<DemoDefinitionResult> {
-    return readDefinitionResult(await readJson(await fetch('/api/demo/definition')));
+    return readDefinitionResult(await readJson(await fetch(`${this.#basePath}/demo/definition`)));
   }
 
   async validateDefinition(definition: SurveyDefinition): Promise<DemoDefinitionResult> {
-    return readDefinitionResult(await post('/api/demo/definitions/validate', { definition }));
+    return readDefinitionResult(
+      await post(`${this.#basePath}/demo/definitions/validate`, { definition }),
+    );
   }
 
   async validateAnswers(
@@ -45,7 +53,7 @@ export class HttpDemoRuntime implements DemoRuntime {
     questionNames: readonly string[],
   ): Promise<readonly DemoSubmissionError[]> {
     return readAnswerValidationResult(
-      await post('/api/demo/answers/validate', { data, questionNames }),
+      await post(`${this.#basePath}/demo/answers/validate`, { data, questionNames }),
     );
   }
 
@@ -53,6 +61,8 @@ export class HttpDemoRuntime implements DemoRuntime {
     definition: SurveyDefinition,
     data: Readonly<Record<string, unknown>>,
   ): Promise<DemoSubmissionResult> {
-    return readSubmissionResult(await post('/api/demo/submissions', { definition, data }));
+    return readSubmissionResult(
+      await post(`${this.#basePath}/demo/submissions`, { definition, data }),
+    );
   }
 }

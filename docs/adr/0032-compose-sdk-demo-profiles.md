@@ -1,7 +1,7 @@
 # ADR-0032: One SDK demo frontend with Compose runtime profiles
 
 - Area: SDK demonstrations and deployment
-- Status: accepted
+- Status: superseded by 0033
 - Owner: Jarod
 - Last updated: 2026-08-06
 
@@ -55,3 +55,4 @@ extend the adapter-neutral conformance corpus.
 - [ADR index](./README.md)
 - [SDK demo guide](../sdk-demos.md)
 - [C# SDK architecture](./0031-csharp-sdk-source-and-namespace-architecture.md)
+- [Dual-runtime comparison](./0033-dual-runtime-compatibility-demo.md)

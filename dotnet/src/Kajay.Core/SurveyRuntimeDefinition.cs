@@ -6,6 +6,8 @@ internal sealed record SurveyRuntimeDefinition(
     IReadOnlyList<SurveyRuntimePage> Pages,
     IReadOnlyList<SurveyRuntimeCalculatedValue> CalculatedValues,
     IReadOnlyList<SurveyRuntimeTrigger> Triggers,
+    bool ValidationEnabled,
+    SurveyValidationMode ValidationMode,
     TimeSpan SurveyTimeLimit,
     TimeSpan DefaultPageTimeLimit,
     IReadOnlyList<TimeSpan> PageTimeLimits)
@@ -44,9 +46,21 @@ internal sealed record SurveyRuntimeDefinition(
             runtimePages,
             runtimeCalculatedValues,
             runtimeTriggers,
+            definition["validationEnabled"]?.GetValue<bool>() ?? true,
+            ReadValidationMode(definition["checkErrorsMode"]),
             ReadSeconds(definition["maxTimeToFinish"]),
             ReadSeconds(definition["maxTimeToFinishPage"]),
             pageTimeLimits);
+    }
+
+    private static SurveyValidationMode ReadValidationMode(JsonNode? node)
+    {
+        return node?.GetValue<string>() switch
+        {
+            "onValueChanged" => SurveyValidationMode.OnValueChanged,
+            "onComplete" => SurveyValidationMode.OnComplete,
+            _ => SurveyValidationMode.OnNextPage,
+        };
     }
 
     private static TimeSpan ReadSeconds(JsonNode? node)

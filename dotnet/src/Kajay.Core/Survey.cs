@@ -295,7 +295,8 @@ public sealed class Survey
 
         string page = CurrentPageName;
         IReadOnlyDictionary<string, KajayValue> data = Data;
-        SurveyValidationResult validation = await Validation.ValidateCurrentPageAsync(
+        SurveyValidationResult validation = await Validation.ValidateAdvanceAsync(
+            IsLastPage,
             cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         if (!string.Equals(page, CurrentPageName, StringComparison.Ordinal)

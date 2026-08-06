@@ -24,16 +24,47 @@ public sealed class SurveyValidation
     /// <summary>Gets whether asynchronous host validation is currently outstanding.</summary>
     public bool IsValidating { get; private set; }
 
+    /// <summary>Gets whether authored and host validation are enabled.</summary>
+    public bool IsEnabled => _definition.ValidationEnabled;
+
+    /// <summary>Gets when forward navigation applies the validation gate.</summary>
+    public SurveyValidationMode Mode => _definition.ValidationMode;
+
     /// <summary>Checks the questions on the current page.</summary>
     /// <returns>Whether the page passed and each failed rule in definition order.</returns>
     public SurveyValidationResult ValidateCurrentPage()
     {
-        SurveyRuntimeQuestion[] questions = CurrentQuestions();
-        if (questions.Length == 0)
-        {
-            return new SurveyValidationResult(true, []);
-        }
+        return IsEnabled
+            ? Validate(CurrentQuestions())
+            : new SurveyValidationResult(true, []);
+    }
 
+    /// <summary>Runs synchronous rules, then asynchronous question and server checks.</summary>
+    /// <param name="cancellationToken">Cancels pending host work.</param>
+    /// <returns>Whether the current page passed and every reported error.</returns>
+    public async ValueTask<SurveyValidationResult> ValidateCurrentPageAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await ValidateAsync(
+            IsEnabled ? CurrentQuestions() : [],
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    internal ValueTask<SurveyValidationResult> ValidateAdvanceAsync(
+        bool isLastPage,
+        CancellationToken cancellationToken)
+    {
+        SurveyRuntimeQuestion[] questions = !IsEnabled
+            || Mode == SurveyValidationMode.OnComplete && !isLastPage
+                ? []
+                : Mode == SurveyValidationMode.OnComplete
+                    ? AllQuestions()
+                    : CurrentQuestions();
+        return ValidateAsync(questions, cancellationToken);
+    }
+
+    private SurveyValidationResult Validate(SurveyRuntimeQuestion[] questions)
+    {
         var errors = new List<SurveyValidationError>();
         foreach (SurveyRuntimeQuestion question in questions)
         {
@@ -43,11 +74,9 @@ public sealed class SurveyValidation
         return new SurveyValidationResult(errors.Count == 0, errors.AsReadOnly());
     }
 
-    /// <summary>Runs synchronous rules, then asynchronous question and server checks.</summary>
-    /// <param name="cancellationToken">Cancels pending host work.</param>
-    /// <returns>Whether the current page passed and every reported error.</returns>
-    public async ValueTask<SurveyValidationResult> ValidateCurrentPageAsync(
-        CancellationToken cancellationToken = default)
+    private async ValueTask<SurveyValidationResult> ValidateAsync(
+        SurveyRuntimeQuestion[] questions,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (IsValidating)
@@ -55,14 +84,14 @@ public sealed class SurveyValidation
             throw new InvalidOperationException("Survey validation is already in progress.");
         }
 
-        SurveyValidationResult synchronous = ValidateCurrentPage();
+        SurveyValidationResult synchronous = Validate(questions);
         if (!synchronous.IsValid
+            || questions.Length == 0
             || _asyncQuestionValidator is null && _serverValidator is null)
         {
             return synchronous;
         }
 
-        SurveyRuntimeQuestion[] questions = CurrentQuestions();
         var errors = new List<SurveyValidationError>();
         IsValidating = true;
         try
@@ -158,6 +187,16 @@ public sealed class SurveyValidation
         }
 
         return _definition.Pages[_survey.CurrentAuthoredPageIndex].Questions
+            .Where(question => _survey.TryGetQuestionState(
+                question.Name,
+                out SurveyQuestionState state) && state.IsReachable)
+            .ToArray();
+    }
+
+    private SurveyRuntimeQuestion[] AllQuestions()
+    {
+        return _definition.Pages
+            .SelectMany(page => page.Questions)
             .Where(question => _survey.TryGetQuestionState(
                 question.Name,
                 out SurveyQuestionState state) && state.IsReachable)

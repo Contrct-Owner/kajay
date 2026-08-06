@@ -99,6 +99,58 @@ public sealed class SurveyAsyncValidationTests
         Assert.Equal(0, asyncCalls);
     }
 
+    [Fact]
+    public async Task OnCompleteDefersAllReachableQuestionsUntilTheLastPage()
+    {
+        int asyncCalls = 0;
+        Survey survey = SurveyDefinition.Parse(
+            """
+            {
+              "checkErrorsMode":"onComplete",
+              "pages":[
+                {"name":"one","elements":[{"type":"text","name":"first","isRequired":true}]},
+                {"name":"two","elements":[{"type":"text","name":"second"}]}
+              ]
+            }
+            """)
+            .Definition
+            .CreateSurvey(new SurveyOptions
+            {
+                AsyncQuestionValidator = (_, _) =>
+                {
+                    asyncCalls += 1;
+                    return ValueTask.FromResult<IReadOnlyList<SurveyValidationError>>([]);
+                },
+            });
+
+        Assert.Equal(SurveyValidationMode.OnComplete, survey.Validation.Mode);
+        Assert.Equal(SurveyAdvanceOutcome.Advanced, await survey.AdvanceAsync());
+        Assert.Equal(0, asyncCalls);
+        Assert.Equal(SurveyAdvanceOutcome.Blocked, await survey.AdvanceAsync());
+        Assert.Equal(0, asyncCalls);
+    }
+
+    [Fact]
+    public async Task DisabledValidationNeitherRunsNorBlocks()
+    {
+        int hostCalls = 0;
+        Survey survey = SurveyDefinition.Parse(
+            """{"validationEnabled":false,"pages":[{"name":"one","elements":[{"type":"text","name":"answer","isRequired":true}]},{"name":"two"}]}""")
+            .Definition
+            .CreateSurvey(new SurveyOptions
+            {
+                QuestionValidator = _ =>
+                {
+                    hostCalls += 1;
+                    return [new SurveyValidationError("answer", "host")];
+                },
+            });
+
+        Assert.False(survey.Validation.IsEnabled);
+        Assert.Equal(SurveyAdvanceOutcome.Advanced, await survey.AdvanceAsync());
+        Assert.Equal(0, hostCalls);
+    }
+
     private static Survey CreateSurvey(SurveyOptions options)
     {
         return SurveyDefinition.Parse(

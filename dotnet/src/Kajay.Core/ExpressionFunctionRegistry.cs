@@ -71,6 +71,13 @@ public sealed class ExpressionFunctionRegistry
         return _asyncFunctions.ContainsKey(name);
     }
 
+    internal AsyncExpressionFunction? GetAsync(string name)
+    {
+        return _asyncFunctions.TryGetValue(name, out AsyncExpressionFunction? implementation)
+            ? implementation
+            : null;
+    }
+
     private void ValidateRegistration(string name, Delegate implementation)
     {
         ArgumentNullException.ThrowIfNull(name);

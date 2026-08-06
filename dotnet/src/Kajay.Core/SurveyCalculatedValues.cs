@@ -52,6 +52,12 @@ internal sealed class SurveyCalculatedValues
         Settle(_graph.PlanAll(), null);
     }
 
+    internal IReadOnlyList<ExpressionPath> SettleAll(
+        ICollection<SurveyValueChangedEventArgs> changes)
+    {
+        return Settle(_graph.PlanAll(), changes);
+    }
+
     internal IReadOnlyList<ExpressionPath> Recalculate(
         IReadOnlyList<ExpressionPath> changedPaths,
         ICollection<SurveyValueChangedEventArgs> changes)

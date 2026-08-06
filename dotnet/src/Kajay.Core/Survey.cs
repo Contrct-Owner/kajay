@@ -11,6 +11,7 @@ public sealed class Survey
     private readonly SurveyTriggers _triggers;
     private readonly TimeProvider _timeProvider;
     private readonly ExpressionFunctionRegistry _expressionFunctions;
+    private readonly SurveyAsyncFunctionValues _asyncFunctionValues;
     private readonly IReadOnlyDictionary<string, SurveyQuestion> _questionsByName;
     private bool _isLoading;
     private bool _isPreviewing;
@@ -26,6 +27,7 @@ public sealed class Survey
         _definition = definition;
         _timeProvider = timeProvider;
         _expressionFunctions = options.ExpressionFunctions;
+        _asyncFunctionValues = new SurveyAsyncFunctionValues(_expressionFunctions);
         Validation = new SurveyValidation(this, definition, options);
         Timer = new SurveyTimer(
             this,
@@ -108,6 +110,9 @@ public sealed class Survey
 
     /// <summary>Raised after expression-derived element states finish settling.</summary>
     public event EventHandler<SurveyElementStateChangedEventArgs>? ElementStateChanged;
+
+    /// <summary>Gets whether asynchronous expression functions are being settled.</summary>
+    public bool IsSettling { get; private set; }
 
     /// <summary>Gets an immutable snapshot of answers and included calculated values.</summary>
     public IReadOnlyDictionary<string, KajayValue> Data
@@ -243,6 +248,46 @@ public sealed class Survey
         if (State != previousState && State is SurveyState.Empty or SurveyState.Running)
         {
             RaiseStateChanged();
+        }
+    }
+
+    /// <summary>Sets an answer, then awaits every newly reachable asynchronous function.</summary>
+    public async Task SetValueAsync(
+        string name,
+        KajayValue value,
+        CancellationToken cancellationToken = default)
+    {
+        SetValue(name, value);
+        await SettleAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>Runs asynchronous expression functions to a deterministic fixed point.</summary>
+    public async Task SettleAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (IsSettling)
+        {
+            throw new InvalidOperationException("Survey expression settlement is already in progress.");
+        }
+
+        IsSettling = true;
+        try
+        {
+            for (int pass = 0; pass < LogicCascadeLimit; pass += 1)
+            {
+                _asyncFunctionValues.Begin(_timeProvider.GetUtcNow(), cancellationToken);
+                SettleAllLogic();
+                if (!await _asyncFunctionValues.ResolvePendingAsync().ConfigureAwait(false))
+                {
+                    return;
+                }
+            }
+
+            throw new InvalidOperationException("Asynchronous expression settlement did not converge.");
+        }
+        finally
+        {
+            IsSettling = false;
         }
     }
 
@@ -450,7 +495,31 @@ public sealed class Survey
         return new ExpressionEvaluationContext(
             _timeProvider.GetUtcNow(),
             values,
-            _expressionFunctions);
+            _expressionFunctions,
+            _asyncFunctionValues);
+    }
+
+    private void SettleAllLogic()
+    {
+        List<SurveyValueChangedEventArgs> changes = [];
+        List<SurveyElementStateChangedEventArgs> stateChanges = [];
+        IReadOnlyList<ExpressionPath> calculatedWrites = _calculatedValues.SettleAll(changes);
+        _conditions.Establish(stateChanges);
+        _visiblePageIndexes = _conditions.GetVisiblePageIndexes();
+        IReadOnlyList<ExpressionPath> triggerWrites = _triggers.SettleAll(changes);
+        if (calculatedWrites.Count > 0 || triggerWrites.Count > 0)
+        {
+            SettleLogic([.. calculatedWrites, .. triggerWrites], changes, stateChanges);
+        }
+
+        foreach (SurveyValueChangedEventArgs change in changes)
+        {
+            ValueChanged?.Invoke(this, change);
+        }
+        foreach (SurveyElementStateChangedEventArgs change in stateChanges)
+        {
+            ElementStateChanged?.Invoke(this, change);
+        }
     }
 
     private void SettleLogic(

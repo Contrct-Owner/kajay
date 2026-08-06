@@ -29,6 +29,12 @@ internal sealed class SurveyTriggers
         _ = Settle(_graph.PlanAll(), null);
     }
 
+    internal IReadOnlyList<ExpressionPath> SettleAll(
+        ICollection<SurveyValueChangedEventArgs> changes)
+    {
+        return Settle(_graph.PlanAll(), changes);
+    }
+
     internal IReadOnlyList<ExpressionPath> Settle(
         IReadOnlyList<ExpressionPath> changedPaths,
         ICollection<SurveyValueChangedEventArgs> changes)

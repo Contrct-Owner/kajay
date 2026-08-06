@@ -37,6 +37,11 @@ internal sealed class SurveyConditions
         Settle(_graph.PlanAll(), null);
     }
 
+    internal void Establish(ICollection<SurveyElementStateChangedEventArgs> changes)
+    {
+        Settle(_graph.PlanAll(), changes);
+    }
+
     internal void Settle(
         IReadOnlyList<ExpressionPath> changedPaths,
         ICollection<SurveyElementStateChangedEventArgs> changes)

@@ -95,6 +95,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("different-objects-are-not-equal");
     }
 
+    [Fact]
+    public void ObjectsDoNotConcatenateThroughHostText()
+    {
+        AssertEvaluationCase("objects-do-not-concatenate-through-host-text");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

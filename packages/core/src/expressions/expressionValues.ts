@@ -51,6 +51,26 @@ export function toNumber(value: unknown): number | undefined {
   return undefined;
 }
 
+/** Invariant scalar text, or undefined for arrays, objects, and unsupported values. */
+export function toText(value: unknown): string | undefined {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  if (value instanceof Date) {
+    return Number.isFinite(value.getTime()) ? value.toISOString() : undefined;
+  }
+  switch (typeof value) {
+    case 'boolean':
+      return value ? 'true' : 'false';
+    case 'number':
+      return Number.isFinite(value) ? JSON.stringify(value) : undefined;
+    case 'string':
+      return value;
+    default:
+      return undefined;
+  }
+}
+
 /**
  * Equality.
  *

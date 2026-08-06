@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Kajay;
 
 internal sealed class SurveyCompositeValidation(Survey survey)
@@ -11,7 +13,7 @@ internal sealed class SurveyCompositeValidation(Survey survey)
         ValidateRecords(question, value, errors);
     }
 
-    private static void ValidateMatrix(
+    private void ValidateMatrix(
         SurveyRuntimeQuestion question,
         KajayValue value,
         List<SurveyValidationError> errors)
@@ -52,6 +54,14 @@ internal sealed class SurveyCompositeValidation(Survey survey)
             {
                 selected.Add(answer);
             }
+
+            if (settings.Fields.Count > 0)
+            {
+                KajayValue record = answer.Kind == KajayValueKind.Map
+                    ? answer
+                    : KajayValue.FromObject([]);
+                ValidateRecord(question, settings.Fields, record, path, "row", errors);
+            }
         }
     }
 
@@ -75,7 +85,14 @@ internal sealed class SurveyCompositeValidation(Survey survey)
             KajayValue record = index < stored.Count && stored[index].Kind == KajayValueKind.Map
                 ? stored[index]
                 : KajayValue.FromObject([]);
-            ValidateRecord(question, settings.Fields, record, index, errors);
+            string alias = question.Type == "paneldynamic" ? "panel" : "row";
+            ValidateRecord(
+                question,
+                settings.Fields,
+                record,
+                index.ToString(CultureInfo.InvariantCulture),
+                alias,
+                errors);
         }
     }
 
@@ -83,10 +100,10 @@ internal sealed class SurveyCompositeValidation(Survey survey)
         SurveyRuntimeQuestion owner,
         IReadOnlyList<SurveyRuntimeQuestion> fields,
         KajayValue record,
-        int index,
+        string path,
+        string alias,
         List<SurveyValidationError> errors)
     {
-        string alias = owner.Type == "paneldynamic" ? "panel" : "row";
         ExpressionEvaluationContext context = survey.CreateExpressionContext(
             [new KeyValuePair<string, KajayValue>(alias, record)]);
         foreach (SurveyRuntimeQuestion field in fields)
@@ -104,7 +121,7 @@ internal sealed class SurveyCompositeValidation(Survey survey)
                     owner.Name,
                     "required",
                     field.RequiredMessage,
-                    $"{index}.{field.Name}"));
+                    $"{path}.{field.Name}"));
             }
         }
     }

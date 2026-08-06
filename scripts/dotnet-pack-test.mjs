@@ -1,18 +1,17 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-
 const repositoryRoot = resolve(import.meta.dirname, '..');
 const project = resolve(repositoryRoot, 'dotnet/src/Kajay.Core/Kajay.Core.csproj');
+const questionModelSmoke = readFileSync(resolve(repositoryRoot, 'scripts/dotnet-pack-question-model-smoke.cs'), 'utf8');
 const consumerProgram = `using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Kajay;
-
 if (KajayContracts.SurveySchemaId != "urn:kajay:survey-definition:1"
     || KajayContracts.CurrentSurveySchemaVersion != 1
     || KajayContracts.RuntimeMetadataContractVersion != 1
@@ -230,6 +229,7 @@ cancellation.Cancel();
 try { await pendingValidation; throw new InvalidOperationException("Installed package ignored validation cancellation."); }
 catch (OperationCanceledException) { }
 if (cancellable.Validation.IsValidating || cancellable.CurrentPageName != "one") throw new InvalidOperationException("Installed package failed cancellation cleanup.");
+${questionModelSmoke}
 Console.WriteLine("dotnet pack smoke: ok");
 `;
 const scratch = mkdtempSync(join(tmpdir(), 'kajay-dotnet-pack-'));

@@ -104,10 +104,14 @@ internal sealed record SurveyRuntimeQuestion(
 
     private static SurveyRuntimeMatrixSettings? ReadMatrixSettings(JsonObject element)
     {
-        return element["type"]?.GetValue<string>() == "matrix"
+        string type = element["type"]?.GetValue<string>() ?? string.Empty;
+        return type is "matrix" or "matrixcells"
             ? new SurveyRuntimeMatrixSettings(
                 element["isAllRowRequired"]?.GetValue<bool>() ?? false,
-                element["eachRowUnique"]?.GetValue<bool>() ?? false)
+                element["eachRowUnique"]?.GetValue<bool>() ?? false,
+                type == "matrixcells"
+                    ? ReadFields(element["columns"] as JsonArray)
+                    : Array.Empty<SurveyRuntimeQuestion>())
             : null;
     }
 

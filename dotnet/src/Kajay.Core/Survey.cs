@@ -534,7 +534,7 @@ public sealed class Survey
         {
             "checkbox" or "dropdown" or "imagepicker" or "radiogroup" or "ranking"
                 or "tagbox" => new SurveyChoiceQuestion(this, definition),
-            "matrix" => new SurveyMatrixQuestion(this, definition),
+            "matrix" or "matrixcells" => new SurveyMatrixQuestion(this, definition),
             "matrixdynamic" or "paneldynamic" => new SurveyRecordQuestion(this, definition),
             "file" => new SurveyFileQuestion(this, definition),
             "signaturepad" => new SurveySignatureQuestion(this, definition),

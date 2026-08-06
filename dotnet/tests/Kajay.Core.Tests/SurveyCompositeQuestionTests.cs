@@ -126,4 +126,25 @@ public sealed class SurveyCompositeQuestionTests
         Assert.Equal("required", error.Kind);
         Assert.Equal("0.guardian", error.Path);
     }
+
+    [Fact]
+    public void CompositeMatrixStoresCellsAndValidatesEachAuthoredRowScope()
+    {
+        Survey survey = SurveyDefinition.Parse(
+            """{"pages":[{"name":"one","elements":[{"type":"matrixcells","name":"basket","rows":["docs","support"],"columns":[{"type":"text","name":"item","isRequired":true},{"type":"text","name":"reason","requiredIf":"{row.item} = 'urgent'"}]}]}]}""")
+            .Definition
+            .CreateSurvey();
+        SurveyMatrixQuestion matrix = Assert.IsType<SurveyMatrixQuestion>(
+            survey.GetQuestion("basket"));
+        matrix.SetCellValue(KajayValue.From("docs"), "item", KajayValue.From("urgent"));
+
+        Assert.Equal(
+            KajayValue.From("urgent"),
+            matrix.GetCellValue(KajayValue.From("docs"), "item"));
+        SurveyValidationResult result = survey.Validation.ValidateCurrentPage();
+        Assert.Equal(["docs.reason", "support.item"], result.Errors.Select(error => error.Path));
+
+        matrix.SetCellValue(KajayValue.From("docs"), "item", KajayValue.Absent);
+        Assert.Equal(KajayValue.Absent, matrix.GetRowValue(KajayValue.From("docs")));
+    }
 }

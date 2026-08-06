@@ -42,6 +42,42 @@ public sealed class SurveyMatrixQuestion : SurveyQuestion
         SetValue(response.Count == 0 ? KajayValue.Absent : KajayValue.FromObject(response));
     }
 
+    /// <summary>Gets one composite-matrix cell, or <see cref="KajayValue.Absent"/>.</summary>
+    public KajayValue GetCellValue(KajayValue row, string column)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(column);
+        KajayValue record = GetRowValue(row);
+        return record.Kind == KajayValueKind.Map
+            && record.GetObject().TryGetValue(column, out KajayValue value)
+                ? value
+                : KajayValue.Absent;
+    }
+
+    /// <summary>Sets or clears one field in one composite-matrix row.</summary>
+    public void SetCellValue(KajayValue row, string column, KajayValue value)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(column);
+        if (Type != "matrixcells")
+        {
+            throw new InvalidOperationException($"Question '{Name}' has scalar matrix rows.");
+        }
+
+        KajayValue current = GetRowValue(row);
+        var record = current.Kind == KajayValueKind.Map
+            ? new Dictionary<string, KajayValue>(current.GetObject(), StringComparer.Ordinal)
+            : new Dictionary<string, KajayValue>(StringComparer.Ordinal);
+        if (value.Kind == KajayValueKind.Absent)
+        {
+            record.Remove(column);
+        }
+        else
+        {
+            record[column] = value;
+        }
+
+        SetRowValue(row, record.Count == 0 ? KajayValue.Absent : KajayValue.FromObject(record));
+    }
+
     private string ResolveRowKey(KajayValue row)
     {
         KajayValue resolved = Rows.FirstOrDefault(

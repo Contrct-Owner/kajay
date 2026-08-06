@@ -2,4 +2,5 @@ namespace Kajay;
 
 internal sealed record SurveyRuntimeMatrixSettings(
     bool RequireEveryRow,
-    bool RequireUniqueColumns);
+    bool RequireUniqueColumns,
+    IReadOnlyList<SurveyRuntimeQuestion> Fields);

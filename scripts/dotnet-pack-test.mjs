@@ -18,8 +18,8 @@ if (schema.RootElement.GetProperty("$id").GetString() != "urn:kajay:survey-defin
     throw new InvalidOperationException("Installed package exposed the wrong survey contract.");
 }
 
-const string definition = """{"pages":[{"name":"p1","elements":[{"type":"text","name":"q1"}]}]}""";
-const string expected = """{"schemaVersion":1,"pages":[{"name":"p1","elements":[{"type":"text","name":"q1"}]}]}""";
+const string definition = """{"pages":[{"name":"p1","elements":[{"type":"text","name":"q1","correctAnswer":"42"}]}]}""";
+const string expected = """{"schemaVersion":1,"pages":[{"name":"p1","elements":[{"type":"text","name":"q1","correctAnswer":"42"}]}]}""";
 SurveyDefinitionParseResult parsed = SurveyDefinition.Parse(definition);
 if (parsed.Diagnostics.Count != 0 || parsed.Definition.ToCanonicalJson() != expected)
 {
@@ -42,6 +42,18 @@ if (arithmetic.Errors.Count != 0
     || evaluated.Value.GetNumber() != 7)
 {
     throw new InvalidOperationException("Installed package failed expression evaluation.");
+}
+
+Survey survey = parsed.Definition.CreateSurvey();
+QuizScore emptyScore = survey.GetQuizScore();
+survey.SetValue("q1", KajayValue.From("42"));
+QuizScore answeredScore = survey.GetQuizScore();
+if (emptyScore.Earned != 0
+    || emptyScore.Possible != 1
+    || answeredScore.Earned != 1
+    || answeredScore.Ratio != 1)
+{
+    throw new InvalidOperationException("Installed package failed quiz scoring.");
 }
 
 Console.WriteLine("dotnet pack smoke: ok");

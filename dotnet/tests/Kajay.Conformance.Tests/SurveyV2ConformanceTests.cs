@@ -29,6 +29,12 @@ public sealed class SurveyV2ConformanceTests
         AssertScenario("invalid-pattern-is-an-author-error-not-a-respondent-rule");
     }
 
+    [Fact]
+    public void SurveyScenarioObservesQuizScore()
+    {
+        AssertScenario("survey-scenario-observes-quiz-score");
+    }
+
     private static void AssertScenario(string scenarioId)
     {
         using JsonDocument corpus = OpenScenarioCorpus();
@@ -50,7 +56,7 @@ public sealed class SurveyV2ConformanceTests
         foreach (JsonElement step in scenario.GetProperty("steps").EnumerateArray())
         {
             events.Clear();
-            SurveyValidationResult? observation = ApplyAction(
+            object? observation = ApplyAction(
                 survey,
                 step.GetProperty("action"));
 
@@ -59,7 +65,7 @@ public sealed class SurveyV2ConformanceTests
             AssertEvents(expected.GetProperty("events"), events);
             if (expected.TryGetProperty("observation", out JsonElement expectedObservation))
             {
-                AssertValidation(expectedObservation, observation!);
+                AssertObservation(expectedObservation, observation!);
             }
             else
             {
@@ -68,7 +74,7 @@ public sealed class SurveyV2ConformanceTests
         }
     }
 
-    private static SurveyValidationResult? ApplyAction(
+    private static object? ApplyAction(
         Survey survey,
         JsonElement action)
     {
@@ -76,11 +82,12 @@ public sealed class SurveyV2ConformanceTests
         {
             "set-value" => SetValue(survey, action),
             "validate-current-page" => survey.Validation.ValidateCurrentPage(),
+            "measure-score" => survey.GetQuizScore(),
             _ => throw new InvalidOperationException("Unknown survey action."),
         };
     }
 
-    private static SurveyValidationResult? SetValue(
+    private static object? SetValue(
         Survey survey,
         JsonElement action)
     {
@@ -123,6 +130,17 @@ public sealed class SurveyV2ConformanceTests
         }
     }
 
+    private static void AssertObservation(JsonElement expected, object actual)
+    {
+        if (expected.GetProperty("kind").GetString() == "validation")
+        {
+            AssertValidation(expected, Assert.IsType<SurveyValidationResult>(actual));
+            return;
+        }
+
+        AssertScore(expected, Assert.IsType<QuizScore>(actual));
+    }
+
     private static void AssertValidation(
         JsonElement expected,
         SurveyValidationResult actual)
@@ -134,6 +152,15 @@ public sealed class SurveyV2ConformanceTests
                 error.GetProperty("name").GetString(),
                 error.GetProperty("kind").GetString())),
             actual.Errors.Select(error => ((string?)error.Name, (string?)error.Kind)));
+    }
+
+    private static void AssertScore(JsonElement expected, QuizScore actual)
+    {
+        Assert.Equal("score", expected.GetProperty("kind").GetString());
+        Assert.Equal(expected.GetProperty("earned").GetDouble(), actual.Earned);
+        Assert.Equal(expected.GetProperty("possible").GetDouble(), actual.Possible);
+        Assert.Equal(expected.GetProperty("questionCount").GetInt32(), actual.QuestionCount);
+        Assert.Equal(expected.GetProperty("ratio").GetDouble(), actual.Ratio);
     }
 
     private static KajayValue ReadTaggedValue(JsonElement value)

@@ -25,10 +25,9 @@ published implementation is TypeScript; C# is the second runtime in development.
 - **C# SDK: implementation underway.** `Kajay.Core` targets
   `net10.0`; [ADR-0030](./docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md)
   fixes its package posture and Kajay's v2 value, date, pattern, performance, and
-  support semantics. The installed package's definition operation passes all seven v1
-  definition cases, including diagnostics and fixed-point canonical serialization.
-  TypeScript remains the only complete passing adapter: it passes all of v1, while v2
-  is structurally checked specification with both adapters pending.
+  support semantics. The TypeScript 2.x candidate and C# adapters pass the inherited
+  v1 corpus and all 32 new v2 cases through public runtime seams. Full C# headless
+  parity and the §Q release gates remain in progress.
 
 ## Topic index
 
@@ -42,7 +41,7 @@ published implementation is TypeScript; C# is the second runtime in development.
 | Current remediation work | complete for 1.0 posture | Jarod | [Architecture remediation plan](./docs/architecture-remediation-plan.md) |
 | Published package interfaces | active | Jarod | [Public interface ledger](./docs/public-package-interfaces.md) |
 | Definition shape | active | Jarod | [Generated survey schema](./contracts/survey-schema.json) |
-| Runtime compatibility | v1: one adapter; v2: specified | Jarod | [Conformance v1](./conformance/v1/README.md), [v2](./conformance/v2/README.md) |
+| Runtime compatibility | v1: TypeScript 1.x; v2: two candidate adapters passing | Jarod | [Conformance v1](./conformance/v1/README.md), [v2](./conformance/v2/README.md) |
 | Native C# SDK | implementation underway | Jarod | [ADR-0030](./docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md), [parity §Q](./docs/feature-parity-checklist.md#q--c-headless-sdk) |
 | Publishing and licensing | 1.0.0 published | Jarod | [ADR-0029](./docs/adr/0029-release-walkthrough.md) |
 | Machine-readable documentation | preview | Jarod | [ADR-0025](./docs/adr/0025-read-only-documentation-mcp.md) |

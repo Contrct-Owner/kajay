@@ -4,6 +4,7 @@ namespace Kajay;
 public sealed class Survey
 {
     private readonly int _pageCount;
+    private readonly SurveyRuntimeDefinition _definition;
     private readonly Dictionary<string, KajayValue> _answers = new(StringComparer.Ordinal);
     private bool _isLoading;
     private bool _isPreviewing;
@@ -14,6 +15,7 @@ public sealed class Survey
         SurveyRuntimeDefinition definition,
         TimeProvider timeProvider)
     {
+        _definition = definition;
         _pageCount = definition.PageCount;
         Validation = new SurveyValidation(this, definition);
         Timer = new SurveyTimer(
@@ -131,6 +133,13 @@ public sealed class Survey
         Timer.Stop();
         Completed?.Invoke(this, new SurveyCompletedEventArgs(_answers));
         RaiseStateChanged();
+    }
+
+    /// <summary>Measures marks earned by the current reachable quiz questions.</summary>
+    /// <returns>The current score without changing survey state.</returns>
+    public QuizScore GetQuizScore()
+    {
+        return QuizScorer.Score(this, _definition);
     }
 
     private SurveyState ResolveState()

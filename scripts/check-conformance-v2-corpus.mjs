@@ -9,4 +9,4 @@ if (failures.length > 0) {
   throw new Error(`Conformance v2 corpus is invalid:\n${failures.map((failure) => `  - ${failure}`).join('\n')}`);
 }
 
-console.log(`Conformance v2 specification is structurally valid: ${caseCount} new cases; adapters pending.`);
+console.log(`Conformance v2 specification is structurally valid: ${caseCount} new cases.`);

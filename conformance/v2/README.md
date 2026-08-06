@@ -1,15 +1,15 @@
 # Cross-language runtime conformance v2
 
 - Area: Runtime contract and native SDK portability
-- Status: specified; adapters pending
+- Status: passing in the TypeScript 2.x candidate and C# adapters
 - Owner: Jarod
 - Last updated: 2026-08-05
 
 This directory fixes the behavior chosen in
-[ADR-0030](../../docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md) before
-either TypeScript 2.x or `Kajay.Core` implements it. It is executable specification,
-not a record of current TypeScript 1.x behavior. The normal conformance gate continues
-to run v1 until an adapter deliberately opts into v2.
+[ADR-0030](../../docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md). It is
+executable specification and a passing candidate-adapter contract, not a record of
+current TypeScript 1.x behavior. The published TypeScript 1.x line continues to claim
+v1 until its next major release adopts these semantics.
 
 V2 inherits every v1 case that does not conflict with this document. Its files contain
 the new and changed cases rather than copied v1 data. A v2 runner runs the inherited
@@ -129,9 +129,7 @@ respondent rule. The author can fix it; the respondent is never blocked by it.
 
 ## Current claim
 
-No adapter passes v2 yet. TypeScript 1.x continues to pass v1. The executable progress
-gates prove that both public runtime seams pass all 25 new expression-evaluation cases;
-both also pass all 2 new definition cases and 4 of the 5 new survey-scenario cases.
-The remaining survey scenarios are pending.
-Cross-runtime v2 compatibility may be claimed only after both the TypeScript 2.x and
-C# adapters pass the inherited and v2 cases through their public runtime seams.
+The TypeScript 2.x candidate and C# adapters pass the inherited v1 cases and all 32 new
+v2 cases through their public runtime seams: 25 expression evaluations, 2 definitions,
+and 5 survey scenarios. TypeScript 1.x continues to claim conformance v1 only; these
+breaking semantic corrections ship in its next major version.

@@ -42,6 +42,7 @@ const implementedScenarioIds = [
   'pattern-searches-unless-anchored',
   'pattern-classes-and-dot-use-defined-scalars',
   'invalid-pattern-is-an-author-error-not-a-respondent-rule',
+  'survey-scenario-observes-quiz-score',
 ];
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));

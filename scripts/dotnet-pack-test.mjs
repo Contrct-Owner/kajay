@@ -163,11 +163,22 @@ Survey triggered = SurveyDefinition.Parse(
     """{"triggers":[{"type":"setvalue","expression":"{start} = true","setToName":"result","setValue":42}],"pages":[{"name":"one"}]}""")
     .Definition
     .CreateSurvey();
+SurveyCompletedEventArgs? triggeredCompletion = null;
+triggered.Completed += (_, completion) => triggeredCompletion = completion;
 triggered.SetValue("start", KajayValue.From(true));
+triggered.Timer.Start();
 if (!triggered.TryGetValue("result", out KajayValue triggeredResult)
-    || triggeredResult != KajayValue.From(42))
+    || triggeredResult != KajayValue.From(42)
+    || !triggered.Timer.IsRunning)
 {
     throw new InvalidOperationException("Installed package failed trigger settlement.");
+}
+triggered.Complete();
+if (!triggered.IsCompleted
+    || triggered.Timer.IsRunning
+    || triggeredCompletion?.Data["result"] != KajayValue.From(42))
+{
+    throw new InvalidOperationException("Installed package failed lifecycle completion.");
 }
 
 Survey conditional = SurveyDefinition.Parse(

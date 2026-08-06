@@ -131,6 +131,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("offset-date-time-normalizes-to-utc");
     }
 
+    [Fact]
+    public void FractionalDateTimeNormalizesToMilliseconds()
+    {
+        AssertEvaluationCase("fractional-date-time-normalizes-to-milliseconds");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

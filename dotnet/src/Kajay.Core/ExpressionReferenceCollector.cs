@@ -2,25 +2,25 @@ namespace Kajay;
 
 internal static class ExpressionReferenceCollector
 {
-    internal static IReadOnlyList<string> Collect(ExpressionNode root)
+    internal static IReadOnlyList<ExpressionPath> Collect(ExpressionNode root)
     {
         var seen = new HashSet<string>(StringComparer.Ordinal);
-        List<string> references = [];
+        List<ExpressionPath> references = [];
         Visit(root, seen, references);
-        return Array.AsReadOnly(references.ToArray());
+        return references.ToArray();
     }
 
     private static void Visit(
         ExpressionNode node,
         ISet<string> seen,
-        ICollection<string> references)
+        ICollection<ExpressionPath> references)
     {
         if (node is ExpressionNode.Reference reference)
         {
             string formatted = reference.Path.Format();
             if (seen.Add(formatted))
             {
-                references.Add(formatted);
+                references.Add(reference.Path);
             }
 
             return;

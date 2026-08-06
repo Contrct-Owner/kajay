@@ -40,12 +40,25 @@ if (schema.RootElement.GetProperty("$id").GetString() != KajayContracts.SurveySc
     throw new InvalidOperationException("Installed package exposed the wrong survey contract.");
 }
 
-const string definition = """{"pages":[{"name":"p1","elements":[{"type":"text","name":"q1","correctAnswer":"42"}]}]}""";
-const string expected = """{"schemaVersion":1,"pages":[{"name":"p1","elements":[{"type":"text","name":"q1","correctAnswer":"42"}]}]}""";
+const string definition = """{"description":"Registry driven","pages":[{"name":"p1","colCount":2,"elements":[{"type":"text","name":"q1","placeholder":"Answer","correctAnswer":"42","extension":{"keep":true}}]}]}""";
+const string expected = """{"schemaVersion":1,"description":"Registry driven","pages":[{"name":"p1","colCount":2,"elements":[{"type":"text","name":"q1","correctAnswer":"42","placeholder":"Answer","extension":{"keep":true}}]}]}""";
 SurveyDefinitionParseResult parsed = SurveyDefinition.Parse(definition);
-if (parsed.Diagnostics.Count != 0 || parsed.Definition.ToCanonicalJson() != expected)
+if (parsed.Diagnostics.Count != 1
+    || parsed.Diagnostics[0].Code != "unknown-property"
+    || parsed.Diagnostics[0].Path != "/pages/0/elements/0/extension"
+    || parsed.Definition.ToCanonicalJson() != expected
+    || SurveyDefinition.Parse(expected).Definition.ToCanonicalJson() != expected)
 {
     throw new InvalidOperationException("Installed package failed definition canonicalization.");
+}
+
+try
+{
+    SurveyDefinition.Parse("""{"schemaVersion":2}""");
+    throw new InvalidOperationException("Installed package accepted an unsupported schema.");
+}
+catch (UnsupportedSurveySchemaVersionException exception) when (exception.DeclaredVersion == 2)
+{
 }
 
 ExpressionParseResult expression = SurveyExpression.Parse("{a} = 1 && {b} <> 2");

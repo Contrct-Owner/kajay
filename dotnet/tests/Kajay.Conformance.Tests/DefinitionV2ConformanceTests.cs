@@ -27,9 +27,12 @@ public sealed class DefinitionV2ConformanceTests
         SurveyDefinitionParseResult result = SurveyDefinition.Parse(
             testCase.GetProperty("input").GetRawText());
 
-        Assert.Equal(
-            JsonSerializer.Serialize(testCase.GetProperty("canonical")),
+        using JsonDocument actualCanonical = JsonDocument.Parse(
             result.Definition.ToCanonicalJson());
+        Assert.True(
+            JsonElement.DeepEquals(
+                testCase.GetProperty("canonical"),
+                actualCanonical.RootElement));
         Assert.Equal(
             testCase.GetProperty("diagnostics").EnumerateArray().Select(ReadDiagnostic),
             result.Diagnostics.Select(diagnostic =>

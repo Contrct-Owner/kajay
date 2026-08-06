@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   adapterHeadlessOwnershipViolations,
+  enabledCSharpParityProofs,
   enabledParityProofs,
   parseAdapterOnlyRows,
   parseGreenProofRows,
@@ -42,6 +43,23 @@ test('comments, skipped calls, skipped suites, and disabled files do not prove r
 
   assert.deepEqual([...enabledParityProofs(source)], ['parity/A4-active']);
   assert.deepEqual([...enabledParityProofs(source, 'proof.skip.test.ts')], []);
+});
+
+test('enabled xUnit display names prove C# rows and skipped facts do not', () => {
+  const source = `
+    // [Fact(DisplayName = "parity/Q1-commented")]
+    [Fact(DisplayName = "parity/Q1-package-skeleton")]
+    public void PackageSkeleton() { }
+
+    [Theory(DisplayName = "parity/Q2-contracts", Skip = "not ready")]
+    public void Contracts(string name) { }
+  `;
+
+  assert.deepEqual(
+    [...enabledCSharpParityProofs(source)],
+    ['parity/Q1-package-skeleton'],
+  );
+  assert.deepEqual([...enabledCSharpParityProofs(source, 'ProofTests.skip.cs')], []);
 });
 
 test('missing, skipped, and unverified proof references are violations', () => {

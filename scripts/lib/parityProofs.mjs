@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { relative } from 'node:path';
 import ts from 'typescript';
+import {
+  csharpRepositoryParityProofs,
+  enabledCSharpParityProofs,
+} from './csharpParityProofs.mjs';
 import { listSourceFiles } from './workspace.mjs';
 import { WORKSPACE_PACKAGE_POLICIES } from './workspacePolicy.mjs';
 
@@ -147,6 +151,8 @@ export function enabledParityProofs(source, fileName = 'proof.test.ts') {
   return collectFromAst(sourceFile);
 }
 
+export { enabledCSharpParityProofs };
+
 function isProofTestFile(path) {
   return (
     /\/test\/(?:unit|browser)\/.*\.test\.tsx?$/u.test(path) ||
@@ -168,6 +174,14 @@ export function repositoryParityProofs(repoRoot) {
       locations.push(location);
       proofs.set(proof, locations);
     }
+  }
+
+  for (const [proof, locations] of csharpRepositoryParityProofs(repoRoot)) {
+    const existing = proofs.get(proof) ?? [];
+    for (const location of locations) {
+      existing.push(location);
+    }
+    proofs.set(proof, existing);
   }
   return proofs;
 }

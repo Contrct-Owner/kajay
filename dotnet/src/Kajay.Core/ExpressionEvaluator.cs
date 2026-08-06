@@ -45,9 +45,38 @@ internal static class ExpressionEvaluator
         ExpressionNode.Reference reference,
         ExpressionEvaluationContext context)
     {
-        return context.Values.TryGetValue(reference.Path, out KajayValue value)
-            ? value
-            : KajayValue.Absent;
+        IReadOnlyList<ExpressionPathSegment> segments = reference.Path.Segments;
+        if (segments.Count == 0
+            || segments[0].IsIndex
+            || !context.Values.TryGetValue(segments[0].Name!, out KajayValue value))
+        {
+            return KajayValue.Absent;
+        }
+
+        for (int index = 1; index < segments.Count; index += 1)
+        {
+            ExpressionPathSegment segment = segments[index];
+            if (segment.IsIndex)
+            {
+                if (value.Kind != KajayValueKind.Array
+                    || segment.Index >= value.GetArray().Count)
+                {
+                    return KajayValue.Absent;
+                }
+
+                value = value.GetArray()[segment.Index];
+            }
+            else
+            {
+                if (value.Kind != KajayValueKind.Map
+                    || !value.GetObject().TryGetValue(segment.Name!, out value))
+                {
+                    return KajayValue.Absent;
+                }
+            }
+        }
+
+        return value;
     }
 
     private static KajayValue EvaluateArray(

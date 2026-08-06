@@ -8,7 +8,11 @@ public sealed class SurveyExpression
     private SurveyExpression(ExpressionNode root)
     {
         _root = root;
+        ReferencedValuePaths = ExpressionReferenceCollector.Collect(root);
     }
+
+    /// <summary>Gets referenced value paths in first-appearance order without duplicates.</summary>
+    public IReadOnlyList<string> ReferencedValuePaths { get; }
 
     /// <summary>Parses authored Kajay expression source.</summary>
     /// <param name="source">The authored expression.</param>

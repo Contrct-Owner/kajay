@@ -7,6 +7,7 @@ import { join, resolve } from 'node:path';
 const repositoryRoot = resolve(import.meta.dirname, '..');
 const project = resolve(repositoryRoot, 'dotnet/src/Kajay.Core/Kajay.Core.csproj');
 const consumerProgram = `using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -77,6 +78,30 @@ if (arithmetic.Errors.Count != 0
     || evaluated.Value.GetNumber() != 7)
 {
     throw new InvalidOperationException("Installed package failed expression evaluation.");
+}
+
+ExpressionParseResult nested = SurveyExpression.Parse(
+    "{panel[1].question} + {panel[1].question} + {other}");
+KajayValue panel = KajayValue.FromArray(
+[
+    KajayValue.FromObject([]),
+    KajayValue.FromObject(
+    [
+        new KeyValuePair<string, KajayValue>("question", KajayValue.From(40)),
+    ]),
+]);
+ExpressionEvaluationResult nestedValue = nested.Expression!.Evaluate(
+    new ExpressionEvaluationContext(
+        DateTimeOffset.UnixEpoch,
+        [
+            new KeyValuePair<string, KajayValue>("panel", panel),
+            new KeyValuePair<string, KajayValue>("other", KajayValue.From(2)),
+        ]));
+if (nested.Errors.Count != 0
+    || !nested.Expression.ReferencedValuePaths.SequenceEqual(["panel[1].question", "other"])
+    || nestedValue.Value != KajayValue.From(82))
+{
+    throw new InvalidOperationException("Installed package failed structured references.");
 }
 
 Survey survey = parsed.Definition.CreateSurvey();

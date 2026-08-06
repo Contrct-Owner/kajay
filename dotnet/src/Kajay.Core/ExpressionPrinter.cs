@@ -11,7 +11,7 @@ internal static class ExpressionPrinter
         return node switch
         {
             ExpressionNode.Literal literal => PrintLiteral(literal.Value),
-            ExpressionNode.Reference reference => $"{{{reference.Path}}}",
+            ExpressionNode.Reference reference => $"{{{reference.Path.Format()}}}",
             ExpressionNode.Array array => $"[{string.Join(", ", array.Items.Select(Print))}]",
             ExpressionNode.Call call => $"{call.Name}({string.Join(", ", call.Arguments.Select(Print))})",
             ExpressionNode.Unary unary => PrintUnary(unary),

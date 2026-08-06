@@ -100,7 +100,9 @@ internal sealed class ExpressionParser
         {
             ExpressionTokenKind.Number => ParseNumber(token),
             ExpressionTokenKind.String => new ExpressionNode.Literal(token.Span, token.Text),
-            ExpressionTokenKind.Reference => new ExpressionNode.Reference(token.Span, token.Text),
+            ExpressionTokenKind.Reference => new ExpressionNode.Reference(
+                token.Span,
+                ExpressionPath.Parse(token.Text, token.Span, _errors)),
             ExpressionTokenKind.Identifier => ParseIdentifier(token),
             ExpressionTokenKind.Punctuation => ParsePunctuation(token),
             _ => Fail("unexpected-end", token.Span),

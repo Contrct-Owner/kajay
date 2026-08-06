@@ -4,7 +4,7 @@ internal abstract record ExpressionNode(TextSpan Span)
 {
     internal sealed record Literal(TextSpan Span, object? Value) : ExpressionNode(Span);
 
-    internal sealed record Reference(TextSpan Span, string Path) : ExpressionNode(Span);
+    internal sealed record Reference(TextSpan Span, ExpressionPath Path) : ExpressionNode(Span);
 
     internal sealed record Array(TextSpan Span, IReadOnlyList<ExpressionNode> Items)
         : ExpressionNode(Span);

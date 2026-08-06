@@ -53,6 +53,7 @@ public sealed class Survey
             this,
             options,
             Array.AsReadOnly(questions.OfType<SurveyChoiceQuestion>().ToArray()));
+        _choiceSources.SettleSynchronous();
         _triggers = new SurveyTriggers(this, definition.Triggers);
         _triggers.Establish();
     }
@@ -241,6 +242,7 @@ public sealed class Survey
         }
 
         SettleLogic([ExpressionPath.FromName(name)], changes, stateChanges);
+        _choiceSources.SettleSynchronous();
         Validation.RevalidateChangedValues(changes.Select(change => change.Name));
         foreach (SurveyValueChangedEventArgs change in changes)
         {
@@ -551,6 +553,7 @@ public sealed class Survey
         {
             SettleLogic([.. calculatedWrites, .. triggerWrites], changes, stateChanges);
         }
+        _choiceSources.SettleSynchronous();
 
         foreach (SurveyValueChangedEventArgs change in changes)
         {

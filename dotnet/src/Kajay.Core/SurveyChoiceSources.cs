@@ -6,6 +6,7 @@ internal sealed class SurveyChoiceSources
     private readonly TimeProvider _timeProvider;
     private readonly SurveyChoiceUrlResolver _urlResolver;
     private readonly IReadOnlyList<SurveyChoiceQuestion> _questions;
+    private readonly Dictionary<string, SurveyChoiceQuestion> _questionsByName;
     private readonly IReadOnlyList<SurveyChoicePager> _pagers;
     private readonly Dictionary<SurveyChoiceCacheKey, IReadOnlyList<SurveyChoiceItem>> _cache = [];
     private readonly Dictionary<SurveyChoiceCacheKey, Task<IReadOnlyList<SurveyChoiceItem>>> _pending = [];
@@ -20,6 +21,9 @@ internal sealed class SurveyChoiceSources
         _timeProvider = options.TimeProvider;
         _urlResolver = new SurveyChoiceUrlResolver(survey, CopyEndpoints(options.Endpoints));
         _questions = questions;
+        _questionsByName = questions
+            .GroupBy(question => question.Name, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
         _pagers = Array.AsReadOnly(questions
             .Where(IsPagedSource)
             .Select(question => CreatePager(question, options))
@@ -29,7 +33,8 @@ internal sealed class SurveyChoiceSources
     public async Task<bool> SettleAsync(CancellationToken cancellationToken)
     {
         Task<bool>[] urlLoads = _questions
-            .Where(question => question.ChoiceSettings.Url.Length > 0)
+            .Where(question => question.ChoiceSettings.FromQuestion.Length == 0
+                && question.ChoiceSettings.Url.Length > 0)
             .Select(question => LoadAsync(question, cancellationToken))
             .ToArray();
         bool loadsInitialPage = _pagers.Any(pager => pager.NeedsInitialLoad);
@@ -44,6 +49,29 @@ internal sealed class SurveyChoiceSources
         bool[] outcomes = await Task.WhenAll(urlLoads).ConfigureAwait(false);
         await Task.WhenAll(pageLoads).ConfigureAwait(false);
         return loadsInitialPage || outcomes.Any(changed => changed);
+    }
+
+    public void SettleSynchronous()
+    {
+        for (int pass = 0; pass < 128; pass += 1)
+        {
+            bool changed = false;
+            foreach (SurveyChoiceQuestion target in _questions)
+            {
+                SurveyRuntimeChoiceSettings settings = target.ChoiceSettings;
+                if (settings.FromQuestion.Length > 0)
+                {
+                    changed |= ApplyCarryForward(target, settings);
+                }
+            }
+
+            if (!changed)
+            {
+                return;
+            }
+        }
+
+        throw new InvalidOperationException("Carry-forward choice sources did not converge.");
     }
 
     private async Task<bool> LoadAsync(
@@ -177,5 +205,39 @@ internal sealed class SurveyChoiceSources
             options.TimeProvider);
         question.AttachChoicePager(pager);
         return pager;
+    }
+
+    private bool ApplyCarryForward(
+        SurveyChoiceQuestion target,
+        SurveyRuntimeChoiceSettings settings)
+    {
+        if (!_questionsByName.TryGetValue(
+            settings.FromQuestion,
+            out SurveyChoiceQuestion? source))
+        {
+            return target.ResetChoices();
+        }
+
+        IReadOnlyList<SurveyChoiceItem> choices = source.ChoiceItems;
+        if (settings.FromQuestionMode is not ("selected" or "unselected"))
+        {
+            return target.SetChoices(choices);
+        }
+
+        KajayValue answer = source.Value;
+        SurveyChoiceItem[] derived = choices
+            .Where(choice => settings.FromQuestionMode == "selected"
+                ? Contains(answer, choice.Value)
+                : !Contains(answer, choice.Value))
+            .ToArray();
+        return target.SetChoices(Array.AsReadOnly(derived));
+    }
+
+    private static bool Contains(KajayValue answer, KajayValue choice)
+    {
+        return answer.Kind == KajayValueKind.Array
+            ? answer.GetArray().Any(selected =>
+                KajayExpressionEquality.Equals(selected, choice))
+            : KajayExpressionEquality.Equals(answer, choice);
     }
 }

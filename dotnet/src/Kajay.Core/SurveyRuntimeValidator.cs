@@ -4,7 +4,7 @@ namespace Kajay;
 
 internal sealed record SurveyRuntimeValidator(
     string Type,
-    string Message,
+    SurveyLocalizedText Message,
     string Pattern,
     KajayPattern? CompiledPattern,
     double? Minimum,
@@ -18,7 +18,7 @@ internal sealed record SurveyRuntimeValidator(
         string expression = validator["expression"]?.GetValue<string>() ?? string.Empty;
         return new SurveyRuntimeValidator(
             validator["type"]?.GetValue<string>() ?? string.Empty,
-            validator["text"]?.GetValue<string>() ?? string.Empty,
+            SurveyLocalizedText.From(validator["text"]),
             pattern,
             KajayPattern.Compile(pattern),
             ReadBound(validator, "minValue", "minLength", "minCount"),

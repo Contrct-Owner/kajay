@@ -17,10 +17,10 @@ public sealed class SurveyChoiceQuestion : SurveyQuestion
 
     /// <summary>Gets the effective values and display text in stable source order.</summary>
     public IReadOnlyList<SurveyChoiceItem> ChoiceItems =>
-        _runtimeChoices ?? Definition.ChoiceItems;
+        _runtimeChoices ?? ResolveAuthoredChoices();
 
     /// <summary>Gets the list written in the definition, ignoring any runtime source.</summary>
-    public IReadOnlyList<SurveyChoiceItem> AuthoredChoiceItems => Definition.ChoiceItems;
+    public IReadOnlyList<SurveyChoiceItem> AuthoredChoiceItems => ResolveAuthoredChoices();
 
     /// <summary>Gets whether this question receives server-filtered pages from its host.</summary>
     public bool IsPaged => _choicePager is not null;
@@ -181,5 +181,13 @@ public sealed class SurveyChoiceQuestion : SurveyQuestion
         throw new ArgumentException(
             $"Value is not an authored choice for question '{Name}'.",
             nameof(choice));
+    }
+
+    private System.Collections.ObjectModel.ReadOnlyCollection<SurveyChoiceItem>
+        ResolveAuthoredChoices()
+    {
+        return Array.AsReadOnly(Definition.ChoiceItems
+            .Select(item => new SurveyChoiceItem(item.Value, Owner.ResolveText(item.Text)))
+            .ToArray());
     }
 }

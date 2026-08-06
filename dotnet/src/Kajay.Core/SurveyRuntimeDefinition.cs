@@ -3,6 +3,9 @@ using System.Text.Json.Nodes;
 namespace Kajay;
 
 internal sealed record SurveyRuntimeDefinition(
+    SurveyLocalizedText Title,
+    SurveyLocalizedText Description,
+    string Locale,
     IReadOnlyList<SurveyRuntimePage> Pages,
     IReadOnlyList<SurveyRuntimeCalculatedValue> CalculatedValues,
     IReadOnlyList<SurveyRuntimeTrigger> Triggers,
@@ -43,6 +46,9 @@ internal sealed record SurveyRuntimeDefinition(
             ? []
             : pages.Select(page => ReadSeconds(page?["maxTimeToFinish"])).ToArray();
         return new SurveyRuntimeDefinition(
+            SurveyLocalizedText.From(definition["title"]),
+            SurveyLocalizedText.From(definition["description"]),
+            definition["locale"]?.GetValue<string>() ?? string.Empty,
             runtimePages,
             runtimeCalculatedValues,
             runtimeTriggers,

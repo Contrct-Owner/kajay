@@ -6,8 +6,10 @@ internal sealed record SurveyRuntimeQuestion(
     string Type,
     string Name,
     string ValueKey,
+    SurveyLocalizedText Title,
+    SurveyLocalizedText Description,
     IReadOnlyList<KajayValue> Choices,
-    IReadOnlyList<SurveyChoiceItem> ChoiceItems,
+    IReadOnlyList<SurveyRuntimeChoiceItem> ChoiceItems,
     SurveyRuntimeChoiceSettings? ChoiceSettings,
     IReadOnlyList<KajayValue> Rows,
     SurveyRuntimeMatrixSettings? MatrixSettings,
@@ -17,7 +19,7 @@ internal sealed record SurveyRuntimeQuestion(
     bool AuthoredRequired,
     SurveyExpression? VisibleIf,
     SurveyExpression? RequiredIf,
-    string RequiredMessage,
+    SurveyLocalizedText RequiredMessage,
     bool HasCorrectAnswer,
     KajayValue CorrectAnswer,
     IReadOnlyList<SurveyRuntimeValidator> Validators)
@@ -44,12 +46,14 @@ internal sealed record SurveyRuntimeQuestion(
         bool hasCorrectAnswer = element.TryGetPropertyValue(
             "correctAnswer",
             out JsonNode? correctAnswer);
-        IReadOnlyList<SurveyChoiceItem> choiceItems = ReadChoiceItems(
+        IReadOnlyList<SurveyRuntimeChoiceItem> choiceItems = ReadChoiceItems(
             element["choices"] as JsonArray);
         return new SurveyRuntimeQuestion(
             element["type"]?.GetValue<string>() ?? string.Empty,
             element["name"]?.GetValue<string>() ?? string.Empty,
             ReadValueKey(element),
+            SurveyLocalizedText.From(element["title"]),
+            SurveyLocalizedText.From(element["description"]),
             Array.AsReadOnly(choiceItems.Select(item => item.Value).ToArray()),
             choiceItems,
             ReadChoiceSettings(element),
@@ -61,17 +65,17 @@ internal sealed record SurveyRuntimeQuestion(
             element["isRequired"]?.GetValue<bool>() ?? false,
             ReadExpression(element["visibleIf"]),
             ReadExpression(element["requiredIf"]),
-            element["requiredErrorText"]?.GetValue<string>() ?? string.Empty,
+            SurveyLocalizedText.From(element["requiredErrorText"]),
             hasCorrectAnswer,
             hasCorrectAnswer ? KajayJsonValue.From(correctAnswer) : KajayValue.Absent,
             runtimeValidators);
     }
 
-    private static IReadOnlyList<SurveyChoiceItem> ReadChoiceItems(JsonArray? items)
+    private static IReadOnlyList<SurveyRuntimeChoiceItem> ReadChoiceItems(JsonArray? items)
     {
         if (items is null)
         {
-            return Array.Empty<SurveyChoiceItem>();
+            return Array.Empty<SurveyRuntimeChoiceItem>();
         }
 
         return Array.AsReadOnly(items.Select(item =>
@@ -86,18 +90,26 @@ internal sealed record SurveyRuntimeQuestion(
             }
 
             KajayValue choice = KajayJsonValue.From(source);
-            return new SurveyChoiceItem(choice, ReadChoiceText(text, choice));
+            return new SurveyRuntimeChoiceItem(choice, ReadChoiceText(text, choice));
         }).ToArray());
     }
 
-    private static string ReadChoiceText(JsonNode? text, KajayValue value)
+    private static SurveyLocalizedText ReadChoiceText(JsonNode? text, KajayValue value)
     {
         if (text is JsonValue jsonText && jsonText.TryGetValue(out string? content))
         {
-            return content;
+            return SurveyLocalizedText.From(JsonValue.Create(content));
         }
 
-        return KajayText.TryConvert(value, out string fallback) ? fallback : string.Empty;
+        if (text is JsonObject)
+        {
+            return SurveyLocalizedText.From(text);
+        }
+
+        string fallback = KajayText.TryConvert(value, out string converted)
+            ? converted
+            : string.Empty;
+        return SurveyLocalizedText.From(JsonValue.Create(fallback));
     }
 
     private static SurveyRuntimeChoiceSettings? ReadChoiceSettings(JsonObject element)

@@ -1,7 +1,7 @@
 namespace Kajay;
 
 /// <summary>A mutable, single-owner instance of a parsed survey definition.</summary>
-public sealed class Survey
+public sealed partial class Survey
 {
     private const int LogicCascadeLimit = 128;
     private readonly SurveyRuntimeDefinition _definition;
@@ -28,6 +28,7 @@ public sealed class Survey
         SurveyOptions options)
     {
         _definition = definition;
+        _locale = definition.Locale;
         _timeProvider = timeProvider;
         _expressionFunctions = options.ExpressionFunctions;
         _asyncFunctionValues = new SurveyAsyncFunctionValues(_expressionFunctions);

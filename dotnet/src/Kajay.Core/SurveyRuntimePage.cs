@@ -4,6 +4,7 @@ namespace Kajay;
 
 internal sealed record SurveyRuntimePage(
     string Name,
+    SurveyLocalizedText Title,
     SurveyRuntimeCondition Condition,
     IReadOnlyList<SurveyRuntimeCondition> ElementConditions,
     IReadOnlyList<SurveyRuntimeQuestion> Questions)
@@ -16,6 +17,7 @@ internal sealed record SurveyRuntimePage(
             : SurveyRuntimeQuestion.FromElements(elements);
         return new SurveyRuntimePage(
             node?["name"]?.GetValue<string>() ?? string.Empty,
+            SurveyLocalizedText.From(node?["title"]),
             SurveyRuntimeCondition.Page(node, pageIndex),
             elements is null
                 ? []

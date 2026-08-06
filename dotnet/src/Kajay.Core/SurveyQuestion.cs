@@ -24,6 +24,22 @@ public abstract class SurveyQuestion
     /// <summary>Gets the response key, which may be shared through <c>valueName</c>.</summary>
     public string ValueName => Definition.ValueKey;
 
+    /// <summary>Gets the title resolved for the survey's current locale.</summary>
+    public string Title
+    {
+        get
+        {
+            string title = _survey.ResolveText(Definition.Title);
+            return title.Length > 0 ? title : Name;
+        }
+    }
+
+    /// <summary>Gets the description resolved for the survey's current locale.</summary>
+    public string Description => _survey.ResolveText(Definition.Description);
+
+    /// <summary>Gets the authored required-answer message in the current locale.</summary>
+    public string RequiredMessage => _survey.ResolveText(Definition.RequiredMessage);
+
     /// <summary>Gets the current answer, or <see cref="KajayValue.Absent"/>.</summary>
     public KajayValue Value => _survey.GetValue(ValueName);
 

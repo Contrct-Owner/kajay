@@ -41,7 +41,7 @@ internal sealed class SurveyCompositeValidation(Survey survey)
                 errors.Add(new SurveyValidationError(
                     question.Name,
                     "required",
-                    question.RequiredMessage,
+                    survey.ResolveText(question.RequiredMessage),
                     path));
             }
             else if (settings.RequireUniqueColumns
@@ -120,7 +120,7 @@ internal sealed class SurveyCompositeValidation(Survey survey)
                 errors.Add(new SurveyValidationError(
                     owner.Name,
                     "required",
-                    field.RequiredMessage,
+                    survey.ResolveText(field.RequiredMessage),
                     $"{path}.{field.Name}"));
             }
         }

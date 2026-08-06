@@ -281,7 +281,7 @@ public sealed class SurveyValidation
                 errors.Add(new SurveyValidationError(
                     question.Name,
                     "required",
-                    question.RequiredMessage));
+                    _survey.ResolveText(question.RequiredMessage)));
             }
         }
         else
@@ -293,7 +293,7 @@ public sealed class SurveyValidation
                     errors.Add(new SurveyValidationError(
                         question.Name,
                         validator.Type,
-                        validator.Message));
+                        _survey.ResolveText(validator.Message)));
                 }
             }
 

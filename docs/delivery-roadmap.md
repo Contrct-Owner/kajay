@@ -381,6 +381,14 @@ The C# workstream exits only when:
   compatibility, Source Link, symbols, and benchmark gates pass; and
 - C# 1.0 documentation and migration guidance are published.
 
+**Exit gate met on 2026-08-05.** `Kajay.Core` 1.0.0 passes every §Q proof,
+the inherited v1 and full v2 conformance corpora, the supported-scale budgets, and the
+installed-package consumer. The warning-free build matrix enforces the package gates on
+Linux, Windows, and macOS. The package ships the stable public API baseline, README,
+changelog, support contract, and first-release migration guidance. Publishing the
+already verified `.nupkg` remains an explicit maintainer release action rather than an
+implementation gap.
+
 The remaining Phase 4 items stay horizon. Each promoted item gets its own ADR and
 checklist section rather than borrowing the C# workstream's active status.
 

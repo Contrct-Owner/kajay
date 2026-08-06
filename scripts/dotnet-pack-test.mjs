@@ -253,8 +253,8 @@ try {
     (file) => file.startsWith('Kajay.Core.') && file.endsWith('.nupkg'),
   );
   if (packageFile === undefined) throw new Error('Kajay.Core pack produced no .nupkg.');
-
   const packageVersion = packageFile.slice('Kajay.Core.'.length, -'.nupkg'.length);
+  if (packageVersion !== '1.0.0') throw new Error(`Expected Kajay.Core 1.0.0, found ${packageVersion}.`);
   const consumerProjectPath = join(consumerDirectory, 'Consumer.csproj');
   writeFileSync(consumerProjectPath, consumerProject(packageVersion));
   writeFileSync(join(consumerDirectory, 'Program.cs'), consumerProgram);

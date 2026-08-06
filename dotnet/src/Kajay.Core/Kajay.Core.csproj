@@ -3,12 +3,14 @@
     <AssemblyName>Kajay.Core</AssemblyName>
     <RootNamespace>Kajay</RootNamespace>
     <PackageId>Kajay.Core</PackageId>
-    <Version>0.1.0-alpha.1</Version>
+    <Version>1.0.0</Version>
     <Title>Kajay.Core</Title>
     <Description>Native .NET implementation of the Kajay headless survey runtime.</Description>
     <Authors>Jarod</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Contrct-Owner/kajay</PackageProjectUrl>
+    <PackageTags>kajay;survey;forms;headless;validation</PackageTags>
+    <PackageReleaseNotes>First stable native .NET release: schema v1 and conformance v1/v2, with a locked public API baseline.</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/Contrct-Owner/kajay.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -35,6 +37,7 @@
     <EmbeddedResource Include="../../../contracts/runtime-diagnostics.json"
                       LogicalName="Kajay.Core.Contracts.runtime-diagnostics.json" />
     <None Include="../../README.md" Pack="true" PackagePath="/" Link="README.md" />
+    <None Include="../../CHANGELOG.md" Pack="true" PackagePath="/" Link="CHANGELOG.md" />
     <None Include="../../../packages/core/LICENSE" Pack="true" PackagePath="/" Link="LICENSE" />
   </ItemGroup>
 </Project>

@@ -113,6 +113,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("round-positive-midpoint-away-from-zero");
     }
 
+    [Fact]
+    public void NegativeMidpointRoundsAwayFromZero()
+    {
+        AssertEvaluationCase("round-negative-midpoint-away-from-zero");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

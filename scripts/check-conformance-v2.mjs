@@ -24,6 +24,7 @@ const implementedExpressionIds = [
   'objects-do-not-concatenate-through-host-text',
   'text-order-is-ordinal-utf16',
   'round-positive-midpoint-away-from-zero',
+  'round-negative-midpoint-away-from-zero',
 ];
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));

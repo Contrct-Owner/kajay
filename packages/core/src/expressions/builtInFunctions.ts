@@ -1,6 +1,7 @@
 import type { ExpressionFunctionContext } from './ExpressionFunction.js';
 import { isEmptyValue, isTruthy, toNumber } from './expressionValues.js';
 import { FunctionRegistry } from './FunctionRegistry.js';
+import { roundNumber } from './roundNumber.js';
 
 const MILLISECONDS_PER_DAY = 86_400_000;
 
@@ -73,8 +74,7 @@ function registerMathFunctions(registry: FunctionRegistry): void {
     if (value === undefined) {
       return;
     }
-    const factor = 10 ** (toNumber(args[1]) ?? 0);
-    return Math.round(value * factor) / factor;
+    return roundNumber(value, toNumber(args[1]) ?? 0);
   });
 
   registry.override('abs', (args) => {

@@ -1,0 +1,34 @@
+name: kajay-sdk-demo
+
+services:
+  kajay-dotnet-api:
+    profiles: [dotnet]
+    build:
+      context: .
+      dockerfile: dotnet/apps/Kajay.Demo.Api/Dockerfile
+    expose:
+      - "8080"
+
+  kajay-dotnet-demo:
+    profiles: [dotnet]
+    build:
+      context: .
+      dockerfile: apps/sdk-demo/Dockerfile
+      target: dotnet
+      args:
+        VITE_KAJAY_RUNTIME: dotnet
+    depends_on:
+      - kajay-dotnet-api
+    ports:
+      - "4173:80"
+
+  kajay-typescript-demo:
+    profiles: [typescript]
+    build:
+      context: .
+      dockerfile: apps/sdk-demo/Dockerfile
+      target: typescript
+      args:
+        VITE_KAJAY_RUNTIME: typescript
+    ports:
+      - "4173:80"

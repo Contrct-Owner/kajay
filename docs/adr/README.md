@@ -3,7 +3,7 @@
 - Area: Decision record index
 - Status: established
 - Owner: Jarod
-- Last updated: 2026-08-04
+- Last updated: 2026-08-06
 
 Non-trivial decisions get an ADR. An ADR states the context, the decision, and the
 consequences that follow from it — including the costs accepted. Reversals are
@@ -54,6 +54,7 @@ recorded here (status `superseded`) **and** in the
 | [0029](./0029-release-walkthrough.md) | The release walkthrough | accepted | 2026-08-05 |
 | [0030](./0030-native-csharp-sdk-and-v2-runtime-semantics.md) | Native C# SDK and v2 runtime semantics | accepted | 2026-08-05 |
 | [0031](./0031-csharp-sdk-source-and-namespace-architecture.md) | C# SDK source and namespace architecture | accepted | 2026-08-05 |
+| [0032](./0032-compose-sdk-demo-profiles.md) | One SDK demo frontend with Compose runtime profiles | accepted | 2026-08-06 |
 
 ## Parent and related links
 

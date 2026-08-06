@@ -9,11 +9,13 @@
     "tsBuildInfoFile": ".tsbuild/tests-unit.tsbuildinfo"
   },
   "include": [
+    "apps/sdk-demo/test/unit/**/*.ts",
     "packages/*/test/unit/**/*.ts",
     "packages/*/test/support/**/*.ts",
     "packages/*/test/performance/**/*.ts"
   ],
   "references": [
+    { "path": "./apps/sdk-demo" },
     { "path": "./packages/core" },
     { "path": "./packages/react" },
     { "path": "./packages/creator-core" },

@@ -1,0 +1,37 @@
+:root {
+  color: #15261f;
+  background: #edf3ee;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+button { font: inherit; }
+
+.app-shell { width: min(1180px, calc(100% - 2rem)); margin: 0 auto; padding: 2rem 0 4rem; }
+.app-header { display: flex; justify-content: space-between; gap: 2rem; align-items: start; margin-bottom: 1.5rem; }
+.app-header h1 { margin: 0.2rem 0; font-size: clamp(2rem, 5vw, 4rem); letter-spacing: -0.05em; }
+.app-header p { max-width: 48rem; margin: 0.4rem 0; }
+.eyebrow { color: #276248; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+.runtime-badge { border: 1px solid #276248; border-radius: 999px; padding: 0.45rem 0.8rem; font-weight: 750; text-transform: uppercase; }
+.demo-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.demo-tabs button, .panel-heading button { border: 1px solid #b5c8ba; border-radius: 0.6rem; background: #fff; padding: 0.65rem 1rem; cursor: pointer; }
+.demo-tabs button[aria-pressed='true'] { color: #fff; background: #276248; border-color: #276248; }
+.demo-panel { background: #fff; border: 1px solid #d7e2d9; border-radius: 1rem; padding: clamp(1rem, 3vw, 2rem); box-shadow: 0 18px 50px rgb(26 62 45 / 8%); }
+.panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.panel-heading h2 { margin: 0; }
+.hint { color: #52645b; max-width: 52rem; }
+.hint code { color: #7b2638; background: #fbeef1; padding: 0.1rem 0.25rem; border-radius: 0.2rem; }
+.runtime-result { margin-top: 1.25rem; border-left: 4px solid; border-radius: 0.3rem; padding: 0.9rem 1rem; background: #f4f7f5; }
+.runtime-result.is-success { border-color: #2d7a51; }
+.runtime-result.is-error, .load-state.is-error { border-color: #b52e4c; color: #7b2638; }
+.runtime-result p { margin: 0.4rem 0; }
+.runtime-result pre { overflow: auto; max-height: 20rem; background: #14221b; color: #dff5e7; padding: 1rem; border-radius: 0.5rem; }
+.load-state { background: white; border-left: 4px solid #276248; padding: 1rem; }
+.creator-panel .kajay-creator { min-height: 38rem; }
+
+@media (max-width: 640px) {
+  .app-header { flex-direction: column; gap: 0.75rem; }
+  .app-shell { width: min(100% - 1rem, 1180px); padding-top: 1rem; }
+}

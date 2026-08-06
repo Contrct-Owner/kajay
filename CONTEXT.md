@@ -3,7 +3,7 @@
 - Area: Repository orientation and current project state
 - Status: active
 - Owner: Jarod
-- Last updated: 2026-08-05
+- Last updated: 2026-08-06
 
 Kajay Survey is an embedded survey runtime and Creator whose authoritative JSON
 definition and versioned behavior contract support maintained native runtimes. The
@@ -43,6 +43,7 @@ published implementation is TypeScript; C# is the second runtime in development.
 | Definition shape | active | Jarod | [Generated survey schema](./contracts/survey-schema.json) |
 | Runtime compatibility | v1: TypeScript 1.x; v2: two candidate adapters passing | Jarod | [Conformance v1](./conformance/v1/README.md), [v2](./conformance/v2/README.md) |
 | Native C# SDK | implementation underway | Jarod | [ADR-0030](./docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md), [parity §Q](./docs/feature-parity-checklist.md#q--c-headless-sdk) |
+| SDK demos | renderer + Creator profiles active | Jarod | [Demo guide](./docs/sdk-demos.md), [ADR-0032](./docs/adr/0032-compose-sdk-demo-profiles.md) |
 | Publishing and licensing | 1.0.0 published | Jarod | [ADR-0029](./docs/adr/0029-release-walkthrough.md) |
 | Machine-readable documentation | preview | Jarod | [ADR-0025](./docs/adr/0025-read-only-documentation-mcp.md) |
 

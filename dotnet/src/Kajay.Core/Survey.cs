@@ -12,6 +12,7 @@ public sealed class Survey
     private readonly TimeProvider _timeProvider;
     private readonly ExpressionFunctionRegistry _expressionFunctions;
     private readonly SurveyAsyncFunctionValues _asyncFunctionValues;
+    private readonly SurveyChoiceSources _choiceSources;
     private readonly IReadOnlyDictionary<string, SurveyQuestion> _questionsByName;
     private bool _isLoading;
     private bool _isPreviewing;
@@ -48,6 +49,10 @@ public sealed class Survey
         _questionsByName = new System.Collections.ObjectModel.ReadOnlyDictionary<string, SurveyQuestion>(
             questions.GroupBy(question => question.Name, StringComparer.Ordinal)
                 .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal));
+        _choiceSources = new SurveyChoiceSources(
+            this,
+            options,
+            Array.AsReadOnly(questions.OfType<SurveyChoiceQuestion>().ToArray()));
         _triggers = new SurveyTriggers(this, definition.Triggers);
         _triggers.Establish();
     }
@@ -277,7 +282,10 @@ public sealed class Survey
             {
                 _asyncFunctionValues.Begin(_timeProvider.GetUtcNow(), cancellationToken);
                 SettleAllLogic();
-                if (!await _asyncFunctionValues.ResolvePendingAsync().ConfigureAwait(false))
+                Task<bool> expressions = _asyncFunctionValues.ResolvePendingAsync();
+                Task<bool> choices = _choiceSources.SettleAsync(cancellationToken);
+                await Task.WhenAll(expressions, choices).ConfigureAwait(false);
+                if (!expressions.Result && !choices.Result)
                 {
                     return;
                 }
@@ -462,6 +470,38 @@ public sealed class Survey
     internal KajayValue GetValue(string name)
     {
         return TryGetValue(name, out KajayValue value) ? value : KajayValue.Absent;
+    }
+
+    internal KajayValue ResolveValuePath(string raw)
+    {
+        List<ExpressionError> errors = [];
+        ExpressionPath path = ExpressionPath.Parse(raw, new TextSpan(0, raw.Length), errors);
+        if (errors.Count > 0 || path.Segments.Count == 0 || path.Segments[0].IsIndex)
+        {
+            return KajayValue.Absent;
+        }
+
+        KajayValue value = GetValue(path.Segments[0].Name!);
+        foreach (ExpressionPathSegment segment in path.Segments.Skip(1))
+        {
+            if (segment.IsIndex)
+            {
+                if (value.Kind != KajayValueKind.Array
+                    || segment.Index >= value.GetArray().Count)
+                {
+                    return KajayValue.Absent;
+                }
+
+                value = value.GetArray()[segment.Index];
+            }
+            else if (value.Kind != KajayValueKind.Map
+                || !value.GetObject().TryGetValue(segment.Name!, out value))
+            {
+                return KajayValue.Absent;
+            }
+        }
+
+        return value;
     }
 
     internal bool IsAuthoredPageVisible(int pageIndex)

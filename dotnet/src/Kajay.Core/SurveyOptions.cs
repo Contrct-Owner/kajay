@@ -10,6 +10,13 @@ public sealed class SurveyOptions
     public ExpressionFunctionRegistry ExpressionFunctions { get; init; } =
         ExpressionFunctionRegistry.Empty;
 
+    /// <summary>Gets or initializes the adapter for definition-authored choice resources.</summary>
+    public SurveyChoiceFetcher? ChoiceFetcher { get; init; }
+
+    /// <summary>Gets or initializes host-owned origins addressed by <c>{@name}</c>.</summary>
+    public IReadOnlyDictionary<string, string> Endpoints { get; init; } =
+        new Dictionary<string, string>(StringComparer.Ordinal);
+
     /// <summary>Gets or initializes the synchronous host question validator.</summary>
     public SurveyQuestionValidator? QuestionValidator { get; init; }
 

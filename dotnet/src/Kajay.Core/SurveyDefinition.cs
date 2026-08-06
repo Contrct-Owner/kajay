@@ -51,10 +51,24 @@ public sealed class SurveyDefinition
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(options.TimeProvider);
         ArgumentNullException.ThrowIfNull(options.ExpressionFunctions);
+        ArgumentNullException.ThrowIfNull(options.Endpoints);
         return new Survey(
             SurveyRuntimeDefinition.From(_canonical),
             options.TimeProvider,
             options);
+    }
+
+    /// <summary>Creates a survey and awaits its initially reachable host work.</summary>
+    /// <param name="options">Explicit clocks and host adapters.</param>
+    /// <param name="cancellationToken">Cancels initial host work.</param>
+    /// <returns>A fully settled survey.</returns>
+    public async Task<Survey> CreateSurveyAsync(
+        SurveyOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        Survey survey = CreateSurvey(options ?? new SurveyOptions());
+        await survey.SettleAsync(cancellationToken).ConfigureAwait(false);
+        return survey;
     }
 
 }

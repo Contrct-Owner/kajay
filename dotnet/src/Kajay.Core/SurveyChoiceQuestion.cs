@@ -3,13 +3,23 @@ namespace Kajay;
 /// <summary>A question whose authored values form a selectable set or ordered list.</summary>
 public sealed class SurveyChoiceQuestion : SurveyQuestion
 {
+    private IReadOnlyList<SurveyChoiceItem>? _runtimeChoices;
+
     internal SurveyChoiceQuestion(Survey survey, SurveyRuntimeQuestion definition)
         : base(survey, definition)
     {
     }
 
-    /// <summary>Gets the authored values in stable definition order.</summary>
-    public IReadOnlyList<KajayValue> Choices => Definition.Choices;
+    /// <summary>Gets the effective values in stable source order.</summary>
+    public IReadOnlyList<KajayValue> Choices => Array.AsReadOnly(
+        ChoiceItems.Select(item => item.Value).ToArray());
+
+    /// <summary>Gets the effective values and display text in stable source order.</summary>
+    public IReadOnlyList<SurveyChoiceItem> ChoiceItems =>
+        _runtimeChoices ?? Definition.ChoiceItems;
+
+    /// <summary>Gets the list written in the definition, ignoring any runtime source.</summary>
+    public IReadOnlyList<SurveyChoiceItem> AuthoredChoiceItems => Definition.ChoiceItems;
 
     /// <summary>Gets whether the response is an ordered array rather than one scalar.</summary>
     public bool AllowsMultiple => Type is "checkbox" or "tagbox" or "ranking";
@@ -94,6 +104,31 @@ public sealed class SurveyChoiceQuestion : SurveyQuestion
         }
 
         SetValue(selected.Count == 0 ? KajayValue.Absent : KajayValue.FromArray(selected));
+    }
+
+    internal SurveyRuntimeChoiceSettings ChoiceSettings => Definition.ChoiceSettings
+        ?? throw new InvalidOperationException($"Question '{Name}' has no choice settings.");
+
+    internal bool SetChoices(IReadOnlyList<SurveyChoiceItem> choices)
+    {
+        if (_runtimeChoices is not null && _runtimeChoices.SequenceEqual(choices))
+        {
+            return false;
+        }
+
+        _runtimeChoices = Array.AsReadOnly(choices.ToArray());
+        return true;
+    }
+
+    internal bool ResetChoices()
+    {
+        if (_runtimeChoices is null)
+        {
+            return false;
+        }
+
+        _runtimeChoices = null;
+        return true;
     }
 
     private KajayValue Resolve(KajayValue choice)

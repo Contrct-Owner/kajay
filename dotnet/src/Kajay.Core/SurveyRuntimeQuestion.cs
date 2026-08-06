@@ -7,6 +7,8 @@ internal sealed record SurveyRuntimeQuestion(
     string Name,
     string ValueKey,
     IReadOnlyList<KajayValue> Choices,
+    IReadOnlyList<SurveyChoiceItem> ChoiceItems,
+    SurveyRuntimeChoiceSettings? ChoiceSettings,
     IReadOnlyList<KajayValue> Rows,
     SurveyRuntimeMatrixSettings? MatrixSettings,
     SurveyRuntimeRecordSettings? RecordSettings,
@@ -42,11 +44,15 @@ internal sealed record SurveyRuntimeQuestion(
         bool hasCorrectAnswer = element.TryGetPropertyValue(
             "correctAnswer",
             out JsonNode? correctAnswer);
+        IReadOnlyList<SurveyChoiceItem> choiceItems = ReadChoiceItems(
+            element["choices"] as JsonArray);
         return new SurveyRuntimeQuestion(
             element["type"]?.GetValue<string>() ?? string.Empty,
             element["name"]?.GetValue<string>() ?? string.Empty,
             ReadValueKey(element),
-            ReadItems(element["choices"] as JsonArray),
+            Array.AsReadOnly(choiceItems.Select(item => item.Value).ToArray()),
+            choiceItems,
+            ReadChoiceSettings(element),
             ReadItems(element["rows"] as JsonArray),
             ReadMatrixSettings(element),
             ReadRecordSettings(element),
@@ -59,6 +65,64 @@ internal sealed record SurveyRuntimeQuestion(
             hasCorrectAnswer,
             hasCorrectAnswer ? KajayJsonValue.From(correctAnswer) : KajayValue.Absent,
             runtimeValidators);
+    }
+
+    private static IReadOnlyList<SurveyChoiceItem> ReadChoiceItems(JsonArray? items)
+    {
+        if (items is null)
+        {
+            return Array.Empty<SurveyChoiceItem>();
+        }
+
+        return Array.AsReadOnly(items.Select(item =>
+        {
+            JsonNode? source = item;
+            JsonNode? text = null;
+            if (item is JsonObject descriptor
+                && descriptor.TryGetPropertyValue("value", out JsonNode? value))
+            {
+                source = value;
+                _ = descriptor.TryGetPropertyValue("text", out text);
+            }
+
+            KajayValue choice = KajayJsonValue.From(source);
+            return new SurveyChoiceItem(choice, ReadChoiceText(text, choice));
+        }).ToArray());
+    }
+
+    private static string ReadChoiceText(JsonNode? text, KajayValue value)
+    {
+        if (text is JsonValue jsonText && jsonText.TryGetValue(out string? content))
+        {
+            return content;
+        }
+
+        return KajayText.TryConvert(value, out string fallback) ? fallback : string.Empty;
+    }
+
+    private static SurveyRuntimeChoiceSettings? ReadChoiceSettings(JsonObject element)
+    {
+        string type = element["type"]?.GetValue<string>() ?? string.Empty;
+        if (type is not ("checkbox" or "dropdown" or "imagepicker" or "radiogroup"
+            or "ranking" or "tagbox"))
+        {
+            return null;
+        }
+
+        return new SurveyRuntimeChoiceSettings(
+            ReadString(element["choicesFromQuestion"]),
+            ReadString(element["choicesFromQuestionMode"]),
+            ReadString(element["choicesByUrl"]),
+            ReadString(element["choicesPath"]),
+            ReadString(element["choicesValueName"]),
+            ReadString(element["choicesTitleName"]),
+            element["choicesLazyLoadEnabled"]?.GetValue<bool>() ?? false,
+            ReadCount(element["choicesLazyLoadPageSize"], 25));
+    }
+
+    private static string ReadString(JsonNode? node)
+    {
+        return node?.GetValue<string>() ?? string.Empty;
     }
 
     private static IReadOnlyList<KajayValue> ReadItems(JsonArray? items)

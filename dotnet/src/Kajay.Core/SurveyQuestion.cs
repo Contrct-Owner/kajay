@@ -13,6 +13,8 @@ public abstract class SurveyQuestion
 
     internal SurveyRuntimeQuestion Definition { get; }
 
+    internal Survey Owner => _survey;
+
     /// <summary>Gets the stable registered question type.</summary>
     public string Type => Definition.Type;
 

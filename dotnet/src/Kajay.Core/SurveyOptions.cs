@@ -16,6 +16,15 @@ public sealed class SurveyOptions
     /// <summary>Gets or initializes the adapter for lazy, server-filtered choice pages.</summary>
     public SurveyChoicePageLoader? ChoicePageLoader { get; init; }
 
+    /// <summary>Gets or initializes the adapter that stores attached files.</summary>
+    public SurveyFileUploader? FileUploader { get; init; }
+
+    /// <summary>Gets or initializes the adapter that resolves readable file URLs.</summary>
+    public SurveyFileDownloader? FileDownloader { get; init; }
+
+    /// <summary>Gets or initializes the adapter that cleans up detached files.</summary>
+    public SurveyFileCleaner? FileCleaner { get; init; }
+
     /// <summary>Gets or initializes host-owned origins addressed by <c>{@name}</c>.</summary>
     public IReadOnlyDictionary<string, string> Endpoints { get; init; } =
         new Dictionary<string, string>(StringComparer.Ordinal);

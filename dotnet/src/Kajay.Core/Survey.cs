@@ -13,6 +13,7 @@ public sealed class Survey
     private readonly ExpressionFunctionRegistry _expressionFunctions;
     private readonly SurveyAsyncFunctionValues _asyncFunctionValues;
     private readonly SurveyChoiceSources _choiceSources;
+    private readonly SurveyFileAdapters _fileAdapters;
     private readonly IReadOnlyDictionary<string, SurveyQuestion> _questionsByName;
     private bool _isLoading;
     private bool _isPreviewing;
@@ -29,6 +30,7 @@ public sealed class Survey
         _timeProvider = timeProvider;
         _expressionFunctions = options.ExpressionFunctions;
         _asyncFunctionValues = new SurveyAsyncFunctionValues(_expressionFunctions);
+        _fileAdapters = new SurveyFileAdapters(options);
         Validation = new SurveyValidation(this, definition, options);
         Timer = new SurveyTimer(
             this,
@@ -473,6 +475,8 @@ public sealed class Survey
     {
         return TryGetValue(name, out KajayValue value) ? value : KajayValue.Absent;
     }
+
+    internal SurveyFileAdapters FileAdapters => _fileAdapters;
 
     internal KajayValue ResolveValuePath(string raw)
     {

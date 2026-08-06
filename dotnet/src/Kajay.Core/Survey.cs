@@ -20,12 +20,12 @@ public sealed class Survey
     internal Survey(
         SurveyRuntimeDefinition definition,
         TimeProvider timeProvider,
-        ExpressionFunctionRegistry expressionFunctions)
+        SurveyOptions options)
     {
         _definition = definition;
         _timeProvider = timeProvider;
-        _expressionFunctions = expressionFunctions;
-        Validation = new SurveyValidation(this, definition);
+        _expressionFunctions = options.ExpressionFunctions;
+        Validation = new SurveyValidation(this, definition, options);
         Timer = new SurveyTimer(
             this,
             timeProvider,
@@ -280,16 +280,32 @@ public sealed class Survey
     /// </summary>
     /// <param name="cancellationToken">Cancels pending validation or host work.</param>
     /// <returns>The committed navigation outcome.</returns>
-    public Task<SurveyAdvanceOutcome> AdvanceAsync(
+    public async Task<SurveyAdvanceOutcome> AdvanceAsync(
         CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
         {
-            return Task.FromCanceled<SurveyAdvanceOutcome>(cancellationToken);
+            return await Task.FromCanceled<SurveyAdvanceOutcome>(
+                cancellationToken).ConfigureAwait(false);
         }
-        if (_isCompleted)
+        if (State != SurveyState.Running)
         {
-            return Task.FromResult(SurveyAdvanceOutcome.NoChange);
+            return SurveyAdvanceOutcome.NoChange;
+        }
+
+        string page = CurrentPageName;
+        IReadOnlyDictionary<string, KajayValue> data = Data;
+        SurveyValidationResult validation = await Validation.ValidateCurrentPageAsync(
+            cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!string.Equals(page, CurrentPageName, StringComparison.Ordinal)
+            || !DataMatches(data, Data))
+        {
+            return SurveyAdvanceOutcome.NoChange;
+        }
+        if (!validation.IsValid)
+        {
+            return SurveyAdvanceOutcome.Blocked;
         }
 
         if (IsLastPage)
@@ -301,7 +317,7 @@ public sealed class Survey
             SetCurrentPageIndex(_currentPageIndex + 1);
         }
 
-        return Task.FromResult(SurveyAdvanceOutcome.Advanced);
+        return SurveyAdvanceOutcome.Advanced;
     }
 
     /// <summary>Moves to the preceding effective page without running the forward gate.</summary>
@@ -467,5 +483,14 @@ public sealed class Survey
         {
             _ = SetCurrentPageIndex(PageCount - 1);
         }
+    }
+
+    private static bool DataMatches(
+        IReadOnlyDictionary<string, KajayValue> expected,
+        IReadOnlyDictionary<string, KajayValue> actual)
+    {
+        return expected.Count == actual.Count
+            && expected.All(entry => actual.TryGetValue(entry.Key, out KajayValue value)
+                && value == entry.Value);
     }
 }

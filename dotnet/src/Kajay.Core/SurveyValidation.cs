@@ -5,32 +5,95 @@ public sealed class SurveyValidation
 {
     private readonly Survey _survey;
     private readonly SurveyRuntimeDefinition _definition;
+    private readonly SurveyQuestionValidator? _questionValidator;
+    private readonly AsyncSurveyQuestionValidator? _asyncQuestionValidator;
+    private readonly SurveyServerValidator? _serverValidator;
 
-    internal SurveyValidation(Survey survey, SurveyRuntimeDefinition definition)
+    internal SurveyValidation(
+        Survey survey,
+        SurveyRuntimeDefinition definition,
+        SurveyOptions options)
     {
         _survey = survey;
         _definition = definition;
+        _questionValidator = options.QuestionValidator;
+        _asyncQuestionValidator = options.AsyncQuestionValidator;
+        _serverValidator = options.ServerValidator;
     }
+
+    /// <summary>Gets whether asynchronous host validation is currently outstanding.</summary>
+    public bool IsValidating { get; private set; }
 
     /// <summary>Checks the questions on the current page.</summary>
     /// <returns>Whether the page passed and each failed rule in definition order.</returns>
     public SurveyValidationResult ValidateCurrentPage()
     {
-        if (_survey.State != SurveyState.Running
-            || _survey.CurrentAuthoredPageIndex < 0)
+        SurveyRuntimeQuestion[] questions = CurrentQuestions();
+        if (questions.Length == 0)
         {
             return new SurveyValidationResult(true, []);
         }
 
         var errors = new List<SurveyValidationError>();
-        foreach (SurveyRuntimeQuestion question in
-            _definition.Pages[_survey.CurrentAuthoredPageIndex].Questions)
+        foreach (SurveyRuntimeQuestion question in questions)
         {
-            if (_survey.TryGetQuestionState(question.Name, out SurveyQuestionState state)
-                && state.IsReachable)
+            ValidateQuestion(question, errors);
+        }
+
+        return new SurveyValidationResult(errors.Count == 0, errors.AsReadOnly());
+    }
+
+    /// <summary>Runs synchronous rules, then asynchronous question and server checks.</summary>
+    /// <param name="cancellationToken">Cancels pending host work.</param>
+    /// <returns>Whether the current page passed and every reported error.</returns>
+    public async ValueTask<SurveyValidationResult> ValidateCurrentPageAsync(
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (IsValidating)
+        {
+            throw new InvalidOperationException("Survey validation is already in progress.");
+        }
+
+        SurveyValidationResult synchronous = ValidateCurrentPage();
+        if (!synchronous.IsValid
+            || _asyncQuestionValidator is null && _serverValidator is null)
+        {
+            return synchronous;
+        }
+
+        SurveyRuntimeQuestion[] questions = CurrentQuestions();
+        var errors = new List<SurveyValidationError>();
+        IsValidating = true;
+        try
+        {
+            if (_asyncQuestionValidator is not null)
             {
-                ValidateQuestion(question, errors);
+                foreach (SurveyRuntimeQuestion question in questions)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    IReadOnlyList<SurveyValidationError> reported =
+                        await _asyncQuestionValidator(
+                            CreateContext(question),
+                            cancellationToken).ConfigureAwait(false);
+                    ArgumentNullException.ThrowIfNull(reported);
+                    errors.AddRange(reported);
+                }
             }
+
+            if (_serverValidator is not null)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                IReadOnlyList<SurveyValidationError> reported = await _serverValidator(
+                    _survey.Data,
+                    cancellationToken).ConfigureAwait(false);
+                ArgumentNullException.ThrowIfNull(reported);
+                errors.AddRange(reported);
+            }
+        }
+        finally
+        {
+            IsValidating = false;
         }
 
         return new SurveyValidationResult(errors.Count == 0, errors.AsReadOnly());
@@ -40,6 +103,7 @@ public sealed class SurveyValidation
         SurveyRuntimeQuestion question,
         List<SurveyValidationError> errors)
     {
+        int previousErrorCount = errors.Count;
         KajayValue value = _survey.GetValue(question.ValueKey);
         if (KajayValueSemantics.IsEmpty(value))
         {
@@ -50,20 +114,54 @@ public sealed class SurveyValidation
                     question.Name,
                     "required",
                     question.RequiredMessage));
+                return;
             }
-            return;
+        }
+        else
+        {
+            foreach (SurveyRuntimeValidator validator in question.Validators)
+            {
+                if (Fails(validator, value))
+                {
+                    errors.Add(new SurveyValidationError(
+                        question.Name,
+                        validator.Type,
+                        validator.Message));
+                }
+            }
         }
 
-        foreach (SurveyRuntimeValidator validator in question.Validators)
+        if (errors.Count == previousErrorCount && _questionValidator is not null)
         {
-            if (Fails(validator, value))
-            {
-                errors.Add(new SurveyValidationError(
-                    question.Name,
-                    validator.Type,
-                    validator.Message));
-            }
+            IReadOnlyList<SurveyValidationError> reported =
+                _questionValidator(CreateContext(question));
+            ArgumentNullException.ThrowIfNull(reported);
+            errors.AddRange(reported);
         }
+    }
+
+    private SurveyQuestionValidationContext CreateContext(SurveyRuntimeQuestion question)
+    {
+        return new SurveyQuestionValidationContext(
+            question.Name,
+            question.ValueKey,
+            _survey.GetValue(question.ValueKey),
+            _survey.Data);
+    }
+
+    private SurveyRuntimeQuestion[] CurrentQuestions()
+    {
+        if (_survey.State != SurveyState.Running
+            || _survey.CurrentAuthoredPageIndex < 0)
+        {
+            return [];
+        }
+
+        return _definition.Pages[_survey.CurrentAuthoredPageIndex].Questions
+            .Where(question => _survey.TryGetQuestionState(
+                question.Name,
+                out SurveyQuestionState state) && state.IsReachable)
+            .ToArray();
     }
 
     private bool Fails(SurveyRuntimeValidator validator, KajayValue value)

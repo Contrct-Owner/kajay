@@ -54,7 +54,7 @@ public sealed class SurveyDefinition
         return new Survey(
             SurveyRuntimeDefinition.From(_canonical),
             options.TimeProvider,
-            options.ExpressionFunctions);
+            options);
     }
 
 }

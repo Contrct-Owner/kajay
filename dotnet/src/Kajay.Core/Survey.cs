@@ -525,6 +525,8 @@ public sealed class Survey
                 or "tagbox" => new SurveyChoiceQuestion(this, definition),
             "matrix" => new SurveyMatrixQuestion(this, definition),
             "matrixdynamic" or "paneldynamic" => new SurveyRecordQuestion(this, definition),
+            "file" => new SurveyFileQuestion(this, definition),
+            "signaturepad" => new SurveySignatureQuestion(this, definition),
             _ => new SurveyScalarQuestion(this, definition),
         };
     }

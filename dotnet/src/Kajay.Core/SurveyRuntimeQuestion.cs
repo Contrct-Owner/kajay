@@ -9,6 +9,8 @@ internal sealed record SurveyRuntimeQuestion(
     IReadOnlyList<KajayValue> Choices,
     IReadOnlyList<KajayValue> Rows,
     SurveyRuntimeRecordSettings? RecordSettings,
+    SurveyRuntimeFileSettings? FileSettings,
+    SurveyRuntimeSignatureSettings? SignatureSettings,
     string RequiredMessage,
     bool HasCorrectAnswer,
     KajayValue CorrectAnswer,
@@ -43,6 +45,8 @@ internal sealed record SurveyRuntimeQuestion(
             ReadItems(element["choices"] as JsonArray),
             ReadItems(element["rows"] as JsonArray),
             ReadRecordSettings(element),
+            ReadFileSettings(element),
+            ReadSignatureSettings(element),
             element["requiredErrorText"]?.GetValue<string>() ?? string.Empty,
             hasCorrectAnswer,
             hasCorrectAnswer ? KajayJsonValue.From(correctAnswer) : KajayValue.Absent,
@@ -91,6 +95,39 @@ internal sealed record SurveyRuntimeQuestion(
     private static int ReadCount(JsonNode? node, int defaultValue)
     {
         return node is null ? defaultValue : Math.Max(0, (int)node.GetValue<double>());
+    }
+
+    private static SurveyRuntimeFileSettings? ReadFileSettings(JsonObject element)
+    {
+        return element["type"]?.GetValue<string>() == "file"
+            ? new SurveyRuntimeFileSettings(
+                element["allowMultiple"]?.GetValue<bool>() ?? false,
+                element["acceptedTypes"]?.GetValue<string>() ?? string.Empty,
+                Math.Max(0, (long)(element["maxSize"]?.GetValue<double>() ?? 0)),
+                ReadCount(element["maxFileCount"], 0),
+                element["storeDataAsText"]?.GetValue<bool>() ?? false)
+            : null;
+    }
+
+    private static SurveyRuntimeSignatureSettings? ReadSignatureSettings(JsonObject element)
+    {
+        if (element["type"]?.GetValue<string>() != "signaturepad")
+        {
+            return null;
+        }
+
+        SurveySignatureFormat format = element["signatureFormat"]?.GetValue<string>() switch
+        {
+            "jpeg" => SurveySignatureFormat.Jpeg,
+            "svg" => SurveySignatureFormat.Svg,
+            _ => SurveySignatureFormat.Png,
+        };
+        return new SurveyRuntimeSignatureSettings(
+            element["penColor"]?.GetValue<string>() ?? "#1d2939",
+            element["backgroundColor"]?.GetValue<string>() ?? string.Empty,
+            format,
+            ReadCount(element["signatureWidth"], 400),
+            ReadCount(element["signatureHeight"], 160));
     }
 
     private static KajayValue ReadRecord(JsonNode? node)

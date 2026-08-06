@@ -294,6 +294,8 @@ public sealed class SurveyValidation
                         validator.Message));
                 }
             }
+
+            ValidateFile(question, value, errors);
         }
 
         if (errors.Count == previousErrorCount && _questionValidator is not null)
@@ -303,6 +305,65 @@ public sealed class SurveyValidation
             ArgumentNullException.ThrowIfNull(reported);
             errors.AddRange(reported);
         }
+    }
+
+    private static void ValidateFile(
+        SurveyRuntimeQuestion question,
+        KajayValue value,
+        List<SurveyValidationError> errors)
+    {
+        SurveyRuntimeFileSettings? settings = question.FileSettings;
+        if (settings is null || value.Kind != KajayValueKind.Array)
+        {
+            return;
+        }
+
+        SurveyFileEntry[] files = value.GetArray()
+            .Select(item => SurveyFileEntry.TryFrom(item, out SurveyFileEntry? file) ? file : null)
+            .OfType<SurveyFileEntry>()
+            .ToArray();
+        if (settings.MaximumCount > 0 && files.Length > settings.MaximumCount)
+        {
+            errors.Add(new SurveyValidationError(question.Name, "filetoomany"));
+        }
+
+        foreach (SurveyFileEntry file in files)
+        {
+            if (settings.AcceptedTypes.Length > 0
+                && !MatchesAcceptedType(file, settings.AcceptedTypes))
+            {
+                errors.Add(new SurveyValidationError(
+                    question.Name,
+                    "filewrongtype",
+                    Path: file.Name));
+            }
+            if (settings.MaximumSize > 0 && file.Size > settings.MaximumSize)
+            {
+                errors.Add(new SurveyValidationError(
+                    question.Name,
+                    "filetoolarge",
+                    Path: file.Name));
+            }
+        }
+    }
+
+    private static bool MatchesAcceptedType(SurveyFileEntry file, string acceptedTypes)
+    {
+        foreach (string token in acceptedTypes.Split(
+                     ',',
+                     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (token.Length > 0 && token[0] == '.'
+                && file.Name.EndsWith(token, StringComparison.OrdinalIgnoreCase)
+                || token.EndsWith("/*", StringComparison.Ordinal)
+                && file.MediaType.StartsWith(token[..^1], StringComparison.OrdinalIgnoreCase)
+                || string.Equals(token, file.MediaType, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private SurveyQuestionValidationContext CreateContext(SurveyRuntimeQuestion question)

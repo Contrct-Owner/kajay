@@ -519,9 +519,13 @@ public sealed class Survey
 
     private SurveyQuestion CreateQuestion(SurveyRuntimeQuestion definition)
     {
-        return definition.Type is "checkbox" or "dropdown" or "imagepicker"
-            or "radiogroup" or "ranking" or "tagbox"
-            ? new SurveyChoiceQuestion(this, definition)
-            : new SurveyScalarQuestion(this, definition);
+        return definition.Type switch
+        {
+            "checkbox" or "dropdown" or "imagepicker" or "radiogroup" or "ranking"
+                or "tagbox" => new SurveyChoiceQuestion(this, definition),
+            "matrix" => new SurveyMatrixQuestion(this, definition),
+            "matrixdynamic" or "paneldynamic" => new SurveyRecordQuestion(this, definition),
+            _ => new SurveyScalarQuestion(this, definition),
+        };
     }
 }

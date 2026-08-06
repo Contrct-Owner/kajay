@@ -7,6 +7,8 @@ internal sealed record SurveyRuntimeQuestion(
     string Name,
     string ValueKey,
     IReadOnlyList<KajayValue> Choices,
+    IReadOnlyList<KajayValue> Rows,
+    SurveyRuntimeRecordSettings? RecordSettings,
     string RequiredMessage,
     bool HasCorrectAnswer,
     KajayValue CorrectAnswer,
@@ -38,26 +40,62 @@ internal sealed record SurveyRuntimeQuestion(
             element["type"]?.GetValue<string>() ?? string.Empty,
             element["name"]?.GetValue<string>() ?? string.Empty,
             ReadValueKey(element),
-            ReadChoices(element["choices"] as JsonArray),
+            ReadItems(element["choices"] as JsonArray),
+            ReadItems(element["rows"] as JsonArray),
+            ReadRecordSettings(element),
             element["requiredErrorText"]?.GetValue<string>() ?? string.Empty,
             hasCorrectAnswer,
             hasCorrectAnswer ? KajayJsonValue.From(correctAnswer) : KajayValue.Absent,
             runtimeValidators);
     }
 
-    private static IReadOnlyList<KajayValue> ReadChoices(JsonArray? choices)
+    private static IReadOnlyList<KajayValue> ReadItems(JsonArray? items)
     {
-        if (choices is null)
+        if (items is null)
         {
             return Array.Empty<KajayValue>();
         }
 
-        return Array.AsReadOnly(choices.Select(choice =>
+        return Array.AsReadOnly(items.Select(item =>
         {
-            return choice is JsonObject item && item.TryGetPropertyValue("value", out JsonNode? value)
+            return item is JsonObject descriptor
+                && descriptor.TryGetPropertyValue("value", out JsonNode? value)
                 ? KajayJsonValue.From(value)
-                : KajayJsonValue.From(choice);
+                : KajayJsonValue.From(item);
         }).ToArray());
+    }
+
+    private static SurveyRuntimeRecordSettings? ReadRecordSettings(JsonObject element)
+    {
+        string type = element["type"]?.GetValue<string>() ?? string.Empty;
+        return type switch
+        {
+            "matrixdynamic" => new SurveyRuntimeRecordSettings(
+                ReadCount(element["minRowCount"], 1),
+                ReadCount(element["maxRowCount"], 0),
+                element["allowAddRows"]?.GetValue<bool>() ?? true,
+                element["allowRemoveRows"]?.GetValue<bool>() ?? true,
+                ReadRecord(element["defaultRowValue"]),
+                element["defaultValueFromLastRow"]?.GetValue<bool>() ?? false),
+            "paneldynamic" => new SurveyRuntimeRecordSettings(
+                ReadCount(element["minPanelCount"], 1),
+                ReadCount(element["maxPanelCount"], 0),
+                element["allowAddPanel"]?.GetValue<bool>() ?? true,
+                element["allowRemovePanel"]?.GetValue<bool>() ?? true,
+                ReadRecord(element["defaultPanelValue"]),
+                false),
+            _ => null,
+        };
+    }
+
+    private static int ReadCount(JsonNode? node, int defaultValue)
+    {
+        return node is null ? defaultValue : Math.Max(0, (int)node.GetValue<double>());
+    }
+
+    private static KajayValue ReadRecord(JsonNode? node)
+    {
+        return node is JsonObject ? KajayJsonValue.From(node) : KajayValue.FromObject([]);
     }
 
     private static string ReadValueKey(JsonObject element)

@@ -246,7 +246,7 @@ package; passing the current 31 v1 cases alone is not headless parity.
 
 | ID | Feature | Status | Proof |
 | --- | --- | --- | --- |
-| Q1 | `Kajay.Core` package skeleton: `net10.0`, nullable, analyzers, deterministic build, Source Link, package validation, trimming and Native AOT analysis | ☐ | Required proof: `parity/Q1-package-skeleton` through a packed `.nupkg` scratch consumer |
+| Q1 | `Kajay.Core` package skeleton: `net10.0`, nullable, analyzers, deterministic build, Source Link, package validation, trimming and Native AOT analysis | ☑ | `parity/Q1-package-skeleton` proves the built assembly targets `net10.0` with no non-BCL runtime references; `pnpm run verify:dotnet` adds locked restore, formatting, warning-free Release analyzers, Source Link/package validation, trimming/AOT analysis, and a fresh installed `.nupkg` consumer. CI runs that gate on Linux, Windows, and macOS. |
 | Q2 | Generated survey schema, metadata, and diagnostics are embedded and version-queryable; implemented conformance versions are declared without shipping test data as runtime surface | ☐ | Required proof: `parity/Q2-contract-resources` plus contract drift comparison with the repository artifacts |
 | Q3 | Definition registry, parsing, diagnostics, canonical serialization, unknown-property preservation, and fixed-point round trip | ☐ | Required proof: `parity/Q3-definitions` and every inherited/v2 definition conformance case |
 | Q4 | Expression grammar, canonical printing, Kajay values, coercion, equality, dates, functions, async results, and dependency planning | ☐ | Required proof: `parity/Q4-expressions` and every inherited/v2 expression conformance case |

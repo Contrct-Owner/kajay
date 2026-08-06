@@ -40,6 +40,7 @@ const implementedDefinitionIds = [
 const implementedScenarioIds = [
   'portable-pattern-matches-and-rejects',
   'pattern-searches-unless-anchored',
+  'pattern-classes-and-dot-use-defined-scalars',
 ];
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));

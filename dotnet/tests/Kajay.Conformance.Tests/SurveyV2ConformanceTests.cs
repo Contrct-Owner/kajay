@@ -17,6 +17,12 @@ public sealed class SurveyV2ConformanceTests
         AssertScenario("pattern-searches-unless-anchored");
     }
 
+    [Fact]
+    public void PatternClassesAndDotUseDefinedScalars()
+    {
+        AssertScenario("pattern-classes-and-dot-use-defined-scalars");
+    }
+
     private static void AssertScenario(string scenarioId)
     {
         using JsonDocument corpus = OpenScenarioCorpus();

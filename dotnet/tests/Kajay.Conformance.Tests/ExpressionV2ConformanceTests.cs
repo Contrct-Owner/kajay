@@ -143,6 +143,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("local-date-time-is-invalid");
     }
 
+    [Fact]
+    public void RolloverDateIsInvalid()
+    {
+        AssertEvaluationCase("rollover-date-is-invalid");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

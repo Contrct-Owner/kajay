@@ -83,6 +83,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("boolean-text-conversion-is-invariant");
     }
 
+    [Fact]
+    public void ObjectsCompareStructurally()
+    {
+        AssertEvaluationCase("objects-compare-structurally");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

@@ -7,6 +7,7 @@ internal static class KajayBuiltInFunctions
         return name.Equals("today", StringComparison.OrdinalIgnoreCase)
             || name.Equals("currentDate", StringComparison.OrdinalIgnoreCase)
             || name.Equals("diffDays", StringComparison.OrdinalIgnoreCase)
+            || name.Equals("getDate", StringComparison.OrdinalIgnoreCase)
             || name.Equals("round", StringComparison.OrdinalIgnoreCase);
     }
 
@@ -28,6 +29,11 @@ internal static class KajayBuiltInFunctions
         if (name.Equals("round", StringComparison.OrdinalIgnoreCase))
         {
             return EvaluateRound(arguments);
+        }
+
+        if (name.Equals("getDate", StringComparison.OrdinalIgnoreCase))
+        {
+            return EvaluateGetDate(arguments);
         }
 
         return name.Equals("diffDays", StringComparison.OrdinalIgnoreCase)
@@ -89,5 +95,13 @@ internal static class KajayBuiltInFunctions
         return KajayRounding.TryRound(value, precision, out double rounded)
             ? KajayValue.From(rounded)
             : KajayValue.Absent;
+    }
+
+    private static KajayValue EvaluateGetDate(IReadOnlyList<KajayValue> arguments)
+    {
+        return arguments.Count > 0
+            && KajayInstant.TryConvert(arguments[0], out DateTimeOffset instant)
+                ? KajayValue.From(instant)
+                : KajayValue.Absent;
     }
 }

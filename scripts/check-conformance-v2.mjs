@@ -25,6 +25,7 @@ const implementedExpressionIds = [
   'text-order-is-ordinal-utf16',
   'round-positive-midpoint-away-from-zero',
   'round-negative-midpoint-away-from-zero',
+  'date-only-is-midnight-utc',
 ];
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));

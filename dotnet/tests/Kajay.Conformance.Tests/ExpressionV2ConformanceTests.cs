@@ -119,6 +119,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("round-negative-midpoint-away-from-zero");
     }
 
+    [Fact]
+    public void DateOnlyTextIsMidnightUtc()
+    {
+        AssertEvaluationCase("date-only-is-midnight-utc");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

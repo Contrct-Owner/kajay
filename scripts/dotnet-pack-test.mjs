@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 const repositoryRoot = resolve(import.meta.dirname, '..');
 const project = resolve(repositoryRoot, 'dotnet/src/Kajay.Core/Kajay.Core.csproj');
-const questionModelSmoke = readFileSync(resolve(repositoryRoot, 'scripts/dotnet-pack-question-model-smoke.cs'), 'utf8');
+const dotnetSmoke = ['dotnet-pack-question-model-smoke.cs', 'dotnet-pack-host-io-smoke.cs'].map((file) => readFileSync(resolve(repositoryRoot, `scripts/${file}`), 'utf8')).join('\n');
 const consumerProgram = `using System;
 using System.Collections.Generic;
 using System.IO;
@@ -229,7 +229,7 @@ cancellation.Cancel();
 try { await pendingValidation; throw new InvalidOperationException("Installed package ignored validation cancellation."); }
 catch (OperationCanceledException) { }
 if (cancellable.Validation.IsValidating || cancellable.CurrentPageName != "one") throw new InvalidOperationException("Installed package failed cancellation cleanup.");
-${questionModelSmoke}
+${dotnetSmoke}
 Console.WriteLine("dotnet pack smoke: ok");
 `;
 const scratch = mkdtempSync(join(tmpdir(), 'kajay-dotnet-pack-'));

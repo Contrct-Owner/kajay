@@ -14,6 +14,7 @@ public sealed class Survey
     private readonly SurveyAsyncFunctionValues _asyncFunctionValues;
     private readonly SurveyChoiceSources _choiceSources;
     private readonly SurveyFileAdapters _fileAdapters;
+    private readonly SurveyLogicErrors _logicErrors = new();
     private readonly IReadOnlyDictionary<string, SurveyQuestion> _questionsByName;
     private bool _isLoading;
     private bool _isPreviewing;
@@ -121,6 +122,9 @@ public sealed class Survey
 
     /// <summary>Gets whether asynchronous expression functions are being settled.</summary>
     public bool IsSettling { get; private set; }
+
+    /// <summary>Gets expression errors reported by the most recent logic settlement.</summary>
+    public IReadOnlyList<ExpressionError> LogicErrors => _logicErrors.Current;
 
     /// <summary>Gets an immutable snapshot of answers and included calculated values.</summary>
     public IReadOnlyDictionary<string, KajayValue> Data
@@ -243,6 +247,7 @@ public sealed class Survey
             return;
         }
 
+        _logicErrors.Reset();
         SettleLogic([ExpressionPath.FromName(name)], changes, stateChanges);
         _choiceSources.SettleSynchronous();
         Validation.RevalidateChangedValues(changes.Select(change => change.Name));
@@ -280,6 +285,7 @@ public sealed class Survey
         }
 
         IsSettling = true;
+        _logicErrors.Reset();
         try
         {
             for (int pass = 0; pass < LogicCascadeLimit; pass += 1)
@@ -477,6 +483,11 @@ public sealed class Survey
     }
 
     internal SurveyFileAdapters FileAdapters => _fileAdapters;
+
+    internal void RecordLogicErrors(IReadOnlyList<ExpressionError> errors)
+    {
+        _logicErrors.Record(errors);
+    }
 
     internal KajayValue ResolveValuePath(string raw)
     {

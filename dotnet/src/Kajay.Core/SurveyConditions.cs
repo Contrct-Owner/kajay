@@ -107,6 +107,7 @@ internal sealed class SurveyConditions
             SurveyConditionRule rule = _rules[key];
             ExpressionEvaluationResult evaluation = rule.Expression.Evaluate(
                 _survey.CreateExpressionContext());
+            _survey.RecordLogicErrors(evaluation.Errors);
             bool value = evaluation.Errors.Count == 0
                 ? KajayValueSemantics.IsTruthy(evaluation.Value)
                 : rule.Kind != SurveyConditionKind.Required;

@@ -85,6 +85,7 @@ internal sealed class SurveyCalculatedValues
             SurveyRuntimeCalculatedValue rule = _rules[key];
             ExpressionEvaluationResult evaluation = rule.Expression!.Evaluate(
                 _survey.CreateExpressionContext());
+            _survey.RecordLogicErrors(evaluation.Errors);
             if (evaluation.Errors.Count > 0)
             {
                 continue;

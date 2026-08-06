@@ -61,6 +61,7 @@ internal sealed class SurveyTriggers
             SurveyTriggerState state = _rules[key];
             ExpressionEvaluationResult evaluation = state.Definition.Condition.Evaluate(
                 _survey.CreateExpressionContext());
+            _survey.RecordLogicErrors(evaluation.Errors);
             if (evaluation.Errors.Count > 0)
             {
                 continue;
@@ -116,6 +117,7 @@ internal sealed class SurveyTriggers
 
         ExpressionEvaluationResult evaluation = trigger.RunExpression.Evaluate(
             _survey.CreateExpressionContext());
+        _survey.RecordLogicErrors(evaluation.Errors);
         if (evaluation.Errors.Count == 0)
         {
             Write(trigger.SetToName, evaluation.Value, changes, writes);

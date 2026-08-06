@@ -61,6 +61,34 @@ public sealed class SurveyAsyncExpressionTests
         Assert.Equal(KajayValue.From("done"), survey.Data["status"]);
     }
 
+    [Fact]
+    public async Task FailedFunctionsAreReportedAtTheCallAndNotRetried()
+    {
+        int calls = 0;
+        ExpressionFunctionRegistry functions = ExpressionFunctionRegistry.Empty.AddAsync(
+            "lookup",
+            (_, _, _) =>
+            {
+                calls += 1;
+                throw new IOException("lookup exploded");
+            });
+        Survey survey = CreateSurvey(functions, TimeProvider.System);
+
+        await survey.SettleAsync();
+
+        ExpressionError[] failures = survey.LogicErrors
+            .Where(error => error.Code == "function-failed")
+            .ToArray();
+        Assert.NotEmpty(failures);
+        Assert.All(failures, failure => Assert.Contains(
+            "lookup exploded",
+            failure.Message,
+            StringComparison.Ordinal));
+        await survey.SettleAsync();
+        Assert.Equal(1, calls);
+        Assert.Contains(survey.LogicErrors, error => error.Code == "function-failed");
+    }
+
     private static Survey CreateSurvey(
         ExpressionFunctionRegistry functions,
         TimeProvider timeProvider)

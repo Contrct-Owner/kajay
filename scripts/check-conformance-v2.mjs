@@ -37,7 +37,10 @@ const implementedDefinitionIds = [
   'unsupported-pattern-is-preserved-and-reported',
   'malformed-pattern-is-preserved-and-reported',
 ];
-const implementedScenarioIds = ['portable-pattern-matches-and-rejects'];
+const implementedScenarioIds = [
+  'portable-pattern-matches-and-rejects',
+  'pattern-searches-unless-anchored',
+];
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const corePath = resolve(repoRoot, 'packages/core/dist/index.js');

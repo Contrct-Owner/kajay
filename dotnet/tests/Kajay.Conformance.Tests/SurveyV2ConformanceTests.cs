@@ -11,6 +11,12 @@ public sealed class SurveyV2ConformanceTests
         AssertScenario("portable-pattern-matches-and-rejects");
     }
 
+    [Fact]
+    public void PatternSearchesUnlessAnchored()
+    {
+        AssertScenario("pattern-searches-unless-anchored");
+    }
+
     private static void AssertScenario(string scenarioId)
     {
         using JsonDocument corpus = OpenScenarioCorpus();

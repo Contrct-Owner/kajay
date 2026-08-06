@@ -13,6 +13,10 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Kajay;
+using Kajay.Expressions;
+using Kajay.Extensibility;
+using Kajay.Hosting;
+using Kajay.Validation;
 if (KajayContracts.SurveySchemaId != "urn:kajay:survey-definition:1"
     || KajayContracts.CurrentSurveySchemaVersion != 1
     || KajayContracts.RuntimeMetadataContractVersion != 1
@@ -22,7 +26,6 @@ if (KajayContracts.SurveySchemaId != "urn:kajay:survey-definition:1"
 {
     throw new InvalidOperationException("Installed package exposed the wrong contract versions.");
 }
-
 string[] resources = typeof(KajayContracts).Assembly.GetManifestResourceNames();
 if (!resources.Order(StringComparer.Ordinal).SequenceEqual(new[]
     {
@@ -33,14 +36,12 @@ if (!resources.Order(StringComparer.Ordinal).SequenceEqual(new[]
 {
     throw new InvalidOperationException("Installed package exposed unexpected runtime resources.");
 }
-
 using Stream stream = KajayContracts.OpenSurveySchema();
 using JsonDocument schema = JsonDocument.Parse(stream);
 if (schema.RootElement.GetProperty("$id").GetString() != KajayContracts.SurveySchemaId)
 {
     throw new InvalidOperationException("Installed package exposed the wrong survey contract.");
 }
-
 const string definition = """{"description":"Registry driven","pages":[{"name":"p1","colCount":2,"elements":[{"type":"text","name":"q1","placeholder":"Answer","correctAnswer":"42","extension":{"keep":true}}]}]}""";
 const string expected = """{"schemaVersion":1,"description":"Registry driven","pages":[{"name":"p1","colCount":2,"elements":[{"type":"text","name":"q1","correctAnswer":"42","placeholder":"Answer","extension":{"keep":true}}]}]}""";
 SurveyDefinitionParseResult parsed = SurveyDefinition.Parse(definition);
@@ -52,7 +53,6 @@ if (parsed.Diagnostics.Count != 1
 {
     throw new InvalidOperationException("Installed package failed definition canonicalization.");
 }
-
 try
 {
     SurveyDefinition.Parse("""{"schemaVersion":2}""");

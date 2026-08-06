@@ -28,5 +28,10 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="Kajay.Expressions" />
+    <Using Include="Kajay.Extensibility" />
+    <Using Include="Kajay.Hosting" />
+    <Using Include="Kajay.Validation" />
+    <Using Include="Kajay.Definitions" />
   </ItemGroup>
 </Project>

@@ -1,8 +1,15 @@
 <Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Kajay.Core.Benchmarks/Kajay.Core.Benchmarks.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/Kajay.Core.GettingStarted/Kajay.Core.GettingStarted.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Kajay.Core/Kajay.Core.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Kajay.Core.Internal.Tests/Kajay.Core.Internal.Tests.csproj" />
     <Project Path="tests/Kajay.Core.Tests/Kajay.Core.Tests.csproj" />
     <Project Path="tests/Kajay.Conformance.Tests/Kajay.Conformance.Tests.csproj" />
   </Folder>

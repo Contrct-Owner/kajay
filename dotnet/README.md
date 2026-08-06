@@ -51,6 +51,24 @@ IReadOnlyDictionary<string, KajayValue> response = survey.Data;
 independent mutable session. A `Survey` instance has one logical owner and is not
 thread-safe; do not mutate one instance concurrently.
 
+The complete buildable version of this path lives in
+[`samples/Kajay.Core.GettingStarted`](./samples/Kajay.Core.GettingStarted).
+
+## Namespaces and source layout
+
+The SDK remains one assembly and one NuGet package. `using Kajay;` contains the normal
+survey workflow. Specialized interfaces are grouped in `Kajay.Expressions`,
+`Kajay.Extensibility`, `Kajay.Hosting`, and `Kajay.Validation`. Source and tests mirror
+those capabilities; implementation detail is kept beside the capability it serves
+instead of in generic `Helpers`, `Models`, or `Services` directories.
+
+From this directory, run the getting-started sample or the calibrated benchmark suite:
+
+```shell
+dotnet run --project samples/Kajay.Core.GettingStarted --configuration Release
+dotnet run --project benchmarks/Kajay.Core.Benchmarks --configuration Release
+```
+
 ## Runtime capabilities
 
 - canonical schema-v1 definition parsing with recoverable author diagnostics;

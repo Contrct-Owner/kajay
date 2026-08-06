@@ -1,0 +1,169 @@
+#!/usr/bin/env node
+import { readFileSync, readdirSync } from 'node:fs';
+import { relative, resolve } from 'node:path';
+
+const repositoryRoot = resolve(import.meta.dirname, '..');
+const dotnetRoot = resolve(repositoryRoot, 'dotnet');
+const sourceRoot = resolve(dotnetRoot, 'src/Kajay.Core');
+const maximumFileLines = 300;
+const maximumMemberLines = 50;
+const capabilityDirectories = new Set([
+  'Definitions',
+  'Expressions',
+  'Extensibility',
+  'Hosting',
+  'Properties',
+  'Runtime',
+  'Validation',
+]);
+const bannedDirectoryNames = new Set([
+  'Abstractions',
+  'Dtos',
+  'Helpers',
+  'Internal',
+  'Models',
+  'Services',
+]);
+const failures = [];
+
+for (const file of findCSharpFiles(dotnetRoot)) {
+  const content = readFileSync(file, 'utf8');
+  const lines = content.split('\n');
+  const displayPath = relative(repositoryRoot, file);
+  const lineCount = content.endsWith('\n') ? lines.length - 1 : lines.length;
+  if (lineCount > maximumFileLines) {
+    failures.push(`${displayPath}: ${lineCount} lines exceeds ${maximumFileLines}`);
+  }
+
+  if (file.startsWith(`${sourceRoot}/`)) {
+    for (const member of findOversizedMembers(lines)) {
+      failures.push(
+        `${displayPath}:${member.start}: ${member.lines} lines exceeds `
+          + `${maximumMemberLines} for ${member.name}`,
+      );
+    }
+  }
+}
+
+for (const entry of readdirSync(sourceRoot, { withFileTypes: true })) {
+  if (entry.isDirectory() && !capabilityDirectories.has(entry.name)) {
+    failures.push(`dotnet/src/Kajay.Core/${entry.name}: unapproved capability directory`);
+  }
+}
+
+for (const directory of findDirectories(sourceRoot)) {
+  const name = directory.split('/').at(-1);
+  if (bannedDirectoryNames.has(name)) {
+    failures.push(
+      `${relative(repositoryRoot, directory)}: group by capability, not '${name}'`,
+    );
+  }
+}
+
+if (failures.length > 0) {
+  console.error('The .NET source structure check failed:');
+  for (const failure of failures) {
+    console.error(`- ${failure}`);
+  }
+  process.exitCode = 1;
+} else {
+  console.log('The .NET source structure check passed.');
+}
+
+function findCSharpFiles(directory) {
+  const files = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    if (entry.name === 'artifacts' || entry.name === 'bin' || entry.name === 'obj') {
+      continue;
+    }
+    const path = resolve(directory, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...findCSharpFiles(path));
+    } else if (entry.isFile() && entry.name.endsWith('.cs')) {
+      files.push(path);
+    }
+  }
+  return files;
+}
+
+function findDirectories(directory) {
+  const directories = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    if (!entry.isDirectory() || entry.name === 'bin' || entry.name === 'obj') {
+      continue;
+    }
+    const path = resolve(directory, entry.name);
+    directories.push(path, ...findDirectories(path));
+  }
+  return directories;
+}
+
+function findOversizedMembers(lines) {
+  const members = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    if (!looksLikeMemberStart(lines[index])) {
+      continue;
+    }
+
+    const signatureStart = index;
+    let signature = lines[index].trim();
+    while (!signature.includes('{')
+      && !signature.includes('=>')
+      && !signature.endsWith(';')
+      && index + 1 < lines.length) {
+      index += 1;
+      signature += ` ${lines[index].trim()}`;
+    }
+    if (!signature.includes('{')) {
+      continue;
+    }
+
+    let depth = 0;
+    let bodyStarted = false;
+    let end = index;
+    for (; end < lines.length; end += 1) {
+      const sanitized = stripStringsAndComments(lines[end]);
+      const opens = count(sanitized, '{');
+      const closes = count(sanitized, '}');
+      if (opens > 0) {
+        bodyStarted = true;
+      }
+      depth += opens - closes;
+      if (bodyStarted && depth === 0) {
+        break;
+      }
+    }
+
+    const memberLines = end - signatureStart + 1;
+    if (memberLines > maximumMemberLines) {
+      members.push({
+        start: signatureStart + 1,
+        lines: memberLines,
+        name: signature.split('(')[0].trim(),
+      });
+    }
+    index = Math.max(index, end);
+  }
+  return members;
+}
+
+function looksLikeMemberStart(line) {
+  const trimmed = line.trim();
+  if (/\b(class|interface|record|struct)\b/u.test(trimmed)) {
+    return false;
+  }
+  return /^(public|internal|private|protected)(\s+(static|sealed|virtual|override|async|partial|new))*\s+/u.test(
+    trimmed,
+  ) && trimmed.includes('(') && !trimmed.includes(' delegate ');
+}
+
+function stripStringsAndComments(line) {
+  return line
+    .replace(/\/\/.*$/u, '')
+    .replaceAll(/@?"(?:""|\\.|[^"])*"/gu, '""')
+    .replaceAll(/'(?:\\.|[^'])'/gu, "''");
+}
+
+function count(value, character) {
+  return [...value].filter(candidate => candidate === character).length;
+}

@@ -178,6 +178,14 @@ internal static class ExpressionEvaluator
                 binary.Operator == ExpressionOperator.Equal ? equal : !equal);
         }
 
+        if (binary.Operator is ExpressionOperator.GreaterThan
+            or ExpressionOperator.GreaterThanOrEqual
+            or ExpressionOperator.LessThan
+            or ExpressionOperator.LessThanOrEqual)
+        {
+            return EvaluateOrdering(binary.Operator, left, right);
+        }
+
         if (binary.Operator is ExpressionOperator.Contains
             or ExpressionOperator.NotContains
             or ExpressionOperator.AnyOf
@@ -214,6 +222,27 @@ internal static class ExpressionEvaluator
             _ => double.NaN,
         };
         return double.IsFinite(value) ? KajayValue.From(value) : KajayValue.Absent;
+    }
+
+    private static KajayValue EvaluateOrdering(
+        ExpressionOperator expressionOperator,
+        KajayValue left,
+        KajayValue right)
+    {
+        if (!KajayOrdering.TryCompare(left, right, out int comparison))
+        {
+            return KajayValue.From(false);
+        }
+
+        bool result = expressionOperator switch
+        {
+            ExpressionOperator.GreaterThan => comparison > 0,
+            ExpressionOperator.GreaterThanOrEqual => comparison >= 0,
+            ExpressionOperator.LessThan => comparison < 0,
+            ExpressionOperator.LessThanOrEqual => comparison <= 0,
+            _ => false,
+        };
+        return KajayValue.From(result);
     }
 
     private static KajayValue EvaluateLogical(

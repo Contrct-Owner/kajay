@@ -101,6 +101,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("objects-do-not-concatenate-through-host-text");
     }
 
+    [Fact]
+    public void TextOrderingUsesOrdinalUtf16CodeUnits()
+    {
+        AssertEvaluationCase("text-order-is-ordinal-utf16");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

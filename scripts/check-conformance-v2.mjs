@@ -41,6 +41,7 @@ const implementedScenarioIds = [
   'portable-pattern-matches-and-rejects',
   'pattern-searches-unless-anchored',
   'pattern-classes-and-dot-use-defined-scalars',
+  'invalid-pattern-is-an-author-error-not-a-respondent-rule',
 ];
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));

@@ -23,6 +23,12 @@ public sealed class SurveyV2ConformanceTests
         AssertScenario("pattern-classes-and-dot-use-defined-scalars");
     }
 
+    [Fact]
+    public void InvalidPatternIsAnAuthorErrorNotARespondentRule()
+    {
+        AssertScenario("invalid-pattern-is-an-author-error-not-a-respondent-rule");
+    }
+
     private static void AssertScenario(string scenarioId)
     {
         using JsonDocument corpus = OpenScenarioCorpus();

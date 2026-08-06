@@ -4,6 +4,8 @@ namespace Kajay;
 
 internal sealed record SurveyRuntimeQuestion(
     string Name,
+    string ValueKey,
+    string RequiredMessage,
     bool HasCorrectAnswer,
     KajayValue CorrectAnswer,
     IReadOnlyList<SurveyRuntimeValidator> Validators)
@@ -32,9 +34,18 @@ internal sealed record SurveyRuntimeQuestion(
             out JsonNode? correctAnswer);
         return new SurveyRuntimeQuestion(
             element["name"]?.GetValue<string>() ?? string.Empty,
+            ReadValueKey(element),
+            element["requiredErrorText"]?.GetValue<string>() ?? string.Empty,
             hasCorrectAnswer,
             hasCorrectAnswer ? KajayJsonValue.From(correctAnswer) : KajayValue.Absent,
             runtimeValidators);
+    }
+
+    private static string ReadValueKey(JsonObject element)
+    {
+        string name = element["name"]?.GetValue<string>() ?? string.Empty;
+        string valueName = element["valueName"]?.GetValue<string>() ?? string.Empty;
+        return valueName.Length > 0 ? valueName : name;
     }
 
     private static void Collect(

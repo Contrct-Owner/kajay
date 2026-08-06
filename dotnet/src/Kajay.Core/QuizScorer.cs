@@ -15,7 +15,7 @@ internal static class QuizScorer
             .Where(question => question.HasCorrectAnswer)
             .ToArray();
         double earned = questions.Count(question =>
-            survey.GetValue(question.Name) == question.CorrectAnswer);
+            survey.GetValue(question.ValueKey) == question.CorrectAnswer);
         double possible = questions.Length;
         return new QuizScore(
             earned,

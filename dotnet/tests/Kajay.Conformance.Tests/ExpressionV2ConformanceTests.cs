@@ -125,6 +125,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("date-only-is-midnight-utc");
     }
 
+    [Fact]
+    public void OffsetDateTimeNormalizesToUtc()
+    {
+        AssertEvaluationCase("offset-date-time-normalizes-to-utc");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

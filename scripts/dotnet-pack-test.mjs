@@ -194,10 +194,44 @@ if (conditional.PageCount != 2
 {
     throw new InvalidOperationException("Installed package failed conditional state.");
 }
-
+List<string> validationCalls = [];
+bool rejectServer = true;
+Survey validation = SurveyDefinition.Parse(
+    """{"checkErrorsMode":"onValueChanged","pages":[{"name":"one","elements":[{"type":"text","name":"answer","isRequired":true,"validators":[{"type":"textvalidator","minLength":3}]},{"type":"text","name":"expression","validators":[{"type":"expressionvalidator","expression":"{agreed} = true"}]},{"type":"text","name":"custom"}]},{"name":"two"}]}""")
+    .Definition
+    .CreateSurvey(new SurveyOptions
+    {
+        QuestionValidator = context => { validationCalls.Add($"sync:{context.Name}"); return context.Name == "custom" && context.Value == KajayValue.From("reject") ? [new SurveyValidationError("custom", "custom")] : []; },
+        AsyncQuestionValidator = (context, _) => { validationCalls.Add($"async:{context.Name}"); return System.Threading.Tasks.ValueTask.FromResult<IReadOnlyList<SurveyValidationError>>([]); },
+        ServerValidator = (context, _) => { validationCalls.Add($"server:{string.Join(',', context.QuestionNames)}"); return System.Threading.Tasks.ValueTask.FromResult<IReadOnlyList<SurveyValidationError>>(rejectServer ? [new SurveyValidationError("answer", "server", "Rejected")] : []); },
+    });
+validation.SetValue("answer", KajayValue.From("no"));
+validation.SetValue("custom", KajayValue.From("reject"));
+if (validation.Validation.Mode != SurveyValidationMode.OnValueChanged || validation.Validation.GetErrors("answer").Single().Kind != "textvalidator" || validation.Validation.GetErrors("custom").Single().Kind != "custom") throw new InvalidOperationException("Installed package failed on-change validation state.");
+validation.SetValue("answer", KajayValue.From("valid"));
+validation.SetValue("custom", KajayValue.From("accepted"));
+validation.SetValue("expression", KajayValue.From("answered"));
+validation.SetValue("agreed", KajayValue.From(true));
+SurveyAdvanceOutcome remotelyBlocked = await validation.AdvanceAsync();
+if (remotelyBlocked != SurveyAdvanceOutcome.Blocked || validation.Validation.Errors.Single().Kind != "server" || !validationCalls.Contains("async:answer") || !validationCalls.Contains("async:expression") || !validationCalls.Contains("server:answer,expression,custom")) throw new InvalidOperationException("Installed package failed host/server validation.");
+rejectServer = false;
+if (await validation.AdvanceAsync() != SurveyAdvanceOutcome.Advanced || validation.CurrentPageName != "two" || validation.Validation.Errors.Count != 0) throw new InvalidOperationException("Installed package failed awaitable validated navigation.");
+Survey cancellable = SurveyDefinition.Parse(
+    """{"pages":[{"name":"one","elements":[{"type":"text","name":"answer"}]},{"name":"two"}]}""")
+    .Definition
+    .CreateSurvey(new SurveyOptions
+    {
+        AsyncQuestionValidator = async (_, cancellationToken) => { await System.Threading.Tasks.Task.Delay(System.Threading.Timeout.InfiniteTimeSpan, cancellationToken); return []; },
+    });
+cancellable.SetValue("answer", KajayValue.From("value"));
+using var cancellation = new System.Threading.CancellationTokenSource();
+System.Threading.Tasks.Task<SurveyAdvanceOutcome> pendingValidation = cancellable.AdvanceAsync(cancellation.Token);
+cancellation.Cancel();
+try { await pendingValidation; throw new InvalidOperationException("Installed package ignored validation cancellation."); }
+catch (OperationCanceledException) { }
+if (cancellable.Validation.IsValidating || cancellable.CurrentPageName != "one") throw new InvalidOperationException("Installed package failed cancellation cleanup.");
 Console.WriteLine("dotnet pack smoke: ok");
 `;
-
 const scratch = mkdtempSync(join(tmpdir(), 'kajay-dotnet-pack-'));
 const packageDirectory = join(scratch, 'packages');
 const consumerDirectory = join(scratch, 'consumer');

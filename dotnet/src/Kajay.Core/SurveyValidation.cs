@@ -8,6 +8,8 @@ public sealed class SurveyValidation
     private readonly SurveyQuestionValidator? _questionValidator;
     private readonly AsyncSurveyQuestionValidator? _asyncQuestionValidator;
     private readonly SurveyServerValidator? _serverValidator;
+    private readonly Dictionary<string, IReadOnlyList<SurveyValidationError>> _errors =
+        new(StringComparer.Ordinal);
 
     internal SurveyValidation(
         Survey survey,
@@ -29,6 +31,24 @@ public sealed class SurveyValidation
 
     /// <summary>Gets when forward navigation applies the validation gate.</summary>
     public SurveyValidationMode Mode => _definition.ValidationMode;
+
+    /// <summary>Gets every currently retained validation error in definition order.</summary>
+    public IReadOnlyList<SurveyValidationError> Errors =>
+        Array.AsReadOnly(GetOrderedErrors());
+
+    /// <summary>Raised after the retained validation-error snapshot changes.</summary>
+    public event EventHandler<SurveyValidationErrorsChangedEventArgs>? ErrorsChanged;
+
+    /// <summary>Gets the retained errors for one exact question name.</summary>
+    /// <param name="questionName">The authored question name.</param>
+    /// <returns>A stable snapshot, or an empty list when the question has no errors.</returns>
+    public IReadOnlyList<SurveyValidationError> GetErrors(string questionName)
+    {
+        ArgumentNullException.ThrowIfNull(questionName);
+        return _errors.TryGetValue(questionName, out IReadOnlyList<SurveyValidationError>? errors)
+            ? errors
+            : Array.Empty<SurveyValidationError>();
+    }
 
     /// <summary>Checks the questions on the current page.</summary>
     /// <returns>Whether the page passed and each failed rule in definition order.</returns>
@@ -63,6 +83,24 @@ public sealed class SurveyValidation
         return ValidateAsync(questions, cancellationToken);
     }
 
+    internal void RevalidateChangedValues(IEnumerable<string> valueNames)
+    {
+        RemoveUnreachableErrors();
+        if (!IsEnabled || Mode != SurveyValidationMode.OnValueChanged)
+        {
+            return;
+        }
+
+        HashSet<string> changed = valueNames.ToHashSet(StringComparer.Ordinal);
+        SurveyRuntimeQuestion[] questions = CurrentQuestions()
+            .Where(question => changed.Contains(question.ValueKey))
+            .ToArray();
+        if (questions.Length > 0)
+        {
+            Validate(questions);
+        }
+    }
+
     private SurveyValidationResult Validate(SurveyRuntimeQuestion[] questions)
     {
         var errors = new List<SurveyValidationError>();
@@ -71,7 +109,9 @@ public sealed class SurveyValidation
             ValidateQuestion(question, errors);
         }
 
-        return new SurveyValidationResult(errors.Count == 0, errors.AsReadOnly());
+        SurveyValidationResult result = new(errors.Count == 0, errors.AsReadOnly());
+        ApplyErrors(questions, result.Errors);
+        return result;
     }
 
     private async ValueTask<SurveyValidationResult> ValidateAsync(
@@ -92,30 +132,37 @@ public sealed class SurveyValidation
             return synchronous;
         }
 
+        string page = _survey.CurrentPageName;
+        IReadOnlyDictionary<string, KajayValue> data = _survey.Data;
         var errors = new List<SurveyValidationError>();
         IsValidating = true;
         try
         {
+            var pending = new List<Task<IReadOnlyList<SurveyValidationError>>>();
             if (_asyncQuestionValidator is not null)
             {
                 foreach (SurveyRuntimeQuestion question in questions)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    IReadOnlyList<SurveyValidationError> reported =
-                        await _asyncQuestionValidator(
-                            CreateContext(question),
-                            cancellationToken).ConfigureAwait(false);
-                    ArgumentNullException.ThrowIfNull(reported);
-                    errors.AddRange(reported);
+                    pending.Add(_asyncQuestionValidator(
+                        CreateContext(question),
+                        cancellationToken).AsTask());
                 }
             }
 
             if (_serverValidator is not null)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                IReadOnlyList<SurveyValidationError> reported = await _serverValidator(
-                    _survey.Data,
-                    cancellationToken).ConfigureAwait(false);
+                pending.Add(_serverValidator(
+                    new SurveyServerValidationContext(
+                        data,
+                        Array.AsReadOnly(questions.Select(question => question.Name).ToArray())),
+                    cancellationToken).AsTask());
+            }
+
+            foreach (IReadOnlyList<SurveyValidationError> reported in await Task.WhenAll(
+                         pending).ConfigureAwait(false))
+            {
                 ArgumentNullException.ThrowIfNull(reported);
                 errors.AddRange(reported);
             }
@@ -125,7 +172,96 @@ public sealed class SurveyValidation
             IsValidating = false;
         }
 
-        return new SurveyValidationResult(errors.Count == 0, errors.AsReadOnly());
+        SurveyValidationResult result = new(errors.Count == 0, errors.AsReadOnly());
+        if (string.Equals(page, _survey.CurrentPageName, StringComparison.Ordinal)
+            && DataMatches(data, _survey.Data))
+        {
+            ApplyErrors(questions, result.Errors);
+        }
+
+        return result;
+    }
+
+    private void ApplyErrors(
+        IReadOnlyList<SurveyRuntimeQuestion> questions,
+        IReadOnlyList<SurveyValidationError> errors)
+    {
+        SurveyValidationError[] before = GetOrderedErrors();
+        foreach (SurveyRuntimeQuestion question in questions)
+        {
+            _errors.Remove(question.Name);
+        }
+
+        foreach (IGrouping<string, SurveyValidationError> group in errors.GroupBy(
+                     error => error.Name,
+                     StringComparer.Ordinal))
+        {
+            _errors[group.Key] = Array.AsReadOnly(group.ToArray());
+        }
+
+        RaiseErrorsChanged(before);
+    }
+
+    private void RemoveUnreachableErrors()
+    {
+        SurveyValidationError[] before = GetOrderedErrors();
+        foreach (string name in _errors.Keys.ToArray())
+        {
+            if (!_survey.TryGetQuestionState(name, out SurveyQuestionState state)
+                || !state.IsReachable)
+            {
+                _errors.Remove(name);
+            }
+        }
+
+        RaiseErrorsChanged(before);
+    }
+
+    private void RaiseErrorsChanged(IReadOnlyList<SurveyValidationError> before)
+    {
+        SurveyValidationError[] after = GetOrderedErrors();
+        if (!before.SequenceEqual(after))
+        {
+            ErrorsChanged?.Invoke(
+                this,
+                new SurveyValidationErrorsChangedEventArgs(Array.AsReadOnly(after)));
+        }
+    }
+
+    private SurveyValidationError[] GetOrderedErrors()
+    {
+        var ordered = new List<SurveyValidationError>();
+        var emitted = new HashSet<string>(StringComparer.Ordinal);
+        foreach (SurveyRuntimeQuestion question in _definition.Pages.SelectMany(
+                     page => page.Questions))
+        {
+            if (emitted.Add(question.Name)
+                && _errors.TryGetValue(
+                    question.Name,
+                    out IReadOnlyList<SurveyValidationError>? errors))
+            {
+                ordered.AddRange(errors);
+            }
+        }
+
+        foreach ((string name, IReadOnlyList<SurveyValidationError> errors) in _errors)
+        {
+            if (emitted.Add(name))
+            {
+                ordered.AddRange(errors);
+            }
+        }
+
+        return ordered.ToArray();
+    }
+
+    private static bool DataMatches(
+        IReadOnlyDictionary<string, KajayValue> left,
+        IReadOnlyDictionary<string, KajayValue> right)
+    {
+        return left.Count == right.Count
+            && left.All(pair => right.TryGetValue(pair.Key, out KajayValue value)
+                && value == pair.Value);
     }
 
     private void ValidateQuestion(

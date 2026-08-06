@@ -18,9 +18,9 @@ public sealed class SurveyAsyncValidationTests
                 calls.Add($"async:{context.Name}");
                 return ValueTask.FromResult<IReadOnlyList<SurveyValidationError>>([]);
             },
-            ServerValidator = (data, _) =>
+            ServerValidator = (context, _) =>
             {
-                calls.Add($"server:{data.Count}");
+                calls.Add($"server:{context.Data.Count}:{context.QuestionNames[0]}");
                 return ValueTask.FromResult<IReadOnlyList<SurveyValidationError>>(
                     [new SurveyValidationError("answer", "server", "Rejected")]);
             },
@@ -31,7 +31,7 @@ public sealed class SurveyAsyncValidationTests
 
         Assert.Equal(SurveyAdvanceOutcome.Blocked, outcome);
         Assert.Equal("one", survey.CurrentPageName);
-        Assert.Equal(["sync:answer", "async:answer", "server:1"], calls);
+        Assert.Equal(["sync:answer", "async:answer", "server:1:answer"], calls);
         Assert.False(survey.Validation.IsValidating);
     }
 
@@ -44,7 +44,7 @@ public sealed class SurveyAsyncValidationTests
             AsyncQuestionValidator = async (_, cancellationToken) =>
             {
                 await release.Task.WaitAsync(cancellationToken);
-                return [];
+                return [new SurveyValidationError("answer", "stale")];
             },
         });
         survey.SetValue("answer", KajayValue.From("before"));
@@ -56,6 +56,7 @@ public sealed class SurveyAsyncValidationTests
 
         Assert.Equal(SurveyAdvanceOutcome.NoChange, await pending);
         Assert.Equal("one", survey.CurrentPageName);
+        Assert.Empty(survey.Validation.Errors);
         Assert.False(survey.Validation.IsValidating);
     }
 

@@ -210,6 +210,7 @@ public sealed class Survey
         }
 
         SettleLogic([ExpressionPath.FromName(name)], changes, stateChanges);
+        Validation.RevalidateChangedValues(changes.Select(change => change.Name));
         foreach (SurveyValueChangedEventArgs change in changes)
         {
             ValueChanged?.Invoke(this, change);

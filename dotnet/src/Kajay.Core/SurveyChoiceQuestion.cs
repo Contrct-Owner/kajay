@@ -4,6 +4,7 @@ namespace Kajay;
 public sealed class SurveyChoiceQuestion : SurveyQuestion
 {
     private IReadOnlyList<SurveyChoiceItem>? _runtimeChoices;
+    private SurveyChoicePager? _choicePager;
 
     internal SurveyChoiceQuestion(Survey survey, SurveyRuntimeQuestion definition)
         : base(survey, definition)
@@ -20,6 +21,18 @@ public sealed class SurveyChoiceQuestion : SurveyQuestion
 
     /// <summary>Gets the list written in the definition, ignoring any runtime source.</summary>
     public IReadOnlyList<SurveyChoiceItem> AuthoredChoiceItems => Definition.ChoiceItems;
+
+    /// <summary>Gets whether this question receives server-filtered pages from its host.</summary>
+    public bool IsPaged => _choicePager is not null;
+
+    /// <summary>Gets whether the current page request is still running.</summary>
+    public bool IsLoadingChoices => _choicePager?.IsLoading ?? false;
+
+    /// <summary>Gets whether the host reports that another choice page exists.</summary>
+    public bool HasMoreChoices => _choicePager?.HasMore ?? false;
+
+    /// <summary>Gets the current trimmed server-side filter.</summary>
+    public string ChoiceFilter => _choicePager?.Filter ?? string.Empty;
 
     /// <summary>Gets whether the response is an ordered array rather than one scalar.</summary>
     public bool AllowsMultiple => Type is "checkbox" or "tagbox" or "ranking";
@@ -106,8 +119,32 @@ public sealed class SurveyChoiceQuestion : SurveyQuestion
         SetValue(selected.Count == 0 ? KajayValue.Absent : KajayValue.FromArray(selected));
     }
 
+    /// <summary>Loads and appends the next host-provided choice page.</summary>
+    /// <param name="cancellationToken">Cancels the host operation.</param>
+    public Task LoadMoreChoicesAsync(CancellationToken cancellationToken = default)
+    {
+        return _choicePager?.LoadMoreAsync(cancellationToken) ?? Task.CompletedTask;
+    }
+
+    /// <summary>Replaces the server-side filter and loads its first page.</summary>
+    /// <param name="filter">The filter, trimmed before it reaches the host.</param>
+    /// <param name="cancellationToken">Cancels the host operation.</param>
+    public Task SetChoiceFilterAsync(
+        string filter,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(filter);
+        return _choicePager?.SetFilterAsync(filter, cancellationToken) ?? Task.CompletedTask;
+    }
+
     internal SurveyRuntimeChoiceSettings ChoiceSettings => Definition.ChoiceSettings
         ?? throw new InvalidOperationException($"Question '{Name}' has no choice settings.");
+
+    internal void AttachChoicePager(SurveyChoicePager pager)
+    {
+        _choicePager = pager;
+        _runtimeChoices = Array.Empty<SurveyChoiceItem>();
+    }
 
     internal bool SetChoices(IReadOnlyList<SurveyChoiceItem> choices)
     {

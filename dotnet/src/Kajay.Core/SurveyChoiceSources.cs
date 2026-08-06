@@ -6,6 +6,7 @@ internal sealed class SurveyChoiceSources
     private readonly TimeProvider _timeProvider;
     private readonly SurveyChoiceUrlResolver _urlResolver;
     private readonly IReadOnlyList<SurveyChoiceQuestion> _questions;
+    private readonly IReadOnlyList<SurveyChoicePager> _pagers;
     private readonly Dictionary<SurveyChoiceCacheKey, IReadOnlyList<SurveyChoiceItem>> _cache = [];
     private readonly Dictionary<SurveyChoiceCacheKey, Task<IReadOnlyList<SurveyChoiceItem>>> _pending = [];
     private readonly Dictionary<string, SurveyChoiceCacheKey> _applied = new(StringComparer.Ordinal);
@@ -19,21 +20,30 @@ internal sealed class SurveyChoiceSources
         _timeProvider = options.TimeProvider;
         _urlResolver = new SurveyChoiceUrlResolver(survey, CopyEndpoints(options.Endpoints));
         _questions = questions;
+        _pagers = Array.AsReadOnly(questions
+            .Where(IsPagedSource)
+            .Select(question => CreatePager(question, options))
+            .ToArray());
     }
 
     public async Task<bool> SettleAsync(CancellationToken cancellationToken)
     {
-        Task<bool>[] loads = _questions
+        Task<bool>[] urlLoads = _questions
             .Where(question => question.ChoiceSettings.Url.Length > 0)
             .Select(question => LoadAsync(question, cancellationToken))
             .ToArray();
-        if (loads.Length == 0)
+        bool loadsInitialPage = _pagers.Any(pager => pager.NeedsInitialLoad);
+        Task[] pageLoads = _pagers
+            .Select(pager => pager.EnsureInitialAsync(cancellationToken))
+            .ToArray();
+        if (urlLoads.Length == 0 && pageLoads.Length == 0)
         {
             return false;
         }
 
-        bool[] outcomes = await Task.WhenAll(loads).ConfigureAwait(false);
-        return outcomes.Any(changed => changed);
+        bool[] outcomes = await Task.WhenAll(urlLoads).ConfigureAwait(false);
+        await Task.WhenAll(pageLoads).ConfigureAwait(false);
+        return loadsInitialPage || outcomes.Any(changed => changed);
     }
 
     private async Task<bool> LoadAsync(
@@ -147,5 +157,25 @@ internal sealed class SurveyChoiceSources
         }
 
         return copy;
+    }
+
+    private static bool IsPagedSource(SurveyChoiceQuestion question)
+    {
+        SurveyRuntimeChoiceSettings settings = question.ChoiceSettings;
+        return settings.FromQuestion.Length == 0
+            && settings.Url.Length == 0
+            && settings.LazyLoadEnabled;
+    }
+
+    private static SurveyChoicePager CreatePager(
+        SurveyChoiceQuestion question,
+        SurveyOptions options)
+    {
+        var pager = new SurveyChoicePager(
+            question,
+            options.ChoicePageLoader,
+            options.TimeProvider);
+        question.AttachChoicePager(pager);
+        return pager;
     }
 }

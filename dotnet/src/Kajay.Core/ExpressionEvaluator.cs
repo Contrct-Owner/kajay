@@ -186,8 +186,19 @@ internal static class ExpressionEvaluator
             return KajayValue.From(KajayMembership.Evaluate(binary.Operator, left, right));
         }
 
-        if (!KajayNumber.TryConvert(left, out double leftNumber)
-            || !KajayNumber.TryConvert(right, out double rightNumber))
+        bool hasLeftNumber = KajayNumber.TryConvert(left, out double leftNumber);
+        bool hasRightNumber = KajayNumber.TryConvert(right, out double rightNumber);
+        if (binary.Operator == ExpressionOperator.Add
+            && (left.Kind == KajayValueKind.Text || right.Kind == KajayValueKind.Text)
+            && (!hasLeftNumber || !hasRightNumber))
+        {
+            return KajayText.TryConvert(left, out string leftText)
+                && KajayText.TryConvert(right, out string rightText)
+                    ? KajayValue.From(string.Concat(leftText, rightText))
+                    : KajayValue.Absent;
+        }
+
+        if (!hasLeftNumber || !hasRightNumber)
         {
             return KajayValue.Absent;
         }

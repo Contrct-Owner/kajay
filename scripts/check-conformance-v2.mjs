@@ -18,6 +18,7 @@ const implementedExpressionIds = [
   'empty-object-is-true',
   'numeric-zero-is-false',
   'non-empty-numeric-text-is-true',
+  'boolean-text-conversion-is-invariant',
 ];
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));

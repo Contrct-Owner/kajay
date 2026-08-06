@@ -77,6 +77,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("non-empty-numeric-text-is-true");
     }
 
+    [Fact]
+    public void BooleanTextConversionIsInvariant()
+    {
+        AssertEvaluationCase("boolean-text-conversion-is-invariant");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

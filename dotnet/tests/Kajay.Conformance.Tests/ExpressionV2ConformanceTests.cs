@@ -149,6 +149,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("rollover-date-is-invalid");
     }
 
+    [Fact]
+    public void SubMillisecondDateTimeIsInvalid()
+    {
+        AssertEvaluationCase("sub-millisecond-date-time-is-invalid");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

@@ -30,6 +30,7 @@ const implementedExpressionIds = [
   'fractional-date-time-normalizes-to-milliseconds',
   'local-date-time-is-invalid',
   'rollover-date-is-invalid',
+  'sub-millisecond-date-time-is-invalid',
 ];
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));

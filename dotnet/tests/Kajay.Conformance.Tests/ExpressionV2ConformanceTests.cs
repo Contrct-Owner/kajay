@@ -89,6 +89,12 @@ public sealed class ExpressionV2ConformanceTests
         AssertEvaluationCase("objects-compare-structurally");
     }
 
+    [Fact]
+    public void DifferentObjectsAreNotEqual()
+    {
+        AssertEvaluationCase("different-objects-are-not-equal");
+    }
+
     private static void AssertEvaluationCase(string caseId)
     {
         using JsonDocument corpus = OpenExpressionCorpus();

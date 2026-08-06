@@ -426,6 +426,12 @@ public sealed class Survey
 
     internal ExpressionEvaluationContext CreateExpressionContext()
     {
+        return CreateExpressionContext([]);
+    }
+
+    internal ExpressionEvaluationContext CreateExpressionContext(
+        IEnumerable<KeyValuePair<string, KajayValue>> additionalValues)
+    {
         var values = new Dictionary<string, KajayValue>(_answers, StringComparer.Ordinal);
         foreach (SurveyRuntimeCalculatedValue definition in _definition.CalculatedValues)
         {
@@ -434,6 +440,11 @@ public sealed class Survey
             {
                 values.Add(definition.Name, value);
             }
+        }
+
+        foreach ((string name, KajayValue value) in additionalValues)
+        {
+            values[name] = value;
         }
 
         return new ExpressionEvaluationContext(

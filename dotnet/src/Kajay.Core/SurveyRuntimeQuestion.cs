@@ -8,9 +8,13 @@ internal sealed record SurveyRuntimeQuestion(
     string ValueKey,
     IReadOnlyList<KajayValue> Choices,
     IReadOnlyList<KajayValue> Rows,
+    SurveyRuntimeMatrixSettings? MatrixSettings,
     SurveyRuntimeRecordSettings? RecordSettings,
     SurveyRuntimeFileSettings? FileSettings,
     SurveyRuntimeSignatureSettings? SignatureSettings,
+    bool AuthoredRequired,
+    SurveyExpression? VisibleIf,
+    SurveyExpression? RequiredIf,
     string RequiredMessage,
     bool HasCorrectAnswer,
     KajayValue CorrectAnswer,
@@ -44,9 +48,13 @@ internal sealed record SurveyRuntimeQuestion(
             ReadValueKey(element),
             ReadItems(element["choices"] as JsonArray),
             ReadItems(element["rows"] as JsonArray),
+            ReadMatrixSettings(element),
             ReadRecordSettings(element),
             ReadFileSettings(element),
             ReadSignatureSettings(element),
+            element["isRequired"]?.GetValue<bool>() ?? false,
+            ReadExpression(element["visibleIf"]),
+            ReadExpression(element["requiredIf"]),
             element["requiredErrorText"]?.GetValue<string>() ?? string.Empty,
             hasCorrectAnswer,
             hasCorrectAnswer ? KajayJsonValue.From(correctAnswer) : KajayValue.Absent,
@@ -80,16 +88,40 @@ internal sealed record SurveyRuntimeQuestion(
                 element["allowAddRows"]?.GetValue<bool>() ?? true,
                 element["allowRemoveRows"]?.GetValue<bool>() ?? true,
                 ReadRecord(element["defaultRowValue"]),
-                element["defaultValueFromLastRow"]?.GetValue<bool>() ?? false),
+                element["defaultValueFromLastRow"]?.GetValue<bool>() ?? false,
+                ReadFields(element["columns"] as JsonArray)),
             "paneldynamic" => new SurveyRuntimeRecordSettings(
                 ReadCount(element["minPanelCount"], 1),
                 ReadCount(element["maxPanelCount"], 0),
                 element["allowAddPanel"]?.GetValue<bool>() ?? true,
                 element["allowRemovePanel"]?.GetValue<bool>() ?? true,
                 ReadRecord(element["defaultPanelValue"]),
-                false),
+                false,
+                ReadFields(element["templateElements"] as JsonArray)),
             _ => null,
         };
+    }
+
+    private static SurveyRuntimeMatrixSettings? ReadMatrixSettings(JsonObject element)
+    {
+        return element["type"]?.GetValue<string>() == "matrix"
+            ? new SurveyRuntimeMatrixSettings(
+                element["isAllRowRequired"]?.GetValue<bool>() ?? false,
+                element["eachRowUnique"]?.GetValue<bool>() ?? false)
+            : null;
+    }
+
+    private static IReadOnlyList<SurveyRuntimeQuestion> ReadFields(JsonArray? fields)
+    {
+        return fields is null
+            ? Array.Empty<SurveyRuntimeQuestion>()
+            : Array.AsReadOnly(FromElements(fields));
+    }
+
+    private static SurveyExpression? ReadExpression(JsonNode? node)
+    {
+        string source = node?.GetValue<string>() ?? string.Empty;
+        return source.Length == 0 ? null : SurveyExpression.Parse(source).Expression;
     }
 
     private static int ReadCount(JsonNode? node, int defaultValue)

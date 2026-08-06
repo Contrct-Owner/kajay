@@ -82,4 +82,48 @@ public sealed class SurveyCompositeQuestionTests
         Assert.Equal(KajayValue.From("GB"), panel.Records[1]["country"]);
         Assert.False(panel.Add());
     }
+
+    [Fact]
+    public void StaticMatrixValidationNamesMissingAndDuplicateRows()
+    {
+        Survey survey = SurveyDefinition.Parse(
+            """{"pages":[{"name":"one","elements":[{"type":"matrix","name":"comparison","isRequired":true,"isAllRowRequired":true,"eachRowUnique":true,"rows":["docs","support","price"],"columns":[1,2,3]}]}]}""")
+            .Definition
+            .CreateSurvey();
+        SurveyMatrixQuestion matrix = Assert.IsType<SurveyMatrixQuestion>(
+            survey.GetQuestion("comparison"));
+        matrix.SetRowValue(KajayValue.From("docs"), KajayValue.From(1));
+        matrix.SetRowValue(KajayValue.From("support"), KajayValue.From(1));
+
+        SurveyValidationResult result = survey.Validation.ValidateCurrentPage();
+
+        Assert.Equal(["matrixunique", "required"], result.Errors.Select(error => error.Kind));
+        Assert.Equal(["support", "price"], result.Errors.Select(error => error.Path));
+    }
+
+    [Fact]
+    public void RepeatingValidationUsesEachRecordScopeAndPresentedMinimum()
+    {
+        Survey survey = SurveyDefinition.Parse(
+            """
+            {"pages":[{"name":"one","elements":[{
+              "type":"paneldynamic","name":"people","minPanelCount":2,
+              "templateElements":[
+                {"type":"text","name":"age","isRequired":true},
+                {"type":"text","name":"guardian","requiredIf":"{panel.age} < 18","visibleIf":"{panel.age} < 18"}
+              ]
+            }]}]}
+            """)
+            .Definition
+            .CreateSurvey();
+        SurveyRecordQuestion panel = Assert.IsType<SurveyRecordQuestion>(survey.GetQuestion("people"));
+        panel.SetField(0, "age", KajayValue.From(12));
+        panel.SetField(1, "age", KajayValue.From(40));
+
+        SurveyValidationResult result = survey.Validation.ValidateCurrentPage();
+
+        SurveyValidationError error = Assert.Single(result.Errors);
+        Assert.Equal("required", error.Kind);
+        Assert.Equal("0.guardian", error.Path);
+    }
 }

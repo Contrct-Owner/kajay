@@ -6,4 +6,5 @@ internal sealed record SurveyRuntimeRecordSettings(
     bool AllowAdd,
     bool AllowRemove,
     KajayValue DefaultRecord,
-    bool CopyPrevious);
+    bool CopyPrevious,
+    IReadOnlyList<SurveyRuntimeQuestion> Fields);

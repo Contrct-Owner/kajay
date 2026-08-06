@@ -8,6 +8,7 @@ public sealed class SurveyValidation
     private readonly SurveyQuestionValidator? _questionValidator;
     private readonly AsyncSurveyQuestionValidator? _asyncQuestionValidator;
     private readonly SurveyServerValidator? _serverValidator;
+    private readonly SurveyCompositeValidation _compositeValidation;
     private readonly Dictionary<string, IReadOnlyList<SurveyValidationError>> _errors =
         new(StringComparer.Ordinal);
 
@@ -21,6 +22,7 @@ public sealed class SurveyValidation
         _questionValidator = options.QuestionValidator;
         _asyncQuestionValidator = options.AsyncQuestionValidator;
         _serverValidator = options.ServerValidator;
+        _compositeValidation = new SurveyCompositeValidation(survey);
     }
 
     /// <summary>Gets whether asynchronous host validation is currently outstanding.</summary>
@@ -272,14 +274,14 @@ public sealed class SurveyValidation
         KajayValue value = _survey.GetValue(question.ValueKey);
         if (KajayValueSemantics.IsEmpty(value))
         {
-            if (_survey.TryGetQuestionState(question.Name, out SurveyQuestionState state)
+            if (question.MatrixSettings?.RequireEveryRow != true
+                && _survey.TryGetQuestionState(question.Name, out SurveyQuestionState state)
                 && state.IsRequired)
             {
                 errors.Add(new SurveyValidationError(
                     question.Name,
                     "required",
                     question.RequiredMessage));
-                return;
             }
         }
         else
@@ -297,6 +299,8 @@ public sealed class SurveyValidation
 
             ValidateFile(question, value, errors);
         }
+
+        _compositeValidation.Validate(question, value, errors);
 
         if (errors.Count == previousErrorCount && _questionValidator is not null)
         {

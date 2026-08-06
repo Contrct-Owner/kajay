@@ -3,8 +3,10 @@ using System.Text.Json.Nodes;
 namespace Kajay;
 
 internal sealed record SurveyRuntimeQuestion(
+    string Type,
     string Name,
     string ValueKey,
+    IReadOnlyList<KajayValue> Choices,
     string RequiredMessage,
     bool HasCorrectAnswer,
     KajayValue CorrectAnswer,
@@ -33,12 +35,29 @@ internal sealed record SurveyRuntimeQuestion(
             "correctAnswer",
             out JsonNode? correctAnswer);
         return new SurveyRuntimeQuestion(
+            element["type"]?.GetValue<string>() ?? string.Empty,
             element["name"]?.GetValue<string>() ?? string.Empty,
             ReadValueKey(element),
+            ReadChoices(element["choices"] as JsonArray),
             element["requiredErrorText"]?.GetValue<string>() ?? string.Empty,
             hasCorrectAnswer,
             hasCorrectAnswer ? KajayJsonValue.From(correctAnswer) : KajayValue.Absent,
             runtimeValidators);
+    }
+
+    private static IReadOnlyList<KajayValue> ReadChoices(JsonArray? choices)
+    {
+        if (choices is null)
+        {
+            return Array.Empty<KajayValue>();
+        }
+
+        return Array.AsReadOnly(choices.Select(choice =>
+        {
+            return choice is JsonObject item && item.TryGetPropertyValue("value", out JsonNode? value)
+                ? KajayJsonValue.From(value)
+                : KajayJsonValue.From(choice);
+        }).ToArray());
     }
 
     private static string ReadValueKey(JsonObject element)

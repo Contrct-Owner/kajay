@@ -11,6 +11,7 @@ public sealed class Survey
     private readonly SurveyTriggers _triggers;
     private readonly TimeProvider _timeProvider;
     private readonly ExpressionFunctionRegistry _expressionFunctions;
+    private readonly IReadOnlyDictionary<string, SurveyQuestion> _questionsByName;
     private bool _isLoading;
     private bool _isPreviewing;
     private bool _isCompleted;
@@ -37,6 +38,14 @@ public sealed class Survey
         _conditions = new SurveyConditions(this, definition);
         _conditions.Establish();
         _visiblePageIndexes = _conditions.GetVisiblePageIndexes();
+        SurveyQuestion[] questions = definition.Pages
+            .SelectMany(page => page.Questions)
+            .Select(CreateQuestion)
+            .ToArray();
+        Questions = Array.AsReadOnly(questions);
+        _questionsByName = new System.Collections.ObjectModel.ReadOnlyDictionary<string, SurveyQuestion>(
+            questions.GroupBy(question => question.Name, StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal));
         _triggers = new SurveyTriggers(this, definition.Triggers);
         _triggers.Establish();
     }
@@ -52,6 +61,9 @@ public sealed class Survey
 
     /// <summary>Gets the authored answer-rule checks for this survey.</summary>
     public SurveyValidation Validation { get; }
+
+    /// <summary>Gets every authored question in definition order.</summary>
+    public IReadOnlyList<SurveyQuestion> Questions { get; }
 
     /// <summary>Gets the number of effective pages.</summary>
     public int PageCount => _visiblePageIndexes.Length;
@@ -127,6 +139,15 @@ public sealed class Survey
     {
         ArgumentNullException.ThrowIfNull(name);
         return _calculatedValues.TryGetValue(name, out value);
+    }
+
+    /// <summary>Gets a headless question by its exact authored name.</summary>
+    /// <param name="name">The exact ordinal question name.</param>
+    /// <returns>The bound question, or null when no question has that name.</returns>
+    public SurveyQuestion? GetQuestion(string name)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+        return _questionsByName.GetValueOrDefault(name);
     }
 
     /// <summary>Reports whether the named authored page is currently effective.</summary>
@@ -494,5 +515,13 @@ public sealed class Survey
         return expected.Count == actual.Count
             && expected.All(entry => actual.TryGetValue(entry.Key, out KajayValue value)
                 && value == entry.Value);
+    }
+
+    private SurveyQuestion CreateQuestion(SurveyRuntimeQuestion definition)
+    {
+        return definition.Type is "checkbox" or "dropdown" or "imagepicker"
+            or "radiogroup" or "ranking" or "tagbox"
+            ? new SurveyChoiceQuestion(this, definition)
+            : new SurveyScalarQuestion(this, definition);
     }
 }

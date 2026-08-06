@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Kajay.Snapshots;
 using Kajay.Validation;
 
 namespace Kajay.Demo.Api;
@@ -62,6 +63,26 @@ public sealed class DemoSurveyApplication
         }
 
         return ToSubmission(survey, outcome, definitionResult.Diagnostics);
+    }
+
+    internal static DemoSnapshotResult RoundTripSnapshot(DemoSnapshotRequest request)
+    {
+        SurveyDefinition definition = SurveyDefinition.Parse(
+            request.Definition.GetRawText()).Definition;
+        Survey source = definition.CreateSurvey();
+        ApplyData(source, request.Data);
+        string stored = source.CreateSnapshot().ToJson();
+        Survey restored = definition.CreateSurvey();
+        restored.RestoreSnapshot(SurveySnapshot.Parse(stored));
+        Dictionary<string, object?> restoredData = restored.Data.ToDictionary(
+            pair => pair.Key,
+            pair => KajayJsonValueAdapter.ToJson(pair.Value),
+            StringComparer.Ordinal);
+        return new DemoSnapshotResult(
+            RuntimeName,
+            definition.DefinitionDigest,
+            JsonNode.Parse(stored)!,
+            restoredData);
     }
 
     public async Task<DemoAnswerValidationResult> ValidateAnswersAsync(

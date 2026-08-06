@@ -1,10 +1,16 @@
-import { parseSurvey, scoreQuiz, serializeSurvey } from '@kajay/core';
+import {
+  parseSurvey,
+  parseSurveySnapshot,
+  scoreQuiz,
+  serializeSurvey,
+} from '@kajay/core';
 import type { AdvanceOutcome, Diagnostic, Survey, SurveyDefinition } from '@kajay/core';
 import type {
   DemoDefinitionResult,
   DemoDiagnostic,
   DemoSubmissionError,
   DemoSubmissionResult,
+  DemoSnapshotResult,
 } from './DemoContract.js';
 import { validateDemoAnswers } from './DemoHostValidator.js';
 
@@ -56,6 +62,25 @@ export class TypeScriptDemoApplication {
     survey.setData(data);
     const outcome = serverErrors.length === 0 ? advanceToCompletion(survey) : 'blocked';
     return submissionResult(survey, outcome, serverErrors, validated.diagnostics);
+  }
+
+  roundTripSnapshot(
+    definition: unknown,
+    data: Readonly<Record<string, unknown>>,
+  ): DemoSnapshotResult {
+    const sourceResult = parseSurvey(definition);
+    sourceResult.survey.setData(data);
+    const snapshot = JSON.parse(
+      JSON.stringify(sourceResult.survey.createSnapshot()),
+    ) as Readonly<Record<string, unknown>>;
+    const restored = parseSurvey(definition).survey;
+    restored.restoreSnapshot(parseSurveySnapshot(JSON.stringify(snapshot)));
+    return {
+      runtime,
+      definitionDigest: sourceResult.definitionDigest,
+      snapshot,
+      restoredData: restored.data,
+    };
   }
 }
 

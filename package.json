@@ -23,7 +23,7 @@
     "check:test-policy": "node --test scripts/test-policy/*.test.mjs && node scripts/test-policy/check-unit-test-policy.mjs",
     "check:parity": "node --test scripts/lib/parityProofs.test.mjs && node scripts/check-parity-proofs.mjs",
     "check:contract": "node --test scripts/test/jsonSchema2020.test.mjs && node scripts/check-contract.mjs",
-    "check:conformance": "node --test scripts/test/conformanceV2Corpus.test.mjs && node scripts/check-conformance-v2-corpus.mjs && node scripts/check-conformance-v2.mjs && node scripts/check-conformance.mjs",
+    "check:conformance": "node --test scripts/test/conformanceV2Corpus.test.mjs && node scripts/check-conformance-v2-corpus.mjs && node scripts/check-conformance-v2.mjs && node scripts/check-conformance.mjs && node scripts/check-response-snapshot-conformance.mjs",
     "check:docs": "node --test scripts/docs/*.test.mjs scripts/docs-quality/*.test.mjs && node scripts/docs-quality/check-docs.mjs",
     "verify:dotnet": "node scripts/verify-dotnet.mjs",
     "test:unit": "vitest run --project unit",

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 const repositoryRoot = resolve(import.meta.dirname, '..');
 const project = resolve(repositoryRoot, 'dotnet/src/Kajay.Core/Kajay.Core.csproj');
-const dotnetSmoke = ['dotnet-pack-question-model-smoke.cs', 'dotnet-pack-host-io-smoke.cs', 'dotnet-pack-portability-smoke.cs'].map((file) => readFileSync(resolve(repositoryRoot, `scripts/${file}`), 'utf8')).join('\n');
+const dotnetSmoke = ['dotnet-pack-question-model-smoke.cs', 'dotnet-pack-host-io-smoke.cs', 'dotnet-pack-portability-smoke.cs', 'dotnet-pack-snapshot-smoke.cs'].map((file) => readFileSync(resolve(repositoryRoot, `scripts/${file}`), 'utf8')).join('\n');
 const dotnetTypes = readFileSync(resolve(repositoryRoot, 'scripts/dotnet-pack-portability-types.cs'), 'utf8');
 const consumerProgram = `using System;
 using System.Collections.Generic;

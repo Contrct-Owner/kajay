@@ -14,6 +14,7 @@ const capabilityDirectories = new Set([
   'Hosting',
   'Properties',
   'Runtime',
+  'Snapshots',
   'Validation',
 ]);
 const bannedDirectoryNames = new Set([

@@ -56,6 +56,9 @@ recorded here (status `superseded`) **and** in the
 | [0031](./0031-csharp-sdk-source-and-namespace-architecture.md) | C# SDK source and namespace architecture | accepted | 2026-08-05 |
 | [0032](./0032-compose-sdk-demo-profiles.md) | One SDK demo frontend with Compose runtime profiles | superseded by 0033 | 2026-08-06 |
 | [0033](./0033-dual-runtime-compatibility-demo.md) | Compare C# and TypeScript through symmetric HTTP peers | accepted | 2026-08-06 |
+| [0034](./0034-portable-response-snapshot-contract.md) | Portable, definition-bound response snapshots | accepted | 2026-08-06 |
+| [0035](./0035-workflow-host-owns-durable-orchestration.md) | The workflow host owns durable orchestration | accepted | 2026-08-06 |
+| [0036](./0036-definition-release-promotion.md) | Promote immutable definition releases by digest | accepted | 2026-08-06 |
 
 ## Parent and related links
 

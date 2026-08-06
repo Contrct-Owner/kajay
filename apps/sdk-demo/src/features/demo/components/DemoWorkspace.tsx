@@ -6,8 +6,9 @@ import type { DemoDefinitionResult } from '../api/DemoRuntimeTypes.js';
 import { CreatorPanel } from './CreatorPanel.js';
 import { RendererPanel } from './RendererPanel.js';
 import { RuntimeResult } from './RuntimeResult.js';
+import { PersistencePanel } from './PersistencePanel.js';
 
-type DemoView = 'renderer' | 'creator';
+type DemoView = 'renderer' | 'creator' | 'persistence';
 
 export function DemoWorkspace({ runtime }: { readonly runtime: DemoRuntime }): ReactElement {
   const [definition, setDefinition] = useState<SurveyDefinition>();
@@ -66,31 +67,40 @@ function LoadedWorkspace({
   return (
     <main>
       <RuntimeResult result={loadResult} compact />
-      <nav className="demo-tabs" aria-label="Demo surface">
-        <button
-          type="button"
-          aria-pressed={view === 'renderer'}
-          onClick={() => {
-            setView('renderer');
-          }}
-        >
-          Renderer
-        </button>
-        <button
-          type="button"
-          aria-pressed={view === 'creator'}
-          onClick={() => {
-            setView('creator');
-          }}
-        >
-          Creator
-        </button>
-      </nav>
+      <ViewTabs selected={view} onSelected={setView} />
       {view === 'renderer' ? (
         <RendererPanel definition={definition} runtime={runtime} />
-      ) : (
+      ) : view === 'creator' ? (
         <CreatorPanel definition={definition} runtime={runtime} onDefinition={onDefinition} />
+      ) : (
+        <PersistencePanel definition={definition} runtime={runtime} />
       )}
     </main>
+  );
+}
+
+function ViewTabs({
+  selected,
+  onSelected,
+}: {
+  readonly selected: DemoView;
+  readonly onSelected: (view: DemoView) => void;
+}): ReactElement {
+  const views: readonly DemoView[] = ['renderer', 'creator', 'persistence'];
+  return (
+    <nav className="demo-tabs" aria-label="Demo surface">
+      {views.map((view) => (
+        <button
+          type="button"
+          key={view}
+          aria-pressed={selected === view}
+          onClick={() => {
+            onSelected(view);
+          }}
+        >
+          {view[0]?.toUpperCase()}{view.slice(1)}
+        </button>
+      ))}
+    </nav>
   );
 }

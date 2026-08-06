@@ -64,4 +64,15 @@ describe('TypeScript demo application', () => {
       expect.objectContaining({ severity: 'error', code: 'unknown-element-type' }),
     );
   });
+
+  test('round trips durable data through the public snapshot storage seam', () => {
+    const result = new TypeScriptDemoApplication(definition).roundTripSnapshot(
+      definition,
+      { email: 'ada@example.com', rating: 5 },
+    );
+
+    expect(result.definitionDigest).toMatch(/^sha256:[0-9a-f]{64}$/u);
+    expect(result.snapshot).toMatchObject({ formatVersion: 1, conformanceVersion: 2 });
+    expect(result.restoredData).toMatchObject({ email: 'ada@example.com', rating: 5 });
+  });
 });

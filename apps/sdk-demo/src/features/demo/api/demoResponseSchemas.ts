@@ -6,6 +6,7 @@ import type {
   DemoRuntimeName,
   DemoSubmissionError,
   DemoSubmissionResult,
+  DemoSnapshotResult,
 } from './DemoRuntimeTypes.js';
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -108,5 +109,22 @@ export function readSubmissionResult(value: unknown): DemoSubmissionResult {
     score: readScore(value['score']),
     errors: value['errors'].map(readSubmissionError),
     diagnostics: readDiagnostics(value['diagnostics']),
+  };
+}
+
+export function readSnapshotResult(value: unknown): DemoSnapshotResult {
+  if (
+    !isObject(value)
+    || typeof value['definitionDigest'] !== 'string'
+    || !isObject(value['snapshot'])
+    || !isObject(value['restoredData'])
+  ) {
+    throw new TypeError('Demo snapshot response has an invalid shape.');
+  }
+  return {
+    runtime: readRuntime(value['runtime']),
+    definitionDigest: value['definitionDigest'],
+    snapshot: value['snapshot'],
+    restoredData: value['restoredData'],
   };
 }

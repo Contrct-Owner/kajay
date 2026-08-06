@@ -24,6 +24,10 @@
       <Link>Conformance/v2/%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="../../../conformance/response-snapshot/v1/*.json">
+      <Link>Conformance/response-snapshot/v1/%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +35,7 @@
     <Using Include="Kajay.Expressions" />
     <Using Include="Kajay.Extensibility" />
     <Using Include="Kajay.Hosting" />
+    <Using Include="Kajay.Snapshots" />
     <Using Include="Kajay.Validation" />
     <Using Include="Kajay.Definitions" />
   </ItemGroup>

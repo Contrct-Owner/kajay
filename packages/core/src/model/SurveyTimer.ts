@@ -23,6 +23,18 @@ export interface TimerReading {
   readonly remaining: number | undefined;
 }
 
+export interface TimerPersistenceState {
+  readonly surveyStartedAt: number;
+  readonly pageStartedAt: number;
+}
+
+interface MutableTimerState {
+  surveyStartedAt?: number;
+  pageStartedAt?: number;
+}
+
+const persistence = new WeakMap<SurveyTimer, MutableTimerState>();
+
 const NOT_STARTED: TimerReading = { elapsed: 0, limit: 0, remaining: undefined };
 
 /**
@@ -46,13 +58,12 @@ export class SurveyTimer {
   readonly #survey: Survey;
   readonly #now: () => Date;
   readonly #advance: () => void;
-  #surveyStartedAt: number | undefined;
-  #pageStartedAt: number | undefined;
 
   constructor(survey: Survey, now: () => Date, advance: () => void) {
     this.#survey = survey;
     this.#now = now;
     this.#advance = advance;
+    persistence.set(this, {});
   }
 
   /**
@@ -67,32 +78,32 @@ export class SurveyTimer {
       return;
     }
     const startedAt = this.#now().getTime();
-    this.#surveyStartedAt = startedAt;
-    this.#pageStartedAt = startedAt;
+    const state = timerState(this);
+    state.surveyStartedAt = startedAt;
+    state.pageStartedAt = startedAt;
   }
 
   stop(): void {
-    this.#surveyStartedAt = undefined;
-    this.#pageStartedAt = undefined;
+    persistence.set(this, {});
   }
 
   get isRunning(): boolean {
-    return this.#surveyStartedAt !== undefined;
+    return timerState(this).surveyStartedAt !== undefined;
   }
 
   /** Begins the page clock again, leaving the survey clock alone. */
   restartPage(): void {
     if (this.isRunning) {
-      this.#pageStartedAt = this.#now().getTime();
+      timerState(this).pageStartedAt = this.#now().getTime();
     }
   }
 
   get surveyTime(): TimerReading {
-    return this.#read(this.#surveyStartedAt, this.#survey.maxTimeToFinish);
+    return this.#read(timerState(this).surveyStartedAt, this.#survey.maxTimeToFinish);
   }
 
   get pageTime(): TimerReading {
-    return this.#read(this.#pageStartedAt, this.#pageTimeLimit());
+    return this.#read(timerState(this).pageStartedAt, this.#pageTimeLimit());
   }
 
   /**
@@ -154,6 +165,23 @@ export class SurveyTimer {
     const own = this.#survey.currentPage?.maxTimeToFinish ?? 0;
     return own > 0 ? own : this.#survey.maxTimeToFinishPage;
   }
+}
+
+export function readTimerPersistence(timer: SurveyTimer): TimerPersistenceState | undefined {
+  const state = timerState(timer);
+  if (state.surveyStartedAt === undefined || state.pageStartedAt === undefined) return undefined;
+  return { surveyStartedAt: state.surveyStartedAt, pageStartedAt: state.pageStartedAt };
+}
+
+export function writeTimerPersistence(
+  timer: SurveyTimer,
+  state: TimerPersistenceState | undefined,
+): void {
+  persistence.set(timer, state === undefined ? {} : { ...state });
+}
+
+function timerState(timer: SurveyTimer): MutableTimerState {
+  return persistence.get(timer)!;
 }
 
 function hasExpired(reading: TimerReading): boolean {

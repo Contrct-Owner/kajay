@@ -4,6 +4,7 @@ import type {
   DemoDefinitionResult,
   DemoSubmissionError,
   DemoSubmissionResult,
+  DemoSnapshotResult,
 } from './DemoRuntimeTypes.js';
 import {
   compareAnswerErrors,
@@ -67,6 +68,27 @@ export class ComparingDemoRuntime implements DemoRuntime {
       runtime: this.name,
       accepted: dotnet.accepted && typescript.accepted && comparison.matched,
       comparison,
+    };
+  }
+
+  async roundTripSnapshot(
+    definition: SurveyDefinition,
+    data: Readonly<Record<string, unknown>>,
+  ): Promise<DemoSnapshotResult> {
+    const [dotnet, typescript] = await Promise.all([
+      this.#dotnet.roundTripSnapshot(definition, data),
+      this.#typescript.roundTripSnapshot(definition, data),
+    ]);
+    const differences: string[] = [];
+    if (dotnet.definitionDigest !== typescript.definitionDigest) differences.push('definition digest');
+    if (JSON.stringify(dotnet.snapshot) !== JSON.stringify(typescript.snapshot)) differences.push('snapshot');
+    if (JSON.stringify(dotnet.restoredData) !== JSON.stringify(typescript.restoredData)) {
+      differences.push('restored data');
+    }
+    return {
+      ...dotnet,
+      runtime: 'compare',
+      comparison: { matched: differences.length === 0, differences },
     };
   }
 }

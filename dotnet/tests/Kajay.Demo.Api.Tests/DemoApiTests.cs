@@ -110,12 +110,34 @@ public sealed class DemoApiTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
+    public async Task SnapshotEndpointStoresAndRestoresThroughTheSdkContract()
+    {
+        DemoDefinitionResult definition = await GetDefinitionAsync();
+        var body = new
+        {
+            definition = definition.Definition,
+            data = new { email = "ada@example.com", rating = 5 },
+        };
+
+        HttpResponseMessage response = await _client.PostAsJsonAsync(
+            "/api/demo/snapshots/round-trip",
+            body);
+        DemoSnapshotResult result = await ReadAsync<DemoSnapshotResult>(response);
+
+        Assert.StartsWith("sha256:", result.DefinitionDigest, StringComparison.Ordinal);
+        Assert.Equal(1, result.Snapshot["formatVersion"]?.GetValue<int>());
+        JsonElement email = Assert.IsType<JsonElement>(result.RestoredData["email"]);
+        Assert.Equal("ada@example.com", email.GetString());
+    }
+
+    [Fact]
     public async Task OpenApiDocumentDescribesDemoOperations()
     {
         string document = await _client.GetStringAsync("/openapi/v1.json");
 
         Assert.Contains("/api/demo/definition", document, StringComparison.Ordinal);
         Assert.Contains("/api/demo/submissions", document, StringComparison.Ordinal);
+        Assert.Contains("/api/demo/snapshots/round-trip", document, StringComparison.Ordinal);
     }
 
     private async Task<DemoDefinitionResult> GetDefinitionAsync()

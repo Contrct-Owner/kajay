@@ -9,17 +9,19 @@ import { SelectQuestion } from '../model/SelectQuestion.js';
 import type { ChildCollectionDescriptor } from '../metadata/ClassDescriptor.js';
 import { globalRegistry } from '../metadata/globalRegistry.js';
 import { MetadataRegistry } from '../metadata/MetadataRegistry.js';
-import { matchesPropertyType } from '../metadata/PropertyDescriptor.js';
-import type { PropertyDescriptor } from '../metadata/PropertyDescriptor.js';
+import { matchesPropertyType, type PropertyDescriptor } from '../metadata/PropertyDescriptor.js';
 import { Survey } from '../model/Survey.js';
 import type { SurveyOptions } from '../model/SurveyOptions.js';
 import type { SurveyElement } from '../model/SurveyElement.js';
 import type { Diagnostic } from './Diagnostic.js';
 import { collectPatternDiagnostics } from './patternDiagnostics.js';
 import { CURRENT_SCHEMA_VERSION, UnsupportedSchemaVersionError } from './schemaVersion.js';
+import { digestAndBindDefinition } from './definitionDigest.js';
 
 export interface ParseResult {
   readonly survey: Survey;
+  /** Content identity of the canonical definition used to create the survey. */
+  readonly definitionDigest: string;
   /** Everything noteworthy about the definition. Never thrown away silently. */
   readonly diagnostics: readonly Diagnostic[];
 }
@@ -126,7 +128,8 @@ export function parseSurvey(
   context.diagnostics.push(
     ...collectEndpointDiagnostics(urlQuestions(root), options.endpoints ?? {}),
   );
-  return { survey: root, diagnostics: context.diagnostics };
+  const definitionDigest = digestAndBindDefinition(root, registry);
+  return { survey: root, definitionDigest, diagnostics: context.diagnostics };
 }
 
 /**

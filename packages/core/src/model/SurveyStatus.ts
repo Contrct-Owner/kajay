@@ -7,6 +7,14 @@ import type { SurveyLogicHost } from './SurveyLogicHost.js';
 import type { PreviewMode } from './previewQuestions.js';
 import { resolveSurveyState } from './SurveyState.js';
 import type { SurveyState } from './SurveyState.js';
+import type { DurableSurveyState } from './SurveySnapshot.js';
+
+const snapshotHydrators = new WeakMap<SurveyStatus, (state: DurableSurveyState) => void>();
+
+/** @internal Replaces durable lifecycle flags without announcing respondent actions. */
+export function rehydrateSurveyStatus(status: SurveyStatus, state: DurableSurveyState): void {
+  snapshotHydrators.get(status)?.(state);
+}
 
 /**
  * What the respondent sees when they are not looking at a page.
@@ -28,6 +36,11 @@ export class SurveyStatus {
     this.#survey = survey;
     this.#logic = logic;
     this.#answers = answers;
+    snapshotHydrators.set(this, (state) => {
+      this.#isLoading = false;
+      this.#isCompleted = state === 'completed';
+      this.#isPreviewing = state === 'preview';
+    });
   }
 
   /**

@@ -51,6 +51,28 @@ IReadOnlyDictionary<string, KajayValue> response = survey.Data;
 independent mutable session. A `Survey` instance has one logical owner and is not
 thread-safe; do not mutate one instance concurrently.
 
+## Persist and resume
+
+```csharp
+using Kajay;
+using Kajay.Snapshots;
+
+SurveyDefinition definition = SurveyDefinition.Parse(json).Definition;
+Survey source = definition.CreateSurvey();
+source.SetValue("email", KajayValue.From("person@example.com"));
+
+string storedJson = source.CreateSnapshot().ToJson(); // store with host metadata
+
+Survey restored = definition.CreateSurvey();
+restored.RestoreSnapshot(SurveySnapshot.Parse(storedJson));
+```
+
+Response Snapshot Format v1 binds answers, page, locale, durable lifecycle, and timer
+anchors to `definition.DefinitionDigest`. Restore rejects the wrong definition before
+mutation and does not replay runtime events. Kajay owns this portable value contract;
+the host owns database keys, workflow state, tenancy, encryption, retention, optimistic
+concurrency, and promotion between immutable definition releases.
+
 The complete buildable version of this path lives in
 [`samples/Kajay.Core.GettingStarted`](./samples/Kajay.Core.GettingStarted).
 
@@ -58,9 +80,10 @@ The complete buildable version of this path lives in
 
 The SDK remains one assembly and one NuGet package. `using Kajay;` contains the normal
 survey workflow. Specialized interfaces are grouped in `Kajay.Expressions`,
-`Kajay.Extensibility`, `Kajay.Hosting`, and `Kajay.Validation`. Source and tests mirror
-those capabilities; implementation detail is kept beside the capability it serves
-instead of in generic `Helpers`, `Models`, or `Services` directories.
+`Kajay.Extensibility`, `Kajay.Hosting`, `Kajay.Snapshots`, and `Kajay.Validation`.
+Source and tests mirror those capabilities; implementation detail is kept beside the
+capability it serves instead of in generic `Helpers`, `Models`, or `Services`
+directories.
 
 From this directory, run the getting-started sample or the calibrated benchmark suite:
 

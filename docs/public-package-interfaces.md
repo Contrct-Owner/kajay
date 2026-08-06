@@ -3,7 +3,7 @@
 - Area: Published package architecture
 - Status: active
 - Owner: Jarod
-- Last updated: 2026-08-04
+- Last updated: 2026-08-06
 
 The `package.json` `exports` map makes each package root its only JavaScript entry. This
 ledger classifies every runtime value available from those roots after architecture
@@ -16,11 +16,11 @@ algorithms stay private and package-local tests import them relatively. A propos
 with no caller needs an explicit compatibility reason and an installed-consumer or
 browser proof.
 
-## `@kajay/core` — 51 values
+## `@kajay/core` — 54 values
 
 | Category | Values | Concrete evidence |
 | --- | --- | --- |
-| Consumer operations and contract identity | `CURRENT_SCHEMA_VERSION`, `RUNTIME_DIAGNOSTIC_CONTRACT_VERSION`, `RUNTIME_METADATA_CONTRACT_VERSION`, `SCHEMA_ID`, `UnsupportedSchemaVersionError`, `parseSurvey`, `scoreQuiz`, `serializeSurvey` | Host and Creator parsing, conformance adapter, contract identity, quiz/progress behavior, and the installed [pack consumer](../scripts/pack-fixtures.mjs). |
+| Consumer operations and contract identity | `CURRENT_SCHEMA_VERSION`, `RUNTIME_DIAGNOSTIC_CONTRACT_VERSION`, `RUNTIME_METADATA_CONTRACT_VERSION`, `SCHEMA_ID`, `UnsupportedSchemaVersionError`, `UnsupportedSurveySnapshotVersionError`, `digestCanonicalDefinition`, `parseSurvey`, `parseSurveySnapshot`, `scoreQuiz`, `serializeSurvey` | Host and Creator parsing, conformance adapter, definition and Response Snapshot identity, quiz/progress behavior, and the installed [pack consumer](../scripts/pack-fixtures.mjs). |
 | Intentional extension seams | `AsyncValidator`, `MetadataRegistry`, `PageElement`, `Question`, `RepeatingQuestion`, `SurveyElement`, `Validator`, `createDefaultFunctionRegistry`, `globalRegistry`, `registerBuiltInTypes` | Custom metadata/question/validator and expression-function registration, host-defined renderer/browser proofs, and the installed [extension consumer](../scripts/pack-extension-fixtures.mjs). Base classes remain values because consumers subclass or register factories for them. Per-survey wording is extended through the dictionary already owned by `survey.strings`; no standalone dictionary constructor or raw locale table is needed. |
 | Maintained adapter requirements | `BooleanQuestion`, `CheckboxQuestion`, `CommentQuestion`, `EventEmitter`, `ExpressionCache`, `ExpressionQuestion`, `FileQuestion`, `HtmlElement`, `ImageElement`, `ImagePickerQuestion`, `MatrixCellsBase`, `MatrixDynamicQuestion`, `MatrixQuestion`, `MultiSelectQuestion`, `MultipleTextQuestion`, `Panel`, `PanelDynamicQuestion`, `RadiogroupQuestion`, `RankingQuestion`, `RatingQuestion`, `SelectQuestion`, `SignatureQuestion`, `TextQuestion`, `createValueResolver`, `evaluateExpression`, `isLocalizedText`, `isTruthy`, `matrixRowKey`, `measureProgress`, `moveWithin`, `parseExpression`, `printExpression`, `resolveLocalizedText` | Runtime React renderer dispatch and Creator headless models import these values through the package root. Expression semantics also back the versioned conformance adapter. Removing them would move type dispatch, truthiness, caching, or expression behavior into adapters. |
 

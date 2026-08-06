@@ -174,6 +174,19 @@ export type { QuestionScore, QuizScore } from './model/quizScore.js';
 export type { AnswerScore } from './model/answerScore.js';
 export type { PreviewMode } from './model/previewQuestions.js';
 export type { SurveyProgress } from './model/SurveyProgress.js';
+export type {
+  DurableSurveyState,
+  SurveySnapshot,
+  SurveyTimerAnchors,
+} from './model/SurveySnapshot.js';
+export {
+  parseSurveySnapshot,
+  UnsupportedSurveySnapshotVersionError,
+} from './model/SurveySnapshot.js';
+export type {
+  SurveySnapshotScalar,
+  SurveySnapshotValue,
+} from './model/SurveySnapshotValue.js';
 export type { ClearInvisibleValues } from './model/clearInvisibleAnswers.js';
 export type { SurveyState } from './model/SurveyState.js';
 export type { SurveyOptions } from './model/SurveyOptions.js';
@@ -215,3 +228,4 @@ export {
 } from './serialization/schemaVersion.js';
 export { serializeSurvey } from './serialization/serializeSurvey.js';
 export type { SurveyDefinition } from './serialization/serializeSurvey.js';
+export { digestCanonicalDefinition } from './serialization/definitionDigest.js';

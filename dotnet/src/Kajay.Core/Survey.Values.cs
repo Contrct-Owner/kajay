@@ -54,11 +54,17 @@ public sealed partial class Survey
         Validation.RevalidateChangedValues(changes.Select(change => change.Name));
         foreach (SurveyValueChangedEventArgs change in changes)
         {
-            ValueChanged?.Invoke(this, change);
+            if (!_isRestoringSnapshot)
+            {
+                ValueChanged?.Invoke(this, change);
+            }
         }
         foreach (SurveyElementStateChangedEventArgs change in stateChanges)
         {
-            ElementStateChanged?.Invoke(this, change);
+            if (!_isRestoringSnapshot)
+            {
+                ElementStateChanged?.Invoke(this, change);
+            }
         }
         if (State != previousState && State is SurveyState.Empty or SurveyState.Running)
         {

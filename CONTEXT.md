@@ -74,6 +74,23 @@ explicitly. The exact dependency and export rules are build-failing checks.
 - **Page** — an authored navigation step containing page elements.
 - **Response** — respondent data and resumable runtime state; it is not a definition
   edit.
+- **Response Snapshot** — a versioned, definition-bound, portable representation of a
+  Response at one instant. It contains survey runtime state but no host persistence,
+  tenancy, authorization, or workflow metadata.
+- **Definition Digest** — the `sha256:` identity of one canonical Definition. A
+  Response Snapshot names it so state cannot be restored against different survey
+  semantics.
+- **Managed Definition** — the logical authoring document whose revisions and releases
+  are governed by a host.
+- **Definition Revision** — an editable saved state of a Managed Definition.
+- **Definition Release** — an immutable, content-addressed artifact created from one
+  Definition Revision and its complete dependency closure.
+- **Deployment** — a Definition Release installed and verified in one environment; it
+  does not by itself select the release for new work.
+- **Activation** — the atomic selection of an installed Definition Release for new
+  instances of a Managed Definition.
+- **Environment Binding** — host-owned configuration that supplies an environment's
+  endpoints, secrets, storage, and policy without changing a Definition Release.
 - **Creator** — the embeddable survey-authoring product formed from headless Creator
   models and framework adapters.
 - **Design Surface** — Creator model and view of the authored page tree, selection,
@@ -102,6 +119,8 @@ explicitly. The exact dependency and export rules are build-failing checks.
   distributed independently while declaring the schema and conformance it supports.
 - **Host** — consuming application that supplies environment policy and composes the
   packages through published interfaces.
+- **Workflow Instance** — one durable execution pinned to immutable workflow and survey
+  Definition Releases for its lifetime.
 - **Publication hold** — the binding current decision to keep packages unpublished;
   it deliberately does not settle brand, scope, license, version, or release tooling.
 - **Documentation MCP server** — the read-only `kajay.io/mcp` adapter that exposes
@@ -131,6 +150,8 @@ meaning of each test seam.
 
 ## Change log
 
+- 2026-08-06: Defined the response-persistence and managed-definition promotion
+  language, including the distinction between Deployment and Activation.
 - 2026-08-05: Completed the C# adapter's v1 definition operation: all seven cases and
   their fixed-point canonicalization rule pass through the public definition seam.
 - 2026-08-05: Recorded the published TypeScript 1.0.0 posture and established the

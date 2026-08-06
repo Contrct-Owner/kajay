@@ -19,23 +19,21 @@ import { createSurveyLogic } from './createSurveyLogic.js';
 import { shouldAdvanceAutomatically } from './autoAdvance.js';
 import { collectPreviewQuestions } from './previewQuestions.js';
 import { SurveyProperties } from './SurveyProperties.js';
-import { applyData, readProgress, restoreProgress } from './SurveyProgress.js';
-import type { SurveyProgress } from './SurveyProgress.js';
+import { applyData, readProgress, restoreProgress, type SurveyProgress } from './SurveyProgress.js';
+import { applySnapshot, captureSnapshot, type SurveySnapshot } from './SurveySnapshot.js';
 import { SurveyStatus } from './SurveyStatus.js';
 import { SurveyTimer } from './SurveyTimer.js';
 import type { HtmlCondition } from './HtmlCondition.js';
 import type { CalculatedValue } from './CalculatedValue.js';
 import { SurveyAnswers } from './SurveyAnswers.js';
-import type { SurveyLogicHost } from './SurveyLogicHost.js';
-import type { ExpressionScope } from './SurveyLogicHost.js';
+import type { ExpressionScope, SurveyLogicHost } from './SurveyLogicHost.js';
 import type { Page } from './Page.js';
 import type { SurveyPages } from './SurveyPages.js';
 import { createSurveyPages } from './createSurveyPages.js';
 import type { Question } from './Question.js';
 import { SurveyChildren } from './SurveyChildren.js';
 import type { SurveyElement } from './SurveyElement.js';
-import { SurveyValidation } from './SurveyValidation.js';
-import type { AdvanceOutcome } from './SurveyValidation.js';
+import { SurveyValidation, type AdvanceOutcome } from './SurveyValidation.js';
 import type { Trigger } from './Trigger.js';
 import type { ExpressionOutcome } from './Validator.js';
 import type { ValueHost } from './ValueHost.js';
@@ -45,16 +43,13 @@ export class Survey extends SurveyProperties implements ValueHost {
   readonly #children: SurveyChildren = new SurveyChildren();
   readonly #answers: SurveyAnswers = new SurveyAnswers();
   readonly #logic: SurveyLogicHost;
-  readonly #pages: SurveyPages = createSurveyPages(this, () => this.#children.pages, () => {
-    // A fresh page gets its own full allowance, however the respondent arrived on it.
-    this.#timer.restartPage();
-  });
+  readonly #pages: SurveyPages = createSurveyPages(
+    this, () => this.#children.pages, () => this.#timer.restartPage(),
+  );
   readonly #validation: SurveyValidation = new SurveyValidation(this, () => this.#logic);
   #isDesignMode = false;
 
-  readonly #timer: SurveyTimer = new SurveyTimer(this, () => this.#logic.now(), () => {
-    this.#advance();
-  });
+  readonly #timer: SurveyTimer = new SurveyTimer(this, () => this.#logic.now(), () => this.#advance());
 
   readonly #status: SurveyStatus = new SurveyStatus(this, () => this.#logic, this.#answers);
 
@@ -361,6 +356,12 @@ export class Survey extends SurveyProperties implements ValueHost {
   restore(progress: SurveyProgress): void {
     restoreProgress(this, progress);
   }
+
+  /** Captures durable, definition-bound state in Response Snapshot Format v1. */
+  createSnapshot(): SurveySnapshot { return captureSnapshot(this); }
+
+  /** Restores a compatible Response Snapshot. */
+  restoreSnapshot(snapshot: SurveySnapshot): void { applySnapshot(this, snapshot); }
 
   getValue(name: string): unknown {
     return this.#answers.get(name);

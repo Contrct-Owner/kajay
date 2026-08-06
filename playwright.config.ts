@@ -1,10 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const hostDemoUrl = 'http://localhost:4173';
+const hostDemoPort = process.env['KAJAY_HOST_DEMO_E2E_PORT'] ?? '4173';
+const hostDemoUrl = `http://localhost:${hostDemoPort}`;
 // The reference application (§P). Its own port and its own project, because it is a
 // different artifact with a different job: the demo proves capability through the smallest
 // possible host, and this one proves the packages are pleasant to build with.
-const siteUrl = 'http://localhost:4174';
+const sitePort = process.env['KAJAY_SITE_E2E_PORT'] ?? '4174';
+const siteUrl = `http://localhost:${sitePort}`;
 
 // Playwright explicitly forces colour for its web server. Some runners also set NO_COLOR;
 // remove that conflicting inherited preference before Playwright starts any child process.
@@ -63,7 +65,7 @@ export default defineConfig({
     // bundle, which it did once, reporting the old string-typed REST answer long after
     // the fix had landed.
     command:
-      'pnpm --filter @kajay/host-demo run build && pnpm --filter @kajay/host-demo run preview -- --port 4173 --strictPort',
+      `pnpm --filter @kajay/host-demo run build && pnpm --filter @kajay/host-demo run preview --port ${hostDemoPort} --strictPort`,
     url: hostDemoUrl,
     // Never reused, in CI or out. Reuse skips the command — and with it the build —
     // so a server left running from an earlier session serves whatever `dist` held
@@ -79,7 +81,7 @@ export default defineConfig({
       // through a dev server — which is the only way P1's server rendering is really under
       // test rather than asserted.
       command:
-        'pnpm --filter @kajay/site run build && pnpm --filter @kajay/site run preview -- --port 4174 --strictPort',
+        `pnpm --filter @kajay/site run build && pnpm --filter @kajay/site run preview --port ${sitePort} --strictPort`,
       url: siteUrl,
       reuseExistingServer: false,
       timeout: 120_000,

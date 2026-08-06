@@ -77,6 +77,19 @@ public sealed class SurveyTimer
         }
     }
 
+    internal SurveyTimerAnchors? CaptureAnchors()
+    {
+        return _surveyStartedAt.HasValue && _pageStartedAt.HasValue
+            ? new SurveyTimerAnchors(_surveyStartedAt.Value, _pageStartedAt.Value)
+            : null;
+    }
+
+    internal void RestoreAnchors(SurveyTimerAnchors? anchors)
+    {
+        _surveyStartedAt = anchors?.SurveyStartedAt;
+        _pageStartedAt = anchors?.PageStartedAt;
+    }
+
     private TimeSpan GetPageLimit()
     {
         if (_survey.State != SurveyState.Running)

@@ -13,7 +13,11 @@ public sealed class SurveyDefinition
     {
         _canonical = canonical;
         _registry = registry;
+        DefinitionDigest = Definitions.DefinitionDigest.Compute(ToCanonicalJson());
     }
+
+    /// <summary>Gets the lowercase SHA-256 identity of the canonical definition.</summary>
+    public string DefinitionDigest { get; }
 
     /// <summary>Reads authored JSON into a canonical survey definition.</summary>
     /// <param name="json">A JSON object containing the survey definition.</param>
@@ -47,7 +51,7 @@ public sealed class SurveyDefinition
     /// <returns>Minified canonical JSON with deterministic property order.</returns>
     public string ToCanonicalJson()
     {
-        return _canonical.ToJsonString();
+        return Definitions.PortableJson.Stringify(_canonical);
     }
 
     /// <summary>Creates an independent mutable survey instance.</summary>
@@ -68,6 +72,7 @@ public sealed class SurveyDefinition
         ArgumentNullException.ThrowIfNull(options.Endpoints);
         return new Survey(
             SurveyRuntimeDefinition.From(_canonical, _registry),
+            DefinitionDigest,
             options.TimeProvider,
             options);
     }

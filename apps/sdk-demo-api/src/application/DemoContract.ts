@@ -36,3 +36,10 @@ export interface DemoSubmissionResult {
   readonly errors: readonly DemoSubmissionError[];
   readonly diagnostics: readonly DemoDiagnostic[];
 }
+
+export interface DemoSnapshotResult {
+  readonly runtime: 'typescript';
+  readonly definitionDigest: string;
+  readonly snapshot: Readonly<Record<string, unknown>>;
+  readonly restoredData: Readonly<Record<string, unknown>>;
+}

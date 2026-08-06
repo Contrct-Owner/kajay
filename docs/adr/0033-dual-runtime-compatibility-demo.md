@@ -19,11 +19,12 @@ Run the C# and TypeScript SDKs as symmetric HTTP API peers. Keep the individual
 both APIs behind one Nginx-hosted frontend. The frontend's runtime selector can direct
 operations to either peer or to a comparing adapter.
 
-Compare mode sends the same definition, answer-validation, and submission operations
+Compare mode sends the same definition, answer-validation, submission, and Response
+Snapshot round-trip operations
 to both APIs concurrently. It compares stable observable facts: canonical definitions;
 diagnostic code, path, and severity; validation identity; lifecycle outcome; response
-data; and score. Human-facing message prose is excluded because it is not part of the
-cross-language contract.
+data; score; definition digest; tagged snapshot JSON; and restored data. Human-facing
+message prose is excluded because it is not part of the cross-language contract.
 
 A definition or submission mismatch is shown and rejected. An answer-validation
 mismatch fails closed and blocks navigation. The comparison adapter composes two

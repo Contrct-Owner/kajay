@@ -1,1 +1,22 @@
 #nullable enable
+Kajay.Snapshots.SurveySnapshot
+Kajay.Snapshots.SurveySnapshot.ConformanceVersion.get -> int
+Kajay.Snapshots.SurveySnapshot.Data.get -> System.Collections.Generic.IReadOnlyDictionary<string!, Kajay.KajayValue>!
+Kajay.Snapshots.SurveySnapshot.DefinitionDigest.get -> string!
+Kajay.Snapshots.SurveySnapshot.FormatVersion.get -> int
+Kajay.Snapshots.SurveySnapshot.Lifecycle.get -> Kajay.SurveyState
+Kajay.Snapshots.SurveySnapshot.Locale.get -> string!
+Kajay.Snapshots.SurveySnapshot.PageName.get -> string!
+Kajay.Snapshots.SurveySnapshot.Timer.get -> Kajay.Snapshots.SurveyTimerAnchors?
+Kajay.Snapshots.SurveySnapshot.ToJson() -> string!
+Kajay.Snapshots.SurveyTimerAnchors
+Kajay.Snapshots.SurveyTimerAnchors.PageStartedAt.get -> System.DateTimeOffset
+Kajay.Snapshots.SurveyTimerAnchors.SurveyStartedAt.get -> System.DateTimeOffset
+Kajay.Snapshots.SurveyTimerAnchors.SurveyTimerAnchors(System.DateTimeOffset surveyStartedAt, System.DateTimeOffset pageStartedAt) -> void
+Kajay.Snapshots.UnsupportedSurveySnapshotVersionException
+Kajay.Snapshots.UnsupportedSurveySnapshotVersionException.DeclaredVersion.get -> int
+Kajay.Snapshots.UnsupportedSurveySnapshotVersionException.UnsupportedSurveySnapshotVersionException(int declaredVersion) -> void
+Kajay.Survey.CreateSnapshot() -> Kajay.Snapshots.SurveySnapshot!
+Kajay.Survey.RestoreSnapshot(Kajay.Snapshots.SurveySnapshot! snapshot) -> void
+Kajay.SurveyDefinition.DefinitionDigest.get -> string!
+static Kajay.Snapshots.SurveySnapshot.Parse(string! json) -> Kajay.Snapshots.SurveySnapshot!

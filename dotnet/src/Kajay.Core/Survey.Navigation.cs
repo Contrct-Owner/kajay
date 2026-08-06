@@ -67,7 +67,10 @@ public sealed partial class Survey
         _isCompleted = true;
         _isPreviewing = false;
         Timer.Stop();
-        Completed?.Invoke(this, new SurveyCompletedEventArgs(Data));
+        if (!_isRestoringSnapshot)
+        {
+            Completed?.Invoke(this, new SurveyCompletedEventArgs(Data));
+        }
         RaiseStateChanged();
     }
 
@@ -206,7 +209,10 @@ public sealed partial class Survey
 
     private void RaiseStateChanged()
     {
-        StateChanged?.Invoke(this, new SurveyStateChangedEventArgs(State));
+        if (!_isRestoringSnapshot)
+        {
+            StateChanged?.Invoke(this, new SurveyStateChangedEventArgs(State));
+        }
     }
 
     private bool SetCurrentPageIndex(int pageIndex)
@@ -219,9 +225,12 @@ public sealed partial class Survey
         int previousPageIndex = _currentPageIndex;
         _currentPageIndex = pageIndex;
         Timer.RestartPage();
-        CurrentPageChanged?.Invoke(
-            this,
-            new SurveyCurrentPageChangedEventArgs(previousPageIndex, pageIndex));
+        if (!_isRestoringSnapshot)
+        {
+            CurrentPageChanged?.Invoke(
+                this,
+                new SurveyCurrentPageChangedEventArgs(previousPageIndex, pageIndex));
+        }
         return true;
     }
 

@@ -5,4 +5,5 @@ global using Kajay.Expressions.Values;
 global using Kajay.Extensibility;
 global using Kajay.Hosting;
 global using Kajay.Runtime;
+global using Kajay.Snapshots;
 global using Kajay.Validation;

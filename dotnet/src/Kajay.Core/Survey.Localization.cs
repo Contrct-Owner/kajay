@@ -44,7 +44,10 @@ public sealed partial class Survey
 
         _locale = locale;
         _choiceSources.SettleSynchronous();
-        LocaleChanged?.Invoke(this, new SurveyLocaleChangedEventArgs(locale));
+        if (!_isRestoringSnapshot)
+        {
+            LocaleChanged?.Invoke(this, new SurveyLocaleChangedEventArgs(locale));
+        }
     }
 
     internal string ResolveText(SurveyLocalizedText text)

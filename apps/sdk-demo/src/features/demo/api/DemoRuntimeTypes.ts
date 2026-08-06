@@ -47,3 +47,11 @@ export interface DemoSubmissionResult {
   readonly diagnostics: readonly DemoDiagnostic[];
   readonly comparison?: DemoComparison;
 }
+
+export interface DemoSnapshotResult {
+  readonly runtime: DemoRuntimeName;
+  readonly definitionDigest: string;
+  readonly snapshot: Readonly<Record<string, unknown>>;
+  readonly restoredData: Readonly<Record<string, unknown>>;
+  readonly comparison?: DemoComparison;
+}

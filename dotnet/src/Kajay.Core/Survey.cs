@@ -5,6 +5,7 @@ public sealed partial class Survey
 {
     private const int LogicCascadeLimit = 128;
     private readonly SurveyRuntimeDefinition _definition;
+    private readonly string _definitionDigest;
     private readonly Dictionary<string, KajayValue> _answers = new(StringComparer.Ordinal);
     private readonly SurveyCalculatedValues _calculatedValues;
     private readonly SurveyConditions _conditions;
@@ -19,15 +20,18 @@ public sealed partial class Survey
     private bool _isLoading;
     private bool _isPreviewing;
     private bool _isCompleted;
+    private bool _isRestoringSnapshot;
     private int _currentPageIndex;
     private int[] _visiblePageIndexes = [];
 
     internal Survey(
         SurveyRuntimeDefinition definition,
+        string definitionDigest,
         TimeProvider timeProvider,
         SurveyOptions options)
     {
         _definition = definition;
+        _definitionDigest = definitionDigest;
         _locale = definition.Locale;
         _timeProvider = timeProvider;
         _expressionFunctions = options.ExpressionFunctions;

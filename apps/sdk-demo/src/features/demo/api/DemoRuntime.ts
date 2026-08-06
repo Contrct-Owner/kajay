@@ -4,6 +4,7 @@ import type {
   DemoRuntimeName,
   DemoSubmissionError,
   DemoSubmissionResult,
+  DemoSnapshotResult,
 } from './DemoRuntimeTypes.js';
 
 /** The narrow host-facing capability implemented by both SDK demonstrations. */
@@ -19,4 +20,8 @@ export interface DemoRuntime {
     definition: SurveyDefinition,
     data: Readonly<Record<string, unknown>>,
   ): Promise<DemoSubmissionResult>;
+  roundTripSnapshot(
+    definition: SurveyDefinition,
+    data: Readonly<Record<string, unknown>>,
+  ): Promise<DemoSnapshotResult>;
 }

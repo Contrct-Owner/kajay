@@ -15,6 +15,8 @@ internal static class DemoEndpoints
             .WithName("ValidateDemoAnswers");
         demo.MapPost("/submissions", Submit)
             .WithName("SubmitDemoSurvey");
+        demo.MapPost("/snapshots/round-trip", RoundTripSnapshot)
+            .WithName("RoundTripDemoSnapshot");
         return endpoints;
     }
 
@@ -50,5 +52,11 @@ internal static class DemoEndpoints
             request,
             cancellationToken).ConfigureAwait(false);
         return TypedResults.Ok(result);
+    }
+
+    private static Ok<DemoSnapshotResult> RoundTripSnapshot(
+        DemoSnapshotRequest request)
+    {
+        return TypedResults.Ok(DemoSurveyApplication.RoundTripSnapshot(request));
     }
 }

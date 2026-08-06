@@ -32,6 +32,7 @@ export const SMOKE_TS = `import {
   moveWithin,
   parseExpression,
   parseSurvey,
+  parseSurveySnapshot,
   registerBuiltInTypes,
   scoreQuiz,
   serializeSurvey,
@@ -91,6 +92,13 @@ first.survey.timer.tick();
 first.survey.timer.stop();
 if (first.survey.timer.isRunning) {
   throw new Error('The survey-owned timer did not stop.');
+}
+
+const storedSnapshot = JSON.stringify(first.survey.createSnapshot());
+const restoredSurvey = parseSurvey(canonical).survey;
+restoredSurvey.restoreSnapshot(parseSurveySnapshot(storedSnapshot));
+if (restoredSurvey.getValue('q1') !== 'Ada' || !storedSnapshot.includes(first.definitionDigest)) {
+  throw new Error('Response Snapshot storage did not survive packaging.');
 }
 
 const workspace = new CreatorWorkspace({ definition });

@@ -3,7 +3,7 @@
 - Area: Native runtime maintainability and public interface
 - Status: accepted
 - Owner: Jarod
-- Last updated: 2026-08-05
+- Last updated: 2026-08-06
 
 ## Context
 
@@ -36,7 +36,9 @@ The production project uses these public namespaces:
 - **`Kajay.Extensibility`** — immutable definition metadata composition and native
   question factories;
 - **`Kajay.Hosting`** — cancellation-aware adapters and request/response contracts for
-  remote choices and file operations; and
+  remote choices and file operations;
+- **`Kajay.Snapshots`** — portable response snapshot values, parsing, and version errors;
+  and
 - **`Kajay.Validation`** — validation state, results, errors, modes, contexts, and host
   validators.
 
@@ -53,7 +55,7 @@ in `.editorconfig` and checked in the native verification chain.
 
 The root project directory contains project infrastructure and the small `Kajay`
 golden-path interface. Specialized implementation is grouped under `Definitions`,
-`Expressions`, `Extensibility`, `Hosting`, `Runtime`, and `Validation`, with narrower
+`Expressions`, `Extensibility`, `Hosting`, `Runtime`, `Snapshots`, and `Validation`, with narrower
 subdirectories for choices, files, questions, logic, localization, patterns, and
 values where the cluster is large enough.
 

@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kajay:response-snapshot:1",
+  "title": "Kajay Response Snapshot Format v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "formatVersion",
+    "definitionDigest",
+    "conformanceVersion",
+    "data",
+    "pageName",
+    "locale",
+    "lifecycle",
+    "timer"
+  ],
+  "properties": {
+    "formatVersion": { "const": 1 },
+    "definitionDigest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "conformanceVersion": { "const": 2 },
+    "data": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/value" }
+    },
+    "pageName": { "type": "string" },
+    "locale": { "type": "string" },
+    "lifecycle": {
+      "enum": ["empty", "running", "preview", "completed"]
+    },
+    "timer": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/timer" }
+      ]
+    }
+  },
+  "$defs": {
+    "instant": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "timer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["surveyStartedAt", "pageStartedAt"],
+      "properties": {
+        "surveyStartedAt": { "$ref": "#/$defs/instant" },
+        "pageStartedAt": { "$ref": "#/$defs/instant" }
+      }
+    },
+    "value": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": { "kind": { "const": "absent" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": { "const": "json" },
+            "value": {
+              "oneOf": [
+                { "type": "null" },
+                { "type": "boolean" },
+                { "type": "number" },
+                { "type": "string" }
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": { "const": "instant" },
+            "value": { "$ref": "#/$defs/instant" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": { "const": "array" },
+            "value": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/value" }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": { "const": "object" },
+            "value": {
+              "type": "object",
+              "additionalProperties": { "$ref": "#/$defs/value" }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

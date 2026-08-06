@@ -21,8 +21,9 @@ docker compose --profile compare up --build
 Use **Compare** to send each operation to both runtimes concurrently, or select
 **.NET** or **TypeScript** to direct requests to one API. The comparison checks
 canonical definitions, diagnostic identity, validation identity, lifecycle outcome,
-response data, and quiz score. Message wording is intentionally ignored. A mismatch is
-visible and rejected; an answer-validation mismatch blocks navigation.
+response data, quiz score, and portable snapshot JSON. Message wording is intentionally
+ignored. A mismatch is visible and rejected; an answer-validation mismatch blocks
+navigation.
 
 The individual profiles remain useful when inspecting one integration:
 
@@ -59,6 +60,7 @@ Both hosts expose the same application operations:
 | `POST /api/demo/definitions/validate` | Return stable authoring diagnostics and canonical JSON |
 | `POST /api/demo/answers/validate` | Run host/server validation inside the renderer's forward-navigation gate |
 | `POST /api/demo/submissions` | Apply answers, settle logic, advance lifecycle gates, validate, and score the quiz |
+| `POST /api/demo/snapshots/round-trip` | Capture Response Snapshot v1, cross a JSON storage boundary, and restore a fresh survey |
 | `GET /health` | Container/API liveness |
 
 The C# host additionally publishes its generated OpenAPI document at
@@ -66,6 +68,11 @@ The C# host additionally publishes its generated OpenAPI document at
 renderer to prove that the same host-supplied validator rejects an otherwise valid
 submission in both runtimes. A successful result includes the `profileComplete`
 calculated value and rating quiz score.
+
+The **Persistence** tab drives the snapshot endpoint. In Compare mode it requires the
+two SDKs to emit the same definition digest, tagged snapshot value, and restored data.
+This is the visible integration proof; the adapter-neutral
+`conformance/response-snapshot/v1/` corpus is the release gate.
 
 ## Source map
 

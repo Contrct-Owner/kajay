@@ -3,6 +3,18 @@
 All notable changes to `Kajay.Core` are recorded here. The NuGet package versions
 independently from the Kajay TypeScript packages.
 
+## Unreleased
+
+### Added
+
+- Definition-bound Response Snapshot Format v1 capture, JSON parsing, and silent
+  restore through `Survey.CreateSnapshot`, `SurveySnapshot.Parse`, and
+  `Survey.RestoreSnapshot`.
+- Recursively tagged values preserve absent, JSON scalar, UTC instant, array, and object
+  values across process and language boundaries.
+- Shared TypeScript/C# snapshot conformance, installed-package coverage, timer-anchor
+  persistence, and lowercase SHA-256 definition identities.
+
 ## [1.0.0] - 2026-08-05
 
 First stable release.

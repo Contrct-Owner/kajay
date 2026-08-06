@@ -4,11 +4,13 @@ import type {
   DemoDefinitionResult,
   DemoSubmissionError,
   DemoSubmissionResult,
+  DemoSnapshotResult,
 } from './DemoRuntimeTypes.js';
 import {
   readAnswerValidationResult,
   readDefinitionResult,
   readSubmissionResult,
+  readSnapshotResult,
 } from './demoResponseSchemas.js';
 
 function readJson(response: Response): Promise<unknown> {
@@ -63,6 +65,15 @@ export class HttpDemoRuntime implements DemoRuntime {
   ): Promise<DemoSubmissionResult> {
     return readSubmissionResult(
       await post(`${this.#basePath}/demo/submissions`, { definition, data }),
+    );
+  }
+
+  async roundTripSnapshot(
+    definition: SurveyDefinition,
+    data: Readonly<Record<string, unknown>>,
+  ): Promise<DemoSnapshotResult> {
+    return readSnapshotResult(
+      await post(`${this.#basePath}/demo/snapshots/round-trip`, { definition, data }),
     );
   }
 }

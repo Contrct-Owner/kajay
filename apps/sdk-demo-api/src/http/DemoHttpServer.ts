@@ -51,6 +51,11 @@ async function routeRequest(
     writeJson(response, 200, application.submit(body['definition'], data));
     return;
   }
+  if (route === 'POST /api/demo/snapshots/round-trip') {
+    const data = readObject(body['data'], 'data');
+    writeJson(response, 200, application.roundTripSnapshot(body['definition'], data));
+    return;
+  }
   writeJson(response, 404, { error: 'Route not found.' });
 }
 

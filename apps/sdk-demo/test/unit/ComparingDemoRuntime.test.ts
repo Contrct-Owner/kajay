@@ -6,6 +6,7 @@ import type {
   DemoDefinitionResult,
   DemoSubmissionError,
   DemoSubmissionResult,
+  DemoSnapshotResult,
 } from '../../src/features/demo/api/DemoRuntimeTypes.js';
 
 const definition: SurveyDefinition = { schemaVersion: 1, pages: [] };
@@ -49,6 +50,18 @@ describe('ComparingDemoRuntime', () => {
       'SDK runtimes disagreed about answer validation errors.',
     );
   });
+
+  test('requires both runtimes to emit the same portable snapshot', async () => {
+    const runtime = new ComparingDemoRuntime(runtimeStub('dotnet'), runtimeStub('typescript'));
+
+    const result = await runtime.roundTripSnapshot(definition, { answer: 'portable' });
+
+    expect(result).toMatchObject({
+      runtime: 'compare',
+      restoredData: { answer: 'portable' },
+      comparison: { matched: true, differences: [] },
+    });
+  });
 });
 
 function createComparingRuntime(calls: string[]): ComparingDemoRuntime {
@@ -78,6 +91,19 @@ function runtimeStub(name: 'dotnet' | 'typescript', options: StubOptions = {}): 
     validateAnswers: () => Promise.resolve(options.answerErrors ?? []),
     submit: (_definition, data) =>
       Promise.resolve(submissionResult(name, options.submissionData ?? data)),
+    roundTripSnapshot: (_definition, data) => Promise.resolve(snapshotResult(name, data)),
+  };
+}
+
+function snapshotResult(
+  runtime: 'dotnet' | 'typescript',
+  restoredData: Readonly<Record<string, unknown>>,
+): DemoSnapshotResult {
+  return {
+    runtime,
+    definitionDigest: `sha256:${'0'.repeat(64)}`,
+    snapshot: { formatVersion: 1, data: restoredData },
+    restoredData,
   };
 }
 

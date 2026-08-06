@@ -1,0 +1,96 @@
+{
+  "formatVersion": 1,
+  "cases": [
+    {
+      "id": "portable-nested-values-and-preview",
+      "definition": {
+        "schemaVersion": 1,
+        "pages": [
+          {
+            "name": "start",
+            "elements": [{ "type": "text", "name": "when" }]
+          },
+          {
+            "name": "details",
+            "elements": [{ "type": "text", "name": "note" }]
+          }
+        ]
+      },
+      "answers": {
+        "when": { "kind": "instant", "value": "2030-04-05T06:07:08.009Z" },
+        "payload": {
+          "kind": "object",
+          "value": {
+            "text": { "kind": "json", "value": "2030-04-05T06:07:08.009Z" },
+            "instant": { "kind": "instant", "value": "2030-04-05T06:07:08.009Z" },
+            "items": {
+              "kind": "array",
+              "value": [
+                { "kind": "json", "value": null },
+                { "kind": "absent" },
+                { "kind": "json", "value": 42 }
+              ]
+            }
+          }
+        }
+      },
+      "pageName": "details",
+      "locale": "fr",
+      "lifecycle": "preview",
+      "expected": {
+        "formatVersion": 1,
+        "definitionDigest": "sha256:a35204071dbc609c9f45189deaf5f1d087692df05e782634d2241efa92b5020a",
+        "conformanceVersion": 2,
+        "data": {
+          "when": { "kind": "instant", "value": "2030-04-05T06:07:08.009Z" },
+          "payload": {
+            "kind": "object",
+            "value": {
+              "text": { "kind": "json", "value": "2030-04-05T06:07:08.009Z" },
+              "instant": { "kind": "instant", "value": "2030-04-05T06:07:08.009Z" },
+              "items": {
+                "kind": "array",
+                "value": [
+                  { "kind": "json", "value": null },
+                  { "kind": "absent" },
+                  { "kind": "json", "value": 42 }
+                ]
+              }
+            }
+          }
+        },
+        "pageName": "details",
+        "locale": "fr",
+        "lifecycle": "preview",
+        "timer": null
+      }
+    },
+    {
+      "id": "portable-running-timer-anchors",
+      "definition": {
+        "schemaVersion": 1,
+        "maxTimeToFinish": 10,
+        "pages": [{ "name": "start" }]
+      },
+      "answers": {},
+      "pageName": "start",
+      "locale": "",
+      "lifecycle": "running",
+      "clock": "2030-04-05T06:00:00.000Z",
+      "startTimer": true,
+      "expected": {
+        "formatVersion": 1,
+        "definitionDigest": "sha256:1940e1e695bbc0019ff311bad1fd5d9e2fb0db756a0497ce1c8bd094927af2ce",
+        "conformanceVersion": 2,
+        "data": {},
+        "pageName": "start",
+        "locale": "",
+        "lifecycle": "running",
+        "timer": {
+          "surveyStartedAt": "2030-04-05T06:00:00.000Z",
+          "pageStartedAt": "2030-04-05T06:00:00.000Z"
+        }
+      }
+    }
+  ]
+}

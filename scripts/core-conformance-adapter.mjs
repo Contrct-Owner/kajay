@@ -84,6 +84,34 @@ export class CoreConformanceAdapter {
     });
     return { initialState, steps };
   }
+
+  runSurveyScenario(scenario) {
+    const parsed = this.#core.parseSurvey(scenario.definition);
+    const survey = parsed.survey;
+    const events = [];
+    survey.onValueChanged.add(({ name, previousValue, value }) => {
+      events.push({
+        type: 'value-changed',
+        name,
+        previousValue: encodeValue(previousValue),
+        value: encodeValue(value),
+      });
+    });
+    const initial = {
+      state: survey.status.state,
+      diagnostics: parsed.diagnostics.map(({ code, path, severity }) => ({ code, path, severity })),
+    };
+    const steps = scenario.steps.map(({ action }) => {
+      events.length = 0;
+      const observation = applySurveyAction(this.#core, survey, action);
+      return {
+        state: survey.status.state,
+        events: [...events],
+        ...(observation === undefined ? {} : { observation }),
+      };
+    });
+    return { initial, steps };
+  }
 }
 
 function asyncValuesFor(outcome) {
@@ -143,5 +171,34 @@ function applyLifecycleAction(survey, action, clock) {
       return;
     default:
       throw new Error(`Unknown lifecycle action ${JSON.stringify(action.kind)}.`);
+  }
+}
+
+function applySurveyAction(core, survey, action) {
+  switch (action.kind) {
+    case 'set-value':
+      survey.setValue(action.name, action.value);
+      return;
+    case 'validate-current-page': {
+      const isValid = survey.validation.validateCurrentPage();
+      return {
+        kind: 'validation',
+        isValid,
+        errors: survey.questions.flatMap((question) =>
+          question.errors.map(({ kind }) => ({ name: question.name, kind }))),
+      };
+    }
+    case 'measure-score': {
+      const score = core.scoreQuiz(survey);
+      return {
+        kind: 'score',
+        earned: score.correct,
+        possible: score.total,
+        questionCount: score.questionCount,
+        ratio: score.ratio,
+      };
+    }
+    default:
+      throw new Error(`Unknown survey action ${JSON.stringify(action.kind)}.`);
   }
 }

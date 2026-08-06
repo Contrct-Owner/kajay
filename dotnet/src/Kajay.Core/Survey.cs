@@ -15,6 +15,7 @@ public sealed class Survey
         TimeProvider timeProvider)
     {
         _pageCount = definition.PageCount;
+        Validation = new SurveyValidation(this, definition);
         Timer = new SurveyTimer(
             this,
             timeProvider,
@@ -31,6 +32,9 @@ public sealed class Survey
 
     /// <summary>Gets the deterministic clocks owned by this survey.</summary>
     public SurveyTimer Timer { get; }
+
+    /// <summary>Gets the authored answer-rule checks for this survey.</summary>
+    public SurveyValidation Validation { get; }
 
     /// <summary>Raised after a lifecycle transition is committed.</summary>
     public event EventHandler<SurveyStateChangedEventArgs>? StateChanged;
@@ -150,6 +154,11 @@ public sealed class Survey
     }
 
     internal int CurrentPageIndex => _currentPageIndex;
+
+    internal KajayValue GetValue(string name)
+    {
+        return _answers.GetValueOrDefault(name);
+    }
 
     internal void AdvanceFromTimer()
     {

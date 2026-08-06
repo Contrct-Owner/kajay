@@ -37,6 +37,7 @@ const implementedDefinitionIds = [
   'unsupported-pattern-is-preserved-and-reported',
   'malformed-pattern-is-preserved-and-reported',
 ];
+const implementedScenarioIds = ['portable-pattern-matches-and-rejects'];
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const corePath = resolve(repoRoot, 'packages/core/dist/index.js');
@@ -50,6 +51,8 @@ const expressions = readSuite('conformance/v2/expressions.json');
 equal(expressions.contractVersion, 2, 'expressions corpus contractVersion');
 const definitions = readSuite('conformance/v2/definitions.json');
 equal(definitions.contractVersion, 2, 'definitions corpus contractVersion');
+const scenarios = readSuite('conformance/v2/scenarios.json');
+equal(scenarios.contractVersion, 2, 'scenarios corpus contractVersion');
 
 const casesById = new Map(expressions.evaluation.map((testCase) => [testCase.id, testCase]));
 equal(casesById.size, expressions.evaluation.length, 'v2 expression case IDs must be unique');
@@ -66,6 +69,22 @@ for (const caseId of implementedDefinitionIds) {
     adapter.canonicalizeDefinition(testCase.input),
     { canonical: testCase.canonical, diagnostics: testCase.diagnostics },
     `v2 definition case ${testCase.id}`,
+  );
+}
+
+const scenariosById = new Map(scenarios.scenarios.map((scenario) => [scenario.id, scenario]));
+for (const scenarioId of implementedScenarioIds) {
+  const scenario = scenariosById.get(scenarioId);
+  if (scenario === undefined) {
+    throw new Error(`Implemented v2 survey scenario is missing from the corpus: ${scenarioId}`);
+  }
+  deepStrictEqual(
+    adapter.runSurveyScenario(scenario),
+    {
+      initial: scenario.expectInitial,
+      steps: scenario.steps.map(({ expect }) => expect),
+    },
+    `v2 survey scenario ${scenario.id}`,
   );
 }
 
@@ -87,6 +106,9 @@ console.log(
 );
 console.log(
   `TypeScript conformance v2 progress: ${implementedDefinitionIds.length}/${definitions.cases.length} definition cases.`,
+);
+console.log(
+  `TypeScript conformance v2 progress: ${implementedScenarioIds.length}/${scenarios.scenarios.length} survey scenarios.`,
 );
 
 function readSuite(relativePath) {

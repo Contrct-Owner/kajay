@@ -3,19 +3,24 @@ using System.Text.Json.Nodes;
 namespace Kajay;
 
 internal sealed record SurveyRuntimeDefinition(
-    int PageCount,
+    IReadOnlyList<SurveyRuntimePage> Pages,
     TimeSpan SurveyTimeLimit,
     TimeSpan DefaultPageTimeLimit,
     IReadOnlyList<TimeSpan> PageTimeLimits)
 {
+    public int PageCount => Pages.Count;
+
     public static SurveyRuntimeDefinition From(JsonObject definition)
     {
         JsonArray? pages = definition["pages"] as JsonArray;
+        SurveyRuntimePage[] runtimePages = pages is null
+            ? []
+            : pages.Select(SurveyRuntimePage.From).ToArray();
         TimeSpan[] pageTimeLimits = pages is null
             ? []
             : pages.Select(page => ReadSeconds(page?["maxTimeToFinish"])).ToArray();
         return new SurveyRuntimeDefinition(
-            pages?.Count ?? 0,
+            runtimePages,
             ReadSeconds(definition["maxTimeToFinish"]),
             ReadSeconds(definition["maxTimeToFinishPage"]),
             pageTimeLimits);

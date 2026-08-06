@@ -1,4 +1,5 @@
 import type { SurveyError } from './SurveyError.js';
+import { KajayPattern } from '../patterns/KajayPattern.js';
 import { Validator } from './Validator.js';
 import type { ValidationContext } from './Validator.js';
 
@@ -11,7 +12,7 @@ import type { ValidationContext } from './Validator.js';
  * `hasInvalidPattern` says so, and it is what a test asserts on.
  */
 export class RegexValidator extends Validator {
-  #compiled: RegExp | undefined;
+  #compiled: KajayPattern | undefined;
   #compiledFrom: string | undefined;
 
   override get type(): string {
@@ -36,15 +37,11 @@ export class RegexValidator extends Validator {
   }
 
   /** Compiled on demand and cached against its source, so an edit recompiles. */
-  #pattern(): RegExp | undefined {
+  #pattern(): KajayPattern | undefined {
     const source = this.regex;
     if (source !== this.#compiledFrom) {
       this.#compiledFrom = source;
-      try {
-        this.#compiled = new RegExp(source, 'u');
-      } catch {
-        this.#compiled = undefined;
-      }
+      this.#compiled = KajayPattern.compile(source);
     }
     return this.#compiled;
   }

@@ -1,0 +1,646 @@
+#nullable enable
+Kajay.AsyncExpressionFunction
+Kajay.AsyncSurveyQuestionValidator
+Kajay.DefinitionDiagnostic
+Kajay.DefinitionDiagnostic.<Clone>$() -> Kajay.DefinitionDiagnostic!
+Kajay.DefinitionDiagnostic.Code.get -> string!
+Kajay.DefinitionDiagnostic.Code.init -> void
+Kajay.DefinitionDiagnostic.Deconstruct(out string! Code, out string! Path, out Kajay.DiagnosticSeverity Severity) -> void
+Kajay.DefinitionDiagnostic.DefinitionDiagnostic(string! Code, string! Path, Kajay.DiagnosticSeverity Severity) -> void
+Kajay.DefinitionDiagnostic.Equals(Kajay.DefinitionDiagnostic? other) -> bool
+Kajay.DefinitionDiagnostic.Path.get -> string!
+Kajay.DefinitionDiagnostic.Path.init -> void
+Kajay.DefinitionDiagnostic.Severity.get -> Kajay.DiagnosticSeverity
+Kajay.DefinitionDiagnostic.Severity.init -> void
+Kajay.DiagnosticSeverity
+Kajay.DiagnosticSeverity.Error = 1 -> Kajay.DiagnosticSeverity
+Kajay.DiagnosticSeverity.Warning = 0 -> Kajay.DiagnosticSeverity
+Kajay.ExpressionError
+Kajay.ExpressionError.<Clone>$() -> Kajay.ExpressionError!
+Kajay.ExpressionError.Code.get -> string!
+Kajay.ExpressionError.Code.init -> void
+Kajay.ExpressionError.Deconstruct(out string! Code, out Kajay.TextSpan Span, out string? Message) -> void
+Kajay.ExpressionError.Equals(Kajay.ExpressionError? other) -> bool
+Kajay.ExpressionError.ExpressionError(string! Code, Kajay.TextSpan Span, string? Message = null) -> void
+Kajay.ExpressionError.Message.get -> string?
+Kajay.ExpressionError.Message.init -> void
+Kajay.ExpressionError.Span.get -> Kajay.TextSpan
+Kajay.ExpressionError.Span.init -> void
+Kajay.ExpressionEvaluationContext
+Kajay.ExpressionEvaluationContext.Clock.get -> System.DateTimeOffset
+Kajay.ExpressionEvaluationContext.ExpressionEvaluationContext(System.DateTimeOffset clock) -> void
+Kajay.ExpressionEvaluationContext.ExpressionEvaluationContext(System.DateTimeOffset clock, Kajay.ExpressionFunctionRegistry! functions) -> void
+Kajay.ExpressionEvaluationContext.ExpressionEvaluationContext(System.DateTimeOffset clock, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Kajay.KajayValue>>! values) -> void
+Kajay.ExpressionEvaluationContext.ExpressionEvaluationContext(System.DateTimeOffset clock, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Kajay.KajayValue>>! values, Kajay.ExpressionFunctionRegistry! functions) -> void
+Kajay.ExpressionEvaluationContext.Functions.get -> Kajay.ExpressionFunctionRegistry!
+Kajay.ExpressionEvaluationContext.Values.get -> System.Collections.Generic.IReadOnlyDictionary<string!, Kajay.KajayValue>!
+Kajay.ExpressionEvaluationResult
+Kajay.ExpressionEvaluationResult.<Clone>$() -> Kajay.ExpressionEvaluationResult!
+Kajay.ExpressionEvaluationResult.Deconstruct(out Kajay.KajayValue Value, out System.Collections.Generic.IReadOnlyList<Kajay.ExpressionError!>! Errors) -> void
+Kajay.ExpressionEvaluationResult.Equals(Kajay.ExpressionEvaluationResult? other) -> bool
+Kajay.ExpressionEvaluationResult.Errors.get -> System.Collections.Generic.IReadOnlyList<Kajay.ExpressionError!>!
+Kajay.ExpressionEvaluationResult.Errors.init -> void
+Kajay.ExpressionEvaluationResult.ExpressionEvaluationResult(Kajay.KajayValue Value, System.Collections.Generic.IReadOnlyList<Kajay.ExpressionError!>! Errors) -> void
+Kajay.ExpressionEvaluationResult.Value.get -> Kajay.KajayValue
+Kajay.ExpressionEvaluationResult.Value.init -> void
+Kajay.ExpressionFunction
+Kajay.ExpressionFunctionContext
+Kajay.ExpressionFunctionContext.<Clone>$() -> Kajay.ExpressionFunctionContext!
+Kajay.ExpressionFunctionContext.Clock.get -> System.DateTimeOffset
+Kajay.ExpressionFunctionContext.Clock.init -> void
+Kajay.ExpressionFunctionContext.Deconstruct(out System.DateTimeOffset Clock) -> void
+Kajay.ExpressionFunctionContext.Equals(Kajay.ExpressionFunctionContext? other) -> bool
+Kajay.ExpressionFunctionContext.ExpressionFunctionContext(System.DateTimeOffset Clock) -> void
+Kajay.ExpressionFunctionRegistry
+Kajay.ExpressionFunctionRegistry.Add(string! name, Kajay.ExpressionFunction! implementation) -> Kajay.ExpressionFunctionRegistry!
+Kajay.ExpressionFunctionRegistry.AddAsync(string! name, Kajay.AsyncExpressionFunction! implementation) -> Kajay.ExpressionFunctionRegistry!
+Kajay.ExpressionParseResult
+Kajay.ExpressionParseResult.<Clone>$() -> Kajay.ExpressionParseResult!
+Kajay.ExpressionParseResult.Deconstruct(out Kajay.SurveyExpression? Expression, out System.Collections.Generic.IReadOnlyList<Kajay.ExpressionError!>! Errors) -> void
+Kajay.ExpressionParseResult.Equals(Kajay.ExpressionParseResult? other) -> bool
+Kajay.ExpressionParseResult.Errors.get -> System.Collections.Generic.IReadOnlyList<Kajay.ExpressionError!>!
+Kajay.ExpressionParseResult.Errors.init -> void
+Kajay.ExpressionParseResult.Expression.get -> Kajay.SurveyExpression?
+Kajay.ExpressionParseResult.Expression.init -> void
+Kajay.ExpressionParseResult.ExpressionParseResult(Kajay.SurveyExpression? Expression, System.Collections.Generic.IReadOnlyList<Kajay.ExpressionError!>! Errors) -> void
+Kajay.KajayContracts
+Kajay.KajayValue
+Kajay.KajayValue.Equals(Kajay.KajayValue other) -> bool
+Kajay.KajayValue.GetArray() -> System.Collections.Generic.IReadOnlyList<Kajay.KajayValue>!
+Kajay.KajayValue.GetBoolean() -> bool
+Kajay.KajayValue.GetInstant() -> System.DateTimeOffset
+Kajay.KajayValue.GetNumber() -> double
+Kajay.KajayValue.GetObject() -> System.Collections.Generic.IReadOnlyDictionary<string!, Kajay.KajayValue>!
+Kajay.KajayValue.GetString() -> string!
+Kajay.KajayValue.KajayValue() -> void
+Kajay.KajayValue.Kind.get -> Kajay.KajayValueKind
+Kajay.KajayValueKind
+Kajay.KajayValueKind.Absent = 0 -> Kajay.KajayValueKind
+Kajay.KajayValueKind.Array = 6 -> Kajay.KajayValueKind
+Kajay.KajayValueKind.Boolean = 2 -> Kajay.KajayValueKind
+Kajay.KajayValueKind.Instant = 5 -> Kajay.KajayValueKind
+Kajay.KajayValueKind.Map = 7 -> Kajay.KajayValueKind
+Kajay.KajayValueKind.Null = 1 -> Kajay.KajayValueKind
+Kajay.KajayValueKind.Number = 3 -> Kajay.KajayValueKind
+Kajay.KajayValueKind.Text = 4 -> Kajay.KajayValueKind
+Kajay.QuizScore
+Kajay.QuizScore.<Clone>$() -> Kajay.QuizScore!
+Kajay.QuizScore.Deconstruct(out double Earned, out double Possible, out int QuestionCount, out double Ratio) -> void
+Kajay.QuizScore.Earned.get -> double
+Kajay.QuizScore.Earned.init -> void
+Kajay.QuizScore.Equals(Kajay.QuizScore? other) -> bool
+Kajay.QuizScore.Possible.get -> double
+Kajay.QuizScore.Possible.init -> void
+Kajay.QuizScore.QuestionCount.get -> int
+Kajay.QuizScore.QuestionCount.init -> void
+Kajay.QuizScore.QuizScore(double Earned, double Possible, int QuestionCount, double Ratio) -> void
+Kajay.QuizScore.Ratio.get -> double
+Kajay.QuizScore.Ratio.init -> void
+Kajay.Survey
+Kajay.Survey.AdvanceAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kajay.SurveyAdvanceOutcome>!
+Kajay.Survey.CancelPreview() -> void
+Kajay.Survey.Complete() -> void
+Kajay.Survey.Completed -> System.EventHandler<Kajay.SurveyCompletedEventArgs!>?
+Kajay.Survey.CurrentPageChanged -> System.EventHandler<Kajay.SurveyCurrentPageChangedEventArgs!>?
+Kajay.Survey.CurrentPageIndex.get -> int
+Kajay.Survey.CurrentPageName.get -> string!
+Kajay.Survey.CurrentPageTitle.get -> string!
+Kajay.Survey.Data.get -> System.Collections.Generic.IReadOnlyDictionary<string!, Kajay.KajayValue>!
+Kajay.Survey.Description.get -> string!
+Kajay.Survey.ElementStateChanged -> System.EventHandler<Kajay.SurveyElementStateChangedEventArgs!>?
+Kajay.Survey.EnterPreview() -> void
+Kajay.Survey.GetQuestion(string! name) -> Kajay.SurveyQuestion?
+Kajay.Survey.GetQuizScore() -> Kajay.QuizScore!
+Kajay.Survey.GoToPage(string! pageName) -> bool
+Kajay.Survey.IsCompleted.get -> bool
+Kajay.Survey.IsFirstPage.get -> bool
+Kajay.Survey.IsLastPage.get -> bool
+Kajay.Survey.IsPageVisible(string! pageName) -> bool
+Kajay.Survey.IsSettling.get -> bool
+Kajay.Survey.Locale.get -> string!
+Kajay.Survey.LocaleChanged -> System.EventHandler<Kajay.SurveyLocaleChangedEventArgs!>?
+Kajay.Survey.LogicErrors.get -> System.Collections.Generic.IReadOnlyList<Kajay.ExpressionError!>!
+Kajay.Survey.MovePrevious() -> bool
+Kajay.Survey.PageCount.get -> int
+Kajay.Survey.PageProgress.get -> Kajay.SurveyPageProgress!
+Kajay.Survey.Questions.get -> System.Collections.Generic.IReadOnlyList<Kajay.SurveyQuestion!>!
+Kajay.Survey.SetLoading(bool isLoading) -> void
+Kajay.Survey.SetLocale(string! locale) -> void
+Kajay.Survey.SettleAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Kajay.Survey.SetValue(string! name, Kajay.KajayValue value) -> void
+Kajay.Survey.SetValueAsync(string! name, Kajay.KajayValue value, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Kajay.Survey.State.get -> Kajay.SurveyState
+Kajay.Survey.StateChanged -> System.EventHandler<Kajay.SurveyStateChangedEventArgs!>?
+Kajay.Survey.Timer.get -> Kajay.SurveyTimer!
+Kajay.Survey.Title.get -> string!
+Kajay.Survey.TryGetCalculatedValue(string! name, out Kajay.KajayValue value) -> bool
+Kajay.Survey.TryGetQuestionState(string! questionName, out Kajay.SurveyQuestionState questionState) -> bool
+Kajay.Survey.TryGetValue(string! name, out Kajay.KajayValue value) -> bool
+Kajay.Survey.Validation.get -> Kajay.SurveyValidation!
+Kajay.Survey.ValueChanged -> System.EventHandler<Kajay.SurveyValueChangedEventArgs!>?
+Kajay.SurveyAdvanceOutcome
+Kajay.SurveyAdvanceOutcome.Advanced = 0 -> Kajay.SurveyAdvanceOutcome
+Kajay.SurveyAdvanceOutcome.Blocked = 1 -> Kajay.SurveyAdvanceOutcome
+Kajay.SurveyAdvanceOutcome.NoChange = 2 -> Kajay.SurveyAdvanceOutcome
+Kajay.SurveyChoiceFetcher
+Kajay.SurveyChoiceFetchRequest
+Kajay.SurveyChoiceFetchRequest.<Clone>$() -> Kajay.SurveyChoiceFetchRequest!
+Kajay.SurveyChoiceFetchRequest.Clock.get -> System.DateTimeOffset
+Kajay.SurveyChoiceFetchRequest.Clock.init -> void
+Kajay.SurveyChoiceFetchRequest.Deconstruct(out string! QuestionName, out string! Url, out System.DateTimeOffset Clock) -> void
+Kajay.SurveyChoiceFetchRequest.Equals(Kajay.SurveyChoiceFetchRequest? other) -> bool
+Kajay.SurveyChoiceFetchRequest.QuestionName.get -> string!
+Kajay.SurveyChoiceFetchRequest.QuestionName.init -> void
+Kajay.SurveyChoiceFetchRequest.SurveyChoiceFetchRequest(string! QuestionName, string! Url, System.DateTimeOffset Clock) -> void
+Kajay.SurveyChoiceFetchRequest.Url.get -> string!
+Kajay.SurveyChoiceFetchRequest.Url.init -> void
+Kajay.SurveyChoiceItem
+Kajay.SurveyChoiceItem.<Clone>$() -> Kajay.SurveyChoiceItem!
+Kajay.SurveyChoiceItem.Deconstruct(out Kajay.KajayValue Value, out string! Text) -> void
+Kajay.SurveyChoiceItem.Equals(Kajay.SurveyChoiceItem? other) -> bool
+Kajay.SurveyChoiceItem.SurveyChoiceItem(Kajay.KajayValue Value, string! Text) -> void
+Kajay.SurveyChoiceItem.Text.get -> string!
+Kajay.SurveyChoiceItem.Text.init -> void
+Kajay.SurveyChoiceItem.Value.get -> Kajay.KajayValue
+Kajay.SurveyChoiceItem.Value.init -> void
+Kajay.SurveyChoiceLoadException
+Kajay.SurveyChoiceLoadException.QuestionName.get -> string!
+Kajay.SurveyChoiceLoadException.Url.get -> string!
+Kajay.SurveyChoicePage
+Kajay.SurveyChoicePage.<Clone>$() -> Kajay.SurveyChoicePage!
+Kajay.SurveyChoicePage.Deconstruct(out System.Collections.Generic.IReadOnlyList<Kajay.SurveyChoiceItem!>! Items, out bool HasMore) -> void
+Kajay.SurveyChoicePage.Equals(Kajay.SurveyChoicePage? other) -> bool
+Kajay.SurveyChoicePage.HasMore.get -> bool
+Kajay.SurveyChoicePage.HasMore.init -> void
+Kajay.SurveyChoicePage.Items.get -> System.Collections.Generic.IReadOnlyList<Kajay.SurveyChoiceItem!>!
+Kajay.SurveyChoicePage.Items.init -> void
+Kajay.SurveyChoicePage.SurveyChoicePage(System.Collections.Generic.IReadOnlyList<Kajay.SurveyChoiceItem!>! Items, bool HasMore) -> void
+Kajay.SurveyChoicePageLoader
+Kajay.SurveyChoicePageRequest
+Kajay.SurveyChoicePageRequest.<Clone>$() -> Kajay.SurveyChoicePageRequest!
+Kajay.SurveyChoicePageRequest.Clock.get -> System.DateTimeOffset
+Kajay.SurveyChoicePageRequest.Clock.init -> void
+Kajay.SurveyChoicePageRequest.Deconstruct(out string! QuestionName, out int Skip, out int Take, out string! Filter, out System.DateTimeOffset Clock) -> void
+Kajay.SurveyChoicePageRequest.Equals(Kajay.SurveyChoicePageRequest? other) -> bool
+Kajay.SurveyChoicePageRequest.Filter.get -> string!
+Kajay.SurveyChoicePageRequest.Filter.init -> void
+Kajay.SurveyChoicePageRequest.QuestionName.get -> string!
+Kajay.SurveyChoicePageRequest.QuestionName.init -> void
+Kajay.SurveyChoicePageRequest.Skip.get -> int
+Kajay.SurveyChoicePageRequest.Skip.init -> void
+Kajay.SurveyChoicePageRequest.SurveyChoicePageRequest(string! QuestionName, int Skip, int Take, string! Filter, System.DateTimeOffset Clock) -> void
+Kajay.SurveyChoicePageRequest.Take.get -> int
+Kajay.SurveyChoicePageRequest.Take.init -> void
+Kajay.SurveyChoiceQuestion
+Kajay.SurveyChoiceQuestion.AllowsMultiple.get -> bool
+Kajay.SurveyChoiceQuestion.AuthoredChoiceItems.get -> System.Collections.Generic.IReadOnlyList<Kajay.SurveyChoiceItem!>!
+Kajay.SurveyChoiceQuestion.ChoiceFilter.get -> string!
+Kajay.SurveyChoiceQuestion.ChoiceItems.get -> System.Collections.Generic.IReadOnlyList<Kajay.SurveyChoiceItem!>!
+Kajay.SurveyChoiceQuestion.Choices.get -> System.Collections.Generic.IReadOnlyList<Kajay.KajayValue>!
+Kajay.SurveyChoiceQuestion.Deselect(Kajay.KajayValue choice) -> void
+Kajay.SurveyChoiceQuestion.HasMoreChoices.get -> bool
+Kajay.SurveyChoiceQuestion.IsLoadingChoices.get -> bool
+Kajay.SurveyChoiceQuestion.IsPaged.get -> bool
+Kajay.SurveyChoiceQuestion.IsSelected(Kajay.KajayValue choice) -> bool
+Kajay.SurveyChoiceQuestion.LoadMoreChoicesAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Kajay.SurveyChoiceQuestion.Select(Kajay.KajayValue choice) -> void
+Kajay.SurveyChoiceQuestion.SetChoiceFilterAsync(string! filter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Kajay.SurveyChoiceQuestion.SetSelection(System.Collections.Generic.IEnumerable<Kajay.KajayValue>! choices) -> void
+Kajay.SurveyCompletedEventArgs
+Kajay.SurveyCompletedEventArgs.Data.get -> System.Collections.Generic.IReadOnlyDictionary<string!, Kajay.KajayValue>!
+Kajay.SurveyConditionKind
+Kajay.SurveyConditionKind.Enabled = 1 -> Kajay.SurveyConditionKind
+Kajay.SurveyConditionKind.Required = 2 -> Kajay.SurveyConditionKind
+Kajay.SurveyConditionKind.Visible = 0 -> Kajay.SurveyConditionKind
+Kajay.SurveyCurrentPageChangedEventArgs
+Kajay.SurveyCurrentPageChangedEventArgs.CurrentPageIndex.get -> int
+Kajay.SurveyCurrentPageChangedEventArgs.PreviousPageIndex.get -> int
+Kajay.SurveyDefinition
+Kajay.SurveyDefinition.CreateSurvey() -> Kajay.Survey!
+Kajay.SurveyDefinition.CreateSurvey(Kajay.SurveyOptions! options) -> Kajay.Survey!
+Kajay.SurveyDefinition.CreateSurveyAsync(Kajay.SurveyOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kajay.Survey!>!
+Kajay.SurveyDefinition.ToCanonicalJson() -> string!
+Kajay.SurveyDefinitionChildCollectionRegistration
+Kajay.SurveyDefinitionChildCollectionRegistration.<Clone>$() -> Kajay.SurveyDefinitionChildCollectionRegistration!
+Kajay.SurveyDefinitionChildCollectionRegistration.ElementBaseType.get -> string!
+Kajay.SurveyDefinitionChildCollectionRegistration.Equals(Kajay.SurveyDefinitionChildCollectionRegistration? other) -> bool
+Kajay.SurveyDefinitionChildCollectionRegistration.Property.get -> string!
+Kajay.SurveyDefinitionChildCollectionRegistration.ShorthandProperty.get -> string?
+Kajay.SurveyDefinitionChildCollectionRegistration.SurveyDefinitionChildCollectionRegistration(string! property, string! elementBaseType, string? shorthandProperty = null) -> void
+Kajay.SurveyDefinitionClassRegistration
+Kajay.SurveyDefinitionClassRegistration.ChildCollections.get -> System.Collections.Generic.IReadOnlyList<Kajay.SurveyDefinitionChildCollectionRegistration!>!
+Kajay.SurveyDefinitionClassRegistration.IsAbstract.get -> bool
+Kajay.SurveyDefinitionClassRegistration.Name.get -> string!
+Kajay.SurveyDefinitionClassRegistration.Parent.get -> string?
+Kajay.SurveyDefinitionClassRegistration.Properties.get -> System.Collections.Generic.IReadOnlyList<Kajay.SurveyDefinitionPropertyRegistration!>!
+Kajay.SurveyDefinitionClassRegistration.QuestionFactory.get -> Kajay.SurveyQuestionFactory?
+Kajay.SurveyDefinitionClassRegistration.SurveyDefinitionClassRegistration(string! name, string? parent = null, bool isAbstract = false, System.Collections.Generic.IEnumerable<Kajay.SurveyDefinitionPropertyRegistration!>? properties = null, System.Collections.Generic.IEnumerable<Kajay.SurveyDefinitionChildCollectionRegistration!>? childCollections = null, Kajay.SurveyQuestionFactory? questionFactory = null) -> void
+Kajay.SurveyDefinitionParseResult
+Kajay.SurveyDefinitionParseResult.<Clone>$() -> Kajay.SurveyDefinitionParseResult!
+Kajay.SurveyDefinitionParseResult.Deconstruct(out Kajay.SurveyDefinition! Definition, out System.Collections.Generic.IReadOnlyList<Kajay.DefinitionDiagnostic!>! Diagnostics) -> void
+Kajay.SurveyDefinitionParseResult.Definition.get -> Kajay.SurveyDefinition!
+Kajay.SurveyDefinitionParseResult.Definition.init -> void
+Kajay.SurveyDefinitionParseResult.Diagnostics.get -> System.Collections.Generic.IReadOnlyList<Kajay.DefinitionDiagnostic!>!
+Kajay.SurveyDefinitionParseResult.Diagnostics.init -> void
+Kajay.SurveyDefinitionParseResult.Equals(Kajay.SurveyDefinitionParseResult? other) -> bool
+Kajay.SurveyDefinitionParseResult.SurveyDefinitionParseResult(Kajay.SurveyDefinition! Definition, System.Collections.Generic.IReadOnlyList<Kajay.DefinitionDiagnostic!>! Diagnostics) -> void
+Kajay.SurveyDefinitionPropertyRegistration
+Kajay.SurveyDefinitionPropertyRegistration.DefaultValue.get -> System.Text.Json.Nodes.JsonNode?
+Kajay.SurveyDefinitionPropertyRegistration.IsLocalizable.get -> bool
+Kajay.SurveyDefinitionPropertyRegistration.IsRequired.get -> bool
+Kajay.SurveyDefinitionPropertyRegistration.Name.get -> string!
+Kajay.SurveyDefinitionPropertyRegistration.SurveyDefinitionPropertyRegistration(string! name, Kajay.SurveyDefinitionPropertyType type, bool isRequired = false, bool isLocalizable = false) -> void
+Kajay.SurveyDefinitionPropertyRegistration.SurveyDefinitionPropertyRegistration(string! name, Kajay.SurveyDefinitionPropertyType type, System.Text.Json.Nodes.JsonNode? defaultValue, bool isRequired = false, bool isLocalizable = false) -> void
+Kajay.SurveyDefinitionPropertyRegistration.Type.get -> Kajay.SurveyDefinitionPropertyType
+Kajay.SurveyDefinitionPropertyType
+Kajay.SurveyDefinitionPropertyType.Boolean = 2 -> Kajay.SurveyDefinitionPropertyType
+Kajay.SurveyDefinitionPropertyType.Json = 4 -> Kajay.SurveyDefinitionPropertyType
+Kajay.SurveyDefinitionPropertyType.Number = 1 -> Kajay.SurveyDefinitionPropertyType
+Kajay.SurveyDefinitionPropertyType.Scalar = 3 -> Kajay.SurveyDefinitionPropertyType
+Kajay.SurveyDefinitionPropertyType.Text = 0 -> Kajay.SurveyDefinitionPropertyType
+Kajay.SurveyDefinitionRegistry
+Kajay.SurveyDefinitionRegistry.WithClass(Kajay.SurveyDefinitionClassRegistration! registration) -> Kajay.SurveyDefinitionRegistry!
+Kajay.SurveyDefinitionRegistry.WithProperty(string! className, Kajay.SurveyDefinitionPropertyRegistration! property) -> Kajay.SurveyDefinitionRegistry!
+Kajay.SurveyElementKind
+Kajay.SurveyElementKind.Element = 3 -> Kajay.SurveyElementKind
+Kajay.SurveyElementKind.Page = 0 -> Kajay.SurveyElementKind
+Kajay.SurveyElementKind.Panel = 2 -> Kajay.SurveyElementKind
+Kajay.SurveyElementKind.Question = 1 -> Kajay.SurveyElementKind
+Kajay.SurveyElementStateChangedEventArgs
+Kajay.SurveyElementStateChangedEventArgs.ConditionKind.get -> Kajay.SurveyConditionKind
+Kajay.SurveyElementStateChangedEventArgs.ElementKind.get -> Kajay.SurveyElementKind
+Kajay.SurveyElementStateChangedEventArgs.Name.get -> string!
+Kajay.SurveyElementStateChangedEventArgs.Value.get -> bool
+Kajay.SurveyExpression
+Kajay.SurveyExpression.Evaluate(Kajay.ExpressionEvaluationContext! context) -> Kajay.ExpressionEvaluationResult!
+Kajay.SurveyExpression.ReferencedValuePaths.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kajay.SurveyExpression.ToCanonicalString() -> string!
+Kajay.SurveyFileCleaner
+Kajay.SurveyFileDownloader
+Kajay.SurveyFileDownloadRequest
+Kajay.SurveyFileDownloadRequest.Clock.get -> System.DateTimeOffset
+Kajay.SurveyFileDownloadRequest.File.get -> Kajay.SurveyFileEntry!
+Kajay.SurveyFileDownloadRequest.QuestionName.get -> string!
+Kajay.SurveyFileEntry
+Kajay.SurveyFileEntry.<Clone>$() -> Kajay.SurveyFileEntry!
+Kajay.SurveyFileEntry.Content.get -> string?
+Kajay.SurveyFileEntry.Content.init -> void
+Kajay.SurveyFileEntry.Deconstruct(out string! Name, out string! MediaType, out long Size, out string? Content, out string? Url) -> void
+Kajay.SurveyFileEntry.Equals(Kajay.SurveyFileEntry? other) -> bool
+Kajay.SurveyFileEntry.MediaType.get -> string!
+Kajay.SurveyFileEntry.MediaType.init -> void
+Kajay.SurveyFileEntry.Name.get -> string!
+Kajay.SurveyFileEntry.Name.init -> void
+Kajay.SurveyFileEntry.Size.get -> long
+Kajay.SurveyFileEntry.Size.init -> void
+Kajay.SurveyFileEntry.SurveyFileEntry(string! Name, string! MediaType, long Size, string? Content = null, string? Url = null) -> void
+Kajay.SurveyFileEntry.Url.get -> string?
+Kajay.SurveyFileEntry.Url.init -> void
+Kajay.SurveyFileOperation
+Kajay.SurveyFileOperation.Cleanup = 2 -> Kajay.SurveyFileOperation
+Kajay.SurveyFileOperation.Download = 1 -> Kajay.SurveyFileOperation
+Kajay.SurveyFileOperation.Upload = 0 -> Kajay.SurveyFileOperation
+Kajay.SurveyFileQuestion
+Kajay.SurveyFileQuestion.AllowsMultiple.get -> bool
+Kajay.SurveyFileQuestion.Attach(System.Collections.Generic.IEnumerable<Kajay.SurveyFileEntry!>! entries) -> void
+Kajay.SurveyFileQuestion.AttachAsync(System.Collections.Generic.IEnumerable<Kajay.SurveyFileEntry!>! entries, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Kajay.SurveyFileQuestion.ClearFiles() -> void
+Kajay.SurveyFileQuestion.ClearFilesAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Kajay.SurveyFileQuestion.Files.get -> System.Collections.Generic.IReadOnlyList<Kajay.SurveyFileEntry!>!
+Kajay.SurveyFileQuestion.IsUploading.get -> bool
+Kajay.SurveyFileQuestion.Remove(string! name) -> void
+Kajay.SurveyFileQuestion.RemoveAsync(string! name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Kajay.SurveyFileQuestion.ResolveUrlAsync(Kajay.SurveyFileEntry! entry, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+Kajay.SurveyFileRequest
+Kajay.SurveyFileRequest.Clock.get -> System.DateTimeOffset
+Kajay.SurveyFileRequest.Files.get -> System.Collections.Generic.IReadOnlyList<Kajay.SurveyFileEntry!>!
+Kajay.SurveyFileRequest.QuestionName.get -> string!
+Kajay.SurveyFileTransferException
+Kajay.SurveyFileTransferException.Operation.get -> Kajay.SurveyFileOperation
+Kajay.SurveyFileTransferException.QuestionName.get -> string!
+Kajay.SurveyFileUploader
+Kajay.SurveyLocaleChangedEventArgs
+Kajay.SurveyLocaleChangedEventArgs.Locale.get -> string!
+Kajay.SurveyLocaleChangedEventArgs.SurveyLocaleChangedEventArgs(string! locale) -> void
+Kajay.SurveyMatrixQuestion
+Kajay.SurveyMatrixQuestion.GetCellValue(Kajay.KajayValue row, string! column) -> Kajay.KajayValue
+Kajay.SurveyMatrixQuestion.GetRowValue(Kajay.KajayValue row) -> Kajay.KajayValue
+Kajay.SurveyMatrixQuestion.Rows.get -> System.Collections.Generic.IReadOnlyList<Kajay.KajayValue>!
+Kajay.SurveyMatrixQuestion.SetCellValue(Kajay.KajayValue row, string! column, Kajay.KajayValue value) -> void
+Kajay.SurveyMatrixQuestion.SetRowValue(Kajay.KajayValue row, Kajay.KajayValue value) -> void
+Kajay.SurveyOptions
+Kajay.SurveyOptions.AsyncQuestionValidator.get -> Kajay.AsyncSurveyQuestionValidator?
+Kajay.SurveyOptions.AsyncQuestionValidator.init -> void
+Kajay.SurveyOptions.ChoiceFetcher.get -> Kajay.SurveyChoiceFetcher?
+Kajay.SurveyOptions.ChoiceFetcher.init -> void
+Kajay.SurveyOptions.ChoicePageLoader.get -> Kajay.SurveyChoicePageLoader?
+Kajay.SurveyOptions.ChoicePageLoader.init -> void
+Kajay.SurveyOptions.Endpoints.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
+Kajay.SurveyOptions.Endpoints.init -> void
+Kajay.SurveyOptions.ExpressionFunctions.get -> Kajay.ExpressionFunctionRegistry!
+Kajay.SurveyOptions.ExpressionFunctions.init -> void
+Kajay.SurveyOptions.FileCleaner.get -> Kajay.SurveyFileCleaner?
+Kajay.SurveyOptions.FileCleaner.init -> void
+Kajay.SurveyOptions.FileDownloader.get -> Kajay.SurveyFileDownloader?
+Kajay.SurveyOptions.FileDownloader.init -> void
+Kajay.SurveyOptions.FileUploader.get -> Kajay.SurveyFileUploader?
+Kajay.SurveyOptions.FileUploader.init -> void
+Kajay.SurveyOptions.QuestionValidator.get -> Kajay.SurveyQuestionValidator?
+Kajay.SurveyOptions.QuestionValidator.init -> void
+Kajay.SurveyOptions.ServerValidator.get -> Kajay.SurveyServerValidator?
+Kajay.SurveyOptions.ServerValidator.init -> void
+Kajay.SurveyOptions.SurveyOptions() -> void
+Kajay.SurveyOptions.TimeProvider.get -> System.TimeProvider!
+Kajay.SurveyOptions.TimeProvider.init -> void
+Kajay.SurveyPageProgress
+Kajay.SurveyPageProgress.<Clone>$() -> Kajay.SurveyPageProgress!
+Kajay.SurveyPageProgress.CurrentPageNumber.get -> int
+Kajay.SurveyPageProgress.CurrentPageNumber.init -> void
+Kajay.SurveyPageProgress.Deconstruct(out int CurrentPageNumber, out int PageCount, out double Ratio) -> void
+Kajay.SurveyPageProgress.Equals(Kajay.SurveyPageProgress? other) -> bool
+Kajay.SurveyPageProgress.PageCount.get -> int
+Kajay.SurveyPageProgress.PageCount.init -> void
+Kajay.SurveyPageProgress.Ratio.get -> double
+Kajay.SurveyPageProgress.Ratio.init -> void
+Kajay.SurveyPageProgress.SurveyPageProgress(int CurrentPageNumber, int PageCount, double Ratio) -> void
+Kajay.SurveyQuestion
+Kajay.SurveyQuestion.Clear() -> void
+Kajay.SurveyQuestion.Description.get -> string!
+Kajay.SurveyQuestion.Name.get -> string!
+Kajay.SurveyQuestion.RequiredMessage.get -> string!
+Kajay.SurveyQuestion.SetValue(Kajay.KajayValue value) -> void
+Kajay.SurveyQuestion.State.get -> Kajay.SurveyQuestionState
+Kajay.SurveyQuestion.SurveyQuestion(Kajay.SurveyQuestionFactoryContext! context) -> void
+Kajay.SurveyQuestion.Title.get -> string!
+Kajay.SurveyQuestion.Type.get -> string!
+Kajay.SurveyQuestion.Value.get -> Kajay.KajayValue
+Kajay.SurveyQuestion.ValueName.get -> string!
+Kajay.SurveyQuestionFactory
+Kajay.SurveyQuestionFactoryContext
+Kajay.SurveyQuestionFactoryContext.GetProperty(string! name) -> System.Text.Json.Nodes.JsonNode?
+Kajay.SurveyQuestionFactoryContext.GetTextProperty(string! name) -> string!
+Kajay.SurveyQuestionFactoryContext.Name.get -> string!
+Kajay.SurveyQuestionFactoryContext.Survey.get -> Kajay.Survey!
+Kajay.SurveyQuestionFactoryContext.Type.get -> string!
+Kajay.SurveyQuestionFactoryContext.ValueName.get -> string!
+Kajay.SurveyQuestionState
+Kajay.SurveyQuestionState.Deconstruct(out bool IsVisible, out bool IsEnabled, out bool IsRequired, out bool IsReachable) -> void
+Kajay.SurveyQuestionState.Equals(Kajay.SurveyQuestionState other) -> bool
+Kajay.SurveyQuestionState.IsEnabled.get -> bool
+Kajay.SurveyQuestionState.IsEnabled.init -> void
+Kajay.SurveyQuestionState.IsReachable.get -> bool
+Kajay.SurveyQuestionState.IsReachable.init -> void
+Kajay.SurveyQuestionState.IsRequired.get -> bool
+Kajay.SurveyQuestionState.IsRequired.init -> void
+Kajay.SurveyQuestionState.IsVisible.get -> bool
+Kajay.SurveyQuestionState.IsVisible.init -> void
+Kajay.SurveyQuestionState.SurveyQuestionState() -> void
+Kajay.SurveyQuestionState.SurveyQuestionState(bool IsVisible, bool IsEnabled, bool IsRequired, bool IsReachable) -> void
+Kajay.SurveyQuestionValidationContext
+Kajay.SurveyQuestionValidationContext.<Clone>$() -> Kajay.SurveyQuestionValidationContext!
+Kajay.SurveyQuestionValidationContext.Data.get -> System.Collections.Generic.IReadOnlyDictionary<string!, Kajay.KajayValue>!
+Kajay.SurveyQuestionValidationContext.Data.init -> void
+Kajay.SurveyQuestionValidationContext.Deconstruct(out string! Name, out string! ValueName, out Kajay.KajayValue Value, out System.Collections.Generic.IReadOnlyDictionary<string!, Kajay.KajayValue>! Data) -> void
+Kajay.SurveyQuestionValidationContext.Equals(Kajay.SurveyQuestionValidationContext? other) -> bool
+Kajay.SurveyQuestionValidationContext.Name.get -> string!
+Kajay.SurveyQuestionValidationContext.Name.init -> void
+Kajay.SurveyQuestionValidationContext.SurveyQuestionValidationContext(string! Name, string! ValueName, Kajay.KajayValue Value, System.Collections.Generic.IReadOnlyDictionary<string!, Kajay.KajayValue>! Data) -> void
+Kajay.SurveyQuestionValidationContext.Value.get -> Kajay.KajayValue
+Kajay.SurveyQuestionValidationContext.Value.init -> void
+Kajay.SurveyQuestionValidationContext.ValueName.get -> string!
+Kajay.SurveyQuestionValidationContext.ValueName.init -> void
+Kajay.SurveyQuestionValidator
+Kajay.SurveyRecordQuestion
+Kajay.SurveyRecordQuestion.Add() -> bool
+Kajay.SurveyRecordQuestion.CanAdd.get -> bool
+Kajay.SurveyRecordQuestion.CanRemove.get -> bool
+Kajay.SurveyRecordQuestion.Count.get -> int
+Kajay.SurveyRecordQuestion.Records.get -> System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyDictionary<string!, Kajay.KajayValue>!>!
+Kajay.SurveyRecordQuestion.RemoveAt(int index) -> bool
+Kajay.SurveyRecordQuestion.SetField(int index, string! name, Kajay.KajayValue value) -> void
+Kajay.SurveyScalarQuestion
+Kajay.SurveyServerValidationContext
+Kajay.SurveyServerValidationContext.<Clone>$() -> Kajay.SurveyServerValidationContext!
+Kajay.SurveyServerValidationContext.Data.get -> System.Collections.Generic.IReadOnlyDictionary<string!, Kajay.KajayValue>!
+Kajay.SurveyServerValidationContext.Data.init -> void
+Kajay.SurveyServerValidationContext.Deconstruct(out System.Collections.Generic.IReadOnlyDictionary<string!, Kajay.KajayValue>! Data, out System.Collections.Generic.IReadOnlyList<string!>! QuestionNames) -> void
+Kajay.SurveyServerValidationContext.Equals(Kajay.SurveyServerValidationContext? other) -> bool
+Kajay.SurveyServerValidationContext.QuestionNames.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kajay.SurveyServerValidationContext.QuestionNames.init -> void
+Kajay.SurveyServerValidationContext.SurveyServerValidationContext(System.Collections.Generic.IReadOnlyDictionary<string!, Kajay.KajayValue>! Data, System.Collections.Generic.IReadOnlyList<string!>! QuestionNames) -> void
+Kajay.SurveyServerValidator
+Kajay.SurveySignatureFormat
+Kajay.SurveySignatureFormat.Jpeg = 1 -> Kajay.SurveySignatureFormat
+Kajay.SurveySignatureFormat.Png = 0 -> Kajay.SurveySignatureFormat
+Kajay.SurveySignatureFormat.Svg = 2 -> Kajay.SurveySignatureFormat
+Kajay.SurveySignatureQuestion
+Kajay.SurveySignatureQuestion.BackgroundColor.get -> string!
+Kajay.SurveySignatureQuestion.Format.get -> Kajay.SurveySignatureFormat
+Kajay.SurveySignatureQuestion.Height.get -> int
+Kajay.SurveySignatureQuestion.PenColor.get -> string!
+Kajay.SurveySignatureQuestion.Sign(string! data) -> void
+Kajay.SurveySignatureQuestion.Signature.get -> string!
+Kajay.SurveySignatureQuestion.Width.get -> int
+Kajay.SurveyState
+Kajay.SurveyState.Completed = 4 -> Kajay.SurveyState
+Kajay.SurveyState.Empty = 0 -> Kajay.SurveyState
+Kajay.SurveyState.Loading = 2 -> Kajay.SurveyState
+Kajay.SurveyState.Preview = 3 -> Kajay.SurveyState
+Kajay.SurveyState.Running = 1 -> Kajay.SurveyState
+Kajay.SurveyStateChangedEventArgs
+Kajay.SurveyStateChangedEventArgs.State.get -> Kajay.SurveyState
+Kajay.SurveyTimer
+Kajay.SurveyTimer.IsRunning.get -> bool
+Kajay.SurveyTimer.Start() -> void
+Kajay.SurveyTimer.Tick() -> void
+Kajay.SurveyValidation
+Kajay.SurveyValidation.Errors.get -> System.Collections.Generic.IReadOnlyList<Kajay.SurveyValidationError!>!
+Kajay.SurveyValidation.ErrorsChanged -> System.EventHandler<Kajay.SurveyValidationErrorsChangedEventArgs!>?
+Kajay.SurveyValidation.GetErrors(string! questionName) -> System.Collections.Generic.IReadOnlyList<Kajay.SurveyValidationError!>!
+Kajay.SurveyValidation.IsEnabled.get -> bool
+Kajay.SurveyValidation.IsValidating.get -> bool
+Kajay.SurveyValidation.Mode.get -> Kajay.SurveyValidationMode
+Kajay.SurveyValidation.ValidateCurrentPage() -> Kajay.SurveyValidationResult!
+Kajay.SurveyValidation.ValidateCurrentPageAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kajay.SurveyValidationResult!>
+Kajay.SurveyValidationError
+Kajay.SurveyValidationError.<Clone>$() -> Kajay.SurveyValidationError!
+Kajay.SurveyValidationError.Deconstruct(out string! Name, out string! Kind, out string! Message, out string! Path) -> void
+Kajay.SurveyValidationError.Equals(Kajay.SurveyValidationError? other) -> bool
+Kajay.SurveyValidationError.Kind.get -> string!
+Kajay.SurveyValidationError.Kind.init -> void
+Kajay.SurveyValidationError.Message.get -> string!
+Kajay.SurveyValidationError.Message.init -> void
+Kajay.SurveyValidationError.Name.get -> string!
+Kajay.SurveyValidationError.Name.init -> void
+Kajay.SurveyValidationError.Path.get -> string!
+Kajay.SurveyValidationError.Path.init -> void
+Kajay.SurveyValidationError.SurveyValidationError(string! Name, string! Kind, string! Message = "", string! Path = "") -> void
+Kajay.SurveyValidationErrorsChangedEventArgs
+Kajay.SurveyValidationErrorsChangedEventArgs.Errors.get -> System.Collections.Generic.IReadOnlyList<Kajay.SurveyValidationError!>!
+Kajay.SurveyValidationMode
+Kajay.SurveyValidationMode.OnComplete = 2 -> Kajay.SurveyValidationMode
+Kajay.SurveyValidationMode.OnNextPage = 0 -> Kajay.SurveyValidationMode
+Kajay.SurveyValidationMode.OnValueChanged = 1 -> Kajay.SurveyValidationMode
+Kajay.SurveyValidationResult
+Kajay.SurveyValidationResult.<Clone>$() -> Kajay.SurveyValidationResult!
+Kajay.SurveyValidationResult.Deconstruct(out bool IsValid, out System.Collections.Generic.IReadOnlyList<Kajay.SurveyValidationError!>! Errors) -> void
+Kajay.SurveyValidationResult.Equals(Kajay.SurveyValidationResult? other) -> bool
+Kajay.SurveyValidationResult.Errors.get -> System.Collections.Generic.IReadOnlyList<Kajay.SurveyValidationError!>!
+Kajay.SurveyValidationResult.Errors.init -> void
+Kajay.SurveyValidationResult.IsValid.get -> bool
+Kajay.SurveyValidationResult.IsValid.init -> void
+Kajay.SurveyValidationResult.SurveyValidationResult(bool IsValid, System.Collections.Generic.IReadOnlyList<Kajay.SurveyValidationError!>! Errors) -> void
+Kajay.SurveyValueChangedEventArgs
+Kajay.SurveyValueChangedEventArgs.Name.get -> string!
+Kajay.SurveyValueChangedEventArgs.PreviousValue.get -> Kajay.KajayValue
+Kajay.SurveyValueChangedEventArgs.Value.get -> Kajay.KajayValue
+Kajay.TextSpan
+Kajay.TextSpan.Deconstruct(out int Start, out int End) -> void
+Kajay.TextSpan.End.get -> int
+Kajay.TextSpan.End.init -> void
+Kajay.TextSpan.Equals(Kajay.TextSpan other) -> bool
+Kajay.TextSpan.Start.get -> int
+Kajay.TextSpan.Start.init -> void
+Kajay.TextSpan.TextSpan() -> void
+Kajay.TextSpan.TextSpan(int Start, int End) -> void
+Kajay.UnsupportedSurveySchemaVersionException
+Kajay.UnsupportedSurveySchemaVersionException.DeclaredVersion.get -> int
+Kajay.UnsupportedSurveySchemaVersionException.UnsupportedSurveySchemaVersionException(int declaredVersion) -> void
+override Kajay.DefinitionDiagnostic.Equals(object? obj) -> bool
+override Kajay.DefinitionDiagnostic.GetHashCode() -> int
+override Kajay.DefinitionDiagnostic.ToString() -> string!
+override Kajay.ExpressionError.Equals(object? obj) -> bool
+override Kajay.ExpressionError.GetHashCode() -> int
+override Kajay.ExpressionError.ToString() -> string!
+override Kajay.ExpressionEvaluationResult.Equals(object? obj) -> bool
+override Kajay.ExpressionEvaluationResult.GetHashCode() -> int
+override Kajay.ExpressionEvaluationResult.ToString() -> string!
+override Kajay.ExpressionFunctionContext.Equals(object? obj) -> bool
+override Kajay.ExpressionFunctionContext.GetHashCode() -> int
+override Kajay.ExpressionFunctionContext.ToString() -> string!
+override Kajay.ExpressionParseResult.Equals(object? obj) -> bool
+override Kajay.ExpressionParseResult.GetHashCode() -> int
+override Kajay.ExpressionParseResult.ToString() -> string!
+override Kajay.KajayValue.Equals(object? obj) -> bool
+override Kajay.KajayValue.GetHashCode() -> int
+override Kajay.QuizScore.Equals(object? obj) -> bool
+override Kajay.QuizScore.GetHashCode() -> int
+override Kajay.QuizScore.ToString() -> string!
+override Kajay.SurveyChoiceFetchRequest.Equals(object? obj) -> bool
+override Kajay.SurveyChoiceFetchRequest.GetHashCode() -> int
+override Kajay.SurveyChoiceFetchRequest.ToString() -> string!
+override Kajay.SurveyChoiceItem.Equals(object? obj) -> bool
+override Kajay.SurveyChoiceItem.GetHashCode() -> int
+override Kajay.SurveyChoiceItem.ToString() -> string!
+override Kajay.SurveyChoicePage.Equals(object? obj) -> bool
+override Kajay.SurveyChoicePage.GetHashCode() -> int
+override Kajay.SurveyChoicePage.ToString() -> string!
+override Kajay.SurveyChoicePageRequest.Equals(object? obj) -> bool
+override Kajay.SurveyChoicePageRequest.GetHashCode() -> int
+override Kajay.SurveyChoicePageRequest.ToString() -> string!
+override Kajay.SurveyDefinitionChildCollectionRegistration.Equals(object? obj) -> bool
+override Kajay.SurveyDefinitionChildCollectionRegistration.GetHashCode() -> int
+override Kajay.SurveyDefinitionChildCollectionRegistration.ToString() -> string!
+override Kajay.SurveyDefinitionParseResult.Equals(object? obj) -> bool
+override Kajay.SurveyDefinitionParseResult.GetHashCode() -> int
+override Kajay.SurveyDefinitionParseResult.ToString() -> string!
+override Kajay.SurveyExpression.ToString() -> string!
+override Kajay.SurveyFileEntry.Equals(object? obj) -> bool
+override Kajay.SurveyFileEntry.GetHashCode() -> int
+override Kajay.SurveyFileEntry.ToString() -> string!
+override Kajay.SurveyPageProgress.Equals(object? obj) -> bool
+override Kajay.SurveyPageProgress.GetHashCode() -> int
+override Kajay.SurveyPageProgress.ToString() -> string!
+override Kajay.SurveyQuestionState.GetHashCode() -> int
+override Kajay.SurveyQuestionValidationContext.Equals(object? obj) -> bool
+override Kajay.SurveyQuestionValidationContext.GetHashCode() -> int
+override Kajay.SurveyQuestionValidationContext.ToString() -> string!
+override Kajay.SurveyServerValidationContext.Equals(object? obj) -> bool
+override Kajay.SurveyServerValidationContext.GetHashCode() -> int
+override Kajay.SurveyServerValidationContext.ToString() -> string!
+override Kajay.SurveyValidationError.Equals(object? obj) -> bool
+override Kajay.SurveyValidationError.GetHashCode() -> int
+override Kajay.SurveyValidationError.ToString() -> string!
+override Kajay.SurveyValidationResult.Equals(object? obj) -> bool
+override Kajay.SurveyValidationResult.GetHashCode() -> int
+override Kajay.SurveyValidationResult.ToString() -> string!
+override Kajay.TextSpan.GetHashCode() -> int
+static Kajay.DefinitionDiagnostic.operator !=(Kajay.DefinitionDiagnostic? left, Kajay.DefinitionDiagnostic? right) -> bool
+static Kajay.DefinitionDiagnostic.operator ==(Kajay.DefinitionDiagnostic? left, Kajay.DefinitionDiagnostic? right) -> bool
+static Kajay.ExpressionError.operator !=(Kajay.ExpressionError? left, Kajay.ExpressionError? right) -> bool
+static Kajay.ExpressionError.operator ==(Kajay.ExpressionError? left, Kajay.ExpressionError? right) -> bool
+static Kajay.ExpressionEvaluationResult.operator !=(Kajay.ExpressionEvaluationResult? left, Kajay.ExpressionEvaluationResult? right) -> bool
+static Kajay.ExpressionEvaluationResult.operator ==(Kajay.ExpressionEvaluationResult? left, Kajay.ExpressionEvaluationResult? right) -> bool
+static Kajay.ExpressionFunctionContext.operator !=(Kajay.ExpressionFunctionContext? left, Kajay.ExpressionFunctionContext? right) -> bool
+static Kajay.ExpressionFunctionContext.operator ==(Kajay.ExpressionFunctionContext? left, Kajay.ExpressionFunctionContext? right) -> bool
+static Kajay.ExpressionFunctionRegistry.Empty.get -> Kajay.ExpressionFunctionRegistry!
+static Kajay.ExpressionParseResult.operator !=(Kajay.ExpressionParseResult? left, Kajay.ExpressionParseResult? right) -> bool
+static Kajay.ExpressionParseResult.operator ==(Kajay.ExpressionParseResult? left, Kajay.ExpressionParseResult? right) -> bool
+static Kajay.KajayContracts.CurrentSurveySchemaVersion.get -> int
+static Kajay.KajayContracts.OpenRuntimeDiagnostics() -> System.IO.Stream!
+static Kajay.KajayContracts.OpenRuntimeMetadata() -> System.IO.Stream!
+static Kajay.KajayContracts.OpenSurveySchema() -> System.IO.Stream!
+static Kajay.KajayContracts.RuntimeDiagnosticsContractVersion.get -> int
+static Kajay.KajayContracts.RuntimeMetadataContractVersion.get -> int
+static Kajay.KajayContracts.SupportedConformanceVersions.get -> System.Collections.Generic.IReadOnlyList<int>!
+static Kajay.KajayContracts.SupportedSurveySchemaVersions.get -> System.Collections.Generic.IReadOnlyList<int>!
+static Kajay.KajayContracts.SurveySchemaId.get -> string!
+static Kajay.KajayValue.Absent.get -> Kajay.KajayValue
+static Kajay.KajayValue.From(bool value) -> Kajay.KajayValue
+static Kajay.KajayValue.From(double value) -> Kajay.KajayValue
+static Kajay.KajayValue.From(string! value) -> Kajay.KajayValue
+static Kajay.KajayValue.From(System.DateTimeOffset value) -> Kajay.KajayValue
+static Kajay.KajayValue.FromArray(System.Collections.Generic.IEnumerable<Kajay.KajayValue>! values) -> Kajay.KajayValue
+static Kajay.KajayValue.FromObject(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Kajay.KajayValue>>! properties) -> Kajay.KajayValue
+static Kajay.KajayValue.Null.get -> Kajay.KajayValue
+static Kajay.KajayValue.operator !=(Kajay.KajayValue left, Kajay.KajayValue right) -> bool
+static Kajay.KajayValue.operator ==(Kajay.KajayValue left, Kajay.KajayValue right) -> bool
+static Kajay.QuizScore.operator !=(Kajay.QuizScore? left, Kajay.QuizScore? right) -> bool
+static Kajay.QuizScore.operator ==(Kajay.QuizScore? left, Kajay.QuizScore? right) -> bool
+static Kajay.SurveyChoiceFetchRequest.operator !=(Kajay.SurveyChoiceFetchRequest? left, Kajay.SurveyChoiceFetchRequest? right) -> bool
+static Kajay.SurveyChoiceFetchRequest.operator ==(Kajay.SurveyChoiceFetchRequest? left, Kajay.SurveyChoiceFetchRequest? right) -> bool
+static Kajay.SurveyChoiceItem.operator !=(Kajay.SurveyChoiceItem? left, Kajay.SurveyChoiceItem? right) -> bool
+static Kajay.SurveyChoiceItem.operator ==(Kajay.SurveyChoiceItem? left, Kajay.SurveyChoiceItem? right) -> bool
+static Kajay.SurveyChoicePage.operator !=(Kajay.SurveyChoicePage? left, Kajay.SurveyChoicePage? right) -> bool
+static Kajay.SurveyChoicePage.operator ==(Kajay.SurveyChoicePage? left, Kajay.SurveyChoicePage? right) -> bool
+static Kajay.SurveyChoicePageRequest.operator !=(Kajay.SurveyChoicePageRequest? left, Kajay.SurveyChoicePageRequest? right) -> bool
+static Kajay.SurveyChoicePageRequest.operator ==(Kajay.SurveyChoicePageRequest? left, Kajay.SurveyChoicePageRequest? right) -> bool
+static Kajay.SurveyDefinition.Parse(string! json) -> Kajay.SurveyDefinitionParseResult!
+static Kajay.SurveyDefinition.Parse(string! json, Kajay.SurveyDefinitionRegistry! registry) -> Kajay.SurveyDefinitionParseResult!
+static Kajay.SurveyDefinitionChildCollectionRegistration.operator !=(Kajay.SurveyDefinitionChildCollectionRegistration? left, Kajay.SurveyDefinitionChildCollectionRegistration? right) -> bool
+static Kajay.SurveyDefinitionChildCollectionRegistration.operator ==(Kajay.SurveyDefinitionChildCollectionRegistration? left, Kajay.SurveyDefinitionChildCollectionRegistration? right) -> bool
+static Kajay.SurveyDefinitionParseResult.operator !=(Kajay.SurveyDefinitionParseResult? left, Kajay.SurveyDefinitionParseResult? right) -> bool
+static Kajay.SurveyDefinitionParseResult.operator ==(Kajay.SurveyDefinitionParseResult? left, Kajay.SurveyDefinitionParseResult? right) -> bool
+static Kajay.SurveyDefinitionRegistry.Default.get -> Kajay.SurveyDefinitionRegistry!
+static Kajay.SurveyExpression.Parse(string! source) -> Kajay.ExpressionParseResult!
+static Kajay.SurveyFileEntry.operator !=(Kajay.SurveyFileEntry? left, Kajay.SurveyFileEntry? right) -> bool
+static Kajay.SurveyFileEntry.operator ==(Kajay.SurveyFileEntry? left, Kajay.SurveyFileEntry? right) -> bool
+static Kajay.SurveyPageProgress.operator !=(Kajay.SurveyPageProgress? left, Kajay.SurveyPageProgress? right) -> bool
+static Kajay.SurveyPageProgress.operator ==(Kajay.SurveyPageProgress? left, Kajay.SurveyPageProgress? right) -> bool
+static Kajay.SurveyQuestionState.operator !=(Kajay.SurveyQuestionState left, Kajay.SurveyQuestionState right) -> bool
+static Kajay.SurveyQuestionState.operator ==(Kajay.SurveyQuestionState left, Kajay.SurveyQuestionState right) -> bool
+static Kajay.SurveyQuestionValidationContext.operator !=(Kajay.SurveyQuestionValidationContext? left, Kajay.SurveyQuestionValidationContext? right) -> bool
+static Kajay.SurveyQuestionValidationContext.operator ==(Kajay.SurveyQuestionValidationContext? left, Kajay.SurveyQuestionValidationContext? right) -> bool
+static Kajay.SurveyServerValidationContext.operator !=(Kajay.SurveyServerValidationContext? left, Kajay.SurveyServerValidationContext? right) -> bool
+static Kajay.SurveyServerValidationContext.operator ==(Kajay.SurveyServerValidationContext? left, Kajay.SurveyServerValidationContext? right) -> bool
+static Kajay.SurveyValidationError.operator !=(Kajay.SurveyValidationError? left, Kajay.SurveyValidationError? right) -> bool
+static Kajay.SurveyValidationError.operator ==(Kajay.SurveyValidationError? left, Kajay.SurveyValidationError? right) -> bool
+static Kajay.SurveyValidationResult.operator !=(Kajay.SurveyValidationResult? left, Kajay.SurveyValidationResult? right) -> bool
+static Kajay.SurveyValidationResult.operator ==(Kajay.SurveyValidationResult? left, Kajay.SurveyValidationResult? right) -> bool
+static Kajay.TextSpan.operator !=(Kajay.TextSpan left, Kajay.TextSpan right) -> bool
+static Kajay.TextSpan.operator ==(Kajay.TextSpan left, Kajay.TextSpan right) -> bool
+virtual Kajay.AsyncExpressionFunction.Invoke(System.Collections.Generic.IReadOnlyList<Kajay.KajayValue>! arguments, Kajay.ExpressionFunctionContext! context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Kajay.KajayValue>
+virtual Kajay.AsyncSurveyQuestionValidator.Invoke(Kajay.SurveyQuestionValidationContext! context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kajay.SurveyValidationError!>!>
+virtual Kajay.ExpressionFunction.Invoke(System.Collections.Generic.IReadOnlyList<Kajay.KajayValue>! arguments, Kajay.ExpressionFunctionContext! context) -> Kajay.KajayValue
+virtual Kajay.SurveyChoiceFetcher.Invoke(Kajay.SurveyChoiceFetchRequest! request, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Kajay.KajayValue>
+virtual Kajay.SurveyChoicePageLoader.Invoke(Kajay.SurveyChoicePageRequest! request, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Kajay.SurveyChoicePage!>
+virtual Kajay.SurveyFileCleaner.Invoke(Kajay.SurveyFileRequest! request, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+virtual Kajay.SurveyFileDownloader.Invoke(Kajay.SurveyFileDownloadRequest! request, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<string!>
+virtual Kajay.SurveyFileUploader.Invoke(Kajay.SurveyFileRequest! request, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kajay.SurveyFileEntry!>!>
+virtual Kajay.SurveyQuestionFactory.Invoke(Kajay.SurveyQuestionFactoryContext! context) -> Kajay.SurveyQuestion!
+virtual Kajay.SurveyQuestionValidator.Invoke(Kajay.SurveyQuestionValidationContext! context) -> System.Collections.Generic.IReadOnlyList<Kajay.SurveyValidationError!>!
+virtual Kajay.SurveyServerValidator.Invoke(Kajay.SurveyServerValidationContext! context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kajay.SurveyValidationError!>!>
+~override Kajay.SurveyQuestionState.Equals(object obj) -> bool
+~override Kajay.SurveyQuestionState.ToString() -> string
+~override Kajay.TextSpan.Equals(object obj) -> bool
+~override Kajay.TextSpan.ToString() -> string

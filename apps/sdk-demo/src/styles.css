@@ -84,6 +84,24 @@ button { font: inherit; }
 .rollback-confirm { display: grid; min-width: 13rem; gap: 0.35rem; }
 .rollback-confirm span { color: #52645b; font-size: 0.78rem; }
 .release-actions-cell { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.release-comparison { margin-top: 1rem; padding: 1rem; border: 1px solid #b5c8ba; border-radius: 0.65rem; background: white; }
+.release-comparison > header { display: flex; align-items: start; justify-content: space-between; gap: 1rem; }
+.release-comparison h5 { margin: 0; font-size: 1rem; }
+.comparison-route { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.comparison-route > span:last-child { color: #607168; }
+.change-summary { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
+.change-summary div { min-width: 4.5rem; padding: 0.45rem 0.6rem; border-radius: 0.45rem; background: #edf3ee; }
+.change-summary dt { color: #607168; font-size: 0.7rem; text-transform: uppercase; }
+.change-summary dd { margin: 0.1rem 0 0; font-weight: 800; }
+.release-change-list { display: grid; gap: 0.55rem; margin: 0; padding: 0; list-style: none; }
+.release-change-list li { display: grid; grid-template-columns: minmax(9rem, auto) 1fr 1fr; gap: 0.35rem 0.65rem; padding: 0.65rem; border: 1px solid #d7e2d9; border-radius: 0.5rem; }
+.release-change-list li > div, .release-change-list li > span { display: grid; align-content: start; gap: 0.2rem; }
+.release-change-list li > code { overflow-wrap: anywhere; font-size: 0.75rem; }
+.release-change-list small { color: #607168; text-transform: uppercase; }
+.change-kind { width: fit-content; border-radius: 999px; padding: 0.15rem 0.4rem; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; }
+.change-added { color: #1f6041; background: #d9eee1; }
+.change-removed { color: #8a273d; background: #f6dfe4; }
+.change-changed { color: #6f4a13; background: #f5e9c8; }
 .manage-environment { margin-top: 0.75rem; border: 1px solid #276248; border-radius: 0.45rem; padding: 0.58rem 0.75rem; color: #276248; background: white; cursor: pointer; }
 .environment-manager { margin-top: 1rem; padding: 1rem; border: 1px solid #b5c8ba; border-radius: 0.8rem; background: #f4f8f5; }
 .environment-manager > header { display: flex; align-items: start; justify-content: space-between; gap: 1rem; }
@@ -118,6 +136,7 @@ button { font: inherit; }
   .provenance-heading form input { grid-column: 1 / -1; }
   .provenance-grid { grid-template-columns: 1fr; }
   .history-controls { align-items: stretch; flex-direction: column; }
+  .release-change-list li { grid-template-columns: 1fr; }
   .environment-admin-grid { grid-template-columns: 1fr; }
   .activation-summary, .release-history { grid-column: 1; }
   .activation-summary dl { justify-content: start; }

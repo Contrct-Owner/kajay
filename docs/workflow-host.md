@@ -173,6 +173,7 @@ Workflow commands additionally require `Idempotency-Key`; updates require a nume
 | Inspect release history and provenance | `kajay:definition:manage` | `GET /api/management/definitions/{name}/provenance?environmentName=...` |
 | Page/filter revision history | `kajay:definition:manage` | `GET /api/management/definitions/{name}/provenance/revisions?limit=...&cursor=...&query=...` |
 | Page/filter release history | `kajay:definition:manage` | `GET /api/management/definitions/{name}/provenance/releases?environmentName=...&limit=...&cursor=...&query=...&status=...` |
+| Compare a release to the active or explicit baseline | `kajay:definition:manage` | `GET /api/management/definitions/{name}/provenance/releases/{digest}/comparison?environmentName=...&baselineDigest=...` |
 | Page/filter audit history | `kajay:definition:manage` | `GET /api/management/definitions/{name}/provenance/audit?environmentName=...&limit=...&cursor=...&query=...` |
 | Create or save a managed draft | `kajay:definition:manage` | `PUT /api/management/definitions/{name}/draft` |
 | Checkpoint an immutable revision | `kajay:definition:manage` | `POST /api/management/definitions/{name}/revisions` |
@@ -261,6 +262,10 @@ production credential.
 - Provenance histories return opaque, versioned keyset cursors in collection-specific
   page envelopes. The initial composite query reads only the first page; independent
   routes page and filter revisions, releases, or audit without unbounded materialization.
+- Release comparison normalizes stored artifacts by embedding Definition content into
+  workflow survey steps, sorting bindings, and aligning named arrays before diffing.
+  It returns at most 200 compact changes grouped by definition, workflow, bindings,
+  and compatibility; it never mutates or authorizes an Activation.
 - Environments are explicit tenant resources. Display name, ordering, approval policy,
   and binding metadata use ETags and management audit facts. Binding references are
   accepted only on writes and never returned or included in audit payloads.
@@ -314,7 +319,9 @@ recovery through its public feature interface. The provenance tracer additionall
 proves tenant isolation, lineage, readiness derivation, audit attribution,
 version-checked rollback, cursor continuity, filter behavior, and invalid cursor
 rejection; real Chromium proves the Managed UI confirmation, load-more, and filter-reset
-flows.
+flows. The release-comparison tracer additionally proves active and explicit baseline
+selection, semantic named-array paths, binding changes, initial-release handling, and
+the absence of digest-only noise; Chromium proves the review and local-error flows.
 
 ```bash
 dotnet test dotnet/tests/Kajay.Workflow.Host.Tests

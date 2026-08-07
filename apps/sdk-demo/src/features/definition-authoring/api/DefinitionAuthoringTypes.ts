@@ -113,6 +113,40 @@ export interface ReleaseHistoryPageRequest extends HistoryPageRequest {
   readonly status?: PromotionStatus | undefined;
 }
 
+export type DefinitionReleaseChangeKind = 'added' | 'removed' | 'changed';
+export type DefinitionReleaseChangeArea =
+  'definition' | 'workflow' | 'bindings' | 'compatibility';
+
+export interface DefinitionReleaseComparisonTarget {
+  readonly digest: string;
+  readonly versionLabel: string;
+}
+
+export interface DefinitionReleaseChangeSummary {
+  readonly added: number;
+  readonly removed: number;
+  readonly changed: number;
+  readonly total: number;
+}
+
+export interface DefinitionReleaseChange {
+  readonly kind: DefinitionReleaseChangeKind;
+  readonly area: DefinitionReleaseChangeArea;
+  readonly path: string;
+  readonly beforeValue: string | undefined;
+  readonly afterValue: string | undefined;
+}
+
+export interface DefinitionReleaseComparison {
+  readonly environmentName: string;
+  readonly baseline: DefinitionReleaseComparisonTarget | undefined;
+  readonly target: DefinitionReleaseComparisonTarget;
+  readonly initialRelease: boolean;
+  readonly summary: DefinitionReleaseChangeSummary;
+  readonly changes: readonly DefinitionReleaseChange[];
+  readonly truncated: boolean;
+}
+
 export interface DefinitionProvenance {
   readonly managedDefinitionName: string;
   readonly createdBy: string;

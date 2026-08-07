@@ -15,6 +15,7 @@ builder.Services.AddScoped<PromotionApplication>();
 builder.Services.AddScoped<EnvironmentApplication>();
 builder.Services.AddScoped<DefinitionAuthoringApplication>();
 builder.Services.AddScoped<DefinitionProvenanceApplication>();
+builder.Services.AddScoped<DefinitionReleaseComparisonApplication>();
 builder.Services.AddScoped<WorkflowApplication>();
 builder.Services.AddScoped<WorkflowReleaseResolver>();
 builder.Services.AddScoped<IdempotencyCoordinator>();

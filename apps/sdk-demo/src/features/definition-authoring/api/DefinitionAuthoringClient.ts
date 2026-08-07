@@ -2,6 +2,7 @@ import type { SurveyDefinition } from '@kajay/core';
 import type {
   DefinitionDraft,
   DefinitionProvenance,
+  DefinitionReleaseComparison,
   DefinitionRelease,
   DefinitionReleaseHistory,
   DefinitionRevision,
@@ -28,6 +29,7 @@ import {
   readRevisionPage,
 } from './definitionProvenanceSchemas.js';
 import { readReleasePreflight } from './releasePreflightSchemas.js';
+import { readReleaseComparison } from './releaseComparisonSchemas.js';
 import {
   readBinding,
   readBindings,
@@ -116,6 +118,20 @@ export class DefinitionAuthoringClient {
     return readAuditPage(await this.#getHistory(
       managedName, 'audit', { ...request, environmentName: environment },
     ));
+  }
+
+  async compareRelease(
+    managedName: string,
+    environmentName: string,
+    releaseDigest: string,
+  ): Promise<DefinitionReleaseComparison> {
+    const environment = validateName(environmentName, 'Environment');
+    const query = new URLSearchParams({ environmentName: environment });
+    const response = await fetch(
+      `${this.#definitionPath(managedName)}/provenance/releases/`
+        + `${encodeURIComponent(releaseDigest)}/comparison?${query}`,
+    );
+    return readReleaseComparison(await readJson(response));
   }
 
   async activate(

@@ -53,6 +53,10 @@ active/ready/blocked status from bindings, shows the management audit timeline, 
 confirms concurrency-checked first activation or rollback. Revision, release, and audit
 histories load independent cursor pages; server-side searches and the release-status
 filter restart their collection without refreshing the rest of the workspace.
+Inactive releases also open a bounded semantic change review against the selected
+Environment's active artifact. Definition, workflow, binding, and compatibility
+changes are review evidence only; the UI requires a successful review before enabling
+confirmation, while preflight and Activation remain the policy gates.
 Environment administration
 edits versioned display/order/approval policy, configures write-only binding references,
 and preflights installed releases without downloading a `.kajay` bundle. The browser

@@ -36,7 +36,9 @@ published implementation is TypeScript; C# is the second runtime in development.
   explicit authored provenance, Environment Activation and readiness, management
   audit, and concurrency-checked rollback without expanding the SDK seam. Those
   histories use independently filterable, opaque cursor pages so operational volume
-  does not make the composite view unbounded.
+  does not make the composite view unbounded. Before activation or rollback, operators
+  can review a bounded semantic artifact comparison against the Environment's active
+  release without either SDK learning deployment policy.
   Environments are now first-class, versioned host resources with configurable
   approval policy and write-only, concurrency-checked bindings; the Managed UI owns
   their administration and installed-release preflight.

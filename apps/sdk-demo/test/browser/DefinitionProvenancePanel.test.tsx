@@ -16,6 +16,9 @@ test('shows provenance and confirms a version-checked rollback', async () => {
   const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
     const path = String(input);
     if (path.endsWith('/draft')) return Promise.resolve(json(draftResponse()));
+    if (path.includes('/comparison?')) {
+      return Promise.resolve(json(rollbackComparisonResponse()));
+    }
     if (path.includes('/provenance?')) {
       return Promise.resolve(json(provenanceResponse(rolledBack)));
     }
@@ -33,8 +36,9 @@ test('shows provenance and confirms a version-checked rollback', async () => {
   await expect.element(screen.getByRole('heading', { name: 'Release history' })).toBeVisible();
   await expect.element(screen.getByText('Missing crm')).toBeVisible();
   await expect.element(screen.getByText('v2', { exact: true })).toBeVisible();
-  await screen.getByRole('button', { name: 'Roll back' }).click();
+  await screen.getByRole('button', { name: 'Review & roll back' }).click();
   await expect.element(screen.getByText('Activate 1.0.0 in test?')).toBeVisible();
+  await expect.element(screen.getByLabelText('Comparing 2.0.0 to 1.0.0 in test')).toBeVisible();
   await screen.getByRole('button', { name: 'Confirm rollback' }).click();
   await expect.element(screen.getByText('v3', { exact: true })).toBeVisible();
   expect(fetchMock).toHaveBeenCalled();
@@ -160,6 +164,21 @@ function provenanceResponse(rolledBack: boolean, revisionCursor: string | null =
 
 function page(items: readonly object[], nextCursor: string | null = null): object {
   return { items, nextCursor };
+}
+
+function rollbackComparisonResponse(): object {
+  return {
+    environmentName: 'test',
+    baseline: { digest: 'sha256:release-2', versionLabel: '2.0.0' },
+    target: { digest: 'sha256:release-1', versionLabel: '1.0.0' },
+    initialRelease: false,
+    summary: { added: 0, removed: 0, changed: 1, total: 1 },
+    changes: [{
+      kind: 'changed', area: 'definition', path: '$.workflow.definition.title',
+      beforeValue: '"Second"', afterValue: '"First"',
+    }],
+    truncated: false,
+  };
 }
 
 function revisionResponse(number: number): object {

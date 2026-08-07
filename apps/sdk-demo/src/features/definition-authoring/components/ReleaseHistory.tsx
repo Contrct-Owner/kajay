@@ -4,7 +4,9 @@ import type { DefinitionReleaseHistory } from '../api/DefinitionAuthoringTypes.j
 import type { ReleasePreflight } from '../api/DefinitionAuthoringTypes.js';
 import type { ReleaseHistoryFilters } from '../hooks/useDefinitionHistory.js';
 import type { CursorPageState } from '../hooks/useCursorPage.js';
+import type { ReleaseComparisonState } from '../hooks/useReleaseComparison.js';
 import { HistoryControls } from './HistoryControls.js';
+import { ReleaseComparisonPanel } from './ReleaseComparisonPanel.js';
 import { formatTimestamp, shortDigest } from './provenanceFormatting.js';
 
 export function ReleaseHistory({
@@ -12,6 +14,7 @@ export function ReleaseHistory({
   environmentName,
   isWorking,
   preflight,
+  comparison,
   onActivate,
   onPreflight,
 }: {
@@ -19,6 +22,7 @@ export function ReleaseHistory({
   readonly environmentName: string;
   readonly isWorking: boolean;
   readonly preflight: ReleasePreflight | undefined;
+  readonly comparison: ReleaseComparisonState;
   readonly onActivate: (releaseDigest: string) => Promise<void>;
   readonly onPreflight: (releaseDigest: string) => Promise<void>;
 }): ReactElement {
@@ -43,23 +47,32 @@ export function ReleaseHistory({
         <ReleaseTable releases={releases} environmentName={environmentName}
           pendingDigest={pendingDigest} isWorking={isWorking}
           setPendingDigest={setPendingDigest} onActivate={onActivate}
-          onPreflight={onPreflight} />
+          onPreflight={onPreflight} comparison={comparison} />
       )}
-      {preflight === undefined ? null : (
-        <p className="hint" role="status">
-          Preflight for {preflight.versionLabel}: {preflight.compatible
-            ? 'ready to activate'
-            : `blocked by ${preflight.missingBindings.join(', ')}`}
-          {preflight.requiresApproval ? '; approval required' : ''}
-        </p>
-      )}
+      <PreflightStatus preflight={preflight} />
+      <ReleaseComparisonPanel state={comparison} />
     </section>
+  );
+}
+
+function PreflightStatus({ preflight }: {
+  readonly preflight: ReleasePreflight | undefined;
+}): ReactElement | null {
+  if (preflight === undefined) return null;
+  return (
+    <p className="hint" role="status">
+      Preflight for {preflight.versionLabel}: {preflight.compatible
+        ? 'ready to activate'
+        : `blocked by ${preflight.missingBindings.join(', ')}`}
+      {preflight.requiresApproval ? '; approval required' : ''}
+    </p>
   );
 }
 
 function ReleaseTable({
   releases, environmentName, pendingDigest, isWorking,
   setPendingDigest, onActivate, onPreflight,
+  comparison,
 }: {
   readonly releases: readonly DefinitionReleaseHistory[];
   readonly environmentName: string;
@@ -68,6 +81,7 @@ function ReleaseTable({
   readonly setPendingDigest: (value: string | undefined) => void;
   readonly onActivate: (releaseDigest: string) => Promise<void>;
   readonly onPreflight: (releaseDigest: string) => Promise<void>;
+  readonly comparison: ReleaseComparisonState;
 }): ReactElement {
   return (
     <div className="history-table-scroll"><table>
@@ -83,7 +97,7 @@ function ReleaseTable({
               : <small>Missing {release.missingBindings.join(', ')}</small>}</td>
           <td>{formatTimestamp(release.installedAt)}</td>
           <td>{renderActions(release, environmentName, pendingDigest, isWorking,
-            setPendingDigest, onActivate, onPreflight)}</td>
+            setPendingDigest, onActivate, onPreflight, comparison)}</td>
         </tr>
       ))}</tbody>
     </table></div>
@@ -98,16 +112,25 @@ function renderActions(
   setPendingDigest: (value: string | undefined) => void,
   onActivate: (releaseDigest: string) => Promise<void>,
   onPreflight: (releaseDigest: string) => Promise<void>,
+  comparison: ReleaseComparisonState,
 ): ReactElement {
   if (pendingDigest !== release.digest) {
     return (
       <div className="release-actions-cell">
+        {!release.canActivate && release.promotionStatus !== 'active' ? (
+          <button type="button" disabled={isWorking}
+            onClick={() => { void comparison.review(release.digest); }}>
+            Review changes<span className="sr-only"> for {release.versionLabel}</span>
+          </button>
+        ) : null}
         <button type="button" disabled={isWorking}
           onClick={() => { void onPreflight(release.digest); }}>Preflight</button>
         {release.canActivate ? (
           <button type="button" disabled={isWorking}
-            onClick={() => { setPendingDigest(release.digest); }}>
-            {release.canRollback ? 'Roll back' : 'Activate'}
+            onClick={() => {
+              setPendingDigest(release.digest); void comparison.review(release.digest);
+            }}>
+            {release.canRollback ? 'Review & roll back' : 'Review & activate'}
           </button>
         ) : null}
       </div>
@@ -117,8 +140,11 @@ function renderActions(
   return (
     <div className="rollback-confirm" role="group" aria-label={`Confirm ${action} of ${release.versionLabel}`}>
       <span>Activate {release.versionLabel} in {environmentName}?</span>
-      <button type="button" disabled={isWorking} onClick={() => { setPendingDigest(undefined); }}>Cancel</button>
       <button type="button" disabled={isWorking} onClick={() => {
+        setPendingDigest(undefined); comparison.clear();
+      }}>Cancel</button>
+      <button type="button" disabled={isWorking || comparison.isLoading
+        || comparison.result?.target.digest !== release.digest} onClick={() => {
         void onActivate(release.digest).finally(() => { setPendingDigest(undefined); });
       }}>{release.canRollback ? 'Confirm rollback' : 'Confirm activation'}</button>
     </div>

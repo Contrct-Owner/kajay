@@ -47,6 +47,28 @@ and Definition Digest, release search covers version label and digest, release s
 accepts `active`, `ready`, or `blocked`, and audit search covers event type, actor, and
 subject. Search treats `%`, `_`, and `\\` as literal input rather than SQL patterns.
 
+Candidate and rollback review uses another tenant-scoped read through the same host
+module family:
+
+```text
+GET /api/management/definitions/{name}/provenance/releases/{digest}/comparison
+    ?environmentName={environment}&baselineDigest={optional-digest}
+```
+
+Without an explicit baseline, the selected Environment's active release is the
+baseline. A target with no active baseline is reported as an initial release rather
+than manufacturing a diff from an empty document. Both releases must belong to the
+same tenant and Managed Definition.
+
+The host compares semantic release artifacts, not bundle bytes or content-addressed
+identifiers. It embeds each survey Definition into its workflow step, removes the
+resulting digest-only churn, sorts required bindings, and aligns arrays of objects by
+stable `name` or `key` identity before falling back to index comparison. The result
+groups added, removed, and changed values into `definition`, `workflow`, `bindings`,
+and `compatibility` areas. Values are compact previews capped at 160 characters; a
+response returns at most 200 changes and says when it was truncated. This is a review
+read model, not a patch format or an input to Activation.
+
 The route requires `kajay:definition:manage`. It assembles a read model from
 authoritative normalized state; it does not create another mutable projection table.
 Release status is derived at read time:
@@ -80,8 +102,10 @@ release-creation events use camelCase.
 
 The Managed UI owns the operator experience. It composes separate activation,
 release, revision, and audit views, shows missing bindings, and requires an inline
-confirmation before rollback. The browser sends `If-Match`; a concurrent promotion
-therefore produces `412 Precondition Failed` and refreshes the view.
+confirmation before rollback. An inactive release exposes its semantic change review
+against the active Environment artifact; Activation confirmation stays disabled until
+that exact target's comparison succeeds. The browser sends `If-Match`; a concurrent
+promotion therefore produces `412 Precondition Failed` and refreshes the view.
 
 ## Consequences
 
@@ -95,6 +119,11 @@ therefore produces `412 Precondition Failed` and refreshes the view.
   provenance view from materializing unbounded operational history.
 - Release status remains derived rather than persisted. A filtered page may therefore
   scan bounded 100-row keyset batches until it fills the requested page.
+- Review paths are stable for named survey pages, elements, and workflow steps, so an
+  insertion does not turn every later array member into an apparent change.
+- The comparison deliberately does not claim that an artifact is safe to activate;
+  Environment bindings, approval policy, and optimistic concurrency remain enforced
+  by preflight and Activation.
 - A separate promotion control plane remains deferred to fleet-wide ownership,
   scheduling, or policy requirements.
 
@@ -107,7 +136,8 @@ version-checked rollback transition, cursor continuity, filters, and invalid-cur
 rejection. The TypeScript schema proof rejects malformed page envelopes. The
 real-Chromium Managed UI proof covers missing-binding display, inline rollback
 confirmation, the `If-Match` header, refreshed Activation state, incremental loading,
-and filter requests that restart without an old cursor.
+filter requests that restart without an old cursor, semantic change rendering, and a
+comparison failure that remains local to the review.
 
 ## Parent and related links
 

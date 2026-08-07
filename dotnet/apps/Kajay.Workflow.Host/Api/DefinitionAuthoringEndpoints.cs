@@ -15,6 +15,9 @@ internal static class DefinitionAuthoringEndpoints
         definitions.MapGet("/{managedDefinitionName}/provenance", GetProvenanceAsync);
         definitions.MapGet("/{managedDefinitionName}/provenance/revisions", GetRevisionsAsync);
         definitions.MapGet("/{managedDefinitionName}/provenance/releases", GetReleasesAsync);
+        definitions.MapGet(
+            "/{managedDefinitionName}/provenance/releases/{releaseDigest}/comparison",
+            GetReleaseComparisonAsync);
         definitions.MapGet("/{managedDefinitionName}/provenance/audit", GetAuditAsync);
         definitions.MapPut("/{managedDefinitionName}/draft", SaveDraftAsync);
         definitions.MapPost("/{managedDefinitionName}/revisions", CheckpointAsync);
@@ -52,6 +55,17 @@ internal static class DefinitionAuthoringEndpoints
         Results.Ok(await application.GetAuditAsync(
             WorkflowRequestContext.ReadTenant(context), managedDefinitionName, query,
             cancellationToken).ConfigureAwait(false));
+
+    private static async Task<IResult> GetReleaseComparisonAsync(
+        HttpContext context,
+        string managedDefinitionName,
+        string releaseDigest,
+        [AsParameters] ReleaseComparisonQuery query,
+        DefinitionReleaseComparisonApplication application,
+        CancellationToken cancellationToken) =>
+        Results.Ok(await application.GetAsync(
+            WorkflowRequestContext.ReadTenant(context), managedDefinitionName,
+            releaseDigest, query, cancellationToken).ConfigureAwait(false));
 
     private static async Task<IResult> GetProvenanceAsync(
         HttpContext context,

@@ -3,9 +3,15 @@ import type {
   DefinitionDraft,
   DefinitionProvenance,
   DefinitionRelease,
+  DefinitionReleaseHistory,
   DefinitionRevision,
+  DefinitionRevisionHistory,
+  CursorPage,
   EnvironmentBinding,
+  HistoryPageRequest,
   ManagedEnvironment,
+  ManagementAuditEvent,
+  ReleaseHistoryPageRequest,
   ReleasePreflight,
 } from './DefinitionAuthoringTypes.js';
 import { DefinitionAuthoringError } from './DefinitionAuthoringError.js';
@@ -15,7 +21,12 @@ import {
   readDefinitionRevision,
   readProblemDetail,
 } from './definitionAuthoringSchemas.js';
-import { readDefinitionProvenance } from './definitionProvenanceSchemas.js';
+import {
+  readAuditPage,
+  readDefinitionProvenance,
+  readReleasePage,
+  readRevisionPage,
+} from './definitionProvenanceSchemas.js';
 import { readReleasePreflight } from './releasePreflightSchemas.js';
 import {
   readBinding,
@@ -76,6 +87,35 @@ export class DefinitionAuthoringClient {
     const response = await fetch(`${this.#definitionPath(managedName)}/provenance?${query}`);
     if (response.status === 404) return undefined;
     return readDefinitionProvenance(await readJson(response));
+  }
+
+  async getRevisions(
+    managedName: string,
+    request: HistoryPageRequest,
+  ): Promise<CursorPage<DefinitionRevisionHistory>> {
+    return readRevisionPage(await this.#getHistory(managedName, 'revisions', request));
+  }
+
+  async getReleases(
+    managedName: string,
+    environmentName: string,
+    request: ReleaseHistoryPageRequest,
+  ): Promise<CursorPage<DefinitionReleaseHistory>> {
+    const environment = validateName(environmentName, 'Environment');
+    return readReleasePage(await this.#getHistory(
+      managedName, 'releases', { ...request, environmentName: environment },
+    ));
+  }
+
+  async getAuditEvents(
+    managedName: string,
+    environmentName: string,
+    request: HistoryPageRequest,
+  ): Promise<CursorPage<ManagementAuditEvent>> {
+    const environment = validateName(environmentName, 'Environment');
+    return readAuditPage(await this.#getHistory(
+      managedName, 'audit', { ...request, environmentName: environment },
+    ));
   }
 
   async activate(
@@ -159,6 +199,21 @@ export class DefinitionAuthoringClient {
 
   #definitionPath(managedName: string): string {
     return `${this.#basePath}/definitions/${encodeURIComponent(managedName)}`;
+  }
+
+  async #getHistory(
+    managedName: string,
+    collection: string,
+    request: HistoryPageRequest & { readonly environmentName?: string },
+  ): Promise<unknown> {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(request)) {
+      if (value !== undefined && value !== '') query.set(key, String(value));
+    }
+    const response = await fetch(
+      `${this.#definitionPath(managedName)}/provenance/${collection}?${query}`,
+    );
+    return readJson(response);
   }
 
   #environmentPath(environmentName: string): string {

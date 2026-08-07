@@ -13,12 +13,45 @@ internal static class DefinitionAuthoringEndpoints
             .RequireAuthorization(KajayPolicies.DefinitionManage);
         definitions.MapGet("/{managedDefinitionName}/draft", GetDraftAsync);
         definitions.MapGet("/{managedDefinitionName}/provenance", GetProvenanceAsync);
+        definitions.MapGet("/{managedDefinitionName}/provenance/revisions", GetRevisionsAsync);
+        definitions.MapGet("/{managedDefinitionName}/provenance/releases", GetReleasesAsync);
+        definitions.MapGet("/{managedDefinitionName}/provenance/audit", GetAuditAsync);
         definitions.MapPut("/{managedDefinitionName}/draft", SaveDraftAsync);
         definitions.MapPost("/{managedDefinitionName}/revisions", CheckpointAsync);
         definitions.MapPost("/{managedDefinitionName}/revisions/{revisionNumber:long}/releases",
             CreateReleaseAsync).RequireAuthorization(KajayPolicies.DefinitionPromote);
         return endpoints;
     }
+
+    private static async Task<IResult> GetRevisionsAsync(
+        HttpContext context,
+        string managedDefinitionName,
+        [AsParameters] RevisionHistoryPageQuery query,
+        DefinitionProvenanceApplication application,
+        CancellationToken cancellationToken) =>
+        Results.Ok(await application.GetRevisionsAsync(
+            WorkflowRequestContext.ReadTenant(context), managedDefinitionName, query,
+            cancellationToken).ConfigureAwait(false));
+
+    private static async Task<IResult> GetReleasesAsync(
+        HttpContext context,
+        string managedDefinitionName,
+        [AsParameters] ReleaseHistoryPageQuery query,
+        DefinitionProvenanceApplication application,
+        CancellationToken cancellationToken) =>
+        Results.Ok(await application.GetReleasesAsync(
+            WorkflowRequestContext.ReadTenant(context), managedDefinitionName, query,
+            cancellationToken).ConfigureAwait(false));
+
+    private static async Task<IResult> GetAuditAsync(
+        HttpContext context,
+        string managedDefinitionName,
+        [AsParameters] AuditHistoryPageQuery query,
+        DefinitionProvenanceApplication application,
+        CancellationToken cancellationToken) =>
+        Results.Ok(await application.GetAuditAsync(
+            WorkflowRequestContext.ReadTenant(context), managedDefinitionName, query,
+            cancellationToken).ConfigureAwait(false));
 
     private static async Task<IResult> GetProvenanceAsync(
         HttpContext context,

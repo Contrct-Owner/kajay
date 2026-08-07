@@ -83,6 +83,33 @@ test('manages environment policy and write-only bindings', async () => {
   expect(document.body.textContent).not.toContain('secret://test/crm');
 });
 
+test('pages and filters provenance history without reloading the workspace', async () => {
+  const historyRequests: string[] = [];
+  const fetchMock = vi.fn((input: RequestInfo | URL) => {
+    const path = String(input);
+    if (path.endsWith('/draft')) return Promise.resolve(json(draftResponse()));
+    if (path.includes('/provenance/revisions?')) {
+      historyRequests.push(path);
+      return Promise.resolve(json(page([revisionResponse(1)])));
+    }
+    if (path.includes('/provenance?')) {
+      return Promise.resolve(json(provenanceResponse(false, 'revision-cursor')));
+    }
+    return Promise.resolve(json({ detail: 'Unexpected request.' }, 500));
+  });
+  vi.stubGlobal('fetch', fetchMock);
+  const screen = await render(<DefinitionAuthoringPanel initialDefinition={definition} />);
+
+  await screen.getByRole('button', { name: 'Load more Revision history' }).click();
+  await expect.element(screen.getByText('Revision 1')).toBeVisible();
+  expect(historyRequests[0]).toContain('cursor=revision-cursor');
+  await screen.getByLabelText('Revision search').fill('AUTHOR');
+  await screen.getByRole('button', { name: 'Apply Revision filters' }).click();
+  await expect.poll(() => historyRequests.length).toBe(2);
+  expect(historyRequests[1]).toContain('query=AUTHOR');
+  expect(historyRequests[1]).not.toContain('cursor=');
+});
+
 function draftResponse(): object {
   return {
     managedDefinitionName: 'onboarding',
@@ -95,7 +122,7 @@ function draftResponse(): object {
   };
 }
 
-function provenanceResponse(rolledBack: boolean): object {
+function provenanceResponse(rolledBack: boolean, revisionCursor: string | null = null): object {
   const activeDigest = rolledBack ? 'sha256:release-1' : 'sha256:release-2';
   const activeLabel = rolledBack ? '1.0.0' : '2.0.0';
   return {
@@ -112,23 +139,27 @@ function provenanceResponse(rolledBack: boolean): object {
       approvedBy: null,
       activatedAt: '2026-08-06T01:00:00Z',
     },
-    revisions: [revisionResponse(2), revisionResponse(1)],
-    releases: [
+    revisions: page([revisionResponse(2)], revisionCursor),
+    releases: page([
       releaseResponse('sha256:release-3', '3.0.0', 'blocked', false, ['crm']),
       releaseResponse('sha256:release-2', '2.0.0',
         rolledBack ? 'ready' : 'active', false, []),
       releaseResponse('sha256:release-1', '1.0.0',
         rolledBack ? 'active' : 'ready', !rolledBack, []),
-    ],
-    auditEvents: [{
+    ]),
+    auditEvents: page([{
       id: '0198f55b-b729-72f8-a4a8-130af0310f2f',
       subject: 'test/onboarding',
       eventType: 'definition-release-activated',
       payload: { releaseDigest: activeDigest, version: rolledBack ? 3 : 2 },
       actorId: 'release-manager',
       occurredAt: '2026-08-06T01:00:00Z',
-    }],
+    }]),
   };
+}
+
+function page(items: readonly object[], nextCursor: string | null = null): object {
+  return { items, nextCursor };
 }
 
 function revisionResponse(number: number): object {

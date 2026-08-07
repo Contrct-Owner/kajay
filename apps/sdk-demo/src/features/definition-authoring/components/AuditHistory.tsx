@@ -1,18 +1,26 @@
 import type { ReactElement } from 'react';
 import type { ManagementAuditEvent } from '../api/DefinitionAuthoringTypes.js';
+import type { HistoryFilters } from '../hooks/useDefinitionHistory.js';
+import type { CursorPageState } from '../hooks/useCursorPage.js';
+import { HistoryControls } from './HistoryControls.js';
 import { formatTimestamp, shortDigest } from './provenanceFormatting.js';
 
 export function AuditHistory({
-  events,
+  state,
 }: {
-  readonly events: readonly ManagementAuditEvent[];
+  readonly state: CursorPageState<ManagementAuditEvent, HistoryFilters>;
 }): ReactElement {
+  const events = state.page.items;
   return (
     <section className="provenance-card audit-history" aria-labelledby="audit-history-heading">
       <header>
         <div><p className="eyebrow">Traceability</p><h4 id="audit-history-heading">Audit history</h4></div>
         <span>Latest {events.length}</span>
       </header>
+      <HistoryControls label="Audit" query={state.filters.query}
+        isLoading={state.isLoading} canLoadMore={state.page.nextCursor !== undefined}
+        onApply={(query) => state.applyFilters({ query })} onLoadMore={state.loadMore} />
+      {state.error === undefined ? null : <p className="provenance-error" role="alert">{state.error}</p>}
       {events.length === 0 ? <p className="hint">No management events recorded yet.</p> : (
         <ol>{events.map((event) => (
           <li key={event.id}>

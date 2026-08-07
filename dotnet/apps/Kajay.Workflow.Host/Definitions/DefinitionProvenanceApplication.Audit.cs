@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Kajay.Workflow.Host.Contracts;
 using Kajay.Workflow.Host.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,32 +7,101 @@ namespace Kajay.Workflow.Host.Definitions;
 
 internal sealed partial class DefinitionProvenanceApplication
 {
-    private async Task<ManagementAuditEventRecord[]> LoadAuditAsync(
+    internal async Task<CursorPageResult<ManagementAuditEventResult>> GetAuditAsync(
+        string tenantId,
+        string managedDefinitionName,
+        AuditHistoryPageQuery request,
+        CancellationToken cancellationToken)
+    {
+        ValidateName(managedDefinitionName, nameof(managedDefinitionName));
+        ValidateName(request.EnvironmentName, nameof(request.EnvironmentName));
+        _ = await LoadDefinitionAsync(tenantId, managedDefinitionName, cancellationToken)
+            .ConfigureAwait(false);
+        _ = await LoadEnvironmentsAsync(
+            tenantId, request.EnvironmentName, cancellationToken).ConfigureAwait(false);
+        return await LoadAuditPageAsync(
+            tenantId, managedDefinitionName, request, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<CursorPageResult<ManagementAuditEventResult>> LoadAuditPageAsync(
+        string tenantId,
+        string managedDefinitionName,
+        AuditHistoryPageQuery request,
+        CancellationToken cancellationToken)
+    {
+        int limit = ReadLimit(request.Limit);
+        AuditPageCursor? cursor = ReadCursor(request.Cursor, ProvenanceCursor.ReadAudit);
+        string? filter = ReadFilter(request.Query, "Audit query");
+        IQueryable<ManagementAuditEventRecord> query = RelevantAuditQuery(
+            tenantId, managedDefinitionName, request.EnvironmentName);
+        if (cursor is not null)
+        {
+            query = query.Where(item => item.OccurredAt < cursor.Value.OccurredAt
+                || (item.OccurredAt == cursor.Value.OccurredAt
+                    && item.Id.CompareTo(cursor.Value.Id) < 0));
+        }
+        if (filter is not null)
+        {
+            string pattern = ToSearchPattern(filter);
+            query = query.Where(item => EF.Functions.ILike(item.EventType, pattern, "\\")
+                || EF.Functions.ILike(item.ActorId, pattern, "\\")
+                || EF.Functions.ILike(item.Subject, pattern, "\\"));
+        }
+        ManagementAuditEventRecord[] facts = await query
+            .OrderByDescending(item => item.OccurredAt)
+            .ThenByDescending(item => item.Id)
+            .Take(limit + 1)
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        ManagementAuditEventRecord[] page = facts.Take(limit).ToArray();
+        string? next = facts.Length > limit
+            ? ProvenanceCursor.ForAudit(page[^1].OccurredAt, page[^1].Id)
+            : null;
+        return new CursorPageResult<ManagementAuditEventResult>(
+            page.Select(ToAuditResult).ToArray(), next);
+    }
+
+    private IQueryable<ManagementAuditEventRecord> RelevantAuditQuery(
+        string tenantId,
+        string managedDefinitionName,
+        string environmentName)
+    {
+        string activationSubject = $"{environmentName}/{managedDefinitionName}";
+        string bindingPrefix = $"{environmentName}/";
+        IQueryable<string> digests = _database.DefinitionReleases
+            .Where(item => item.TenantId == tenantId
+                && item.ManagedDefinitionName == managedDefinitionName)
+            .Select(item => item.Digest);
+        return _database.ManagementAuditEvents.AsNoTracking()
+            .Where(item => item.TenantId == tenantId
+                && (item.Subject == managedDefinitionName
+                    || item.Subject == activationSubject
+                    || digests.Contains(item.Subject)
+                    || (item.EventType.StartsWith("environment-binding-")
+                        && item.Subject.StartsWith(bindingPrefix))));
+    }
+
+    private async Task<ActivationAuditFact[]> LoadActivationHistoryAsync(
         string tenantId,
         string managedDefinitionName,
         string environmentName,
-        IReadOnlyList<ReleaseFact> releases,
+        string[] releaseDigests,
         CancellationToken cancellationToken)
     {
-        string[] subjects = releases.Select(item => item.Digest)
-            .Append(managedDefinitionName)
-            .Append($"{environmentName}/{managedDefinitionName}")
-            .Concat(releases.SelectMany(item => item.RequiredBindings)
-                .Select(name => $"{environmentName}/{name}"))
-            .Distinct(StringComparer.Ordinal)
-            .ToArray();
-        return await _database.ManagementAuditEvents.AsNoTracking()
-            .Where(item => item.TenantId == tenantId && subjects.Contains(item.Subject))
-            .OrderByDescending(item => item.OccurredAt)
-            .ThenByDescending(item => item.Id)
-            .Take(100)
-            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        if (releaseDigests.Length == 0)
+        {
+            return [];
+        }
+        ManagementAuditEventRecord[] audit = await LoadActivationAuditAsync(
+            tenantId, managedDefinitionName, environmentName, releaseDigests, cancellationToken)
+            .ConfigureAwait(false);
+        return ReadActivationHistory(audit, environmentName, managedDefinitionName);
     }
 
     private async Task<ManagementAuditEventRecord[]> LoadActivationAuditAsync(
         string tenantId,
         string managedDefinitionName,
         string environmentName,
+        string[] releaseDigests,
         CancellationToken cancellationToken)
     {
         string subject = $"{environmentName}/{managedDefinitionName}";
@@ -42,6 +112,8 @@ internal sealed partial class DefinitionProvenanceApplication
                 WHERE "TenantId" = {{tenantId}}
                     AND "Subject" = {{subject}}
                     AND "EventType" = 'definition-release-activated'
+                    AND COALESCE("PayloadJson" ->> 'releaseDigest',
+                        "PayloadJson" ->> 'ReleaseDigest') = ANY({{releaseDigests}})
                 ORDER BY COALESCE(
                     "PayloadJson" ->> 'releaseDigest', "PayloadJson" ->> 'ReleaseDigest'),
                     "OccurredAt" DESC,

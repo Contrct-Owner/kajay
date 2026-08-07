@@ -34,7 +34,8 @@ public sealed class DefinitionProvenanceFlowTests(WorkflowHostFixture fixture)
             .GetProperty("versionLabel").GetString());
         Assert.Equal("release-manager", provenance.GetProperty("activation")
             .GetProperty("activatedBy").GetString());
-        Assert.Equal([1, 2, 3], provenance.GetProperty("revisions").EnumerateArray()
+        Assert.Equal([1, 2, 3], provenance.GetProperty("revisions").GetProperty("items")
+            .EnumerateArray()
             .Select(item => item.GetProperty("number").GetInt64()).Order().ToArray());
 
         JsonElement firstRelease = FindRelease(provenance, first);
@@ -47,7 +48,7 @@ public sealed class DefinitionProvenanceFlowTests(WorkflowHostFixture fixture)
         JsonElement blockedRelease = FindRelease(provenance, blocked);
         Assert.Equal("blocked", blockedRelease.GetProperty("promotionStatus").GetString());
         Assert.Equal("crm", blockedRelease.GetProperty("missingBindings")[0].GetString());
-        Assert.Contains(provenance.GetProperty("auditEvents").EnumerateArray(),
+        Assert.Contains(provenance.GetProperty("auditEvents").GetProperty("items").EnumerateArray(),
             item => item.GetProperty("eventType").GetString() == "definition-release-activated");
 
         await ActivateAsync(client, managedName, first, 2).ConfigureAwait(true);
@@ -76,6 +77,59 @@ public sealed class DefinitionProvenanceFlowTests(WorkflowHostFixture fixture)
             $"/api/management/definitions/{managedName}/provenance?environmentName=test");
         using HttpResponseMessage response = await outsider.SendAsync(request).ConfigureAwait(true);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task HistoryCollectionsSupportCursorPagingAndFiltering()
+    {
+        string suffix = Guid.NewGuid().ToString("N");
+        string tenantId = $"tenant-pages-{suffix}";
+        string managedName = $"pages-{suffix}";
+        var client = new WorkflowTestClient(fixture.Client, tenantId, "release-manager", Permissions);
+        _ = await AuthorReleaseAsync(client, managedName, 0, "First", "1.0.0", [])
+            .ConfigureAwait(true);
+        _ = await AuthorReleaseAsync(client, managedName, 1, "Second", "2.0.0", [])
+            .ConfigureAwait(true);
+        _ = await AuthorReleaseAsync(client, managedName, 2, "Blocked", "3.0.0", ["crm"])
+            .ConfigureAwait(true);
+
+        JsonElement firstPage = await ReadPageAsync(
+            client, $"{managedName}/provenance/revisions?limit=1").ConfigureAwait(true);
+        Assert.Equal(3, firstPage.GetProperty("items")[0].GetProperty("number").GetInt64());
+        string cursor = firstPage.GetProperty("nextCursor").GetString()!;
+        JsonElement secondPage = await ReadPageAsync(
+            client, $"{managedName}/provenance/revisions?limit=1&cursor={Uri.EscapeDataString(cursor)}")
+            .ConfigureAwait(true);
+        Assert.Equal(2, secondPage.GetProperty("items")[0].GetProperty("number").GetInt64());
+        await AssertCursorAdvancesAsync(
+            client,
+            $"{managedName}/provenance/releases?environmentName=test&limit=1",
+            "digest").ConfigureAwait(true);
+        await AssertCursorAdvancesAsync(
+            client,
+            $"{managedName}/provenance/audit?environmentName=test&limit=1",
+            "id").ConfigureAwait(true);
+
+        JsonElement revisions = await ReadPageAsync(
+            client, $"{managedName}/provenance/revisions?query=RELEASE-MANAGER")
+            .ConfigureAwait(true);
+        Assert.Equal(3, revisions.GetProperty("items").GetArrayLength());
+        JsonElement releases = await ReadPageAsync(
+            client, $"{managedName}/provenance/releases?environmentName=test&status=blocked")
+            .ConfigureAwait(true);
+        Assert.Equal("3.0.0", releases.GetProperty("items")[0]
+            .GetProperty("versionLabel").GetString());
+        JsonElement audit = await ReadPageAsync(
+            client, $"{managedName}/provenance/audit?environmentName=test&query=RELEASE-MANAGER")
+            .ConfigureAwait(true);
+        Assert.NotEqual(0, audit.GetProperty("items").GetArrayLength());
+
+        using HttpRequestMessage invalid = client.Create(
+            HttpMethod.Get,
+            $"/api/management/definitions/{managedName}/provenance/revisions?cursor=invalid");
+        using HttpResponseMessage invalidResponse = await client.SendAsync(invalid)
+            .ConfigureAwait(true);
+        Assert.Equal(HttpStatusCode.BadRequest, invalidResponse.StatusCode);
     }
 
     private static async Task<string> AuthorReleaseAsync(
@@ -147,8 +201,35 @@ public sealed class DefinitionProvenanceFlowTests(WorkflowHostFixture fixture)
     }
 
     private static JsonElement FindRelease(JsonElement provenance, string digest) =>
-        provenance.GetProperty("releases").EnumerateArray()
+        provenance.GetProperty("releases").GetProperty("items").EnumerateArray()
             .Single(item => item.GetProperty("digest").GetString() == digest);
+
+    private static async Task<JsonElement> ReadPageAsync(
+        WorkflowTestClient client,
+        string path)
+    {
+        using HttpRequestMessage request = client.Create(
+            HttpMethod.Get, $"/api/management/definitions/{path}");
+        using HttpResponseMessage response = await client.SendAsync(request).ConfigureAwait(false);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using JsonDocument body = await WorkflowTestClient.ReadJsonAsync(response)
+            .ConfigureAwait(false);
+        return body.RootElement.Clone();
+    }
+
+    private static async Task AssertCursorAdvancesAsync(
+        WorkflowTestClient client,
+        string path,
+        string identityProperty)
+    {
+        JsonElement first = await ReadPageAsync(client, path).ConfigureAwait(false);
+        string cursor = first.GetProperty("nextCursor").GetString()!;
+        JsonElement second = await ReadPageAsync(
+            client, $"{path}&cursor={Uri.EscapeDataString(cursor)}").ConfigureAwait(false);
+        Assert.NotEqual(
+            first.GetProperty("items")[0].GetProperty(identityProperty).GetString(),
+            second.GetProperty("items")[0].GetProperty(identityProperty).GetString());
+    }
 
     private static JsonElement CreateDefinition(string title) =>
         JsonSerializer.Deserialize<JsonElement>($$"""

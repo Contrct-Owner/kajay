@@ -171,6 +171,9 @@ Workflow commands additionally require `Idempotency-Key`; updates require a nume
 | --- | --- | --- |
 | Read a managed draft | `kajay:definition:manage` | `GET /api/management/definitions/{name}/draft` |
 | Inspect release history and provenance | `kajay:definition:manage` | `GET /api/management/definitions/{name}/provenance?environmentName=...` |
+| Page/filter revision history | `kajay:definition:manage` | `GET /api/management/definitions/{name}/provenance/revisions?limit=...&cursor=...&query=...` |
+| Page/filter release history | `kajay:definition:manage` | `GET /api/management/definitions/{name}/provenance/releases?environmentName=...&limit=...&cursor=...&query=...&status=...` |
+| Page/filter audit history | `kajay:definition:manage` | `GET /api/management/definitions/{name}/provenance/audit?environmentName=...&limit=...&cursor=...&query=...` |
 | Create or save a managed draft | `kajay:definition:manage` | `PUT /api/management/definitions/{name}/draft` |
 | Checkpoint an immutable revision | `kajay:definition:manage` | `POST /api/management/definitions/{name}/revisions` |
 | Assemble a release from a revision | `kajay:definition:promote` | `POST /api/management/definitions/{name}/revisions/{number}/releases` |
@@ -255,6 +258,9 @@ production credential.
 - Active, ready, and blocked release states are derived from the selected Activation
   and current Environment Bindings. Rollback reuses the optimistic, audited Activation
   command and is offered only for a previously active, currently compatible release.
+- Provenance histories return opaque, versioned keyset cursors in collection-specific
+  page envelopes. The initial composite query reads only the first page; independent
+  routes page and filter revisions, releases, or audit without unbounded materialization.
 - Environments are explicit tenant resources. Display name, ordering, approval policy,
   and binding metadata use ETags and management audit facts. Binding references are
   accepted only on writes and never returned or included in audit payloads.
@@ -305,8 +311,10 @@ The authoring tracer proves author save and checkpoint, release assembly, authen
 production approval, and operator completion in one PostgreSQL-backed flow. A real
 Chromium feature proof covers the Creator's draft/revision/release states and login
 recovery through its public feature interface. The provenance tracer additionally
-proves tenant isolation, lineage, readiness derivation, audit attribution, and
-version-checked rollback; real Chromium proves the Managed UI confirmation flow.
+proves tenant isolation, lineage, readiness derivation, audit attribution,
+version-checked rollback, cursor continuity, filter behavior, and invalid cursor
+rejection; real Chromium proves the Managed UI confirmation, load-more, and filter-reset
+flows.
 
 ```bash
 dotnet test dotnet/tests/Kajay.Workflow.Host.Tests

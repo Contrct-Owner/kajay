@@ -5,6 +5,8 @@ import type {
   ReleasePreflight,
 } from '../api/DefinitionAuthoringTypes.js';
 import { useDefinitionProvenanceQuery } from './useDefinitionProvenanceQuery.js';
+import { useDefinitionHistory } from './useDefinitionHistory.js';
+import type { DefinitionHistoryState } from './useDefinitionHistory.js';
 import { useDefinitionRollback } from './useDefinitionRollback.js';
 import { useReleasePreflight } from './useReleasePreflight.js';
 
@@ -16,6 +18,7 @@ export interface DefinitionProvenanceState {
   readonly isWorking: boolean;
   readonly needsLogin: boolean;
   readonly preflight: ReleasePreflight | undefined;
+  readonly history: DefinitionHistoryState;
   readonly selectEnvironment: (name: string) => void;
   readonly refresh: () => void;
   readonly activate: (releaseDigest: string) => Promise<void>;
@@ -35,6 +38,9 @@ export function useDefinitionProvenance(
     client, managedName, environmentName, query.refresh,
   );
   const preflightState = useReleasePreflight(client, environmentName);
+  const history = useDefinitionHistory(
+    client, managedName, environmentName, query.provenance,
+  );
 
   const selectEnvironment = useCallback((name: string): void => {
     const selected = name.trim();
@@ -58,6 +64,7 @@ export function useDefinitionProvenance(
     isWorking: rollbackState.isWorking || preflightState.isWorking,
     needsLogin: rollbackState.needsLogin || preflightState.needsLogin || query.needsLogin,
     preflight: preflightState.result,
+    history,
     selectEnvironment,
     refresh: query.refresh,
     activate,

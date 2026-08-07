@@ -7,6 +7,6 @@ internal sealed record DefinitionProvenanceResult(
     string EnvironmentName,
     IReadOnlyList<string> Environments,
     DefinitionActivationStateResult Activation,
-    IReadOnlyList<DefinitionRevisionHistoryResult> Revisions,
-    IReadOnlyList<DefinitionReleaseHistoryResult> Releases,
-    IReadOnlyList<ManagementAuditEventResult> AuditEvents);
+    CursorPageResult<DefinitionRevisionHistoryResult> Revisions,
+    CursorPageResult<DefinitionReleaseHistoryResult> Releases,
+    CursorPageResult<ManagementAuditEventResult> AuditEvents);

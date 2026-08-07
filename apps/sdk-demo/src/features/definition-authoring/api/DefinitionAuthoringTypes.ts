@@ -98,6 +98,21 @@ export interface ManagementAuditEvent {
   readonly occurredAt: string;
 }
 
+export interface CursorPage<T> {
+  readonly items: readonly T[];
+  readonly nextCursor: string | undefined;
+}
+
+export interface HistoryPageRequest {
+  readonly cursor?: string | undefined;
+  readonly limit?: number | undefined;
+  readonly query?: string | undefined;
+}
+
+export interface ReleaseHistoryPageRequest extends HistoryPageRequest {
+  readonly status?: PromotionStatus | undefined;
+}
+
 export interface DefinitionProvenance {
   readonly managedDefinitionName: string;
   readonly createdBy: string;
@@ -105,7 +120,7 @@ export interface DefinitionProvenance {
   readonly environmentName: string;
   readonly environments: readonly string[];
   readonly activation: DefinitionActivationState;
-  readonly revisions: readonly DefinitionRevisionHistory[];
-  readonly releases: readonly DefinitionReleaseHistory[];
-  readonly auditEvents: readonly ManagementAuditEvent[];
+  readonly revisions: CursorPage<DefinitionRevisionHistory>;
+  readonly releases: CursorPage<DefinitionReleaseHistory>;
+  readonly auditEvents: CursorPage<ManagementAuditEvent>;
 }

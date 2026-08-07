@@ -63,6 +63,12 @@ button { font: inherit; }
 .activation-summary dd { margin: 0; font-weight: 650; }
 .provenance-card > header { display: flex; justify-content: space-between; align-items: start; gap: 1rem; margin-bottom: 0.8rem; }
 .provenance-card > header > span { color: #276248; background: #e4f0e8; padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 750; }
+.history-controls { display: flex; justify-content: space-between; align-items: end; gap: 0.7rem; margin-bottom: 0.8rem; }
+.history-controls form { display: flex; flex-wrap: wrap; align-items: end; gap: 0.5rem; }
+.history-controls label { display: grid; gap: 0.2rem; color: #607168; font-size: 0.72rem; font-weight: 700; }
+.history-controls input, .history-controls select { min-height: 2rem; border: 1px solid #bdccc1; border-radius: 0.4rem; padding: 0.35rem 0.5rem; background: white; }
+.history-controls button { min-height: 2rem; border: 1px solid #276248; border-radius: 0.4rem; padding: 0.35rem 0.65rem; color: #276248; background: white; cursor: pointer; }
+.history-controls button:disabled { cursor: not-allowed; opacity: 0.5; }
 .release-history { grid-column: 1 / -1; }
 .history-table-scroll { overflow-x: auto; }
 .release-history table { width: 100%; border-collapse: collapse; text-align: left; }
@@ -111,6 +117,7 @@ button { font: inherit; }
   .provenance-heading form { grid-template-columns: 1fr 1fr; }
   .provenance-heading form input { grid-column: 1 / -1; }
   .provenance-grid { grid-template-columns: 1fr; }
+  .history-controls { align-items: stretch; flex-direction: column; }
   .environment-admin-grid { grid-template-columns: 1fr; }
   .activation-summary, .release-history { grid-column: 1; }
   .activation-summary dl { justify-content: start; }

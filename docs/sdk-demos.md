@@ -50,7 +50,10 @@ The Managed tab auto-saves an ETag-protected Draft, checkpoints an immutable Rev
 and asks the host to assemble the Definition Release. Its release-operations view
 traces Revision-to-release provenance, switches Environment Activation state, derives
 active/ready/blocked status from bindings, shows the management audit timeline, and
-confirms concurrency-checked first activation or rollback. Environment administration
+confirms concurrency-checked first activation or rollback. Revision, release, and audit
+histories load independent cursor pages; server-side searches and the release-status
+filter restart their collection without refreshing the rest of the workspace.
+Environment administration
 edits versioned display/order/approval policy, configures write-only binding references,
 and preflights installed releases without downloading a `.kajay` bundle. The browser
 never constructs or interprets that artifact.

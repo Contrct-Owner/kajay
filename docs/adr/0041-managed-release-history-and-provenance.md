@@ -22,13 +22,30 @@ before fleet-wide scheduling or policy has earned another deployable.
 ## Decision
 
 `DefinitionProvenanceApplication` is a query module inside `Kajay.Workflow.Host`. One
-tenant-scoped management route returns a Managed Definition's revision history,
-release history, selected Environment Activation, known environments, promotion
-readiness, and latest 100 relevant management audit events:
+tenant-scoped management route returns a Managed Definition's first page of revision
+history, release history, relevant management audit events, selected Environment
+Activation, known environments, and promotion readiness:
 
 ```text
 GET /api/management/definitions/{name}/provenance?environmentName={environment}
 ```
+
+Each history is a `{ items, nextCursor }` envelope. Operators page and filter one
+collection independently through its dedicated route without reloading the other
+provenance state:
+
+```text
+GET /api/management/definitions/{name}/provenance/revisions?limit=&cursor=&query=
+GET /api/management/definitions/{name}/provenance/releases?environmentName=&limit=&cursor=&query=&status=
+GET /api/management/definitions/{name}/provenance/audit?environmentName=&limit=&cursor=&query=
+```
+
+Pages default to 20 records and reject limits outside 1–100. Cursors are opaque,
+versioned Base64URL keysets scoped to their collection; malformed or cross-collection
+cursors fail with `400` rather than silently restarting. Revision search covers actor
+and Definition Digest, release search covers version label and digest, release status
+accepts `active`, `ready`, or `blocked`, and audit search covers event type, actor, and
+subject. Search treats `%`, `_`, and `\\` as literal input rather than SQL patterns.
 
 The route requires `kajay:definition:manage`. It assembles a read model from
 authoritative normalized state; it does not create another mutable projection table.
@@ -55,7 +72,7 @@ and are idempotent.
 Management audit remains append-only evidence, not the source of current Activation,
 binding, release, or revision state. The read model uses Activation events only for
 historical questions: actor attribution and whether a release was previously active.
-The displayed audit timeline is bounded independently from a compact query that keeps
+The displayed audit timeline is paged independently from a compact query that keeps
 the latest Activation fact per release, so an old rollback candidate does not
 disappear after 100 newer management events. The reader accepts legacy PascalCase
 audit payload fields as well as the canonical camelCase fields; all new activation and
@@ -74,8 +91,10 @@ therefore produces `412 Precondition Failed` and refreshes the view.
 - Promotion status cannot drift because it is derived from Activation and bindings.
 - Imported releases remain visible and promotable while honestly reporting their
   source as imported rather than inventing a local Revision.
-- The current API returns a bounded audit window. Cursor pagination can be added when
-  real event volume requires it without changing the source-of-truth model.
+- Collection-specific keyset pages avoid offset drift and prevent the initial
+  provenance view from materializing unbounded operational history.
+- Release status remains derived rather than persisted. A filtered page may therefore
+  scan bounded 100-row keyset batches until it fills the requested page.
 - A separate promotion control plane remains deferred to fleet-wide ownership,
   scheduling, or policy requirements.
 
@@ -83,10 +102,12 @@ therefore produces `412 Precondition Failed` and refreshes the view.
 
 `DefinitionProvenanceFlowTests` uses PostgreSQL and authenticated HTTP to prove
 tenant isolation, revision-to-release lineage, active/ready/blocked derivation,
-activation actor attribution, audit visibility, rollback eligibility, and the
-version-checked rollback transition. The TypeScript schema proof rejects malformed
-external payloads. The real-Chromium Managed UI proof covers missing-binding display,
-inline rollback confirmation, the `If-Match` header, and refreshed Activation state.
+activation actor attribution, audit visibility, rollback eligibility, the
+version-checked rollback transition, cursor continuity, filters, and invalid-cursor
+rejection. The TypeScript schema proof rejects malformed page envelopes. The
+real-Chromium Managed UI proof covers missing-binding display, inline rollback
+confirmation, the `If-Match` header, refreshed Activation state, incremental loading,
+and filter requests that restart without an old cursor.
 
 ## Parent and related links
 

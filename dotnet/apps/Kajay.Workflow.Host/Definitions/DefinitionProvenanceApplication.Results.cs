@@ -8,21 +8,19 @@ internal sealed partial class DefinitionProvenanceApplication
 {
     private static DefinitionActivationStateResult ToActivationResult(
         ActivationRecord? activation,
-        IReadOnlyList<ReleaseFact> releases,
+        string? versionLabel,
         IReadOnlyList<ActivationAuditFact> history)
     {
         if (activation is null)
         {
             return new DefinitionActivationStateResult(0, null, null, null, null, null);
         }
-        string? label = releases.FirstOrDefault(item => item.Digest == activation.ReleaseDigest)
-            ?.VersionLabel;
         string? actor = history.FirstOrDefault(item => item.Version == activation.Version
             && item.ReleaseDigest == activation.ReleaseDigest)?.ActorId;
         return new DefinitionActivationStateResult(
             activation.Version,
             activation.ReleaseDigest,
-            label,
+            versionLabel,
             actor,
             activation.ApprovedBy,
             activation.ActivatedAt);

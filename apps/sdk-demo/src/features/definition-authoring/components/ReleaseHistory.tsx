@@ -2,17 +2,20 @@ import { useState } from 'react';
 import type { ReactElement } from 'react';
 import type { DefinitionReleaseHistory } from '../api/DefinitionAuthoringTypes.js';
 import type { ReleasePreflight } from '../api/DefinitionAuthoringTypes.js';
+import type { ReleaseHistoryFilters } from '../hooks/useDefinitionHistory.js';
+import type { CursorPageState } from '../hooks/useCursorPage.js';
+import { HistoryControls } from './HistoryControls.js';
 import { formatTimestamp, shortDigest } from './provenanceFormatting.js';
 
 export function ReleaseHistory({
-  releases,
+  state,
   environmentName,
   isWorking,
   preflight,
   onActivate,
   onPreflight,
 }: {
-  readonly releases: readonly DefinitionReleaseHistory[];
+  readonly state: CursorPageState<DefinitionReleaseHistory, ReleaseHistoryFilters>;
   readonly environmentName: string;
   readonly isWorking: boolean;
   readonly preflight: ReleasePreflight | undefined;
@@ -20,6 +23,7 @@ export function ReleaseHistory({
   readonly onPreflight: (releaseDigest: string) => Promise<void>;
 }): ReactElement {
   const [pendingDigest, setPendingDigest] = useState<string>();
+  const releases = state.page.items;
 
   return (
     <section className="provenance-card release-history" aria-labelledby="release-history-heading">
@@ -30,6 +34,11 @@ export function ReleaseHistory({
         </div>
         <span>{releases.length}</span>
       </header>
+      <HistoryControls label="Release" query={state.filters.query} status={state.filters.status}
+        includeStatus isLoading={state.isLoading} canLoadMore={state.page.nextCursor !== undefined}
+        onApply={(query, status) => state.applyFilters({ query, status })}
+        onLoadMore={state.loadMore} />
+      {state.error === undefined ? null : <p className="provenance-error" role="alert">{state.error}</p>}
       {releases.length === 0 ? <p className="hint">No releases have been assembled yet.</p> : (
         <ReleaseTable releases={releases} environmentName={environmentName}
           pendingDigest={pendingDigest} isWorking={isWorking}

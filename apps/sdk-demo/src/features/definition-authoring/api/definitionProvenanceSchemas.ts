@@ -1,5 +1,6 @@
 import type {
   DefinitionActivationState,
+  CursorPage,
   DefinitionProvenance,
   DefinitionReleaseHistory,
   DefinitionRevisionHistory,
@@ -110,6 +111,27 @@ function readAudit(value: unknown, name: string): ManagementAuditEvent {
   };
 }
 
+function readPage<T>(
+  value: unknown,
+  name: string,
+  reader: (item: unknown, itemName: string) => T,
+): CursorPage<T> {
+  if (!isObject(value)) throw new TypeError(`Definition provenance response requires ${name}.`);
+  return {
+    items: readArray(value['items'], `${name}.items`, reader),
+    nextCursor: readOptionalString(value['nextCursor'], `${name}.nextCursor`),
+  };
+}
+
+export const readRevisionPage = (value: unknown): CursorPage<DefinitionRevisionHistory> =>
+  readPage(value, 'revisions', readRevision);
+
+export const readReleasePage = (value: unknown): CursorPage<DefinitionReleaseHistory> =>
+  readPage(value, 'releases', readRelease);
+
+export const readAuditPage = (value: unknown): CursorPage<ManagementAuditEvent> =>
+  readPage(value, 'auditEvents', readAudit);
+
 export function readDefinitionProvenance(value: unknown): DefinitionProvenance {
   if (!isObject(value)) throw new TypeError('Definition provenance response must be an object.');
   return {
@@ -119,8 +141,8 @@ export function readDefinitionProvenance(value: unknown): DefinitionProvenance {
     environmentName: readString(value['environmentName'], 'environmentName'),
     environments: readArray(value['environments'], 'environments', readString),
     activation: readActivation(value['activation'], 'activation'),
-    revisions: readArray(value['revisions'], 'revisions', readRevision),
-    releases: readArray(value['releases'], 'releases', readRelease),
-    auditEvents: readArray(value['auditEvents'], 'auditEvents', readAudit),
+    revisions: readRevisionPage(value['revisions']),
+    releases: readReleasePage(value['releases']),
+    auditEvents: readAuditPage(value['auditEvents']),
   };
 }

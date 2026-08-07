@@ -19,84 +19,70 @@ internal sealed partial class DefinitionProvenanceApplication(WorkflowDbContext 
         ValidateName(environmentName, nameof(environmentName));
         string[] environments = await LoadEnvironmentsAsync(
             tenantId, environmentName, cancellationToken).ConfigureAwait(false);
-        ManagedDefinitionRecord definition = await _database.ManagedDefinitions.AsNoTracking()
-            .SingleOrDefaultAsync(item => item.TenantId == tenantId
-                && item.Name == managedDefinitionName, cancellationToken).ConfigureAwait(false)
-            ?? throw new WorkflowProblemException(
-                StatusCodes.Status404NotFound,
-                "managed-definition-not-found",
-                $"Managed Definition '{managedDefinitionName}' does not exist.");
-        RevisionFact[] revisions = await LoadRevisionsAsync(
-            tenantId, managedDefinitionName, cancellationToken).ConfigureAwait(false);
-        ReleaseFact[] releases = await LoadReleasesAsync(
-            tenantId, managedDefinitionName, cancellationToken).ConfigureAwait(false);
-        DefinitionReleaseProvenanceRecord[] links = await LoadLinksAsync(
+        ManagedDefinitionRecord definition = await LoadDefinitionAsync(
             tenantId, managedDefinitionName, cancellationToken).ConfigureAwait(false);
         ActivationRecord? activation = await LoadActivationAsync(
             tenantId, managedDefinitionName, environmentName, cancellationToken)
             .ConfigureAwait(false);
         string[] bindings = await LoadBindingsAsync(
             tenantId, environmentName, cancellationToken).ConfigureAwait(false);
-        ManagementAuditEventRecord[] audit = await LoadAuditAsync(
-            tenantId, managedDefinitionName, environmentName, releases, cancellationToken)
+        ActivationAuditFact[] activationHistory = activation is null
+            ? []
+            : await LoadActivationHistoryAsync(
+                tenantId, managedDefinitionName, environmentName,
+                [activation.ReleaseDigest], cancellationToken).ConfigureAwait(false);
+        string? activeVersionLabel = await LoadActiveVersionLabelAsync(
+            tenantId, activation, cancellationToken).ConfigureAwait(false);
+        CursorPageResult<DefinitionRevisionHistoryResult> revisions = await LoadRevisionPageAsync(
+            tenantId, managedDefinitionName, new RevisionHistoryPageQuery(null, null, null),
+            cancellationToken).ConfigureAwait(false);
+        CursorPageResult<DefinitionReleaseHistoryResult> releases = await LoadReleasePageAsync(
+            tenantId, managedDefinitionName,
+            new ReleaseHistoryPageQuery(environmentName, null, null, null, null),
+            bindings, activation, cancellationToken).ConfigureAwait(false);
+        CursorPageResult<ManagementAuditEventResult> audit = await LoadAuditPageAsync(
+            tenantId, managedDefinitionName,
+            new AuditHistoryPageQuery(environmentName, null, null, null), cancellationToken)
             .ConfigureAwait(false);
-        ManagementAuditEventRecord[] activationAudit = await LoadActivationAuditAsync(
-            tenantId, managedDefinitionName, environmentName, cancellationToken)
-            .ConfigureAwait(false);
-        ActivationAuditFact[] activationHistory = ReadActivationHistory(
-            activationAudit, environmentName, managedDefinitionName);
         return new DefinitionProvenanceResult(
             definition.Name,
             definition.CreatedBy,
             definition.CreatedAt,
             environmentName,
             environments,
-            ToActivationResult(activation, releases, activationHistory),
-            ToRevisionResults(revisions, links),
-            ToReleaseResults(releases, links, bindings, activation, activationHistory),
-            audit.Select(ToAuditResult).ToArray());
+            ToActivationResult(activation, activeVersionLabel, activationHistory),
+            revisions,
+            releases,
+            audit);
     }
 
-    private async Task<RevisionFact[]> LoadRevisionsAsync(
+    private async Task<ManagedDefinitionRecord> LoadDefinitionAsync(
         string tenantId,
         string managedDefinitionName,
         CancellationToken cancellationToken) =>
-        await _database.DefinitionRevisions.AsNoTracking()
-            .Where(item => item.TenantId == tenantId
-                && item.ManagedDefinitionName == managedDefinitionName)
-            .OrderByDescending(item => item.Number)
-            .Select(item => new RevisionFact(
-                item.Number,
-                item.SourceDraftVersion,
-                item.DefinitionDigest,
-                item.CreatedBy,
-                item.CreatedAt))
-            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        await _database.ManagedDefinitions.AsNoTracking()
+            .SingleOrDefaultAsync(item => item.TenantId == tenantId
+                && item.Name == managedDefinitionName, cancellationToken).ConfigureAwait(false)
+            ?? throw new WorkflowProblemException(
+                StatusCodes.Status404NotFound,
+                "managed-definition-not-found",
+                $"Managed Definition '{managedDefinitionName}' does not exist.");
 
-    private async Task<ReleaseFact[]> LoadReleasesAsync(
+    private async Task<string?> LoadActiveVersionLabelAsync(
         string tenantId,
-        string managedDefinitionName,
-        CancellationToken cancellationToken) =>
-        await _database.DefinitionReleases.AsNoTracking()
+        ActivationRecord? activation,
+        CancellationToken cancellationToken)
+    {
+        if (activation is null)
+        {
+            return null;
+        }
+        return await _database.DefinitionReleases.AsNoTracking()
             .Where(item => item.TenantId == tenantId
-                && item.ManagedDefinitionName == managedDefinitionName)
-            .OrderByDescending(item => item.InstalledAt)
-            .Select(item => new ReleaseFact(
-                item.Digest,
-                item.VersionLabel,
-                item.ConformanceVersion,
-                item.RequiredBindings,
-                item.InstalledAt))
-            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
-
-    private async Task<DefinitionReleaseProvenanceRecord[]> LoadLinksAsync(
-        string tenantId,
-        string managedDefinitionName,
-        CancellationToken cancellationToken) =>
-        await _database.DefinitionReleaseProvenance.AsNoTracking()
-            .Where(item => item.TenantId == tenantId
-                && item.ManagedDefinitionName == managedDefinitionName)
-            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+                && item.Digest == activation.ReleaseDigest)
+            .Select(item => item.VersionLabel)
+            .SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+    }
 
     private async Task<ActivationRecord?> LoadActivationAsync(
         string tenantId,

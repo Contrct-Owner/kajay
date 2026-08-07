@@ -34,7 +34,9 @@ published implementation is TypeScript; C# is the second runtime in development.
   short-lived, organization-scoped WorkOS M2M tokens and a distinct production
   approval credential. The Managed UI now exposes revision and release history,
   explicit authored provenance, Environment Activation and readiness, management
-  audit, and concurrency-checked rollback without expanding the SDK seam.
+  audit, and concurrency-checked rollback without expanding the SDK seam. Those
+  histories use independently filterable, opaque cursor pages so operational volume
+  does not make the composite view unbounded.
   Environments are now first-class, versioned host resources with configurable
   approval policy and write-only, concurrency-checked bindings; the Managed UI owns
   their administration and installed-release preflight.

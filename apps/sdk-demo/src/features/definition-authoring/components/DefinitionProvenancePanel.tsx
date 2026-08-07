@@ -40,11 +40,11 @@ export function DefinitionProvenancePanel({
       {provenance === undefined ? null : (
         <div className="provenance-grid">
           <ActivationSummary activation={provenance.activation} environmentName={provenance.environmentName} />
-          <ReleaseHistory releases={provenance.releases} environmentName={provenance.environmentName}
+          <ReleaseHistory state={state.history.releases} environmentName={provenance.environmentName}
             isWorking={state.isWorking} preflight={state.preflight}
             onActivate={state.activate} onPreflight={state.runPreflight} />
-          <RevisionHistory revisions={provenance.revisions} />
-          <AuditHistory events={provenance.auditEvents} />
+          <RevisionHistory state={state.history.revisions} />
+          <AuditHistory state={state.history.auditEvents} />
         </div>
       )}
     </section>

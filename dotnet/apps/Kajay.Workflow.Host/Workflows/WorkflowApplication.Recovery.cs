@@ -52,6 +52,29 @@ internal sealed partial class WorkflowApplication
         return current;
     }
 
+    private async Task<WorkflowInstanceResult> EnsureReviewResumedAsync(
+        string tenantId,
+        string idempotencyKey,
+        WorkflowInstanceResult stored,
+        Guid? resumeId,
+        CancellationToken cancellationToken)
+    {
+        WorkflowInstanceResult current = await ReloadAsync(
+            tenantId, stored.Id, cancellationToken).ConfigureAwait(false);
+        if (current.Status == "review-decided")
+        {
+            Guid pendingResumeId = resumeId ?? await FindResumeIdAsync(
+                tenantId, current.Id, "review", cancellationToken).ConfigureAwait(false);
+            await resumeProcessor.ResumeNowAsync(pendingResumeId, cancellationToken)
+                .ConfigureAwait(false);
+            current = await ReloadAsync(tenantId, current.Id, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        await idempotency.UpdateResultAsync(
+            tenantId, idempotencyKey, current, cancellationToken).ConfigureAwait(false);
+        return current;
+    }
+
     private async Task<Guid> FindResumeIdAsync(
         string tenantId,
         Guid instanceId,

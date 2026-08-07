@@ -16,6 +16,7 @@ internal sealed class TestTokenIssuer : IDisposable
     [
         "kajay:workflow:read",
         "kajay:workflow:execute",
+        "kajay:workflow:review",
         "kajay:definition:manage",
         "kajay:definition:promote",
         "kajay:definition:approve",

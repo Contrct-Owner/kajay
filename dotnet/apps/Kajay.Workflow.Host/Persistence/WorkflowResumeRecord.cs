@@ -16,6 +16,8 @@ internal sealed class WorkflowResumeRecord
 
     public Guid? SubmissionId { get; set; }
 
+    public Guid? ReviewTaskId { get; set; }
+
     public required string Status { get; set; }
 
     public int Attempts { get; set; }

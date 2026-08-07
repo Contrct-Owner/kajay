@@ -44,6 +44,8 @@ public sealed class WorkOSEmulateFlowTests(WorkOSEmulateHostFixture fixture)
                 ["kajay:definition:manage", "kajay:environment:manage", "kajay:workflow:read"],
             ["operator@kajay.local"] =
                 ["kajay:workflow:execute", "kajay:workflow:read"],
+            ["reviewer@kajay.local"] =
+                ["kajay:workflow:read", "kajay:workflow:review"],
         };
         foreach ((string email, string[] permissions) in expected)
         {

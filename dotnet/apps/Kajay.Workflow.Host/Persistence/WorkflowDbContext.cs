@@ -30,6 +30,8 @@ internal sealed partial class WorkflowDbContext(DbContextOptions<WorkflowDbConte
 
     internal DbSet<SurveySubmissionRecord> SurveySubmissions => Set<SurveySubmissionRecord>();
 
+    internal DbSet<ReviewTaskRecord> ReviewTasks => Set<ReviewTaskRecord>();
+
     internal DbSet<WorkflowResumeRecord> WorkflowResumes => Set<WorkflowResumeRecord>();
 
     internal DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
@@ -53,6 +55,7 @@ internal sealed partial class WorkflowDbContext(DbContextOptions<WorkflowDbConte
         ConfigureEnvironmentBindings(modelBuilder);
         ConfigureWorkflowInstances(modelBuilder);
         ConfigureSurveySubmissions(modelBuilder);
+        ConfigureReviewTasks(modelBuilder);
         ConfigureWorkflowResumes(modelBuilder);
         ConfigureAuditEvents(modelBuilder);
         ConfigureIdempotency(modelBuilder);

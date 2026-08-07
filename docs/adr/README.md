@@ -66,6 +66,7 @@ recorded here (status `superseded`) **and** in the
 | [0041](./0041-managed-release-history-and-provenance.md) | Managed release history is a host-owned derived read model | accepted | 2026-08-06 |
 | [0042](./0042-first-class-environment-catalog.md) | Environments are versioned host-owned promotion targets | accepted | 2026-08-07 |
 | [0043](./0043-elsa-host-workflow-engine.md) | Elsa executes host-owned durable workflows | accepted | 2026-08-07 |
+| [0044](./0044-versioned-human-review-workflow-graph.md) | Version the portable human-review graph | accepted | 2026-08-07 |
 
 ## Parent and related links
 

@@ -2,6 +2,7 @@ using Elsa.Extensions;
 using Elsa.Persistence.EFCore.Extensions;
 using Elsa.Persistence.EFCore.Modules.Management;
 using Elsa.Persistence.EFCore.Modules.Runtime;
+using Elsa.Workflows.Activities.Flowchart.Extensions;
 using Kajay.Workflow.Host.Api;
 using Kajay.Workflow.Host.Authentication;
 using Kajay.Workflow.Host.Definitions;
@@ -22,6 +23,7 @@ builder.Services.AddElsa(elsa =>
         management.AddActivity<KajayDelayStartedActivity>();
         management.AddActivity<KajayDelayCompletedActivity>();
         management.AddActivity<KajayEffectActivity>();
+        management.AddActivity<KajayReviewActivity>();
         management.AddActivity<KajayEndActivity>();
         management.UseEntityFrameworkCore(
             persistence => persistence.UsePostgreSql(connectionString));
@@ -29,6 +31,7 @@ builder.Services.AddElsa(elsa =>
     elsa.UseWorkflowRuntime(runtime => runtime.UseEntityFrameworkCore(
         persistence => persistence.UsePostgreSql(connectionString)));
     elsa.UseScheduling(scheduling => scheduling.UseQuartzScheduler());
+    elsa.UseFlowchart(flowchart => flowchart.UseTokenBasedExecution());
     elsa.UseQuartz(quartz => quartz.UsePostgreSql(
         connectionString,
         useClustering: true));

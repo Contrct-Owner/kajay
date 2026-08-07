@@ -9,7 +9,8 @@ internal sealed record WorkflowResumeLease(
     Guid WorkflowInstanceId,
     string Kind,
     string StepKey,
-    Guid? SubmissionId)
+    Guid? SubmissionId,
+    Guid? ReviewTaskId)
 {
     internal static WorkflowResumeLease From(WorkflowResumeRecord record)
     {
@@ -20,6 +21,7 @@ internal sealed record WorkflowResumeLease(
             record.WorkflowInstanceId,
             record.Kind,
             record.StepKey,
-            record.SubmissionId);
+            record.SubmissionId,
+            record.ReviewTaskId);
     }
 }

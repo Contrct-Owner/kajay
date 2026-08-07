@@ -18,6 +18,13 @@ internal static class WorkflowRequestContext
         return ReadRequiredClaim(context, WorkOSClaimValues.Subject, "actor-identity-required");
     }
 
+    internal static AuthenticatedActor ReadPrincipal(HttpContext context)
+    {
+        return new AuthenticatedActor(
+            ReadActor(context),
+            WorkOSClaimValues.ReadPermissions(context.User));
+    }
+
     internal static string ReadIdempotencyKey(HttpContext context)
     {
         return ReadRequiredHeader(context, "Idempotency-Key", "idempotency-key-required");

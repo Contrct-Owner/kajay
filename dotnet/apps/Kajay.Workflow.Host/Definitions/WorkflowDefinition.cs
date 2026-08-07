@@ -7,30 +7,21 @@ internal sealed class WorkflowDefinition
 {
     private readonly Dictionary<string, WorkflowStep> _steps;
 
-    private WorkflowDefinition(string initialStep, Dictionary<string, WorkflowStep> steps)
+    private WorkflowDefinition(
+        int formatVersion,
+        string initialStep,
+        Dictionary<string, WorkflowStep> steps)
     {
+        FormatVersion = formatVersion;
         InitialStep = initialStep;
         _steps = steps;
     }
 
+    internal int FormatVersion { get; }
+
     internal string InitialStep { get; }
 
     internal IReadOnlyCollection<WorkflowStep> Steps => _steps.Values;
-
-    internal IReadOnlyList<WorkflowStep> ExecutionSteps()
-    {
-        var result = new List<WorkflowStep>(_steps.Count);
-        WorkflowStep step = GetStep(InitialStep);
-        while (true)
-        {
-            result.Add(step);
-            if (step.Next is null)
-            {
-                return result;
-            }
-            step = GetStep(step.Next);
-        }
-    }
 
     internal WorkflowStep GetStep(string key)
     {
@@ -44,26 +35,27 @@ internal sealed class WorkflowDefinition
         ArgumentNullException.ThrowIfNull(json);
         JsonObject root = JsonNode.Parse(json) as JsonObject
             ?? throw new JsonException("A workflow definition must be a JSON object.");
-        if (ReadInt(root, "formatVersion") != 1)
+        int formatVersion = ReadInt(root, "formatVersion");
+        if (formatVersion is not 1 and not 2)
         {
-            throw new JsonException("Only workflow definition format version 1 is supported.");
+            throw new JsonException("Only workflow definition format versions 1 and 2 are supported.");
         }
 
         string initialStep = ReadName(root, "initialStep");
         JsonArray authoredSteps = root["steps"] as JsonArray
             ?? throw new JsonException("A workflow definition must contain a steps array.");
         Dictionary<string, WorkflowStep> steps = authoredSteps
-            .Select(ReadStep)
+            .Select(node => ReadStep(node, formatVersion))
             .ToDictionary(step => step.Key, StringComparer.Ordinal);
-        ValidateGraph(initialStep, steps);
-        return new WorkflowDefinition(initialStep, steps);
+        ValidateGraph(formatVersion, initialStep, steps);
+        return new WorkflowDefinition(formatVersion, initialStep, steps);
     }
 
     internal string ToCanonicalJson()
     {
         var root = new JsonObject
         {
-            ["formatVersion"] = 1,
+            ["formatVersion"] = FormatVersion,
             ["initialStep"] = InitialStep,
             ["steps"] = new JsonArray(_steps.Values
                 .OrderBy(step => step.Key, StringComparer.Ordinal)
@@ -72,7 +64,7 @@ internal sealed class WorkflowDefinition
         return CanonicalJson.Stringify(root);
     }
 
-    private static WorkflowStep ReadStep(JsonNode? node)
+    private static WorkflowStep ReadStep(JsonNode? node, int formatVersion)
     {
         JsonObject authored = node as JsonObject
             ?? throw new JsonException("Each workflow step must be an object.");
@@ -101,6 +93,15 @@ internal sealed class WorkflowDefinition
                 EffectType = ReadName(authored, "effectType"),
                 EffectPayload = authored["payload"]?.DeepClone() ?? new JsonObject(),
                 Next = ReadName(authored, "next"),
+            },
+            "review" when formatVersion >= 2 => new WorkflowStep
+            {
+                Key = key,
+                Kind = WorkflowStepKind.Review,
+                AssignedPermission = ReadPermission(authored, "assignedPermission"),
+                ApprovedNext = ReadName(authored, "approvedNext"),
+                DeniedNext = ReadName(authored, "deniedNext"),
+                ChangesRequestedNext = ReadName(authored, "changesRequestedNext"),
             },
             "end" => new WorkflowStep { Key = key, Kind = WorkflowStepKind.End },
             _ => throw new JsonException($"Workflow step '{key}' has unknown kind '{kind}'."),
@@ -131,6 +132,12 @@ internal sealed class WorkflowDefinition
                     : CanonicalJson.Sort(step.EffectPayload);
                 node["next"] = step.Next;
                 break;
+            case WorkflowStepKind.Review:
+                node["assignedPermission"] = step.AssignedPermission;
+                node["approvedNext"] = step.ApprovedNext;
+                node["deniedNext"] = step.DeniedNext;
+                node["changesRequestedNext"] = step.ChangesRequestedNext;
+                break;
             case WorkflowStepKind.End:
                 break;
             default:
@@ -140,6 +147,7 @@ internal sealed class WorkflowDefinition
     }
 
     private static void ValidateGraph(
+        int formatVersion,
         string initialStep,
         Dictionary<string, WorkflowStep> steps)
     {
@@ -150,7 +158,7 @@ internal sealed class WorkflowDefinition
 
         var visited = new HashSet<string>(StringComparer.Ordinal);
         var active = new HashSet<string>(StringComparer.Ordinal);
-        Visit(initialStep, steps, visited, active);
+        Visit(initialStep, steps, visited, active, allowLoops: formatVersion >= 2);
         if (visited.Count != steps.Count)
         {
             throw new JsonException("Every workflow step must be reachable from the initial step.");
@@ -161,10 +169,15 @@ internal sealed class WorkflowDefinition
         string key,
         Dictionary<string, WorkflowStep> steps,
         HashSet<string> visited,
-        HashSet<string> active)
+        HashSet<string> active,
+        bool allowLoops)
     {
         if (!active.Add(key))
         {
+            if (allowLoops)
+            {
+                return;
+            }
             throw new JsonException("Workflow definition format version 1 does not support loops.");
         }
         if (!visited.Add(key))
@@ -174,14 +187,15 @@ internal sealed class WorkflowDefinition
         }
 
         WorkflowStep step = steps[key];
-        if (step.Next is not null)
+        foreach (WorkflowTransition transition in step.Transitions())
         {
-            if (!steps.ContainsKey(step.Next))
+            if (!steps.ContainsKey(transition.TargetStepKey))
             {
                 throw new JsonException(
-                    $"Workflow step '{step.Key}' references missing step '{step.Next}'.");
+                    $"Workflow step '{step.Key}' references missing step "
+                    + $"'{transition.TargetStepKey}'.");
             }
-            Visit(step.Next, steps, visited, active);
+            Visit(transition.TargetStepKey, steps, visited, active, allowLoops);
         }
         _ = active.Remove(key);
     }
@@ -212,6 +226,18 @@ internal sealed class WorkflowDefinition
             throw new JsonException($"Workflow property '{propertyName}' must be a SHA-256 digest.");
         }
         return digest;
+    }
+
+    private static string ReadPermission(JsonObject node, string propertyName)
+    {
+        string permission = ReadName(node, propertyName);
+        if (!string.Equals(permission, "kajay:workflow:review", StringComparison.Ordinal)
+            && !permission.StartsWith("kajay:workflow:review:", StringComparison.Ordinal))
+        {
+            throw new JsonException(
+                $"Workflow property '{propertyName}' must name a Kajay review permission.");
+        }
+        return permission;
     }
 
     private static string ReadName(JsonObject node, string propertyName)

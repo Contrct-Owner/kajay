@@ -35,6 +35,7 @@ the workflow host. Logout is `POST /auth/logout`.
 | `admin@kajay.local` | Every Kajay permission |
 | `author@kajay.local` | Definition manage and promote, without approval |
 | `operator@kajay.local` | Workflow read and execute |
+| `reviewer@kajay.local` | Workflow read and decide assigned review tasks |
 | `approver@kajay.local` | Definition promote and production approve |
 | `environment-manager@kajay.local` | Environment catalog and binding administration |
 | `client_kajay_local_promotion` | M2M definition export/install without production approval |
@@ -161,6 +162,46 @@ Every referenced survey must be present in the release bundle under its Definiti
 Digest. Instances remain pinned to the release selected when they started; later
 Activation changes affect only new instances.
 
+## Workflow Definition format v2
+
+Format v2 retains every v1 step and adds graph cycles plus a `review` step. The step
+creates a persisted Review Task for the most recent Survey Submission and suspends on
+an Elsa bookmark. `assignedPermission` is release metadata: the decision caller must
+hold both the stable `kajay:workflow:review` capability and this assignment permission.
+That permits a host to define narrower WorkOS permissions such as a level-specific
+review role without putting WorkOS role names into the workflow.
+
+```json
+{
+  "formatVersion": 2,
+  "initialStep": "profile",
+  "steps": [
+    {
+      "key": "profile",
+      "kind": "survey",
+      "surveyDefinitionDigest": "sha256:<64 lowercase hex characters>",
+      "next": "review"
+    },
+    {
+      "key": "review",
+      "kind": "review",
+      "assignedPermission": "kajay:workflow:review",
+      "approvedNext": "approved",
+      "deniedNext": "denied",
+      "changesRequestedNext": "profile"
+    },
+    { "key": "approved", "kind": "end" },
+    { "key": "denied", "kind": "end" }
+  ]
+}
+```
+
+Approve and deny follow their named transitions. Requesting changes closes the current
+Review Round and follows its transition back to a new Survey Attempt; accepting that
+attempt creates a second immutable Submission and a second Review Task. Review Task
+history therefore preserves who decided each round, when, its optional comment, and
+the exact Submission reviewed.
+
 ## HTTP interface
 
 Every application request carries a WorkOS access token as `Authorization: Bearer
@@ -200,6 +241,8 @@ Workflow commands additionally require `Idempotency-Key`; updates require a nume
 | Save a Response Snapshot | `kajay:workflow:execute` | `PUT /api/instances/{id}/response` |
 | Complete the active survey step | `kajay:workflow:execute` | `POST /api/instances/{id}/complete` |
 | Read immutable Survey Submissions | `kajay:workflow:read` | `GET /api/instances/{id}/submissions` |
+| Read Review Tasks and decisions | `kajay:workflow:read` | `GET /api/instances/{id}/reviews` |
+| Decide an assigned Review Task | `kajay:workflow:review` plus the task assignment | `POST /api/instances/{id}/reviews/{taskId}/decisions` |
 | Inspect audit facts | `kajay:workflow:read` | `GET /api/instances/{id}/audit` |
 | Inspect timers, effect delivery, and resume dispatch | `kajay:workflow:read` | `GET /api/instances/{id}/work` |
 
@@ -215,6 +258,9 @@ approver role should receive both promote and approve permissions. The host chec
 permissions rather than role names so role composition can evolve without code changes.
 Keep `kajay:environment:manage` separate from routine authoring, promotion, and
 approval roles because it changes the policy and configuration those operations trust.
+Keep `kajay:workflow:review` out of respondent/operator roles. A review step may use
+that permission directly or a narrower permission beginning with
+`kajay:workflow:review`; the authenticated principal must hold the exact assignment.
 
 ## Promote with the Kajay CLI
 
@@ -285,8 +331,8 @@ production credential.
 - Instance state, mutable Response Snapshot, immutable Survey Submission, audit fact,
   idempotency result, and any new resume or effect-outbox record commit in one database
   transaction.
-- Instance creation, Survey acceptance, and effect delivery enqueue stable, leased
-  Workflow Resume records.
+- Instance creation, Survey acceptance, Review Decisions, and effect delivery enqueue
+  stable, leased Workflow Resume records.
   Synchronous dispatch keeps the common path responsive; background retry closes the
   crash window between Kajay's transaction and Elsa's persistence transaction.
 - Workers claim short batches with `FOR UPDATE SKIP LOCKED` and expiring leases.
@@ -319,7 +365,8 @@ missing binding names before idempotent install and atomic Activation.
 
 `Kajay.Workflow.Host.Tests` uses Testcontainers with PostgreSQL 18. Its HTTP tracers
 prove promotion and rollback concurrency, save/resume behavior, immutable submission
-history, stale-write rejection, concurrent idempotency and Elsa registration, atomic
+history, repeated human-review rounds, authenticated review decisions, stale-write
+rejection, concurrent idempotency and Elsa registration, atomic
 effect creation, Quartz failover, outbox delivery, and dead-letter behavior through the
 same routes used by consumers. Authentication proofs
 use signed RS256 bearer tokens and the real JWT middleware to cover missing identity,
@@ -356,3 +403,4 @@ dotnet test dotnet/tests/Kajay.Workflow.Host.Tests
 - [Managed release history and provenance decision](./adr/0041-managed-release-history-and-provenance.md)
 - [Portable Response Snapshot decision](./adr/0034-portable-response-snapshot-contract.md)
 - [Elsa execution-engine decision](./adr/0043-elsa-host-workflow-engine.md)
+- [Versioned human-review graph decision](./adr/0044-versioned-human-review-workflow-graph.md)

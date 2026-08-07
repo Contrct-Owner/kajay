@@ -51,6 +51,23 @@ internal sealed partial class WorkflowApplication
             .ToArrayAsync(cancellationToken).ConfigureAwait(false);
     }
 
+    internal async Task<IReadOnlyList<ReviewTaskResult>> GetReviewTasksAsync(
+        string tenantId,
+        Guid instanceId,
+        CancellationToken cancellationToken)
+    {
+        _ = await LoadInstanceAsync(tenantId, instanceId, tracked: false, cancellationToken)
+            .ConfigureAwait(false);
+        return await database.ReviewTasks
+            .AsNoTracking()
+            .Where(item => item.TenantId == tenantId
+                && item.WorkflowInstanceId == instanceId)
+            .OrderBy(item => item.CreatedAt)
+            .ThenBy(item => item.Id)
+            .Select(item => ReviewTaskResult.From(item))
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+    }
+
     private async Task<WorkflowInstanceRecord> LoadInstanceAsync(
         string tenantId,
         Guid instanceId,

@@ -5,5 +5,6 @@ internal enum WorkflowStepKind
     Survey,
     Delay,
     Effect,
+    Review,
     End,
 }

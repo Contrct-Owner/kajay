@@ -124,6 +124,7 @@ internal static class WorkOSAuthenticationExtensions
         AuthorizationBuilder authorization = services.AddAuthorizationBuilder();
         AddPolicy(authorization, KajayPolicies.WorkflowRead, KajayPermissions.WorkflowRead);
         AddPolicy(authorization, KajayPolicies.WorkflowExecute, KajayPermissions.WorkflowExecute);
+        AddPolicy(authorization, KajayPolicies.WorkflowReview, KajayPermissions.WorkflowReview);
         AddPolicy(authorization, KajayPolicies.DefinitionManage, KajayPermissions.DefinitionManage);
         AddPolicy(authorization, KajayPolicies.DefinitionPromote, KajayPermissions.DefinitionPromote);
         AddPolicy(authorization, KajayPolicies.DefinitionApprove, KajayPermissions.DefinitionApprove);

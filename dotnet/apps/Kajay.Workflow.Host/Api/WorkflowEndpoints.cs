@@ -18,12 +18,17 @@ internal static class WorkflowEndpoints
             .RequireAuthorization(KajayPolicies.WorkflowRead);
         api.MapGet("/instances/{instanceId:guid}/submissions", GetSubmissionsAsync)
             .RequireAuthorization(KajayPolicies.WorkflowRead);
+        api.MapGet("/instances/{instanceId:guid}/reviews", GetReviewTasksAsync)
+            .RequireAuthorization(KajayPolicies.WorkflowRead);
         api.MapGet("/instances/{instanceId:guid}/work", GetWorkAsync)
             .RequireAuthorization(KajayPolicies.WorkflowRead);
         api.MapPut("/instances/{instanceId:guid}/response", SaveResponseAsync)
             .RequireAuthorization(KajayPolicies.WorkflowExecute);
         api.MapPost("/instances/{instanceId:guid}/complete", CompleteSurveyAsync)
             .RequireAuthorization(KajayPolicies.WorkflowExecute);
+        api.MapPost(
+            "/instances/{instanceId:guid}/reviews/{reviewTaskId:guid}/decisions",
+            DecideReviewAsync).RequireAuthorization(KajayPolicies.WorkflowReview);
         return endpoints;
     }
 
@@ -104,6 +109,19 @@ internal static class WorkflowEndpoints
         return Results.Ok(result);
     }
 
+    private static async Task<IResult> GetReviewTasksAsync(
+        HttpContext context,
+        Guid instanceId,
+        WorkflowApplication application,
+        CancellationToken cancellationToken)
+    {
+        IReadOnlyList<ReviewTaskResult> result = await application.GetReviewTasksAsync(
+            WorkflowRequestContext.ReadTenant(context),
+            instanceId,
+            cancellationToken).ConfigureAwait(false);
+        return Results.Ok(result);
+    }
+
     private static async Task<IResult> GetWorkAsync(
         HttpContext context,
         Guid instanceId,
@@ -129,6 +147,27 @@ internal static class WorkflowEndpoints
             instanceId,
             WorkflowRequestContext.ReadExpectedVersion(context),
             WorkflowRequestContext.ReadIdempotencyKey(context),
+            cancellationToken).ConfigureAwait(false);
+        SetEtag(context, result.Version);
+        return Results.Ok(result);
+    }
+
+    private static async Task<IResult> DecideReviewAsync(
+        HttpContext context,
+        Guid instanceId,
+        Guid reviewTaskId,
+        ReviewDecisionRequest request,
+        WorkflowApplication application,
+        CancellationToken cancellationToken)
+    {
+        WorkflowInstanceResult result = await application.DecideReviewAsync(
+            WorkflowRequestContext.ReadTenant(context),
+            WorkflowRequestContext.ReadPrincipal(context),
+            instanceId,
+            reviewTaskId,
+            WorkflowRequestContext.ReadExpectedVersion(context),
+            WorkflowRequestContext.ReadIdempotencyKey(context),
+            request,
             cancellationToken).ConfigureAwait(false);
         SetEtag(context, result.Version);
         return Results.Ok(result);

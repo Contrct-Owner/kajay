@@ -66,6 +66,68 @@ internal sealed class WorkflowProjection(
         await database.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
+    internal async Task EnterReviewAsync(
+        string tenantId,
+        Guid instanceId,
+        string stepKey,
+        string assignedPermission,
+        CancellationToken cancellationToken)
+    {
+        WorkflowInstanceRecord instance = await LoadAsync(
+            tenantId, instanceId, cancellationToken).ConfigureAwait(false);
+        bool exists = await database.ReviewTasks.AnyAsync(
+            item => item.TenantId == tenantId
+                && item.WorkflowInstanceId == instanceId
+                && item.StepKey == stepKey
+                && item.Status == "pending",
+            cancellationToken).ConfigureAwait(false);
+        if (!exists)
+        {
+            SurveySubmissionRecord submission = await database.SurveySubmissions
+                .Where(item => item.TenantId == tenantId
+                    && item.WorkflowInstanceId == instanceId)
+                .OrderByDescending(item => item.SubmittedAt)
+                .ThenByDescending(item => item.Id)
+                .FirstAsync(cancellationToken).ConfigureAwait(false);
+            int roundNumber = await database.ReviewTasks.CountAsync(
+                item => item.TenantId == tenantId
+                    && item.WorkflowInstanceId == instanceId
+                    && item.StepKey == stepKey,
+                cancellationToken).ConfigureAwait(false) + 1;
+            database.ReviewTasks.Add(new ReviewTaskRecord
+            {
+                Id = Guid.CreateVersion7(),
+                TenantId = tenantId,
+                WorkflowInstanceId = instanceId,
+                SubmissionId = submission.Id,
+                StepKey = stepKey,
+                RoundNumber = roundNumber,
+                AssignedPermission = assignedPermission,
+                Status = "pending",
+                CreatedAt = timeProvider.GetUtcNow(),
+            });
+        }
+        SetWaiting(instance, stepKey, "waiting-review", timeProvider.GetUtcNow());
+        await database.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task<string> GetReviewOutcomeAsync(
+        string tenantId,
+        Guid instanceId,
+        string stepKey,
+        CancellationToken cancellationToken)
+    {
+        ReviewTaskRecord task = await database.ReviewTasks
+            .AsNoTracking()
+            .Where(item => item.TenantId == tenantId
+                && item.WorkflowInstanceId == instanceId
+                && item.StepKey == stepKey
+                && item.Status != "pending")
+            .OrderByDescending(item => item.RoundNumber)
+            .FirstAsync(cancellationToken).ConfigureAwait(false);
+        return task.Status;
+    }
+
     internal async Task CompleteDelayAsync(
         string tenantId,
         Guid instanceId,

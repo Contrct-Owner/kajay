@@ -11,4 +11,9 @@ internal static class ElsaWorkflowBookmarks
     {
         return $"kajay:effect:{stepKey}";
     }
+
+    internal static string Review(string stepKey)
+    {
+        return $"kajay:review:{stepKey}";
+    }
 }

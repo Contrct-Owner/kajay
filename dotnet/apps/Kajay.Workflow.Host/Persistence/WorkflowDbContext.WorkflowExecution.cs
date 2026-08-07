@@ -56,4 +56,35 @@ internal sealed partial class WorkflowDbContext
             .HasForeignKey(record => new { record.TenantId, Id = record.WorkflowInstanceId })
             .OnDelete(DeleteBehavior.Restrict);
     }
+
+    private static void ConfigureReviewTasks(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<ReviewTaskRecord>();
+        _ = entity.ToTable("review_tasks");
+        _ = entity.HasKey(record => record.Id);
+        _ = entity.HasIndex(record => new
+        {
+            record.TenantId,
+            record.WorkflowInstanceId,
+            record.StepKey,
+            record.RoundNumber,
+        }).IsUnique();
+        _ = entity.HasIndex(record => new
+        {
+            record.TenantId,
+            record.AssignedPermission,
+            record.Status,
+            record.CreatedAt,
+        });
+        _ = entity.Property(record => record.StepKey).HasMaxLength(128);
+        _ = entity.Property(record => record.AssignedPermission).HasMaxLength(128);
+        _ = entity.Property(record => record.Status).HasMaxLength(32);
+        _ = entity.Property(record => record.Comment).HasMaxLength(2000);
+        _ = entity.HasOne<WorkflowInstanceRecord>().WithMany()
+            .HasForeignKey(record => new { record.TenantId, Id = record.WorkflowInstanceId })
+            .OnDelete(DeleteBehavior.Restrict);
+        _ = entity.HasOne<SurveySubmissionRecord>().WithMany()
+            .HasForeignKey(record => record.SubmissionId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
 }

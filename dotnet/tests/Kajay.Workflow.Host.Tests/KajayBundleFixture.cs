@@ -13,14 +13,16 @@ internal static class KajayBundleFixture
         string versionLabel = "1.0.0",
         IReadOnlyList<string>? requiredBindings = null,
         bool includeEffect = false,
-        double? delaySeconds = null)
+        double? delaySeconds = null,
+        bool includeReview = false)
     {
         return CreateScenario(
             managedDefinitionName,
             versionLabel,
             requiredBindings,
             includeEffect,
-            delaySeconds).Bundle;
+            delaySeconds,
+            includeReview).Bundle;
     }
 
     internal static KajayBundleScenario CreateScenario(
@@ -28,7 +30,8 @@ internal static class KajayBundleFixture
         string versionLabel = "1.0.0",
         IReadOnlyList<string>? requiredBindings = null,
         bool includeEffect = false,
-        double? delaySeconds = null)
+        double? delaySeconds = null,
+        bool includeReview = false)
     {
         SurveyDefinition survey = SurveyDefinition.Parse("""
             {
@@ -39,10 +42,14 @@ internal static class KajayBundleFixture
               }]
             }
             """).Definition;
-        JsonArray steps = CreateSteps(survey.DefinitionDigest, includeEffect, delaySeconds);
+        JsonArray steps = CreateSteps(
+            survey.DefinitionDigest,
+            includeEffect,
+            delaySeconds,
+            includeReview);
         string workflow = new JsonObject
         {
-            ["formatVersion"] = 1,
+            ["formatVersion"] = includeReview ? 2 : 1,
             ["initialStep"] = "survey",
             ["steps"] = steps,
         }.ToJsonString();
@@ -78,14 +85,19 @@ internal static class KajayBundleFixture
     private static JsonArray CreateSteps(
         string surveyDigest,
         bool includeEffect,
-        double? delaySeconds)
+        double? delaySeconds,
+        bool includeReview)
     {
         var survey = new JsonObject
         {
             ["key"] = "survey",
             ["kind"] = "survey",
             ["surveyDefinitionDigest"] = surveyDigest,
-            ["next"] = delaySeconds is not null ? "wait" : includeEffect ? "notify" : "end",
+            ["next"] = delaySeconds is not null
+                ? "wait"
+                : includeEffect
+                    ? "notify"
+                    : includeReview ? "review" : "end",
         };
         var end = new JsonObject { ["key"] = "end", ["kind"] = "end" };
         var steps = new JsonArray(survey);
@@ -96,7 +108,7 @@ internal static class KajayBundleFixture
                 ["key"] = "wait",
                 ["kind"] = "delay",
                 ["delaySeconds"] = delaySeconds.Value,
-                ["next"] = includeEffect ? "notify" : "end",
+                ["next"] = includeEffect ? "notify" : includeReview ? "review" : "end",
             });
         }
         if (includeEffect)
@@ -107,7 +119,19 @@ internal static class KajayBundleFixture
                 ["kind"] = "effect",
                 ["effectType"] = "test.notification",
                 ["payload"] = new JsonObject { ["template"] = "welcome" },
-                ["next"] = "end",
+                ["next"] = includeReview ? "review" : "end",
+            });
+        }
+        if (includeReview)
+        {
+            steps.Add(new JsonObject
+            {
+                ["key"] = "review",
+                ["kind"] = "review",
+                ["assignedPermission"] = "kajay:workflow:review",
+                ["approvedNext"] = "end",
+                ["deniedNext"] = "end",
+                ["changesRequestedNext"] = "survey",
             });
         }
         steps.Add(end);

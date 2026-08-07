@@ -12,12 +12,26 @@ internal sealed class WorkflowResumeProcessor(
 {
     internal async Task ResumeNowAsync(Guid recordId, CancellationToken cancellationToken)
     {
-        database.ChangeTracker.Clear();
-        WorkflowResumeLease? lease = await leases.ClaimAsync(recordId, cancellationToken)
-            .ConfigureAwait(false);
-        if (lease is not null)
+        while (true)
         {
-            await ProcessAsync(lease, cancellationToken).ConfigureAwait(false);
+            database.ChangeTracker.Clear();
+            WorkflowResumeLease? lease = await leases.ClaimAsync(recordId, cancellationToken)
+                .ConfigureAwait(false);
+            if (lease is not null)
+            {
+                await ProcessAsync(lease, cancellationToken).ConfigureAwait(false);
+                return;
+            }
+            WorkflowResumeRecord? record = await database.WorkflowResumes
+                .AsNoTracking()
+                .SingleOrDefaultAsync(item => item.Id == recordId, cancellationToken)
+                .ConfigureAwait(false);
+            if (record?.Status != "leased")
+            {
+                return;
+            }
+            await Task.Delay(TimeSpan.FromMilliseconds(25), cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 
@@ -73,6 +87,11 @@ internal sealed class WorkflowResumeProcessor(
                 release,
                 lease.StepKey,
                 cancellationToken),
+            "review" => engine.ResumeReviewAsync(
+                lease.WorkflowInstanceId,
+                release,
+                lease.StepKey,
+                cancellationToken),
             _ => throw new InvalidOperationException(
                 $"Unknown workflow resume kind '{lease.Kind}'."),
         };
@@ -86,6 +105,7 @@ internal sealed class WorkflowResumeProcessor(
         {
             "start" => "starting",
             "survey" => "submitted",
+            "review" => "review-decided",
             _ => "waiting-effect",
         };
         return string.Equals(instance.Status, status, StringComparison.Ordinal)

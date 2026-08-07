@@ -76,6 +76,20 @@ internal sealed class ElsaWorkflowEngine(
             cancellationToken);
     }
 
+    internal Task ResumeReviewAsync(
+        Guid instanceId,
+        WorkflowRelease release,
+        string stepKey,
+        CancellationToken cancellationToken)
+    {
+        return ResumeAsync(
+            instanceId,
+            release,
+            ElsaWorkflowBookmarks.Review(stepKey),
+            new Dictionary<string, object>(StringComparer.Ordinal),
+            cancellationToken);
+    }
+
     internal async Task EnsureRegisteredAsync(
         WorkflowRelease release,
         CancellationToken cancellationToken)

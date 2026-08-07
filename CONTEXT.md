@@ -44,7 +44,10 @@ published implementation is TypeScript; C# is the second runtime in development.
   their administration and installed-release preflight. Elsa 3.7.1 now executes the
   host-owned workflow graph with PostgreSQL persistence and clustered Quartz delays.
   Survey acceptance creates immutable Submissions and a durable resume outbox; Kajay
-  projections, audit, and stable effect delivery remain host-owned.
+  projections, audit, and stable effect delivery remain host-owned. Workflow format
+  v2 adds persisted Review Tasks and authenticated approve, deny, or request-changes
+  decisions; Elsa bookmarks drive repeated Survey Attempts without moving task or
+  authorization policy into either SDK.
 
 ## Topic index
 
@@ -61,7 +64,7 @@ published implementation is TypeScript; C# is the second runtime in development.
 | Runtime compatibility | v1: TypeScript 1.x; v2: two candidate adapters passing | Jarod | [Conformance v1](./conformance/v1/README.md), [v2](./conformance/v2/README.md) |
 | Native C# SDK | implementation underway | Jarod | [ADR-0030](./docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md), [parity §Q](./docs/feature-parity-checklist.md#q--c-headless-sdk) |
 | SDK demos | dual-runtime comparison active | Jarod | [Demo guide](./docs/sdk-demos.md), [ADR-0033](./docs/adr/0033-dual-runtime-compatibility-demo.md) |
-| Workflow host | durable authenticated foundation active | Jarod | [Workflow host guide](./docs/workflow-host.md), [ADR-0035](./docs/adr/0035-workflow-host-owns-durable-orchestration.md), [ADR-0036](./docs/adr/0036-definition-release-promotion.md), [ADR-0037](./docs/adr/0037-workos-authenticated-workflow-host.md), [ADR-0038](./docs/adr/0038-workos-emulate-local-authentication.md), [ADR-0039](./docs/adr/0039-managed-definition-authoring-lifecycle.md), [ADR-0040](./docs/adr/0040-promotion-cli-and-workos-machine-identity.md), [ADR-0041](./docs/adr/0041-managed-release-history-and-provenance.md), [ADR-0042](./docs/adr/0042-first-class-environment-catalog.md), [ADR-0043](./docs/adr/0043-elsa-host-workflow-engine.md) |
+| Workflow host | durable authenticated foundation active | Jarod | [Workflow host guide](./docs/workflow-host.md), [ADR-0035](./docs/adr/0035-workflow-host-owns-durable-orchestration.md), [ADR-0036](./docs/adr/0036-definition-release-promotion.md), [ADR-0037](./docs/adr/0037-workos-authenticated-workflow-host.md), [ADR-0038](./docs/adr/0038-workos-emulate-local-authentication.md), [ADR-0039](./docs/adr/0039-managed-definition-authoring-lifecycle.md), [ADR-0040](./docs/adr/0040-promotion-cli-and-workos-machine-identity.md), [ADR-0041](./docs/adr/0041-managed-release-history-and-provenance.md), [ADR-0042](./docs/adr/0042-first-class-environment-catalog.md), [ADR-0043](./docs/adr/0043-elsa-host-workflow-engine.md), [ADR-0044](./docs/adr/0044-versioned-human-review-workflow-graph.md) |
 | Publishing and licensing | 1.0.0 published | Jarod | [ADR-0029](./docs/adr/0029-release-walkthrough.md) |
 | Machine-readable documentation | preview | Jarod | [ADR-0025](./docs/adr/0025-read-only-documentation-mcp.md) |
 
@@ -117,7 +120,13 @@ explicitly. The exact dependency and export rules are build-failing checks.
 - **Workflow Definition** — the immutable graph inside a Definition Release that
   names steps and their transitions; it contains no live execution state.
 - **Workflow Step** — one named node in a Workflow Definition. The initial host
-  supports survey, delay, effect, and terminal steps.
+  supports survey, delay, effect, human review, and terminal steps.
+- **Review Task** — one persisted assignment to decide a specific Survey Submission
+  at a review Workflow Step. It is pending exactly once and retains its outcome.
+- **Review Round** — one visit to a review Workflow Step for one Workflow Instance;
+  requesting changes closes the round and a later Submission opens a new one.
+- **Review Decision** — the authenticated, immutable approve, deny, or
+  request-changes outcome that closes one Review Task.
 - **Deployment** — a Definition Release installed and verified in one environment; it
   does not by itself select the release for new work.
 - **Activation** — the atomic selection of an installed Definition Release for new
@@ -168,7 +177,8 @@ explicitly. The exact dependency and export rules are build-failing checks.
 - **Outbox Message** — the durable delivery record for an Effect, committed atomically
   with Workflow Instance state and its Workflow Audit Event.
 - **Workflow Resume** — a stable, leased outbox record that bridges committed Kajay
-  instance creation, Submission, or Effect receipt to idempotent Elsa execution.
+  instance creation, Submission, Review Decision, or Effect receipt to idempotent
+  Elsa execution.
 - **Authenticated Principal** — a validated WorkOS access-token identity. Its
   organization is the host tenant boundary, its subject is the audit actor, and its
   permissions authorize workflow and promotion capabilities.
@@ -207,6 +217,8 @@ meaning of each test seam.
 
 ## Change log
 
+- 2026-08-07: Added Review Tasks, Review Rounds, and Review Decisions as host-owned
+  concepts while Elsa owns human-review suspension and request-changes cycles.
 - 2026-08-07: Distinguished mutable Survey Attempts from immutable Survey
   Submissions so workflow progress never overwrites accepted respondent history.
 - 2026-08-07: Replaced the tracer state machine with embedded Elsa execution,

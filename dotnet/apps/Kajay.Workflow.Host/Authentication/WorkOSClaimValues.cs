@@ -26,6 +26,15 @@ internal static class WorkOSClaimValues
         return principal.FindAll(claimType).SelectMany(claim => Read(claim.Value)).Distinct();
     }
 
+    internal static IReadOnlySet<string> ReadPermissions(ClaimsPrincipal principal)
+    {
+        IEnumerable<string> permissions = Read(principal, Permissions).Concat(
+            principal.FindAll(Scope).SelectMany(claim => claim.Value.Split(
+                ' ',
+                StringSplitOptions.RemoveEmptyEntries)));
+        return permissions.ToHashSet(StringComparer.Ordinal);
+    }
+
     private static bool Contains(string claimValue, string expected)
     {
         if (string.Equals(claimValue, expected, StringComparison.Ordinal))

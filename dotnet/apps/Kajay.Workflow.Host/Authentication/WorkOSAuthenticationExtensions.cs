@@ -127,6 +127,7 @@ internal static class WorkOSAuthenticationExtensions
         AddPolicy(authorization, KajayPolicies.DefinitionManage, KajayPermissions.DefinitionManage);
         AddPolicy(authorization, KajayPolicies.DefinitionPromote, KajayPermissions.DefinitionPromote);
         AddPolicy(authorization, KajayPolicies.DefinitionApprove, KajayPermissions.DefinitionApprove);
+        AddPolicy(authorization, KajayPolicies.EnvironmentManage, KajayPermissions.EnvironmentManage);
     }
 
     private static void AddBrowserSession(

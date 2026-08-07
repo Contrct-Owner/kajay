@@ -3,7 +3,7 @@
 - Area: Decision record index
 - Status: established
 - Owner: Jarod
-- Last updated: 2026-08-06
+- Last updated: 2026-08-07
 
 Non-trivial decisions get an ADR. An ADR states the context, the decision, and the
 consequences that follow from it — including the costs accepted. Reversals are
@@ -64,6 +64,7 @@ recorded here (status `superseded`) **and** in the
 | [0039](./0039-managed-definition-authoring-lifecycle.md) | Draft, checkpoint, then assemble a Definition Release | accepted | 2026-08-06 |
 | [0040](./0040-promotion-cli-and-workos-machine-identity.md) | Promotion automation uses a CLI and scoped WorkOS machine identity | accepted | 2026-08-06 |
 | [0041](./0041-managed-release-history-and-provenance.md) | Managed release history is a host-owned derived read model | accepted | 2026-08-06 |
+| [0042](./0042-first-class-environment-catalog.md) | Environments are versioned host-owned promotion targets | accepted | 2026-08-07 |
 
 ## Parent and related links
 

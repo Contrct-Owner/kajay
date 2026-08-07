@@ -24,6 +24,13 @@ internal sealed class PromotionApplication(HttpClient httpClient)
             bundle,
             cancellationToken).ConfigureAwait(false);
         ValidatePreflight(request, preflight);
+        if (request.Activate && preflight.RequiresApproval)
+        {
+            string approvalToken = await AcquireApprovalTokenAsync(
+                tokens, request.TargetIdentity, targetToken, cancellationToken)
+                .ConfigureAwait(false);
+            target = new WorkflowHostClient(httpClient, request.TargetHost, approvalToken);
+        }
         ReleaseInstallResponse install = await target.InstallAsync(bundle, cancellationToken)
             .ConfigureAwait(false);
         ValidateInstall(preflight, install);
@@ -44,6 +51,25 @@ internal sealed class PromotionApplication(HttpClient httpClient)
             install.Installed,
             activation?.Version,
             activation?.ApprovedBy);
+    }
+
+    private static async Task<string> AcquireApprovalTokenAsync(
+        WorkOSTokenClient tokens,
+        MachineIdentity identity,
+        string existingToken,
+        CancellationToken cancellationToken)
+    {
+        const string approvalScope = "kajay:definition:approve";
+        string[] scopes = identity.Scope.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (scopes.Contains(approvalScope, StringComparer.Ordinal))
+        {
+            return existingToken;
+        }
+        MachineIdentity approvalIdentity = identity with
+        {
+            Scope = $"{identity.Scope} {approvalScope}",
+        };
+        return await tokens.AcquireAsync(approvalIdentity, cancellationToken).ConfigureAwait(false);
     }
 
     private static void Validate(PromotionRequest request)

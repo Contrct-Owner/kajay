@@ -10,11 +10,16 @@ namespace Kajay.Workflow.Host.Definitions;
 internal sealed partial class PromotionApplication
 {
     private readonly WorkflowDbContext _database;
+    private readonly EnvironmentApplication _environments;
     private readonly TimeProvider _timeProvider;
 
-    public PromotionApplication(WorkflowDbContext database, TimeProvider timeProvider)
+    public PromotionApplication(
+        WorkflowDbContext database,
+        EnvironmentApplication environments,
+        TimeProvider timeProvider)
     {
         _database = database;
+        _environments = environments;
         _timeProvider = timeProvider;
     }
 
@@ -24,6 +29,8 @@ internal sealed partial class PromotionApplication
         ReadOnlyMemory<byte> bundle,
         CancellationToken cancellationToken)
     {
+        EnvironmentRecord environment = await _environments.GetRequiredAsync(
+            tenantId, environmentName, cancellationToken).ConfigureAwait(false);
         DefinitionReleaseContent content = ReadBundle(bundle);
         ValidateCompatibility(content);
         IReadOnlyList<string> missingBindings = await FindMissingBindingsAsync(
@@ -36,7 +43,34 @@ internal sealed partial class PromotionApplication
             content.ManagedDefinitionName,
             content.VersionLabel,
             missingBindings.Count == 0,
-            missingBindings);
+            missingBindings,
+            environment.RequiresApproval);
+    }
+
+    internal async Task<ReleasePreflightResult> PreflightInstalledAsync(
+        string tenantId,
+        string environmentName,
+        string releaseDigest,
+        CancellationToken cancellationToken)
+    {
+        EnvironmentRecord environment = await _environments.GetRequiredAsync(
+            tenantId, environmentName, cancellationToken).ConfigureAwait(false);
+        DefinitionReleaseRecord release = await _database.DefinitionReleases.AsNoTracking()
+            .SingleOrDefaultAsync(
+                item => item.TenantId == tenantId && item.Digest == releaseDigest,
+                cancellationToken).ConfigureAwait(false)
+            ?? throw Problem(StatusCodes.Status404NotFound, "release-not-installed",
+                $"Definition release '{releaseDigest}' is not installed.");
+        IReadOnlyList<string> missingBindings = await FindMissingBindingsAsync(
+            tenantId, environmentName, release.RequiredBindings, cancellationToken)
+            .ConfigureAwait(false);
+        return new ReleasePreflightResult(
+            release.Digest,
+            release.ManagedDefinitionName,
+            release.VersionLabel,
+            missingBindings.Count == 0,
+            missingBindings,
+            environment.RequiresApproval);
     }
 
     internal async Task<ReleaseInstallResult> InstallAsync(

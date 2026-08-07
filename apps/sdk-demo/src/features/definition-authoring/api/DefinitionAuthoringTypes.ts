@@ -56,7 +56,37 @@ export interface DefinitionReleaseHistory {
   readonly requiredBindings: readonly string[];
   readonly missingBindings: readonly string[];
   readonly promotionStatus: PromotionStatus;
+  readonly canActivate: boolean;
   readonly canRollback: boolean;
+}
+
+export interface ReleasePreflight {
+  readonly digest: string;
+  readonly managedDefinitionName: string;
+  readonly versionLabel: string;
+  readonly compatible: boolean;
+  readonly missingBindings: readonly string[];
+  readonly requiresApproval: boolean;
+}
+
+export interface ManagedEnvironment {
+  readonly name: string;
+  readonly displayName: string;
+  readonly requiresApproval: boolean;
+  readonly position: number;
+  readonly version: number;
+  readonly createdBy: string;
+  readonly createdAt: string;
+  readonly updatedBy: string;
+  readonly updatedAt: string;
+}
+
+export interface EnvironmentBinding {
+  readonly environmentName: string;
+  readonly name: string;
+  readonly version: number;
+  readonly updatedBy: string;
+  readonly updatedAt: string;
 }
 
 export interface ManagementAuditEvent {

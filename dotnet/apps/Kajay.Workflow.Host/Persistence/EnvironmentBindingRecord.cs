@@ -10,5 +10,9 @@ internal sealed class EnvironmentBindingRecord
 
     public required string Reference { get; set; }
 
+    public long Version { get; set; }
+
+    public required string UpdatedBy { get; set; }
+
     public DateTimeOffset UpdatedAt { get; set; }
 }

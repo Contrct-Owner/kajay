@@ -3,6 +3,7 @@ import type { DefinitionProvenanceState } from '../hooks/useDefinitionProvenance
 import { ActivationSummary } from './ActivationSummary.js';
 import { AuditHistory } from './AuditHistory.js';
 import { EnvironmentPicker } from './EnvironmentPicker.js';
+import { EnvironmentOperations } from './EnvironmentOperations.js';
 import { ReleaseHistory } from './ReleaseHistory.js';
 import { RevisionHistory } from './RevisionHistory.js';
 
@@ -25,6 +26,7 @@ export function DefinitionProvenancePanel({
           environments={provenance?.environments ?? []} onSelect={state.selectEnvironment}
           onRefresh={state.refresh} />
       </header>
+      <EnvironmentOperations state={state} />
       {state.needsLogin ? (
         <p className="authoring-login" role="alert">Authenticate with WorkOS to view release operations.{' '}
           <a href="/auth/login?loginHint=admin%40kajay.local">Sign in as the local admin</a>
@@ -39,7 +41,8 @@ export function DefinitionProvenancePanel({
         <div className="provenance-grid">
           <ActivationSummary activation={provenance.activation} environmentName={provenance.environmentName} />
           <ReleaseHistory releases={provenance.releases} environmentName={provenance.environmentName}
-            isWorking={state.isWorking} onRollback={state.rollback} />
+            isWorking={state.isWorking} preflight={state.preflight}
+            onActivate={state.activate} onPreflight={state.runPreflight} />
           <RevisionHistory revisions={provenance.revisions} />
           <AuditHistory events={provenance.auditEvents} />
         </div>

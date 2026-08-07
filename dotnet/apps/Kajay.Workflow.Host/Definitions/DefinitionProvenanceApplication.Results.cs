@@ -59,9 +59,9 @@ internal sealed partial class DefinitionProvenanceApplication
                 .Order(StringComparer.Ordinal).ToArray();
             bool active = release.Digest == activation?.ReleaseDigest;
             string status = active ? "active" : missing.Length == 0 ? "ready" : "blocked";
+            bool canActivate = !active && missing.Length == 0;
             bool canRollback = activation is not null
-                && !active
-                && missing.Length == 0
+                && canActivate
                 && activatedDigests.Contains(release.Digest);
             return new DefinitionReleaseHistoryResult(
                 release.Digest,
@@ -74,6 +74,7 @@ internal sealed partial class DefinitionProvenanceApplication
                 release.RequiredBindings.Order(StringComparer.Ordinal).ToArray(),
                 missing,
                 status,
+                canActivate,
                 canRollback);
         }).ToArray();
     }

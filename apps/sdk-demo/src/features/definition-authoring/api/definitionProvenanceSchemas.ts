@@ -91,6 +91,7 @@ function readRelease(value: unknown, name: string): DefinitionReleaseHistory {
     requiredBindings: readArray(value['requiredBindings'], `${name}.requiredBindings`, readString),
     missingBindings: readArray(value['missingBindings'], `${name}.missingBindings`, readString),
     promotionStatus: readStatus(value['promotionStatus'], `${name}.promotionStatus`),
+    canActivate: readBoolean(value['canActivate'], `${name}.canActivate`),
     canRollback: readBoolean(value['canRollback'], `${name}.canRollback`),
   };
 }

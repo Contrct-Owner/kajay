@@ -3,7 +3,7 @@
 - Area: Repository orientation and current project state
 - Status: active
 - Owner: Jarod
-- Last updated: 2026-08-06
+- Last updated: 2026-08-07
 
 Kajay Survey is an embedded survey runtime and Creator whose authoritative JSON
 definition and versioned behavior contract support maintained native runtimes. The
@@ -35,6 +35,9 @@ published implementation is TypeScript; C# is the second runtime in development.
   approval credential. The Managed UI now exposes revision and release history,
   explicit authored provenance, Environment Activation and readiness, management
   audit, and concurrency-checked rollback without expanding the SDK seam.
+  Environments are now first-class, versioned host resources with configurable
+  approval policy and write-only, concurrency-checked bindings; the Managed UI owns
+  their administration and installed-release preflight.
 
 ## Topic index
 
@@ -51,7 +54,7 @@ published implementation is TypeScript; C# is the second runtime in development.
 | Runtime compatibility | v1: TypeScript 1.x; v2: two candidate adapters passing | Jarod | [Conformance v1](./conformance/v1/README.md), [v2](./conformance/v2/README.md) |
 | Native C# SDK | implementation underway | Jarod | [ADR-0030](./docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md), [parity §Q](./docs/feature-parity-checklist.md#q--c-headless-sdk) |
 | SDK demos | dual-runtime comparison active | Jarod | [Demo guide](./docs/sdk-demos.md), [ADR-0033](./docs/adr/0033-dual-runtime-compatibility-demo.md) |
-| Workflow host | durable authenticated foundation active | Jarod | [Workflow host guide](./docs/workflow-host.md), [ADR-0035](./docs/adr/0035-workflow-host-owns-durable-orchestration.md), [ADR-0036](./docs/adr/0036-definition-release-promotion.md), [ADR-0037](./docs/adr/0037-workos-authenticated-workflow-host.md), [ADR-0038](./docs/adr/0038-workos-emulate-local-authentication.md), [ADR-0039](./docs/adr/0039-managed-definition-authoring-lifecycle.md), [ADR-0040](./docs/adr/0040-promotion-cli-and-workos-machine-identity.md), [ADR-0041](./docs/adr/0041-managed-release-history-and-provenance.md) |
+| Workflow host | durable authenticated foundation active | Jarod | [Workflow host guide](./docs/workflow-host.md), [ADR-0035](./docs/adr/0035-workflow-host-owns-durable-orchestration.md), [ADR-0036](./docs/adr/0036-definition-release-promotion.md), [ADR-0037](./docs/adr/0037-workos-authenticated-workflow-host.md), [ADR-0038](./docs/adr/0038-workos-emulate-local-authentication.md), [ADR-0039](./docs/adr/0039-managed-definition-authoring-lifecycle.md), [ADR-0040](./docs/adr/0040-promotion-cli-and-workos-machine-identity.md), [ADR-0041](./docs/adr/0041-managed-release-history-and-provenance.md), [ADR-0042](./docs/adr/0042-first-class-environment-catalog.md) |
 | Publishing and licensing | 1.0.0 published | Jarod | [ADR-0029](./docs/adr/0029-release-walkthrough.md) |
 | Machine-readable documentation | preview | Jarod | [ADR-0025](./docs/adr/0025-read-only-documentation-mcp.md) |
 
@@ -108,8 +111,11 @@ explicitly. The exact dependency and export rules are build-failing checks.
   does not by itself select the release for new work.
 - **Activation** — the atomic selection of an installed Definition Release for new
   instances of a Managed Definition.
+- **Environment** — a tenant-owned, versioned host promotion target whose immutable
+  name identifies mutable display, ordering, and approval policy.
 - **Environment Binding** — host-owned configuration that supplies an environment's
-  endpoints, secrets, storage, and policy without changing a Definition Release.
+  endpoints, secrets, and storage without changing a Definition Release. Its reference
+  is write-only; only version and audit metadata are readable.
 - **Creator** — the embeddable survey-authoring product formed from headless Creator
   models and framework adapters.
 - **Design Surface** — Creator model and view of the authored page tree, selection,
@@ -188,6 +194,8 @@ meaning of each test seam.
 
 ## Change log
 
+- 2026-08-07: Made Environments authoritative versioned promotion targets, moved
+  approval to Environment policy, and separated write-only binding administration.
 - 2026-08-06: Defined the response-persistence and managed-definition promotion
   language, including the distinction between Deployment and Activation.
 - 2026-08-06: Sharpened the host workflow language around immutable graphs,

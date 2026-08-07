@@ -14,15 +14,19 @@ public sealed class MachinePromotionFlowTests(WorkOSEmulateHostFixture fixture)
     private const string PromoterSecret = "secret_kajay_local_promotion";
     private const string ActivatorClient = "client_kajay_local_activation";
     private const string ActivatorSecret = "secret_kajay_local_activation";
+    private const string EnvironmentClient = "client_kajay_local_environment";
+    private const string EnvironmentSecret = "secret_kajay_local_environment";
     private const string ManageScope = "kajay:definition:manage";
     private const string PromoteScope = "kajay:definition:promote";
     private const string ApproveScope = "kajay:definition:approve";
+    private const string EnvironmentScope = "kajay:environment:manage";
 
     [Fact]
     public async Task CliPromotesWithARealScopedWorkOSMachineToken()
     {
         string managedName = $"machine-{Guid.NewGuid():N}";
         byte[] bundle = KajayBundleFixture.Create(managedName);
+        await EnsureEnvironmentAsync("test").ConfigureAwait(true);
         string promoterToken = await AcquireTokenAsync(
             PromoterClient,
             PromoterSecret,
@@ -59,6 +63,7 @@ public sealed class MachinePromotionFlowTests(WorkOSEmulateHostFixture fixture)
     public async Task ProductionActivationRequiresTheSeparateApprovalMachine()
     {
         string managedName = $"approval-machine-{Guid.NewGuid():N}";
+        await EnsureEnvironmentAsync("production").ConfigureAwait(true);
         string promoterToken = await AcquireTokenAsync(
             PromoterClient,
             PromoterSecret,
@@ -93,6 +98,26 @@ public sealed class MachinePromotionFlowTests(WorkOSEmulateHostFixture fixture)
             clientId,
             secret,
             scope);
+    }
+
+    private async Task EnsureEnvironmentAsync(string environmentName)
+    {
+        string token = await AcquireTokenAsync(
+            EnvironmentClient,
+            EnvironmentSecret,
+            $"{ManageScope} {EnvironmentScope}").ConfigureAwait(true);
+        using HttpRequestMessage request = Authorized(
+            HttpMethod.Post, "/api/management/environments", token);
+        request.Content = JsonContent.Create(new
+        {
+            name = environmentName,
+            displayName = char.ToUpperInvariant(environmentName[0]) + environmentName[1..],
+            requiresApproval = environmentName == "production",
+            position = environmentName == "production" ? 400 : 200,
+        });
+        using HttpResponseMessage response = await fixture.Client.SendAsync(request)
+            .ConfigureAwait(true);
+        Assert.True(response.StatusCode is HttpStatusCode.Created or HttpStatusCode.Conflict);
     }
 
     private async Task<string> AcquireTokenAsync(string clientId, string secret, string scope)

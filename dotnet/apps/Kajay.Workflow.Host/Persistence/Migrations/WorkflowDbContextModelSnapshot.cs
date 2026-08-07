@@ -28,7 +28,7 @@ namespace Kajay.Workflow.Host.Persistence.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("EnvironmentName")
-                        .HasColumnType("text");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("ManagedDefinitionName")
                         .HasColumnType("text");
@@ -214,21 +214,76 @@ namespace Kajay.Workflow.Host.Persistence.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("EnvironmentName")
-                        .HasColumnType("text");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("text");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("Reference")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
                     b.HasKey("TenantId", "EnvironmentName", "Name");
 
                     b.ToTable("environment_bindings", (string)null);
+                });
+
+            modelBuilder.Entity("Kajay.Workflow.Host.Persistence.EnvironmentRecord", b =>
+                {
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("RequiresApproval")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("TenantId", "Name");
+
+                    b.HasIndex("TenantId", "Position", "Name");
+
+                    b.ToTable("environments", (string)null);
                 });
 
             modelBuilder.Entity("Kajay.Workflow.Host.Persistence.IdempotencyRecord", b =>
@@ -492,7 +547,7 @@ namespace Kajay.Workflow.Host.Persistence.Migrations
 
                     b.Property<string>("EnvironmentName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("ManagedDefinitionName")
                         .IsRequired()
@@ -524,6 +579,8 @@ namespace Kajay.Workflow.Host.Persistence.Migrations
 
                     b.HasKey("TenantId", "Id");
 
+                    b.HasIndex("TenantId", "EnvironmentName");
+
                     b.HasIndex("TenantId", "ReleaseDigest");
 
                     b.HasIndex("TenantId", "Status", "UpdatedAt");
@@ -533,6 +590,12 @@ namespace Kajay.Workflow.Host.Persistence.Migrations
 
             modelBuilder.Entity("Kajay.Workflow.Host.Persistence.ActivationRecord", b =>
                 {
+                    b.HasOne("Kajay.Workflow.Host.Persistence.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "EnvironmentName")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Kajay.Workflow.Host.Persistence.DefinitionReleaseRecord", null)
                         .WithMany()
                         .HasForeignKey("TenantId", "ReleaseDigest")
@@ -575,8 +638,23 @@ namespace Kajay.Workflow.Host.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Kajay.Workflow.Host.Persistence.EnvironmentBindingRecord", b =>
+                {
+                    b.HasOne("Kajay.Workflow.Host.Persistence.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "EnvironmentName")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Kajay.Workflow.Host.Persistence.WorkflowInstanceRecord", b =>
                 {
+                    b.HasOne("Kajay.Workflow.Host.Persistence.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "EnvironmentName")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Kajay.Workflow.Host.Persistence.DefinitionReleaseRecord", null)
                         .WithMany()
                         .HasForeignKey("TenantId", "ReleaseDigest")

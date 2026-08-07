@@ -3,7 +3,7 @@
 - Area: Durable workflow execution and definition promotion
 - Status: active foundation
 - Owner: Jarod
-- Last updated: 2026-08-06
+- Last updated: 2026-08-07
 
 `Kajay.Workflow.Host` is the host-owned C# 14 modular monolith around `Kajay.Core`.
 It persists immutable Definition Releases and Workflow Instances in PostgreSQL while
@@ -36,17 +36,19 @@ the workflow host. Logout is `POST /auth/logout`.
 | `author@kajay.local` | Definition manage and promote, without approval |
 | `operator@kajay.local` | Workflow read and execute |
 | `approver@kajay.local` | Definition promote and production approve |
+| `environment-manager@kajay.local` | Environment catalog and binding administration |
 | `client_kajay_local_promotion` | M2M definition export/install without production approval |
 | `client_kajay_local_activation` | M2M production Activation after an external approval gate |
+| `client_kajay_local_environment` | M2M Environment and binding administration |
 
 Interactive Emulate selects by email; every seeded password is `kajay-local` for
 direct password-grant experiments. The emulator is exposed only on
 `127.0.0.1:4100`. Plain HTTP, `sk_test_default`, and its in-memory data are local-test
 facilities, never deployment defaults.
 
-The local M2M secrets are `secret_kajay_local_promotion` and
-`secret_kajay_local_activation`. They are deterministic test fixtures, not examples
-of acceptable deployed secrets.
+The local M2M secrets are `secret_kajay_local_promotion`,
+`secret_kajay_local_activation`, and `secret_kajay_local_environment`. They are
+deterministic test fixtures, not examples of acceptable deployed secrets.
 
 ### Real WorkOS environment
 
@@ -93,12 +95,14 @@ flowchart LR
     HTTP --> Authoring["DefinitionAuthoringApplication"]
     HTTP --> Provenance["DefinitionProvenanceApplication"]
     HTTP --> Promotion["PromotionApplication"]
+    HTTP --> Environment["EnvironmentApplication"]
     HTTP --> Workflow["WorkflowApplication"]
     Authoring --> SDK["Kajay.Core"]
     Authoring --> Promotion
     Authoring --> Store["EF Core / PostgreSQL"]
     Provenance --> Store
     Promotion --> Store
+    Environment --> Store
     Workflow --> SDK
     Workflow --> Store
     Store --> Timer["Scheduled-action worker"]
@@ -171,9 +175,15 @@ Workflow commands additionally require `Idempotency-Key`; updates require a nume
 | Checkpoint an immutable revision | `kajay:definition:manage` | `POST /api/management/definitions/{name}/revisions` |
 | Assemble a release from a revision | `kajay:definition:promote` | `POST /api/management/definitions/{name}/revisions/{number}/releases` |
 | Preflight a target | `kajay:definition:manage` | `POST /api/management/releases/preflight?environmentName=...` |
+| Preflight an installed release | `kajay:definition:manage` | `POST /api/management/releases/{digest}/preflight?environmentName=...` |
 | Install a `.kajay` bundle | `kajay:definition:promote` | `POST /api/management/releases/install` |
 | Export an installed bundle | `kajay:definition:manage` | `GET /api/management/releases/{digest}/bundle` |
-| Set a binding reference | `kajay:definition:manage` | `PUT /api/management/environments/{environment}/bindings/{name}` |
+| List Environments | `kajay:definition:manage` | `GET /api/management/environments` |
+| Create an Environment | `kajay:environment:manage` | `POST /api/management/environments` |
+| Update Environment policy | `kajay:environment:manage` | `PUT /api/management/environments/{environment}` |
+| List binding metadata | `kajay:definition:manage` | `GET /api/management/environments/{environment}/bindings` |
+| Set a binding reference | `kajay:environment:manage` | `PUT /api/management/environments/{environment}/bindings/{name}` |
+| Remove a binding | `kajay:environment:manage` | `DELETE /api/management/environments/{environment}/bindings/{name}` |
 | Activate or roll back | `kajay:definition:promote` | `PUT /api/management/environments/{environment}/activations/{name}` |
 | Start an instance | `kajay:workflow:execute` | `POST /api/environments/{environment}/definitions/{name}/instances` |
 | Read/resume an instance | `kajay:workflow:read` | `GET /api/instances/{id}` |
@@ -182,15 +192,18 @@ Workflow commands additionally require `Idempotency-Key`; updates require a nume
 | Inspect audit facts | `kajay:workflow:read` | `GET /api/instances/{id}/audit` |
 | Inspect timers/effect delivery | `kajay:workflow:read` | `GET /api/instances/{id}/work` |
 
-Bundle request bodies use `application/vnd.kajay.bundle+zip`. Production Activation
-also requires `kajay:definition:approve`. Its `approvedBy` value is the authenticated
-WorkOS subject and cannot be supplied in the request body. Health is anonymous;
-OpenAPI requires `kajay:definition:manage`.
+Bundle request bodies use `application/vnd.kajay.bundle+zip`. Activation of any
+Environment whose policy requires approval also requires
+`kajay:definition:approve`. Its `approvedBy` value is the authenticated WorkOS subject
+and cannot be supplied in the request body. Health is anonymous; OpenAPI requires
+`kajay:definition:manage`.
 
 Create these permission slugs in WorkOS and assign them through roles. Keep
 `kajay:definition:approve` out of routine definition-manager roles; a production
 approver role should receive both promote and approve permissions. The host checks
 permissions rather than role names so role composition can evolve without code changes.
+Keep `kajay:environment:manage` separate from routine authoring, promotion, and
+approval roles because it changes the policy and configuration those operations trust.
 
 ## Promote with the Kajay CLI
 
@@ -216,8 +229,9 @@ kajay promote \
 ```
 
 Without `--activate`, the command stops after compatible, idempotent installation.
-With it, `--expected-version` is mandatory. Production Activation also requests
-`kajay:definition:approve`; use a distinct target client credential made available
+With it, `--expected-version` is mandatory. Preflight reports the target Environment's
+approval policy; when approval is required, the CLI reacquires its target token with
+`kajay:definition:approve`. Use a distinct target client credential made available
 only to the post-approval deployment job. Re-running that job safely repeats export,
 preflight, and idempotent install before the concurrency-checked Activation.
 
@@ -241,6 +255,9 @@ production credential.
 - Active, ready, and blocked release states are derived from the selected Activation
   and current Environment Bindings. Rollback reuses the optimistic, audited Activation
   command and is offered only for a previously active, currently compatible release.
+- Environments are explicit tenant resources. Display name, ordering, approval policy,
+  and binding metadata use ETags and management audit facts. Binding references are
+  accepted only on writes and never returned or included in audit payloads.
 - Each Workflow Command takes a transaction-scoped PostgreSQL advisory lock for its
   tenant/idempotency key. Concurrent retries therefore return one stored result.
 - Workflow Instance `Version` is an EF concurrency token and is returned as an ETag.

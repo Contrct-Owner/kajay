@@ -5,4 +5,5 @@ internal sealed record ReleasePreflightResult(
     string ManagedDefinitionName,
     string VersionLabel,
     bool Compatible,
-    IReadOnlyList<string> MissingBindings);
+    IReadOnlyList<string> MissingBindings,
+    bool RequiresApproval);

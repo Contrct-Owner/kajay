@@ -7,4 +7,5 @@ internal static class KajayPolicies
     internal const string DefinitionManage = nameof(DefinitionManage);
     internal const string DefinitionPromote = nameof(DefinitionPromote);
     internal const string DefinitionApprove = nameof(DefinitionApprove);
+    internal const string EnvironmentManage = nameof(EnvironmentManage);
 }

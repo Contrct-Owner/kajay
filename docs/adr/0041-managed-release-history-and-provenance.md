@@ -3,7 +3,7 @@
 - Area: Managed Definition release operations and provenance
 - Status: accepted
 - Owner: Jarod
-- Last updated: 2026-08-06
+- Last updated: 2026-08-07
 
 ## Context
 
@@ -42,7 +42,8 @@ Rollback eligibility is narrower than readiness. A release must be inactive, hav
 missing binding, and appear in that Environment's Activation history. Rollback uses
 the existing Activation command with the current Activation ETag. It is another
 audited pointer update, not a destructive release mutation or a separate rollback
-resource. Production continues to require `kajay:definition:approve`.
+resource. An Environment whose configured policy requires approval also requires
+`kajay:definition:approve` under [ADR-0042](./0042-first-class-environment-catalog.md).
 
 Authored release provenance is stored as an explicit many-to-many relation between a
 release digest and immutable Revision. Identical authored content can legitimately
@@ -95,3 +96,4 @@ inline rollback confirmation, the `If-Match` header, and refreshed Activation st
 - [Definition promotion](./0036-definition-release-promotion.md)
 - [Managed authoring](./0039-managed-definition-authoring-lifecycle.md)
 - [Promotion automation](./0040-promotion-cli-and-workos-machine-identity.md)
+- [Environment catalog](./0042-first-class-environment-catalog.md)

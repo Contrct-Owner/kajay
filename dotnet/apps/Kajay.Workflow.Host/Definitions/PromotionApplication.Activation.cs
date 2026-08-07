@@ -10,35 +10,6 @@ namespace Kajay.Workflow.Host.Definitions;
 
 internal sealed partial class PromotionApplication
 {
-    internal async Task SetBindingAsync(
-        string tenantId,
-        string actorId,
-        string environmentName,
-        string name,
-        string reference,
-        CancellationToken cancellationToken)
-    {
-        ValidateName(environmentName, nameof(environmentName));
-        ValidateName(name, nameof(name));
-        ValidateName(reference, nameof(reference));
-        DateTimeOffset now = _timeProvider.GetUtcNow();
-        EnvironmentBindingRecord? binding = await _database.EnvironmentBindings.FindAsync(
-            [tenantId, environmentName, name],
-            cancellationToken).ConfigureAwait(false);
-        if (binding is null)
-        {
-            binding = NewBinding(tenantId, environmentName, name, reference, now);
-            _database.EnvironmentBindings.Add(binding);
-        }
-        else
-        {
-            binding.Reference = reference;
-            binding.UpdatedAt = now;
-        }
-        AppendBindingAudit(tenantId, actorId, environmentName, name, now);
-        await _database.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-    }
-
     internal async Task<ActivationResult> ActivateAsync(
         string tenantId,
         string actorId,
@@ -49,10 +20,13 @@ internal sealed partial class PromotionApplication
         string? approvedBy,
         CancellationToken cancellationToken)
     {
-        ValidateActivation(environmentName, managedDefinitionName, approvedBy);
+        ValidateName(managedDefinitionName, nameof(managedDefinitionName));
         await using IDbContextTransaction transaction = await BeginManagementLockAsync(
             $"activate:{tenantId}:{environmentName}:{managedDefinitionName}",
             cancellationToken).ConfigureAwait(false);
+        EnvironmentRecord environment = await _environments.GetRequiredAsync(
+            tenantId, environmentName, cancellationToken).ConfigureAwait(false);
+        string? effectiveApproval = RequireApproval(environment, approvedBy);
         DefinitionReleaseRecord release = await LoadReleaseAsync(
             tenantId, managedDefinitionName, releaseDigest, cancellationToken)
             .ConfigureAwait(false);
@@ -73,7 +47,7 @@ internal sealed partial class PromotionApplication
             environmentName,
             managedDefinitionName,
             releaseDigest,
-            approvedBy,
+            effectiveApproval,
             now);
         AppendActivationAudit(tenantId, actorId, activation, now);
         try
@@ -165,25 +139,6 @@ internal sealed partial class PromotionApplication
         return activation;
     }
 
-    private void AppendBindingAudit(
-        string tenantId,
-        string actorId,
-        string environmentName,
-        string name,
-        DateTimeOffset now)
-    {
-        _database.ManagementAuditEvents.Add(new ManagementAuditEventRecord
-        {
-            Id = Guid.CreateVersion7(),
-            TenantId = tenantId,
-            Subject = $"{environmentName}/{name}",
-            EventType = "environment-binding-set",
-            PayloadJson = JsonSerializer.Serialize(new { environmentName, name }),
-            ActorId = actorId,
-            OccurredAt = now,
-        });
-    }
-
     private void AppendActivationAudit(
         string tenantId,
         string actorId,
@@ -207,38 +162,18 @@ internal sealed partial class PromotionApplication
         });
     }
 
-    private static EnvironmentBindingRecord NewBinding(
-        string tenantId,
-        string environmentName,
-        string name,
-        string reference,
-        DateTimeOffset now)
-    {
-        return new EnvironmentBindingRecord
-        {
-            TenantId = tenantId,
-            EnvironmentName = environmentName,
-            Name = name,
-            Reference = reference,
-            UpdatedAt = now,
-        };
-    }
-
-    private static void ValidateActivation(
-        string environmentName,
-        string managedDefinitionName,
+    private static string? RequireApproval(
+        EnvironmentRecord environment,
         string? approvedBy)
     {
-        ValidateName(environmentName, nameof(environmentName));
-        ValidateName(managedDefinitionName, nameof(managedDefinitionName));
-        if (string.Equals(environmentName, "production", StringComparison.OrdinalIgnoreCase)
-            && string.IsNullOrWhiteSpace(approvedBy))
+        if (environment.RequiresApproval && string.IsNullOrWhiteSpace(approvedBy))
         {
             throw Problem(
-                StatusCodes.Status422UnprocessableEntity,
-                "approval-required",
-                "Production activation requires an explicit approval identity.");
+                StatusCodes.Status403Forbidden,
+                "environment-approval-forbidden",
+                $"Environment '{environment.Name}' requires an authorized approval identity.");
         }
+        return environment.RequiresApproval ? approvedBy : null;
     }
 
     private static ActivationResult ToActivationResult(ActivationRecord activation)

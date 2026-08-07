@@ -69,6 +69,7 @@ function releaseResponse(): object {
     requiredBindings: [],
     missingBindings: [],
     promotionStatus: 'active',
+    canActivate: false,
     canRollback: false,
   };
 }

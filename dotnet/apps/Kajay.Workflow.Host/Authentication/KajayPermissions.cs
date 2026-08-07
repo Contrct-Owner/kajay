@@ -7,4 +7,5 @@ internal static class KajayPermissions
     internal const string DefinitionManage = "kajay:definition:manage";
     internal const string DefinitionPromote = "kajay:definition:promote";
     internal const string DefinitionApprove = "kajay:definition:approve";
+    internal const string EnvironmentManage = "kajay:environment:manage";
 }

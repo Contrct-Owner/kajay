@@ -11,7 +11,6 @@ internal static class PromoteCommand
     private const string TargetSecretDefault = "KAJAY_TARGET_CLIENT_SECRET";
     private const string ManageScope = "kajay:definition:manage";
     private const string PromoteScope = "kajay:definition:promote";
-    private const string ApproveScope = "kajay:definition:approve";
     private static readonly JsonSerializerOptions OutputJson = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true,
@@ -108,7 +107,7 @@ internal static class PromoteCommand
     {
         bool shouldActivate = result.GetValue(activate);
         string environmentName = result.GetRequiredValue(environment);
-        string targetScope = ReadTargetScope(environmentName, shouldActivate);
+        string targetScope = $"{ManageScope} {PromoteScope}";
         return new PromotionRequest(
             ReadUri(result, sourceHost),
             ReadIdentity(result, readEnvironment, sourceToken, sourceClient, sourceSecret,
@@ -149,14 +148,6 @@ internal static class PromoteCommand
         return Uri.TryCreate(value, UriKind.Absolute, out Uri? uri)
             ? uri
             : throw new PromotionException("invalid-uri", $"{option.Name} must be an absolute URI.");
-    }
-
-    private static string ReadTargetScope(string environmentName, bool activate)
-    {
-        string scope = $"{ManageScope} {PromoteScope}";
-        return activate && string.Equals(environmentName, "production", StringComparison.OrdinalIgnoreCase)
-            ? $"{scope} {ApproveScope}"
-            : scope;
     }
 
     private static Option<string> Required(string name, string description)

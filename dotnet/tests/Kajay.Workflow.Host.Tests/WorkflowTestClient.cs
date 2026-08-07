@@ -31,6 +31,7 @@ internal sealed class WorkflowTestClient
         string managedDefinitionName,
         byte[] bundle)
     {
+        await EnsureEnvironmentAsync(environmentName).ConfigureAwait(false);
         using HttpRequestMessage install = Create(HttpMethod.Post, "/api/management/releases/install");
         install.Content = new ByteArrayContent(bundle);
         using HttpResponseMessage installed = await _client.SendAsync(install).ConfigureAwait(false);
@@ -46,6 +47,26 @@ internal sealed class WorkflowTestClient
         using HttpResponseMessage activated = await _client.SendAsync(activate).ConfigureAwait(false);
         activated.EnsureSuccessStatusCode();
         return digest;
+    }
+
+    internal async Task EnsureEnvironmentAsync(
+        string environmentName,
+        bool? requiresApproval = null)
+    {
+        using HttpRequestMessage request = Create(
+            HttpMethod.Post, "/api/management/environments");
+        request.Content = JsonContent.Create(new
+        {
+            name = environmentName,
+            displayName = ToDisplayName(environmentName),
+            requiresApproval = requiresApproval ?? environmentName == "production",
+            position = environmentName == "production" ? 400 : 200,
+        });
+        using HttpResponseMessage response = await _client.SendAsync(request).ConfigureAwait(false);
+        if (response.StatusCode != System.Net.HttpStatusCode.Conflict)
+        {
+            response.EnsureSuccessStatusCode();
+        }
     }
 
     internal HttpRequestMessage Create(
@@ -72,4 +93,9 @@ internal sealed class WorkflowTestClient
         await using Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
         return await JsonDocument.ParseAsync(stream).ConfigureAwait(false);
     }
+
+    private static string ToDisplayName(string environmentName) =>
+        string.Concat(
+            environmentName[..1].ToUpperInvariant(),
+            environmentName.AsSpan(1));
 }

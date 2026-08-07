@@ -9,4 +9,5 @@ internal sealed record DefinitionReleaseHistoryResult(
     IReadOnlyList<string> RequiredBindings,
     IReadOnlyList<string> MissingBindings,
     string PromotionStatus,
+    bool CanActivate,
     bool CanRollback);

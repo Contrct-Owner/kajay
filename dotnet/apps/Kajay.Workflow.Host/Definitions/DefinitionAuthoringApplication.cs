@@ -13,15 +13,18 @@ internal sealed partial class DefinitionAuthoringApplication
 {
     private readonly WorkflowDbContext _database;
     private readonly PromotionApplication _promotion;
+    private readonly EnvironmentApplication _environments;
     private readonly TimeProvider _timeProvider;
 
     public DefinitionAuthoringApplication(
         WorkflowDbContext database,
         PromotionApplication promotion,
+        EnvironmentApplication environments,
         TimeProvider timeProvider)
     {
         _database = database;
         _promotion = promotion;
+        _environments = environments;
         _timeProvider = timeProvider;
     }
 
@@ -60,6 +63,11 @@ internal sealed partial class DefinitionAuthoringApplication
         draft = created
             ? CreateDraft(tenantId, actorId, managedDefinitionName, definition, now)
             : UpdateDraft(draft!, actorId, definition, now);
+        if (created)
+        {
+            await _environments.EnsureDefaultsAsync(
+                tenantId, actorId, now, cancellationToken).ConfigureAwait(false);
+        }
         AppendAudit(tenantId, actorId, managedDefinitionName,
             created ? "definition-draft-created" : "definition-draft-saved", draft.Version, now);
         await _database.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

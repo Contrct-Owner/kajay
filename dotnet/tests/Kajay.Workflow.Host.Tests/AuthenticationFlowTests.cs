@@ -73,6 +73,7 @@ public sealed class AuthenticationFlowTests(WorkflowHostFixture fixture)
         string tenant = $"org-approval-{suffix}";
         string managedName = $"approval-{suffix}";
         var installer = new WorkflowTestClient(fixture.Client, tenant, "installer");
+        await installer.EnsureEnvironmentAsync("production").ConfigureAwait(true);
         string digest = await InstallAsync(installer, KajayBundleFixture.Create(managedName))
             .ConfigureAwait(true);
         using HttpResponseMessage forbidden = await ActivateAsync(

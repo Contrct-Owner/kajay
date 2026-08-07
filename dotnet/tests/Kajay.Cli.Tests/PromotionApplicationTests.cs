@@ -53,10 +53,37 @@ public sealed class PromotionApplicationTests
         Assert.DoesNotContain(handler.Events, item => item.StartsWith("install", StringComparison.Ordinal));
     }
 
-    private static PromotionRequest CreateRequest(bool activate)
+    [Fact]
+    public async Task CustomEnvironmentPolicyAcquiresApprovalOnlyAfterPreflight()
+    {
+        var handler = new PromotionHandler(Digest, compatible: true, requiresApproval: true);
+        using var client = new HttpClient(handler);
+        var application = new PromotionApplication(client);
+
+        _ = await application.PromoteAsync(
+            CreateRequest(activate: true, includeApprovalScope: false, environment: "quality"),
+            CancellationToken.None).ConfigureAwait(true);
+
+        Assert.Equal(
+            [
+                "token:client_source:kajay:definition:manage",
+                $"export:{Digest}:token-source",
+                "token:client_target:kajay:definition:manage kajay:definition:promote",
+                "preflight:quality:token-target",
+                "token:client_target:kajay:definition:manage kajay:definition:promote kajay:definition:approve",
+                "install:token-target",
+                $"activate:onboarding:{Digest}:3:token-target",
+            ],
+            handler.Events);
+    }
+
+    private static PromotionRequest CreateRequest(
+        bool activate,
+        bool includeApprovalScope = true,
+        string environment = "production")
     {
         string targetScope = "kajay:definition:manage kajay:definition:promote"
-            + (activate ? " kajay:definition:approve" : string.Empty);
+            + (activate && includeApprovalScope ? " kajay:definition:approve" : string.Empty);
         return new PromotionRequest(
             new Uri("https://source.example/workflow/"),
             new MachineIdentity(
@@ -71,12 +98,15 @@ public sealed class PromotionApplicationTests
                 "target-secret",
                 targetScope),
             Digest,
-            "production",
+            environment,
             activate,
             activate ? 3 : null);
     }
 
-    private sealed class PromotionHandler(string digest, bool compatible) : HttpMessageHandler
+    private sealed class PromotionHandler(
+        string digest,
+        bool compatible,
+        bool requiresApproval = true) : HttpMessageHandler
     {
         internal List<string> Events { get; } = [];
 
@@ -105,7 +135,8 @@ public sealed class PromotionApplicationTests
                     "onboarding",
                     "1.2.3",
                     compatible,
-                    compatible ? [] : ["crm"]));
+                    compatible ? [] : ["crm"],
+                    requiresApproval));
             }
             if (path.EndsWith("/install", StringComparison.Ordinal))
             {
@@ -116,11 +147,14 @@ public sealed class PromotionApplicationTests
             long version = long.Parse(
                 request.Headers.GetValues("If-Match").Single().Trim('"'),
                 System.Globalization.CultureInfo.InvariantCulture);
-            string definition = path.Split('/')[^1];
+            string[] segments = path.Split('/');
+            string environmentName = segments[^3];
+            string definition = segments[^1];
             var body = await request.Content!.ReadFromJsonAsync<ActivationBody>(
                 cancellationToken: cancellationToken).ConfigureAwait(false);
             Events.Add($"activate:{definition}:{body!.ReleaseDigest}:{version}:token-target");
-            return Json(new ActivationResponse("production", definition, digest, version + 1, "client_target"));
+            return Json(new ActivationResponse(
+                environmentName, definition, digest, version + 1, "client_target"));
         }
 
         private async Task<HttpResponseMessage> TokenAsync(

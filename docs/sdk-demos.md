@@ -3,7 +3,7 @@
 - Area: SDK integration examples
 - Status: active
 - Owner: Jarod
-- Last updated: 2026-08-06
+- Last updated: 2026-08-07
 
 The SDK demo is one TypeScript renderer and Creator application backed by equivalent
 C# and TypeScript HTTP APIs. The screen and authored definition stay constant while a
@@ -50,8 +50,10 @@ The Managed tab auto-saves an ETag-protected Draft, checkpoints an immutable Rev
 and asks the host to assemble the Definition Release. Its release-operations view
 traces Revision-to-release provenance, switches Environment Activation state, derives
 active/ready/blocked status from bindings, shows the management audit timeline, and
-confirms concurrency-checked rollback to a previously active release. The browser
-never constructs or interprets a `.kajay` bundle.
+confirms concurrency-checked first activation or rollback. Environment administration
+edits versioned display/order/approval policy, configures write-only binding references,
+and preflights installed releases without downloading a `.kajay` bundle. The browser
+never constructs or interprets that artifact.
 
 ## Run from source
 
@@ -113,3 +115,4 @@ semantic compatibility is versioned and exhaustively proved by `conformance/v*/`
 - [Dual-runtime comparison decision](./adr/0033-dual-runtime-compatibility-demo.md)
 - [C# SDK decision](./adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md)
 - [Managed release history decision](./adr/0041-managed-release-history-and-provenance.md)
+- [Environment catalog decision](./adr/0042-first-class-environment-catalog.md)

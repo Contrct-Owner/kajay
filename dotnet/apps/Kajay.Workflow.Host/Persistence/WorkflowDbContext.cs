@@ -18,6 +18,8 @@ internal sealed class WorkflowDbContext(DbContextOptions<WorkflowDbContext> opti
 
     internal DbSet<ActivationRecord> Activations => Set<ActivationRecord>();
 
+    internal DbSet<EnvironmentRecord> Environments => Set<EnvironmentRecord>();
+
     internal DbSet<EnvironmentBindingRecord> EnvironmentBindings =>
         Set<EnvironmentBindingRecord>();
 
@@ -42,6 +44,7 @@ internal sealed class WorkflowDbContext(DbContextOptions<WorkflowDbContext> opti
         ConfigureDefinitionRevisions(modelBuilder);
         ConfigureDefinitionReleases(modelBuilder);
         ConfigureDefinitionReleaseProvenance(modelBuilder);
+        ConfigureEnvironments(modelBuilder);
         ConfigureActivations(modelBuilder);
         ConfigureEnvironmentBindings(modelBuilder);
         ConfigureWorkflowInstances(modelBuilder);
@@ -160,6 +163,20 @@ internal sealed class WorkflowDbContext(DbContextOptions<WorkflowDbContext> opti
             .HasForeignKey(record => new { record.TenantId, Digest = record.ReleaseDigest })
             .HasPrincipalKey(record => new { record.TenantId, record.Digest })
             .OnDelete(DeleteBehavior.Restrict);
+        _ = entity.HasOne<EnvironmentRecord>().WithMany()
+            .HasForeignKey(record => new { record.TenantId, Name = record.EnvironmentName })
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+
+    private static void ConfigureEnvironments(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<EnvironmentRecord>();
+        _ = entity.ToTable("environments");
+        _ = entity.HasKey(record => new { record.TenantId, record.Name });
+        _ = entity.HasIndex(record => new { record.TenantId, record.Position, record.Name });
+        _ = entity.Property(record => record.Name).HasMaxLength(128);
+        _ = entity.Property(record => record.DisplayName).HasMaxLength(128);
+        _ = entity.Property(record => record.Version).IsConcurrencyToken();
     }
 
     private static void ConfigureEnvironmentBindings(ModelBuilder modelBuilder)
@@ -172,6 +189,12 @@ internal sealed class WorkflowDbContext(DbContextOptions<WorkflowDbContext> opti
             record.EnvironmentName,
             record.Name,
         });
+        _ = entity.Property(record => record.Name).HasMaxLength(128);
+        _ = entity.Property(record => record.Reference).HasMaxLength(2048);
+        _ = entity.Property(record => record.Version).IsConcurrencyToken();
+        _ = entity.HasOne<EnvironmentRecord>().WithMany()
+            .HasForeignKey(record => new { record.TenantId, Name = record.EnvironmentName })
+            .OnDelete(DeleteBehavior.Restrict);
     }
 
     private static void ConfigureWorkflowInstances(ModelBuilder modelBuilder)
@@ -185,6 +208,9 @@ internal sealed class WorkflowDbContext(DbContextOptions<WorkflowDbContext> opti
         _ = entity.HasOne<DefinitionReleaseRecord>().WithMany()
             .HasForeignKey(record => new { record.TenantId, Digest = record.ReleaseDigest })
             .HasPrincipalKey(record => new { record.TenantId, record.Digest })
+            .OnDelete(DeleteBehavior.Restrict);
+        _ = entity.HasOne<EnvironmentRecord>().WithMany()
+            .HasForeignKey(record => new { record.TenantId, Name = record.EnvironmentName })
             .OnDelete(DeleteBehavior.Restrict);
     }
 

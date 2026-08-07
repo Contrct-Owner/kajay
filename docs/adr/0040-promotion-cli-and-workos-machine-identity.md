@@ -3,7 +3,7 @@
 - Area: Definition promotion automation and non-human identity
 - Status: accepted
 - Owner: Jarod
-- Last updated: 2026-08-06
+- Last updated: 2026-08-07
 
 ## Context
 
@@ -39,8 +39,10 @@ stable JSON result to standard output and structured errors to standard error.
 The CLI accepts client IDs and token endpoints as options, but client secrets only
 through named environment variables. It never persists tokens, refresh credentials,
 or secrets. The source token requests `kajay:definition:manage`; the target requests
-`kajay:definition:manage` and `kajay:definition:promote`. An explicit production
-Activation additionally requests `kajay:definition:approve`.
+`kajay:definition:manage` and `kajay:definition:promote`. If target preflight reports
+that the selected Environment requires approval, an explicit Activation reacquires
+the target token with `kajay:definition:approve`. Policy is never inferred from an
+Environment name.
 
 The workflow host satisfies a Kajay permission from either the WorkOS human-session
 `permissions` claim or the M2M `scope` claim, after the same issuer, audience, RS256,

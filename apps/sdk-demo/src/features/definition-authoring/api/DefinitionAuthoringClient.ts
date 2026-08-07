@@ -4,6 +4,9 @@ import type {
   DefinitionProvenance,
   DefinitionRelease,
   DefinitionRevision,
+  EnvironmentBinding,
+  ManagedEnvironment,
+  ReleasePreflight,
 } from './DefinitionAuthoringTypes.js';
 import { DefinitionAuthoringError } from './DefinitionAuthoringError.js';
 import {
@@ -13,6 +16,13 @@ import {
   readProblemDetail,
 } from './definitionAuthoringSchemas.js';
 import { readDefinitionProvenance } from './definitionProvenanceSchemas.js';
+import { readReleasePreflight } from './releasePreflightSchemas.js';
+import {
+  readBinding,
+  readBindings,
+  readEnvironment,
+  readEnvironments,
+} from './environmentSchemas.js';
 
 export class DefinitionAuthoringClient {
   readonly #basePath: string;
@@ -68,7 +78,7 @@ export class DefinitionAuthoringClient {
     return readDefinitionProvenance(await readJson(response));
   }
 
-  async rollback(
+  async activate(
     managedName: string,
     environmentName: string,
     releaseDigest: string,
@@ -82,8 +92,78 @@ export class DefinitionAuthoringClient {
     );
   }
 
+  async preflight(
+    environmentName: string,
+    releaseDigest: string,
+  ): Promise<ReleasePreflight> {
+    const environment = validateName(environmentName, 'Environment');
+    const query = new URLSearchParams({ environmentName: environment });
+    return readReleasePreflight(await this.#send(
+      `${this.#basePath}/releases/${encodeURIComponent(releaseDigest)}/preflight?${query}`,
+      { method: 'POST' },
+    ));
+  }
+
+  async getEnvironments(): Promise<readonly ManagedEnvironment[]> {
+    const response = await fetch(`${this.#basePath}/environments`);
+    return readEnvironments(await readJson(response));
+  }
+
+  async createEnvironment(input: EnvironmentInput): Promise<ManagedEnvironment> {
+    return readEnvironment(await this.#send(
+      `${this.#basePath}/environments`, { method: 'POST', body: input },
+    ));
+  }
+
+  async updateEnvironment(
+    name: string,
+    version: number,
+    input: Omit<EnvironmentInput, 'name'>,
+  ): Promise<ManagedEnvironment> {
+    return readEnvironment(await this.#send(
+      `${this.#basePath}/environments/${encodeURIComponent(name)}`,
+      { method: 'PUT', version, body: input },
+    ));
+  }
+
+  async getBindings(environmentName: string): Promise<readonly EnvironmentBinding[]> {
+    const path = this.#environmentPath(environmentName);
+    const response = await fetch(`${path}/bindings`);
+    return readBindings(await readJson(response));
+  }
+
+  async setBinding(
+    environmentName: string,
+    name: string,
+    reference: string,
+    version: number,
+  ): Promise<EnvironmentBinding> {
+    return readBinding(await this.#send(
+      `${this.#environmentPath(environmentName)}/bindings/${encodeURIComponent(name)}`,
+      { method: 'PUT', version, body: { reference } },
+    ));
+  }
+
+  async removeBinding(
+    environmentName: string,
+    name: string,
+    version: number,
+  ): Promise<void> {
+    const headers = new Headers({ 'if-match': `"${version}"` });
+    const response = await fetch(
+      `${this.#environmentPath(environmentName)}/bindings/${encodeURIComponent(name)}`,
+      { method: 'DELETE', headers },
+    );
+    if (!response.ok) await readJson(response);
+  }
+
   #definitionPath(managedName: string): string {
     return `${this.#basePath}/definitions/${encodeURIComponent(managedName)}`;
+  }
+
+  #environmentPath(environmentName: string): string {
+    const name = validateName(environmentName, 'Environment');
+    return `${this.#basePath}/environments/${encodeURIComponent(name)}`;
   }
 
   async #send(
@@ -105,6 +185,13 @@ interface AuthoringRequest {
   readonly method: 'POST' | 'PUT';
   readonly version?: number;
   readonly body?: unknown;
+}
+
+export interface EnvironmentInput {
+  readonly name: string;
+  readonly displayName: string;
+  readonly requiresApproval: boolean;
+  readonly position: number;
 }
 
 async function readJson(response: Response): Promise<unknown> {

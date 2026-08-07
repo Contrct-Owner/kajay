@@ -12,11 +12,11 @@ internal static class PromotionEndpoints
         RouteGroupBuilder management = endpoints.MapGroup("/api/management");
         management.MapPost("/releases/preflight", PreflightAsync)
             .RequireAuthorization(KajayPolicies.DefinitionManage);
+        management.MapPost("/releases/{releaseDigest}/preflight", PreflightInstalledAsync)
+            .RequireAuthorization(KajayPolicies.DefinitionManage);
         management.MapPost("/releases/install", InstallAsync)
             .RequireAuthorization(KajayPolicies.DefinitionPromote);
         management.MapGet("/releases/{releaseDigest}/bundle", ExportAsync)
-            .RequireAuthorization(KajayPolicies.DefinitionManage);
-        management.MapPut("/environments/{environmentName}/bindings/{name}", SetBindingAsync)
             .RequireAuthorization(KajayPolicies.DefinitionManage);
         management.MapPut(
             "/environments/{environmentName}/activations/{managedDefinitionName}",
@@ -57,6 +57,19 @@ internal static class PromotionEndpoints
             : Results.Ok(result);
     }
 
+    private static async Task<IResult> PreflightInstalledAsync(
+        HttpContext context,
+        string releaseDigest,
+        string environmentName,
+        PromotionApplication application,
+        CancellationToken cancellationToken)
+    {
+        ReleasePreflightResult result = await application.PreflightInstalledAsync(
+            WorkflowRequestContext.ReadTenant(context), environmentName, releaseDigest,
+            cancellationToken).ConfigureAwait(false);
+        return Results.Ok(result);
+    }
+
     private static async Task<IResult> ExportAsync(
         HttpContext context,
         string releaseDigest,
@@ -70,24 +83,6 @@ internal static class PromotionEndpoints
         return Results.File(bundle, "application/vnd.kajay.bundle+zip", "definition.kajay");
     }
 
-    private static async Task<IResult> SetBindingAsync(
-        HttpContext context,
-        string environmentName,
-        string name,
-        EnvironmentBindingRequest request,
-        PromotionApplication application,
-        CancellationToken cancellationToken)
-    {
-        await application.SetBindingAsync(
-            WorkflowRequestContext.ReadTenant(context),
-            WorkflowRequestContext.ReadActor(context),
-            environmentName,
-            name,
-            request.Reference,
-            cancellationToken).ConfigureAwait(false);
-        return Results.NoContent();
-    }
-
     private static async Task<IResult> ActivateAsync(
         HttpContext context,
         string environmentName,
@@ -97,10 +92,8 @@ internal static class PromotionEndpoints
         IAuthorizationService authorization,
         CancellationToken cancellationToken)
     {
-        string? approvedBy = await ReadApprovalAsync(
-            context,
-            authorization,
-            environmentName).ConfigureAwait(false);
+        string? approvedBy = await ReadApprovalIdentityAsync(context, authorization)
+            .ConfigureAwait(false);
         ActivationResult result = await application.ActivateAsync(
             WorkflowRequestContext.ReadTenant(context),
             WorkflowRequestContext.ReadActor(context),
@@ -114,26 +107,14 @@ internal static class PromotionEndpoints
         return Results.Ok(result);
     }
 
-    private static async Task<string?> ReadApprovalAsync(
+    private static async Task<string?> ReadApprovalIdentityAsync(
         HttpContext context,
-        IAuthorizationService authorization,
-        string environmentName)
+        IAuthorizationService authorization)
     {
-        if (!string.Equals(environmentName, "production", StringComparison.OrdinalIgnoreCase))
-        {
-            return null;
-        }
         AuthorizationResult approval = await authorization.AuthorizeAsync(
             context.User,
             resource: null,
             KajayPolicies.DefinitionApprove).ConfigureAwait(false);
-        if (!approval.Succeeded)
-        {
-            throw new WorkflowProblemException(
-                StatusCodes.Status403Forbidden,
-                "production-approval-forbidden",
-                $"Production activation requires '{KajayPermissions.DefinitionApprove}'.");
-        }
-        return WorkflowRequestContext.ReadActor(context);
+        return approval.Succeeded ? WorkflowRequestContext.ReadActor(context) : null;
     }
 }

@@ -17,6 +17,8 @@ internal sealed partial class DefinitionProvenanceApplication(WorkflowDbContext 
     {
         ValidateName(managedDefinitionName, nameof(managedDefinitionName));
         ValidateName(environmentName, nameof(environmentName));
+        string[] environments = await LoadEnvironmentsAsync(
+            tenantId, environmentName, cancellationToken).ConfigureAwait(false);
         ManagedDefinitionRecord definition = await _database.ManagedDefinitions.AsNoTracking()
             .SingleOrDefaultAsync(item => item.TenantId == tenantId
                 && item.Name == managedDefinitionName, cancellationToken).ConfigureAwait(false)
@@ -43,9 +45,6 @@ internal sealed partial class DefinitionProvenanceApplication(WorkflowDbContext 
             .ConfigureAwait(false);
         ActivationAuditFact[] activationHistory = ReadActivationHistory(
             activationAudit, environmentName, managedDefinitionName);
-        string[] environments = await LoadEnvironmentsAsync(
-            tenantId, environmentName, cancellationToken).ConfigureAwait(false);
-
         return new DefinitionProvenanceResult(
             definition.Name,
             definition.CreatedBy,
@@ -125,16 +124,20 @@ internal sealed partial class DefinitionProvenanceApplication(WorkflowDbContext 
         string selectedEnvironment,
         CancellationToken cancellationToken)
     {
-        string[] activated = await _database.Activations.AsNoTracking()
+        string[] environments = await _database.Environments.AsNoTracking()
             .Where(item => item.TenantId == tenantId)
-            .Select(item => item.EnvironmentName).Distinct()
+            .OrderBy(item => item.Position)
+            .ThenBy(item => item.Name)
+            .Select(item => item.Name)
             .ToArrayAsync(cancellationToken).ConfigureAwait(false);
-        string[] bound = await _database.EnvironmentBindings.AsNoTracking()
-            .Where(item => item.TenantId == tenantId)
-            .Select(item => item.EnvironmentName).Distinct()
-            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
-        return activated.Append(selectedEnvironment).Concat(bound)
-            .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+        if (!environments.Contains(selectedEnvironment, StringComparer.Ordinal))
+        {
+            throw new WorkflowProblemException(
+                StatusCodes.Status404NotFound,
+                "environment-not-found",
+                $"Environment '{selectedEnvironment}' does not exist.");
+        }
+        return environments;
     }
 
     private static void ValidateName(string value, string parameterName)

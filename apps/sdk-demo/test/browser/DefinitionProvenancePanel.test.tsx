@@ -40,6 +40,49 @@ test('shows provenance and confirms a version-checked rollback', async () => {
   expect(fetchMock).toHaveBeenCalled();
 });
 
+test('manages environment policy and write-only bindings', async () => {
+  let environmentVersion = 1;
+  let bindingConfigured = false;
+  const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+    const path = String(input);
+    if (path.endsWith('/draft')) return Promise.resolve(json(draftResponse()));
+    if (path.includes('/provenance?')) return Promise.resolve(json(provenanceResponse(false)));
+    if (path.endsWith('/environments/test/bindings') && init?.method === undefined) {
+      return Promise.resolve(json(bindingConfigured ? [bindingResponse()] : []));
+    }
+    if (path.endsWith('/environments/test/bindings/crm')) {
+      expect(new Headers(init?.headers).get('if-match')).toBe('"0"');
+      expect(JSON.parse(String(init?.body))).toEqual({ reference: 'secret://test/crm' });
+      bindingConfigured = true;
+      return Promise.resolve(json(bindingResponse()));
+    }
+    if (path.endsWith('/environments/test') && init?.method === 'PUT') {
+      expect(new Headers(init.headers).get('if-match')).toBe('"1"');
+      environmentVersion = 2;
+      return Promise.resolve(json(environmentResponse(environmentVersion, true)));
+    }
+    if (path.endsWith('/environments')) {
+      return Promise.resolve(json([environmentResponse(environmentVersion, environmentVersion > 1)]));
+    }
+    return Promise.resolve(json({ detail: 'Unexpected request.' }, 500));
+  });
+  vi.stubGlobal('fetch', fetchMock);
+  const screen = await render(<DefinitionAuthoringPanel initialDefinition={definition} />);
+
+  await screen.getByRole('button', { name: 'Manage environments' }).click();
+  await expect.element(screen.getByRole('heading', { name: 'Environment administration' }))
+    .toBeVisible();
+  await screen.getByLabelText('Require approval').last().click();
+  await screen.getByRole('button', { name: 'Save policy' }).click();
+  await expect.element(screen.getByText('Version 2; updated by environment-manager'))
+    .toBeVisible();
+  await screen.getByLabelText('Binding name').fill('crm');
+  await screen.getByLabelText('Secret or configuration reference').fill('secret://test/crm');
+  await screen.getByRole('button', { name: 'Set binding' }).click();
+  await expect.element(screen.getByText('crm', { exact: true })).toBeVisible();
+  expect(document.body.textContent).not.toContain('secret://test/crm');
+});
+
 function draftResponse(): object {
   return {
     managedDefinitionName: 'onboarding',
@@ -115,7 +158,32 @@ function releaseResponse(
     requiredBindings: missingBindings,
     missingBindings,
     promotionStatus,
+    canActivate: promotionStatus !== 'active' && missingBindings.length === 0,
     canRollback,
+  };
+}
+
+function environmentResponse(version: number, requiresApproval: boolean): object {
+  return {
+    name: 'test',
+    displayName: 'Test',
+    requiresApproval,
+    position: 200,
+    version,
+    createdBy: 'environment-manager',
+    createdAt: '2026-08-06T00:00:00Z',
+    updatedBy: 'environment-manager',
+    updatedAt: '2026-08-06T00:00:00Z',
+  };
+}
+
+function bindingResponse(): object {
+  return {
+    environmentName: 'test',
+    name: 'crm',
+    version: 1,
+    updatedBy: 'environment-manager',
+    updatedAt: '2026-08-06T00:00:00Z',
   };
 }
 

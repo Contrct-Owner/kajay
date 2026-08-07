@@ -40,6 +40,8 @@ public sealed class WorkOSEmulateFlowTests(WorkOSEmulateHostFixture fixture)
                 ["kajay:definition:approve", "kajay:definition:promote", "kajay:workflow:read"],
             ["author@kajay.local"] =
                 ["kajay:definition:manage", "kajay:definition:promote", "kajay:workflow:read"],
+            ["environment-manager@kajay.local"] =
+                ["kajay:definition:manage", "kajay:environment:manage", "kajay:workflow:read"],
             ["operator@kajay.local"] =
                 ["kajay:workflow:execute", "kajay:workflow:read"],
         };

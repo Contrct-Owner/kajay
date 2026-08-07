@@ -19,6 +19,7 @@ internal sealed class TestTokenIssuer : IDisposable
         "kajay:definition:manage",
         "kajay:definition:promote",
         "kajay:definition:approve",
+        "kajay:environment:manage",
     ];
 
     private readonly RSA _rsa = RSA.Create(2048);

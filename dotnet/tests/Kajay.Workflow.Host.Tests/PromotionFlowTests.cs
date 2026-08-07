@@ -14,6 +14,7 @@ public sealed class PromotionFlowTests(WorkflowHostFixture fixture)
         string suffix = Guid.NewGuid().ToString("N");
         string managedName = $"activation-{suffix}";
         var api = new WorkflowTestClient(fixture.Client, $"tenant-{suffix}");
+        await api.EnsureEnvironmentAsync("test").ConfigureAwait(true);
         byte[] bundle = KajayBundleFixture.Create(managedName);
         using HttpRequestMessage install = api.Create(
             HttpMethod.Post,
@@ -41,6 +42,8 @@ public sealed class PromotionFlowTests(WorkflowHostFixture fixture)
     [Fact]
     public async Task BundleCanBePreflightedInstalledExportedAndActivated()
     {
+        var api = new WorkflowTestClient(fixture.Client, "tenant-1", "actor-1");
+        await api.EnsureEnvironmentAsync("production").ConfigureAwait(true);
         byte[] bundle = KajayBundleFixture.Create(requiredBindings: ["crm"]);
         using HttpResponseMessage blockedPreflight = await SendBundleAsync(
             "/api/management/releases/preflight?environmentName=production",
@@ -53,8 +56,9 @@ public sealed class PromotionFlowTests(WorkflowHostFixture fixture)
         using HttpResponseMessage binding = await SendJsonAsync(
             HttpMethod.Put,
             "/api/management/environments/production/bindings/crm",
-            new { reference = "secret://production/crm" }).ConfigureAwait(true);
-        Assert.Equal(HttpStatusCode.NoContent, binding.StatusCode);
+            new { reference = "secret://production/crm" },
+            expectedVersion: 0).ConfigureAwait(true);
+        Assert.Equal(HttpStatusCode.OK, binding.StatusCode);
 
         using HttpResponseMessage installed = await SendBundleAsync(
             "/api/management/releases/install",
@@ -63,6 +67,16 @@ public sealed class PromotionFlowTests(WorkflowHostFixture fixture)
         using JsonDocument installResult = await ReadJsonAsync(installed).ConfigureAwait(true);
         string digest = installResult.RootElement.GetProperty("digest").GetString()!;
         Assert.StartsWith("sha256:", digest, StringComparison.Ordinal);
+
+        using HttpRequestMessage installedPreflightRequest = CreateRequest(
+            HttpMethod.Post,
+            $"/api/management/releases/{digest}/preflight?environmentName=production");
+        using HttpResponseMessage installedPreflight = await fixture.Client
+            .SendAsync(installedPreflightRequest).ConfigureAwait(true);
+        using JsonDocument installedPreflightBody = await ReadJsonAsync(installedPreflight)
+            .ConfigureAwait(true);
+        Assert.True(installedPreflightBody.RootElement.GetProperty("compatible").GetBoolean());
+        Assert.True(installedPreflightBody.RootElement.GetProperty("requiresApproval").GetBoolean());
 
         using HttpResponseMessage repeated = await SendBundleAsync(
             "/api/management/releases/install",
@@ -120,9 +134,17 @@ public sealed class PromotionFlowTests(WorkflowHostFixture fixture)
         return await fixture.Client.SendAsync(request).ConfigureAwait(true);
     }
 
-    private async Task<HttpResponseMessage> SendJsonAsync(HttpMethod method, string path, object body)
+    private async Task<HttpResponseMessage> SendJsonAsync(
+        HttpMethod method,
+        string path,
+        object body,
+        long? expectedVersion = null)
     {
         using HttpRequestMessage request = CreateRequest(method, path);
+        if (expectedVersion is not null)
+        {
+            request.Headers.TryAddWithoutValidation("If-Match", $"\"{expectedVersion}\"");
+        }
         request.Content = JsonContent.Create(body);
         return await fixture.Client.SendAsync(request).ConfigureAwait(true);
     }

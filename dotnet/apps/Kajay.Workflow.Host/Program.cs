@@ -12,6 +12,7 @@ string connectionString = builder.Configuration.GetConnectionString("Workflow")
 builder.Services.AddDbContext<WorkflowDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<PromotionApplication>();
+builder.Services.AddScoped<EnvironmentApplication>();
 builder.Services.AddScoped<DefinitionAuthoringApplication>();
 builder.Services.AddScoped<DefinitionProvenanceApplication>();
 builder.Services.AddScoped<WorkflowApplication>();
@@ -45,6 +46,7 @@ app.MapWorkOSSessionEndpoints();
 app.MapOpenApi().RequireAuthorization(KajayPolicies.DefinitionManage);
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", runtime = "dotnet" }));
 app.MapPromotionEndpoints();
+app.MapEnvironmentEndpoints();
 app.MapDefinitionAuthoringEndpoints();
 app.MapWorkflowEndpoints();
 app.Run();

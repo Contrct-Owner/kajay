@@ -26,7 +26,7 @@ export default defineConfig({
         plugins: [react()],
         test: {
           name: 'browser',
-          include: ['packages/*/test/browser/**/*.test.tsx'],
+          include: ['{packages,apps}/*/test/browser/**/*.test.tsx'],
           setupFiles: ['./scripts/test-policy/browser-console-guard.mjs'],
           browser: {
             enabled: true,

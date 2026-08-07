@@ -199,8 +199,8 @@ internal sealed partial class PromotionApplication
             PayloadJson = JsonSerializer.Serialize(new
             {
                 releaseDigest = activation.ReleaseDigest,
-                activation.Version,
-                activation.ApprovedBy,
+                version = activation.Version,
+                approvedBy = activation.ApprovedBy,
             }),
             ActorId = actorId,
             OccurredAt = now,

@@ -2,7 +2,7 @@ name: kajay-sdk-demo
 
 services:
   kajay-dotnet-api:
-    profiles: [dotnet, compare]
+    profiles: [dotnet, compare, workflow]
     build:
       context: .
       dockerfile: dotnet/apps/Kajay.Demo.Api/Dockerfile
@@ -10,7 +10,7 @@ services:
       - "8080"
 
   kajay-typescript-api:
-    profiles: [typescript, compare]
+    profiles: [typescript, compare, workflow]
     build:
       context: .
       dockerfile: apps/sdk-demo-api/Dockerfile
@@ -96,6 +96,21 @@ services:
       WorkflowWorkers__Enabled: "true"
     ports:
       - "5082:8080"
+
+  kajay-workflow-demo:
+    profiles: [workflow]
+    build:
+      context: .
+      dockerfile: apps/sdk-demo/Dockerfile
+      target: workflow
+      args:
+        VITE_KAJAY_RUNTIME: compare
+    depends_on:
+      - kajay-dotnet-api
+      - kajay-typescript-api
+      - kajay-workflow-host
+    ports:
+      - "4175:80"
 
 volumes:
   kajay-workflow-data:

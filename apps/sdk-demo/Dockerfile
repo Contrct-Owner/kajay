@@ -29,3 +29,7 @@ COPY apps/sdk-demo/nginx/dotnet.conf /etc/nginx/conf.d/default.conf
 FROM nginx:1.29-alpine AS compare
 COPY --from=build /workspace/apps/sdk-demo/dist /usr/share/nginx/html
 COPY apps/sdk-demo/nginx/compare.conf /etc/nginx/conf.d/default.conf
+
+FROM nginx:1.29-alpine AS workflow
+COPY --from=build /workspace/apps/sdk-demo/dist /usr/share/nginx/html
+COPY apps/sdk-demo/nginx/workflow.conf /etc/nginx/conf.d/default.conf

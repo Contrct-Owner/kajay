@@ -7,7 +7,14 @@ internal static class WorkOSClaimValues
 {
     internal const string OrganizationId = "org_id";
     internal const string Permissions = "permissions";
+    internal const string Scope = "scope";
     internal const string Subject = "sub";
+
+    internal static bool HasPermission(ClaimsPrincipal principal, string permission)
+    {
+        return Contains(principal, Permissions, permission)
+            || principal.FindAll(Scope).Any(claim => ContainsScope(claim.Value, permission));
+    }
 
     internal static bool Contains(ClaimsPrincipal principal, string claimType, string value)
     {
@@ -38,6 +45,12 @@ internal static class WorkOSClaimValues
         {
             return false;
         }
+    }
+
+    private static bool ContainsScope(string claimValue, string expected)
+    {
+        return claimValue.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Contains(expected, StringComparer.Ordinal);
     }
 
     private static string[] Read(string claimValue)

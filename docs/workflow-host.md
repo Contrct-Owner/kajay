@@ -23,10 +23,12 @@ docker compose \
   --profile workflow up --build
 ```
 
-Open <http://localhost:5082/auth/login?loginHint=admin%40kajay.local> to walk the
+Open <http://localhost:4175> for the dual-runtime demo and its **Managed** Creator tab.
+Choose its local sign-in link, or open
+<http://localhost:4175/auth/login?loginHint=admin%40kajay.local>, to walk the
 interactive AuthKit login. The callback stores a data-protected HTTP-only session and
-redirects to <http://localhost:5082/auth/session>, which reports the authenticated
-subject, organization, and permissions. Logout is `POST /auth/logout`.
+returns to the demo. The authenticated same-origin proxy then supplies the session to
+the workflow host. Logout is `POST /auth/logout`.
 
 | Local identity | Role purpose |
 | --- | --- |
@@ -34,11 +36,17 @@ subject, organization, and permissions. Logout is `POST /auth/logout`.
 | `author@kajay.local` | Definition manage and promote, without approval |
 | `operator@kajay.local` | Workflow read and execute |
 | `approver@kajay.local` | Definition promote and production approve |
+| `client_kajay_local_promotion` | M2M definition export/install without production approval |
+| `client_kajay_local_activation` | M2M production Activation after an external approval gate |
 
 Interactive Emulate selects by email; every seeded password is `kajay-local` for
 direct password-grant experiments. The emulator is exposed only on
 `127.0.0.1:4100`. Plain HTTP, `sk_test_default`, and its in-memory data are local-test
 facilities, never deployment defaults.
+
+The local M2M secrets are `secret_kajay_local_promotion` and
+`secret_kajay_local_activation`. They are deterministic test fixtures, not examples
+of acceptable deployed secrets.
 
 ### Real WorkOS environment
 
@@ -80,10 +88,18 @@ docker compose --profile workflow down --volumes
 ```mermaid
 flowchart LR
     AuthKit["WorkOS AuthKit"] --> HTTP["Authenticated HTTP adapters"]
+    CLI["kajay promotion runner"] --> AuthKit
+    CLI --> HTTP
+    HTTP --> Authoring["DefinitionAuthoringApplication"]
+    HTTP --> Provenance["DefinitionProvenanceApplication"]
     HTTP --> Promotion["PromotionApplication"]
     HTTP --> Workflow["WorkflowApplication"]
-    Promotion --> Store["EF Core / PostgreSQL"]
-    Workflow --> SDK["Kajay.Core"]
+    Authoring --> SDK["Kajay.Core"]
+    Authoring --> Promotion
+    Authoring --> Store["EF Core / PostgreSQL"]
+    Provenance --> Store
+    Promotion --> Store
+    Workflow --> SDK
     Workflow --> Store
     Store --> Timer["Scheduled-action worker"]
     Store --> Outbox["Outbox worker"]
@@ -141,11 +157,19 @@ Every application request carries a WorkOS access token as `Authorization: Beare
 <token>`. The host validates its JWKS signature, RS256 algorithm, issuer, audience,
 expiry, `sub`, and `org_id`. The organization claim is the tenant boundary and the
 subject claim is the audit actor; caller-selected identity headers are ignored.
+Human AuthKit sessions carry Kajay capabilities in `permissions`; WorkOS M2M tokens
+carry them as a space-delimited `scope`. Both claims satisfy the same host policies
+only after normal token validation succeeds.
 Workflow commands additionally require `Idempotency-Key`; updates require a numeric
 `If-Match` ETag.
 
 | Operation | Required WorkOS permission | Route |
 | --- | --- | --- |
+| Read a managed draft | `kajay:definition:manage` | `GET /api/management/definitions/{name}/draft` |
+| Inspect release history and provenance | `kajay:definition:manage` | `GET /api/management/definitions/{name}/provenance?environmentName=...` |
+| Create or save a managed draft | `kajay:definition:manage` | `PUT /api/management/definitions/{name}/draft` |
+| Checkpoint an immutable revision | `kajay:definition:manage` | `POST /api/management/definitions/{name}/revisions` |
+| Assemble a release from a revision | `kajay:definition:promote` | `POST /api/management/definitions/{name}/revisions/{number}/releases` |
 | Preflight a target | `kajay:definition:manage` | `POST /api/management/releases/preflight?environmentName=...` |
 | Install a `.kajay` bundle | `kajay:definition:promote` | `POST /api/management/releases/install` |
 | Export an installed bundle | `kajay:definition:manage` | `GET /api/management/releases/{digest}/bundle` |
@@ -168,8 +192,55 @@ Create these permission slugs in WorkOS and assign them through roles. Keep
 approver role should receive both promote and approve permissions. The host checks
 permissions rather than role names so role composition can evolve without code changes.
 
+## Promote with the Kajay CLI
+
+`Kajay.Cli` is a packable .NET tool and remains outside `Kajay.Core`. It reads secrets
+only from environment variables, obtains short-lived tokens using the OAuth 2.0
+client-credentials grant, and prints a JSON result suitable for CI.
+
+```bash
+export KAJAY_SOURCE_CLIENT_SECRET=source-secret-from-ci
+export KAJAY_TARGET_CLIENT_SECRET=target-secret-from-ci
+
+kajay promote \
+  --source-host https://workflow.dev.example.com \
+  --source-token-endpoint https://dev-example.authkit.app/oauth2/token \
+  --source-client-id client_source_promotion \
+  --target-host https://workflow.staging.example.com \
+  --target-token-endpoint https://staging-example.authkit.app/oauth2/token \
+  --target-client-id client_target_promotion \
+  --release sha256:<64-lowercase-hex-characters> \
+  --environment staging \
+  --activate \
+  --expected-version 0
+```
+
+Without `--activate`, the command stops after compatible, idempotent installation.
+With it, `--expected-version` is mandatory. Production Activation also requests
+`kajay:definition:approve`; use a distinct target client credential made available
+only to the post-approval deployment job. Re-running that job safely repeats export,
+preflight, and idempotent install before the concurrency-checked Activation.
+
+For local development, run the tool from source and point both token endpoints to
+`http://localhost:4100/oauth2/token`. The seeded routine promotion credential lacks
+approval, while `client_kajay_local_activation` demonstrates the separately protected
+production credential.
+
 ## Transaction and recovery rules
 
+- Draft saves and revision checkpoints take a per-tenant/per-definition PostgreSQL
+  advisory lock. Draft versions are ETags; a stale editor receives `412` without
+  changing stored JSON.
+- A Draft stores SDK-canonical JSON and its Definition Digest. One immutable Revision
+  exists per Draft version, so retrying a checkpoint returns the same revision.
+- Release assembly reads only a Revision. The initial assembler produces a
+  single-survey `survey → end` workflow and hands the deterministic bundle to the same
+  installer used for imported promotion artifacts.
+- Authored release provenance is an idempotent many-to-many relation between immutable
+  Revisions and release digests. Imported releases can have no local Revision.
+- Active, ready, and blocked release states are derived from the selected Activation
+  and current Environment Bindings. Rollback reuses the optimistic, audited Activation
+  command and is offered only for a previously active, currently compatible release.
 - Each Workflow Command takes a transaction-scoped PostgreSQL advisory lock for its
   tenant/idempotency key. Concurrent retries therefore return one stored result.
 - Workflow Instance `Version` is an EF concurrency token and is returned as an ETag.
@@ -210,7 +281,15 @@ use signed RS256 bearer tokens and the real JWT middleware to cover missing iden
 permission denial, organization isolation, and authenticated production approval.
 The WorkOS Emulate proof additionally runs the pinned emulator on a random port and
 walks interactive PKCE login, code exchange through `WorkOS.net`, cookie-backed bearer
-validation, logout, and the exact author/operator/approver permission sets.
+validation, logout, the exact author/operator/approver permission sets, and real M2M
+client-credentials tokens. Machine promotion proves routine scoped access, denied
+production approval, and success through the distinct approval principal.
+The authoring tracer proves author save and checkpoint, release assembly, authenticated
+production approval, and operator completion in one PostgreSQL-backed flow. A real
+Chromium feature proof covers the Creator's draft/revision/release states and login
+recovery through its public feature interface. The provenance tracer additionally
+proves tenant isolation, lineage, readiness derivation, audit attribution, and
+version-checked rollback; real Chromium proves the Managed UI confirmation flow.
 
 ```bash
 dotnet test dotnet/tests/Kajay.Workflow.Host.Tests
@@ -223,4 +302,7 @@ dotnet test dotnet/tests/Kajay.Workflow.Host.Tests
 - [Definition promotion decision](./adr/0036-definition-release-promotion.md)
 - [WorkOS identity decision](./adr/0037-workos-authenticated-workflow-host.md)
 - [WorkOS Emulate decision](./adr/0038-workos-emulate-local-authentication.md)
+- [Managed authoring decision](./adr/0039-managed-definition-authoring-lifecycle.md)
+- [Promotion CLI and machine identity decision](./adr/0040-promotion-cli-and-workos-machine-identity.md)
+- [Managed release history and provenance decision](./adr/0041-managed-release-history-and-provenance.md)
 - [Portable Response Snapshot decision](./adr/0034-portable-response-snapshot-contract.md)

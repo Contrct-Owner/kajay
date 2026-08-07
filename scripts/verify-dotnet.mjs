@@ -27,6 +27,7 @@ run('dotnet', [
   '--no-restore',
 ]);
 run(process.execPath, [resolve(repositoryRoot, 'scripts/dotnet-pack-test.mjs')]);
+run(process.execPath, [resolve(repositoryRoot, 'scripts/dotnet-cli-pack-test.mjs')]);
 
 function run(command, args) {
   execFileSync(command, args, { cwd: repositoryRoot, stdio: 'inherit' });

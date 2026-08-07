@@ -610,6 +610,12 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "kajay.cli": {
+        "type": "Project",
+        "dependencies": {
+          "System.CommandLine": "[2.0.10, )"
+        }
+      },
       "kajay.core": {
         "type": "Project"
       },
@@ -681,6 +687,12 @@
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.4, 11.0.0)",
           "Npgsql": "10.0.3"
         }
+      },
+      "System.CommandLine": {
+        "type": "CentralTransitive",
+        "requested": "[2.0.10, )",
+        "resolved": "2.0.10",
+        "contentHash": "6i1D6/U3i1f/PiXTt9pDvbJwdXEe0F2DZPup6BHzeIu5yPk/lkFzgtrJnPbj54JWUh8Y9vJeKG/TZIT6MkF8TA=="
       },
       "WorkOS.net": {
         "type": "CentralTransitive",

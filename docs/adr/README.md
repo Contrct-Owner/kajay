@@ -61,6 +61,9 @@ recorded here (status `superseded`) **and** in the
 | [0036](./0036-definition-release-promotion.md) | Promote immutable definition releases by digest | accepted | 2026-08-06 |
 | [0037](./0037-workos-authenticated-workflow-host.md) | WorkOS AuthKit owns workflow-host identity | accepted | 2026-08-06 |
 | [0038](./0038-workos-emulate-local-authentication.md) | WorkOS Emulate provides local workflow-host identity | accepted | 2026-08-06 |
+| [0039](./0039-managed-definition-authoring-lifecycle.md) | Draft, checkpoint, then assemble a Definition Release | accepted | 2026-08-06 |
+| [0040](./0040-promotion-cli-and-workos-machine-identity.md) | Promotion automation uses a CLI and scoped WorkOS machine identity | accepted | 2026-08-06 |
+| [0041](./0041-managed-release-history-and-provenance.md) | Managed release history is a host-owned derived read model | accepted | 2026-08-06 |
 
 ## Parent and related links
 

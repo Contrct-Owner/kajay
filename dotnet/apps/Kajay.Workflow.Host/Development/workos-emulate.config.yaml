@@ -41,6 +41,27 @@ organizations:
         role: kajay-approver
         status: active
 
+connectApplications:
+  - name: Kajay Promotion Automation
+    type: m2m
+    organization: Kajay Local
+    scopes:
+      - kajay:definition:manage
+      - kajay:definition:promote
+    client_id: client_kajay_local_promotion
+    client_secret: secret_kajay_local_promotion
+    audience: client_kajay_local
+  - name: Kajay Production Activation
+    type: m2m
+    organization: Kajay Local
+    scopes:
+      - kajay:definition:manage
+      - kajay:definition:promote
+      - kajay:definition:approve
+    client_id: client_kajay_local_activation
+    client_secret: secret_kajay_local_activation
+    audience: client_kajay_local
+
 roles:
   - slug: kajay-admin
     name: Kajay Administrator

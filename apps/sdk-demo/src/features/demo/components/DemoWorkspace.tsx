@@ -7,8 +7,9 @@ import { CreatorPanel } from './CreatorPanel.js';
 import { RendererPanel } from './RendererPanel.js';
 import { RuntimeResult } from './RuntimeResult.js';
 import { PersistencePanel } from './PersistencePanel.js';
+import { DefinitionAuthoringPanel } from '../../definition-authoring/index.js';
 
-type DemoView = 'renderer' | 'creator' | 'persistence';
+type DemoView = 'renderer' | 'creator' | 'persistence' | 'managed';
 
 export function DemoWorkspace({ runtime }: { readonly runtime: DemoRuntime }): ReactElement {
   const [definition, setDefinition] = useState<SurveyDefinition>();
@@ -72,8 +73,10 @@ function LoadedWorkspace({
         <RendererPanel definition={definition} runtime={runtime} />
       ) : view === 'creator' ? (
         <CreatorPanel definition={definition} runtime={runtime} onDefinition={onDefinition} />
-      ) : (
+      ) : view === 'persistence' ? (
         <PersistencePanel definition={definition} runtime={runtime} />
+      ) : (
+        <DefinitionAuthoringPanel initialDefinition={definition} />
       )}
     </main>
   );
@@ -86,7 +89,7 @@ function ViewTabs({
   readonly selected: DemoView;
   readonly onSelected: (view: DemoView) => void;
 }): ReactElement {
-  const views: readonly DemoView[] = ['renderer', 'creator', 'persistence'];
+  const views: readonly DemoView[] = ['renderer', 'creator', 'persistence', 'managed'];
   return (
     <nav className="demo-tabs" aria-label="Demo surface">
       {views.map((view) => (

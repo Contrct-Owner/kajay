@@ -38,8 +38,8 @@ services:
       WorkOS__Session__CallbackUrl: http://localhost:5082/auth/callback
       WorkOS__Session__DataProtectionKeysPath: /var/lib/kajay/data-protection
       WorkOS__Session__Enabled: "true"
-      WorkOS__Session__PostLoginRedirectUrl: http://localhost:5082/auth/session
-      WorkOS__Session__PostLogoutRedirectUrl: http://localhost:5082/health
+      WorkOS__Session__PostLoginRedirectUrl: http://localhost:4175/
+      WorkOS__Session__PostLogoutRedirectUrl: http://localhost:4175/
     volumes:
       - kajay-workflow-data-protection:/var/lib/kajay/data-protection
 

@@ -35,6 +35,24 @@ docker compose --profile typescript up --build
 Each profile publishes port 4173, so run one frontend profile at a time. Stop it with
 `docker compose --profile <profile> down`.
 
+The workflow profile adds PostgreSQL, WorkOS Emulate, the authenticated workflow host,
+and a **Managed** Creator tab while retaining both SDK comparison peers. It publishes
+the combined frontend at <http://localhost:4175>:
+
+```bash
+docker compose \
+  -f compose.yaml \
+  -f compose.workos-emulate.yaml \
+  --profile workflow up --build
+```
+
+The Managed tab auto-saves an ETag-protected Draft, checkpoints an immutable Revision,
+and asks the host to assemble the Definition Release. Its release-operations view
+traces Revision-to-release provenance, switches Environment Activation state, derives
+active/ready/blocked status from bindings, shows the management audit timeline, and
+confirms concurrency-checked rollback to a previously active release. The browser
+never constructs or interprets a `.kajay` bundle.
+
 ## Run from source
 
 Start the two APIs and frontend in separate terminals:
@@ -78,6 +96,8 @@ This is the visible integration proof; the adapter-neutral
 
 - `apps/sdk-demo/src/features/demo/` owns the frontend feature, narrow `DemoRuntime`
   interface, HTTP adapters, and comparing decorator.
+- `apps/sdk-demo/src/features/definition-authoring/` owns the authenticated managed
+  Creator feature, host HTTP adapter, external-response validation, and UI state.
 - `apps/sdk-demo-api/` owns the Node HTTP host for public `@kajay/core` operations.
 - `dotnet/apps/Kajay.Demo.Api/` owns the C# application use cases and thin HTTP
   endpoints over public `Kajay.Core` interfaces.
@@ -92,3 +112,4 @@ semantic compatibility is versioned and exhaustively proved by `conformance/v*/`
 - [Project context](../CONTEXT.md)
 - [Dual-runtime comparison decision](./adr/0033-dual-runtime-compatibility-demo.md)
 - [C# SDK decision](./adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md)
+- [Managed release history decision](./adr/0041-managed-release-history-and-provenance.md)

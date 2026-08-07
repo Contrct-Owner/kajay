@@ -13,10 +13,14 @@
     <Project Path="src/Kajay.Core/Kajay.Core.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Kajay.Cli.Tests/Kajay.Cli.Tests.csproj" />
     <Project Path="tests/Kajay.Demo.Api.Tests/Kajay.Demo.Api.Tests.csproj" />
     <Project Path="tests/Kajay.Workflow.Host.Tests/Kajay.Workflow.Host.Tests.csproj" />
     <Project Path="tests/Kajay.Core.Internal.Tests/Kajay.Core.Internal.Tests.csproj" />
     <Project Path="tests/Kajay.Core.Tests/Kajay.Core.Tests.csproj" />
     <Project Path="tests/Kajay.Conformance.Tests/Kajay.Conformance.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Kajay.Cli/Kajay.Cli.csproj" />
   </Folder>
 </Solution>

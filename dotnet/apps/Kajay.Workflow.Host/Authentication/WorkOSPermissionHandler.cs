@@ -9,10 +9,7 @@ internal sealed class WorkOSPermissionHandler
         AuthorizationHandlerContext context,
         WorkOSPermissionRequirement requirement)
     {
-        if (WorkOSClaimValues.Contains(
-            context.User,
-            WorkOSClaimValues.Permissions,
-            requirement.Permission))
+        if (WorkOSClaimValues.HasPermission(context.User, requirement.Permission))
         {
             context.Succeed(requirement);
         }

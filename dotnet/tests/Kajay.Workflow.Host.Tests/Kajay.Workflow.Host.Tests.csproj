@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../apps/Kajay.Workflow.Host/Kajay.Workflow.Host.csproj" />
+    <ProjectReference Include="../../tools/Kajay.Cli/Kajay.Cli.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -54,6 +54,67 @@ namespace Kajay.Workflow.Host.Persistence.Migrations
                     b.ToTable("activations", (string)null);
                 });
 
+            modelBuilder.Entity("Kajay.Workflow.Host.Persistence.DefinitionDraftRecord", b =>
+                {
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ManagedDefinitionName")
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("DefinitionDigest")
+                        .IsRequired()
+                        .HasMaxLength(71)
+                        .HasColumnType("character varying(71)");
+
+                    b.Property<string>("DefinitionJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("TenantId", "ManagedDefinitionName");
+
+                    b.ToTable("definition_drafts", (string)null);
+                });
+
+            modelBuilder.Entity("Kajay.Workflow.Host.Persistence.DefinitionReleaseProvenanceRecord", b =>
+                {
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ReleaseDigest")
+                        .HasColumnType("character varying(71)");
+
+                    b.Property<string>("ManagedDefinitionName")
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<long>("RevisionNumber")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LinkedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LinkedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("TenantId", "ReleaseDigest", "ManagedDefinitionName", "RevisionNumber");
+
+                    b.HasIndex("TenantId", "ManagedDefinitionName", "RevisionNumber");
+
+                    b.ToTable("definition_release_provenance", (string)null);
+                });
+
             modelBuilder.Entity("Kajay.Workflow.Host.Persistence.DefinitionReleaseRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -109,6 +170,44 @@ namespace Kajay.Workflow.Host.Persistence.Migrations
                     b.ToTable("definition_releases", (string)null);
                 });
 
+            modelBuilder.Entity("Kajay.Workflow.Host.Persistence.DefinitionRevisionRecord", b =>
+                {
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ManagedDefinitionName")
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<long>("Number")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DefinitionDigest")
+                        .IsRequired()
+                        .HasMaxLength(71)
+                        .HasColumnType("character varying(71)");
+
+                    b.Property<string>("DefinitionJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<long>("SourceDraftVersion")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("TenantId", "ManagedDefinitionName", "Number");
+
+                    b.HasIndex("TenantId", "ManagedDefinitionName", "SourceDraftVersion")
+                        .IsUnique();
+
+                    b.ToTable("definition_revisions", (string)null);
+                });
+
             modelBuilder.Entity("Kajay.Workflow.Host.Persistence.EnvironmentBindingRecord", b =>
                 {
                     b.Property<string>("TenantId")
@@ -160,6 +259,27 @@ namespace Kajay.Workflow.Host.Persistence.Migrations
                     b.HasKey("TenantId", "Key");
 
                     b.ToTable("idempotency_records", (string)null);
+                });
+
+            modelBuilder.Entity("Kajay.Workflow.Host.Persistence.ManagedDefinitionRecord", b =>
+                {
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("TenantId", "Name");
+
+                    b.ToTable("managed_definitions", (string)null);
                 });
 
             modelBuilder.Entity("Kajay.Workflow.Host.Persistence.ManagementAuditEventRecord", b =>
@@ -417,6 +537,40 @@ namespace Kajay.Workflow.Host.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("TenantId", "ReleaseDigest")
                         .HasPrincipalKey("TenantId", "Digest")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Kajay.Workflow.Host.Persistence.DefinitionDraftRecord", b =>
+                {
+                    b.HasOne("Kajay.Workflow.Host.Persistence.ManagedDefinitionRecord", null)
+                        .WithOne()
+                        .HasForeignKey("Kajay.Workflow.Host.Persistence.DefinitionDraftRecord", "TenantId", "ManagedDefinitionName")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Kajay.Workflow.Host.Persistence.DefinitionReleaseProvenanceRecord", b =>
+                {
+                    b.HasOne("Kajay.Workflow.Host.Persistence.DefinitionReleaseRecord", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "ReleaseDigest")
+                        .HasPrincipalKey("TenantId", "Digest")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Kajay.Workflow.Host.Persistence.DefinitionRevisionRecord", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "ManagedDefinitionName", "RevisionNumber")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Kajay.Workflow.Host.Persistence.DefinitionRevisionRecord", b =>
+                {
+                    b.HasOne("Kajay.Workflow.Host.Persistence.ManagedDefinitionRecord", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "ManagedDefinitionName")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

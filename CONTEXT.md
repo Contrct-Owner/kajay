@@ -28,6 +28,13 @@ published implementation is TypeScript; C# is the second runtime in development.
   `.kajay` promotion without expanding the SDK seam. WorkOS AuthKit access tokens now
   supply its organization boundary, actor attribution, permissions, and production
   approval authority; a Compose overlay provides seeded WorkOS Emulate login locally.
+  Managed Definition Drafts now auto-save with optimistic concurrency, checkpoint to
+  immutable Revisions, and assemble deterministic Definition Releases in the host.
+  The separately packaged `kajay` .NET tool promotes those immutable releases using
+  short-lived, organization-scoped WorkOS M2M tokens and a distinct production
+  approval credential. The Managed UI now exposes revision and release history,
+  explicit authored provenance, Environment Activation and readiness, management
+  audit, and concurrency-checked rollback without expanding the SDK seam.
 
 ## Topic index
 
@@ -44,7 +51,7 @@ published implementation is TypeScript; C# is the second runtime in development.
 | Runtime compatibility | v1: TypeScript 1.x; v2: two candidate adapters passing | Jarod | [Conformance v1](./conformance/v1/README.md), [v2](./conformance/v2/README.md) |
 | Native C# SDK | implementation underway | Jarod | [ADR-0030](./docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md), [parity §Q](./docs/feature-parity-checklist.md#q--c-headless-sdk) |
 | SDK demos | dual-runtime comparison active | Jarod | [Demo guide](./docs/sdk-demos.md), [ADR-0033](./docs/adr/0033-dual-runtime-compatibility-demo.md) |
-| Workflow host | durable authenticated foundation active | Jarod | [Workflow host guide](./docs/workflow-host.md), [ADR-0035](./docs/adr/0035-workflow-host-owns-durable-orchestration.md), [ADR-0036](./docs/adr/0036-definition-release-promotion.md), [ADR-0037](./docs/adr/0037-workos-authenticated-workflow-host.md), [ADR-0038](./docs/adr/0038-workos-emulate-local-authentication.md) |
+| Workflow host | durable authenticated foundation active | Jarod | [Workflow host guide](./docs/workflow-host.md), [ADR-0035](./docs/adr/0035-workflow-host-owns-durable-orchestration.md), [ADR-0036](./docs/adr/0036-definition-release-promotion.md), [ADR-0037](./docs/adr/0037-workos-authenticated-workflow-host.md), [ADR-0038](./docs/adr/0038-workos-emulate-local-authentication.md), [ADR-0039](./docs/adr/0039-managed-definition-authoring-lifecycle.md), [ADR-0040](./docs/adr/0040-promotion-cli-and-workos-machine-identity.md), [ADR-0041](./docs/adr/0041-managed-release-history-and-provenance.md) |
 | Publishing and licensing | 1.0.0 published | Jarod | [ADR-0029](./docs/adr/0029-release-walkthrough.md) |
 | Machine-readable documentation | preview | Jarod | [ADR-0025](./docs/adr/0025-read-only-documentation-mcp.md) |
 
@@ -83,9 +90,16 @@ explicitly. The exact dependency and export rules are build-failing checks.
   semantics.
 - **Managed Definition** — the logical authoring document whose revisions and releases
   are governed by a host.
-- **Definition Revision** — an editable saved state of a Managed Definition.
-- **Definition Release** — an immutable, content-addressed artifact created from one
-  Definition Revision and its complete dependency closure.
+- **Definition Draft** — the one mutable, canonical, concurrency-checked working state
+  of a Managed Definition; it is not promotable.
+- **Definition Revision** — an immutable checkpoint of one Definition Draft version and
+  the only authoring state from which the host assembles a release.
+- **Definition Release** — an immutable, content-addressed artifact assembled from an
+  authored Revision or imported from another host, with its complete dependency
+  closure. Identical authored Revisions may link to the same release digest.
+- **Release Provenance** — the explicit host-owned relation from an authored immutable
+  Revision to a content-addressed Definition Release. An imported release may have no
+  local Revision provenance.
 - **Workflow Definition** — the immutable graph inside a Definition Release that
   names steps and their transitions; it contains no live execution state.
 - **Workflow Step** — one named node in a Workflow Definition. The initial host
@@ -139,6 +153,12 @@ explicitly. The exact dependency and export rules are build-failing checks.
 - **Authenticated Principal** — a validated WorkOS access-token identity. Its
   organization is the host tenant boundary, its subject is the audit actor, and its
   permissions authorize workflow and promotion capabilities.
+- **Machine Principal** — a WorkOS M2M client-credentials identity whose `sub` is the
+  audit actor, whose `org_id` is the tenant, and whose space-delimited scopes satisfy
+  the same stable Kajay permissions as a human principal.
+- **Promotion Runner** — the ephemeral `kajay promote` process that transfers one
+  immutable release between authenticated hosts; it owns no durable state and is not
+  a workflow host or control plane.
 - **Publication hold** — the binding current decision to keep packages unpublished;
   it deliberately does not settle brand, scope, license, version, or release tooling.
 - **Documentation MCP server** — the read-only `kajay.io/mcp` adapter that exposes
@@ -178,6 +198,12 @@ meaning of each test seam.
   bearer authentication and permission policies.
 - 2026-08-06: Added a pinned WorkOS Emulate Compose overlay, seeded separation-of-duty
   identities, and an opt-in host browser session that reuses bearer validation.
+- 2026-08-06: Added concurrency-checked Managed Definition Drafts, immutable Revision
+  checkpoints, server-side release assembly, and the authenticated Creator workflow.
+- 2026-08-06: Added the packable `kajay` promotion CLI, scoped WorkOS M2M
+  authorization, and separate routine-promotion and production-approval credentials.
+- 2026-08-06: Added the Managed release-history and provenance read model, derived
+  Environment readiness, audit timeline, and version-checked rollback controls.
 - 2026-08-05: Completed the C# adapter's v1 definition operation: all seven cases and
   their fixed-point canonicalization rule pass through the public definition seam.
 - 2026-08-05: Recorded the published TypeScript 1.0.0 posture and established the

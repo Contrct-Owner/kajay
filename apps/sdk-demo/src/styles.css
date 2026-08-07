@@ -33,8 +33,69 @@ button { font: inherit; }
 .runtime-result pre { overflow: auto; max-height: 20rem; background: #14221b; color: #dff5e7; padding: 1rem; border-radius: 0.5rem; }
 .load-state { background: white; border-left: 4px solid #276248; padding: 1rem; }
 .creator-panel .kajay-creator { min-height: 38rem; }
+.managed-heading { display: flex; align-items: start; justify-content: space-between; gap: 1rem; }
+.managed-heading h2 { margin: 0; }
+.managed-heading > code { color: #276248; background: #edf3ee; padding: 0.45rem 0.65rem; border-radius: 0.4rem; }
+.authoring-login { border-left: 4px solid #b52e4c; padding: 0.75rem 1rem; background: #fbeef1; }
+.authoring-status { display: flex; flex-wrap: wrap; gap: 0.6rem 1.2rem; margin: 1rem 0; padding: 0.75rem 1rem; background: #edf3ee; border-radius: 0.6rem; }
+.authoring-status [role='alert'] { color: #7b2638; width: 100%; }
+.release-actions { display: flex; flex-wrap: wrap; align-items: end; gap: 0.75rem; margin-top: 1rem; }
+.release-actions label { display: grid; gap: 0.25rem; color: #52645b; font-size: 0.85rem; }
+.release-actions input { min-width: 12rem; border: 1px solid #b5c8ba; border-radius: 0.4rem; padding: 0.6rem; font: inherit; }
+.release-actions button { border: 1px solid #276248; border-radius: 0.6rem; background: #276248; color: white; padding: 0.65rem 1rem; cursor: pointer; }
+.release-actions button:disabled { cursor: not-allowed; opacity: 0.5; }
+.provenance-panel { margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #d7e2d9; }
+.provenance-heading { display: flex; align-items: end; justify-content: space-between; gap: 1.5rem; }
+.provenance-heading h3, .provenance-card h4, .activation-summary h4 { margin: 0; }
+.provenance-heading form { display: grid; grid-template-columns: minmax(9rem, 1fr) auto auto; gap: 0.45rem; align-items: end; }
+.provenance-heading form label { grid-column: 1 / -1; color: #52645b; font-size: 0.8rem; font-weight: 700; }
+.provenance-heading input { border: 1px solid #b5c8ba; border-radius: 0.45rem; padding: 0.58rem; font: inherit; }
+.provenance-heading button, .release-history button { border: 1px solid #276248; border-radius: 0.45rem; padding: 0.58rem 0.75rem; color: #276248; background: white; cursor: pointer; }
+.provenance-heading button[type='submit'], .rollback-confirm button:last-child { color: white; background: #276248; }
+.provenance-heading button:disabled, .release-history button:disabled { cursor: not-allowed; opacity: 0.5; }
+.provenance-error { color: #7b2638; border-left: 4px solid #b52e4c; padding: 0.75rem 1rem; background: #fbeef1; }
+.provenance-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(17rem, 0.6fr); gap: 1rem; margin-top: 1.25rem; }
+.activation-summary, .provenance-card { min-width: 0; padding: 1rem; border: 1px solid #d7e2d9; border-radius: 0.8rem; background: #f8faf8; }
+.activation-summary { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 1rem; align-items: center; }
+.activation-summary dl { display: flex; flex-wrap: wrap; justify-content: end; gap: 0.75rem 1.5rem; margin: 0; }
+.activation-summary dl div { display: grid; gap: 0.15rem; }
+.activation-summary dt { color: #607168; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 0.08em; }
+.activation-summary dd { margin: 0; font-weight: 650; }
+.provenance-card > header { display: flex; justify-content: space-between; align-items: start; gap: 1rem; margin-bottom: 0.8rem; }
+.provenance-card > header > span { color: #276248; background: #e4f0e8; padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 750; }
+.release-history { grid-column: 1 / -1; }
+.history-table-scroll { overflow-x: auto; }
+.release-history table { width: 100%; border-collapse: collapse; text-align: left; }
+.release-history th { color: #607168; font-size: 0.72rem; letter-spacing: 0.07em; text-transform: uppercase; }
+.release-history th, .release-history td { padding: 0.7rem; border-bottom: 1px solid #d7e2d9; vertical-align: top; }
+.release-history td:first-child { display: grid; gap: 0.25rem; }
+.release-history td code { color: #607168; font-size: 0.75rem; }
+.release-history td small { display: block; margin-top: 0.3rem; color: #7b2638; }
+.promotion-status { display: inline-block; padding: 0.22rem 0.5rem; border-radius: 999px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
+.promotion-active { color: #fff; background: #276248; }
+.promotion-ready { color: #1f6041; background: #d9eee1; }
+.promotion-blocked { color: #8a273d; background: #f6dfe4; }
+.rollback-confirm { display: grid; min-width: 13rem; gap: 0.35rem; }
+.rollback-confirm span { color: #52645b; font-size: 0.78rem; }
+.revision-list, .audit-history ol { margin: 0; padding: 0; list-style: none; }
+.revision-list { display: grid; gap: 0.6rem; }
+.revision-list li { display: grid; grid-template-columns: 1fr auto; gap: 0.2rem 0.7rem; padding: 0.65rem; background: white; border-radius: 0.5rem; }
+.revision-list li span, .revision-list li time, .revision-list li small { color: #607168; font-size: 0.75rem; }
+.revision-list li code { font-size: 0.72rem; }
+.audit-history ol { display: grid; gap: 0.1rem; }
+.audit-history li { display: grid; grid-template-columns: auto 1fr; gap: 0.65rem; padding: 0.55rem 0; }
+.audit-history li div { display: grid; gap: 0.15rem; }
+.audit-history li span, .audit-history li code { color: #607168; font-size: 0.74rem; }
+.audit-marker { width: 0.65rem; height: 0.65rem; margin-top: 0.25rem; border: 2px solid #276248; border-radius: 50%; background: white; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 @media (max-width: 640px) {
   .app-header { flex-direction: column; gap: 0.75rem; }
   .app-shell { width: min(100% - 1rem, 1180px); padding-top: 1rem; }
+  .provenance-heading, .activation-summary { align-items: stretch; flex-direction: column; }
+  .provenance-heading form { grid-template-columns: 1fr 1fr; }
+  .provenance-heading form input { grid-column: 1 / -1; }
+  .provenance-grid { grid-template-columns: 1fr; }
+  .activation-summary, .release-history { grid-column: 1; }
+  .activation-summary dl { justify-content: start; }
 }

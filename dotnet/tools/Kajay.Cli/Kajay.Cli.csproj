@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Kajay.Cli</AssemblyName>
+    <RootNamespace>Kajay.Cli</RootNamespace>
+    <PackageId>Kajay.Cli</PackageId>
+    <Version>0.1.0</Version>
+    <Title>Kajay CLI</Title>
+    <Description>Promote immutable Kajay definition releases between workflow hosts.</Description>
+    <Authors>Jarod</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Contrct-Owner/kajay</PackageProjectUrl>
+    <PackageTags>kajay;workflow;deployment;cli;dotnet-tool</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/Contrct-Owner/kajay.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>kajay</ToolCommandName>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+    <PackageReference Include="System.CommandLine" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="../../../packages/core/LICENSE" Pack="true" PackagePath="/" Link="LICENSE" />
+  </ItemGroup>
+</Project>

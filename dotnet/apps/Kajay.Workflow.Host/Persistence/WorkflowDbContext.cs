@@ -7,6 +7,15 @@ internal sealed class WorkflowDbContext(DbContextOptions<WorkflowDbContext> opti
 {
     internal DbSet<DefinitionReleaseRecord> DefinitionReleases => Set<DefinitionReleaseRecord>();
 
+    internal DbSet<ManagedDefinitionRecord> ManagedDefinitions => Set<ManagedDefinitionRecord>();
+
+    internal DbSet<DefinitionDraftRecord> DefinitionDrafts => Set<DefinitionDraftRecord>();
+
+    internal DbSet<DefinitionRevisionRecord> DefinitionRevisions => Set<DefinitionRevisionRecord>();
+
+    internal DbSet<DefinitionReleaseProvenanceRecord> DefinitionReleaseProvenance =>
+        Set<DefinitionReleaseProvenanceRecord>();
+
     internal DbSet<ActivationRecord> Activations => Set<ActivationRecord>();
 
     internal DbSet<EnvironmentBindingRecord> EnvironmentBindings =>
@@ -28,7 +37,11 @@ internal sealed class WorkflowDbContext(DbContextOptions<WorkflowDbContext> opti
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        ConfigureManagedDefinitions(modelBuilder);
+        ConfigureDefinitionDrafts(modelBuilder);
+        ConfigureDefinitionRevisions(modelBuilder);
         ConfigureDefinitionReleases(modelBuilder);
+        ConfigureDefinitionReleaseProvenance(modelBuilder);
         ConfigureActivations(modelBuilder);
         ConfigureEnvironmentBindings(modelBuilder);
         ConfigureWorkflowInstances(modelBuilder);
@@ -37,6 +50,56 @@ internal sealed class WorkflowDbContext(DbContextOptions<WorkflowDbContext> opti
         ConfigureManagementAuditEvents(modelBuilder);
         ConfigureOutbox(modelBuilder);
         ConfigureScheduledActions(modelBuilder);
+    }
+
+    private static void ConfigureManagedDefinitions(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<ManagedDefinitionRecord>();
+        _ = entity.ToTable("managed_definitions");
+        _ = entity.HasKey(record => new { record.TenantId, record.Name });
+        _ = entity.Property(record => record.Name).HasMaxLength(128);
+    }
+
+    private static void ConfigureDefinitionDrafts(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<DefinitionDraftRecord>();
+        _ = entity.ToTable("definition_drafts");
+        _ = entity.HasKey(record => new { record.TenantId, record.ManagedDefinitionName });
+        _ = entity.Property(record => record.DefinitionJson).HasColumnType("jsonb");
+        _ = entity.Property(record => record.DefinitionDigest).HasMaxLength(71);
+        _ = entity.Property(record => record.Version).IsConcurrencyToken();
+        _ = entity.HasOne<ManagedDefinitionRecord>().WithOne()
+            .HasForeignKey<DefinitionDraftRecord>(record => new
+            {
+                record.TenantId,
+                Name = record.ManagedDefinitionName,
+            }).OnDelete(DeleteBehavior.Cascade);
+    }
+
+    private static void ConfigureDefinitionRevisions(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<DefinitionRevisionRecord>();
+        _ = entity.ToTable("definition_revisions");
+        _ = entity.HasKey(record => new
+        {
+            record.TenantId,
+            record.ManagedDefinitionName,
+            record.Number,
+        });
+        _ = entity.HasIndex(record => new
+        {
+            record.TenantId,
+            record.ManagedDefinitionName,
+            record.SourceDraftVersion,
+        }).IsUnique();
+        _ = entity.Property(record => record.DefinitionJson).HasColumnType("jsonb");
+        _ = entity.Property(record => record.DefinitionDigest).HasMaxLength(71);
+        _ = entity.HasOne<ManagedDefinitionRecord>().WithMany()
+            .HasForeignKey(record => new
+            {
+                record.TenantId,
+                Name = record.ManagedDefinitionName,
+            }).OnDelete(DeleteBehavior.Restrict);
     }
 
     private static void ConfigureDefinitionReleases(ModelBuilder modelBuilder)
@@ -56,6 +119,30 @@ internal sealed class WorkflowDbContext(DbContextOptions<WorkflowDbContext> opti
         _ = entity.Property(record => record.Digest).HasMaxLength(71);
         _ = entity.Property(record => record.ManagedDefinitionName).HasMaxLength(128);
         _ = entity.Property(record => record.VersionLabel).HasMaxLength(128);
+    }
+
+    private static void ConfigureDefinitionReleaseProvenance(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<DefinitionReleaseProvenanceRecord>();
+        _ = entity.ToTable("definition_release_provenance");
+        _ = entity.HasKey(record => new
+        {
+            record.TenantId,
+            record.ReleaseDigest,
+            record.ManagedDefinitionName,
+            record.RevisionNumber,
+        });
+        _ = entity.HasOne<DefinitionReleaseRecord>().WithMany()
+            .HasForeignKey(record => new { record.TenantId, Digest = record.ReleaseDigest })
+            .HasPrincipalKey(record => new { record.TenantId, record.Digest })
+            .OnDelete(DeleteBehavior.Restrict);
+        _ = entity.HasOne<DefinitionRevisionRecord>().WithMany()
+            .HasForeignKey(record => new
+            {
+                record.TenantId,
+                record.ManagedDefinitionName,
+                Number = record.RevisionNumber,
+            }).OnDelete(DeleteBehavior.Restrict);
     }
 
     private static void ConfigureActivations(ModelBuilder modelBuilder)

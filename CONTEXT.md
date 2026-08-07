@@ -41,7 +41,10 @@ published implementation is TypeScript; C# is the second runtime in development.
   release without either SDK learning deployment policy.
   Environments are now first-class, versioned host resources with configurable
   approval policy and write-only, concurrency-checked bindings; the Managed UI owns
-  their administration and installed-release preflight.
+  their administration and installed-release preflight. Elsa 3.7.1 now executes the
+  host-owned workflow graph with PostgreSQL persistence and clustered Quartz delays.
+  Survey acceptance creates immutable Submissions and a durable resume outbox; Kajay
+  projections, audit, and stable effect delivery remain host-owned.
 
 ## Topic index
 
@@ -58,7 +61,7 @@ published implementation is TypeScript; C# is the second runtime in development.
 | Runtime compatibility | v1: TypeScript 1.x; v2: two candidate adapters passing | Jarod | [Conformance v1](./conformance/v1/README.md), [v2](./conformance/v2/README.md) |
 | Native C# SDK | implementation underway | Jarod | [ADR-0030](./docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md), [parity §Q](./docs/feature-parity-checklist.md#q--c-headless-sdk) |
 | SDK demos | dual-runtime comparison active | Jarod | [Demo guide](./docs/sdk-demos.md), [ADR-0033](./docs/adr/0033-dual-runtime-compatibility-demo.md) |
-| Workflow host | durable authenticated foundation active | Jarod | [Workflow host guide](./docs/workflow-host.md), [ADR-0035](./docs/adr/0035-workflow-host-owns-durable-orchestration.md), [ADR-0036](./docs/adr/0036-definition-release-promotion.md), [ADR-0037](./docs/adr/0037-workos-authenticated-workflow-host.md), [ADR-0038](./docs/adr/0038-workos-emulate-local-authentication.md), [ADR-0039](./docs/adr/0039-managed-definition-authoring-lifecycle.md), [ADR-0040](./docs/adr/0040-promotion-cli-and-workos-machine-identity.md), [ADR-0041](./docs/adr/0041-managed-release-history-and-provenance.md), [ADR-0042](./docs/adr/0042-first-class-environment-catalog.md) |
+| Workflow host | durable authenticated foundation active | Jarod | [Workflow host guide](./docs/workflow-host.md), [ADR-0035](./docs/adr/0035-workflow-host-owns-durable-orchestration.md), [ADR-0036](./docs/adr/0036-definition-release-promotion.md), [ADR-0037](./docs/adr/0037-workos-authenticated-workflow-host.md), [ADR-0038](./docs/adr/0038-workos-emulate-local-authentication.md), [ADR-0039](./docs/adr/0039-managed-definition-authoring-lifecycle.md), [ADR-0040](./docs/adr/0040-promotion-cli-and-workos-machine-identity.md), [ADR-0041](./docs/adr/0041-managed-release-history-and-provenance.md), [ADR-0042](./docs/adr/0042-first-class-environment-catalog.md), [ADR-0043](./docs/adr/0043-elsa-host-workflow-engine.md) |
 | Publishing and licensing | 1.0.0 published | Jarod | [ADR-0029](./docs/adr/0029-release-walkthrough.md) |
 | Machine-readable documentation | preview | Jarod | [ADR-0025](./docs/adr/0025-read-only-documentation-mcp.md) |
 
@@ -92,6 +95,10 @@ explicitly. The exact dependency and export rules are build-failing checks.
 - **Response Snapshot** — a versioned, definition-bound, portable representation of a
   Response at one instant. It contains survey runtime state but no host persistence,
   tenancy, authorization, or workflow metadata.
+- **Survey Attempt** — one bounded opportunity to complete a survey step. It owns a
+  mutable Response until acceptance closes the attempt.
+- **Survey Submission** — the immutable acceptance of one completed Survey Attempt.
+  It preserves the exact Response Snapshot that downstream workflow decisions use.
 - **Definition Digest** — the `sha256:` identity of one canonical Definition. A
   Response Snapshot names it so state cannot be restored against different survey
   semantics.
@@ -156,10 +163,12 @@ explicitly. The exact dependency and export rules are build-failing checks.
   Command or worker transition; it is inspectable history, not the source of truth.
 - **Effect** — external work requested by a Workflow Instance and delivered at least
   once under a stable identity after the state transaction commits.
-- **Scheduled Action** — a durable absolute-UTC deadline that submits an idempotent
-  Workflow Command when due.
+- **Scheduled Action** — Kajay's operational projection of a durable absolute-UTC Elsa
+  deadline; clustered Quartz owns scheduling and resumption.
 - **Outbox Message** — the durable delivery record for an Effect, committed atomically
   with Workflow Instance state and its Workflow Audit Event.
+- **Workflow Resume** — a stable, leased outbox record that bridges committed Kajay
+  instance creation, Submission, or Effect receipt to idempotent Elsa execution.
 - **Authenticated Principal** — a validated WorkOS access-token identity. Its
   organization is the host tenant boundary, its subject is the audit actor, and its
   permissions authorize workflow and promotion capabilities.
@@ -198,6 +207,10 @@ meaning of each test seam.
 
 ## Change log
 
+- 2026-08-07: Distinguished mutable Survey Attempts from immutable Survey
+  Submissions so workflow progress never overwrites accepted respondent history.
+- 2026-08-07: Replaced the tracer state machine with embedded Elsa execution,
+  PostgreSQL-backed clustered Quartz delays, and durable Survey/Effect resume records.
 - 2026-08-07: Made Environments authoritative versioned promotion targets, moved
   approval to Environment policy, and separated write-only binding administration.
 - 2026-08-06: Defined the response-persistence and managed-definition promotion

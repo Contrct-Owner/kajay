@@ -75,4 +75,18 @@ internal sealed class IdempotencyCoordinator(WorkflowDbContext database, TimePro
             CreatedAt = timeProvider.GetUtcNow(),
         });
     }
+
+    internal Task UpdateResultAsync<T>(
+        string tenantId,
+        string key,
+        T result,
+        CancellationToken cancellationToken)
+    {
+        string json = JsonSerializer.Serialize(result, WorkflowJson.Options);
+        return database.IdempotencyRecords
+            .Where(record => record.TenantId == tenantId && record.Key == key)
+            .ExecuteUpdateAsync(
+                update => update.SetProperty(record => record.ResultJson, json),
+                cancellationToken);
+    }
 }

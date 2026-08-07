@@ -2,17 +2,17 @@ using Microsoft.Extensions.Options;
 
 namespace Kajay.Workflow.Host.Delivery;
 
-internal sealed class ScheduledActionDispatcher(
+internal sealed class WorkflowResumeDispatcher(
     IServiceScopeFactory scopeFactory,
     TimeProvider timeProvider,
     IOptions<WorkflowWorkerOptions> options,
-    ILogger<ScheduledActionDispatcher> logger) : BackgroundService
+    ILogger<WorkflowResumeDispatcher> logger) : BackgroundService
 {
-    private static readonly Action<ILogger, string, Exception?> ActionFailed =
-        LoggerMessage.Define<string>(
+    private static readonly Action<ILogger, Guid, Exception?> ResumeFailed =
+        LoggerMessage.Define<Guid>(
             LogLevel.Warning,
-            new EventId(1, nameof(ActionFailed)),
-            "Scheduled workflow action {ActionId} failed");
+            new EventId(1, nameof(ResumeFailed)),
+            "Workflow resume {ResumeId} failed");
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -29,35 +29,32 @@ internal sealed class ScheduledActionDispatcher(
 
     private async Task<int> ProcessBatchAsync(CancellationToken cancellationToken)
     {
-        IReadOnlyList<ScheduledActionLease> leases;
+        IReadOnlyList<WorkflowResumeLease> claimed;
         await using (AsyncServiceScope scope = scopeFactory.CreateAsyncScope())
         {
-            leases = await scope.ServiceProvider.GetRequiredService<ScheduledActionLeaseStore>()
+            claimed = await scope.ServiceProvider.GetRequiredService<WorkflowResumeLeaseStore>()
                 .ClaimAsync(cancellationToken).ConfigureAwait(false);
         }
-        foreach (ScheduledActionLease lease in leases)
+        foreach (WorkflowResumeLease lease in claimed)
         {
             await ProcessAsync(lease, cancellationToken).ConfigureAwait(false);
         }
-        return leases.Count;
+        return claimed.Count;
     }
 
     private async Task ProcessAsync(
-        ScheduledActionLease lease,
+        WorkflowResumeLease lease,
         CancellationToken cancellationToken)
     {
         try
         {
             await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
-            await scope.ServiceProvider.GetRequiredService<WorkflowWorkerApplication>()
-                .CompleteScheduledActionAsync(lease, cancellationToken).ConfigureAwait(false);
+            await scope.ServiceProvider.GetRequiredService<WorkflowResumeProcessor>()
+                .ProcessAsync(lease, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            ActionFailed(logger, lease.ActionId, exception);
-            await using AsyncServiceScope failureScope = scopeFactory.CreateAsyncScope();
-            await failureScope.ServiceProvider.GetRequiredService<ScheduledActionLeaseStore>()
-                .FailAsync(lease, exception, cancellationToken).ConfigureAwait(false);
+            ResumeFailed(logger, lease.RecordId, exception);
         }
     }
 }

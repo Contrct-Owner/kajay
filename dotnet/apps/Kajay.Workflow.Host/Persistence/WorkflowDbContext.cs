@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Kajay.Workflow.Host.Persistence;
 
-internal sealed class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options)
+internal sealed partial class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options)
     : DbContext(options)
 {
     internal DbSet<DefinitionReleaseRecord> DefinitionReleases => Set<DefinitionReleaseRecord>();
@@ -28,6 +28,10 @@ internal sealed class WorkflowDbContext(DbContextOptions<WorkflowDbContext> opti
     internal DbSet<WorkflowAuditEventRecord> WorkflowAuditEvents =>
         Set<WorkflowAuditEventRecord>();
 
+    internal DbSet<SurveySubmissionRecord> SurveySubmissions => Set<SurveySubmissionRecord>();
+
+    internal DbSet<WorkflowResumeRecord> WorkflowResumes => Set<WorkflowResumeRecord>();
+
     internal DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
 
     internal DbSet<ManagementAuditEventRecord> ManagementAuditEvents =>
@@ -48,6 +52,8 @@ internal sealed class WorkflowDbContext(DbContextOptions<WorkflowDbContext> opti
         ConfigureActivations(modelBuilder);
         ConfigureEnvironmentBindings(modelBuilder);
         ConfigureWorkflowInstances(modelBuilder);
+        ConfigureSurveySubmissions(modelBuilder);
+        ConfigureWorkflowResumes(modelBuilder);
         ConfigureAuditEvents(modelBuilder);
         ConfigureIdempotency(modelBuilder);
         ConfigureManagementAuditEvents(modelBuilder);
@@ -192,23 +198,6 @@ internal sealed class WorkflowDbContext(DbContextOptions<WorkflowDbContext> opti
         _ = entity.Property(record => record.Name).HasMaxLength(128);
         _ = entity.Property(record => record.Reference).HasMaxLength(2048);
         _ = entity.Property(record => record.Version).IsConcurrencyToken();
-        _ = entity.HasOne<EnvironmentRecord>().WithMany()
-            .HasForeignKey(record => new { record.TenantId, Name = record.EnvironmentName })
-            .OnDelete(DeleteBehavior.Restrict);
-    }
-
-    private static void ConfigureWorkflowInstances(ModelBuilder modelBuilder)
-    {
-        var entity = modelBuilder.Entity<WorkflowInstanceRecord>();
-        _ = entity.ToTable("workflow_instances");
-        _ = entity.HasKey(record => new { record.TenantId, record.Id });
-        _ = entity.Property(record => record.Version).IsConcurrencyToken();
-        _ = entity.Property(record => record.ResponseSnapshotJson).HasColumnType("jsonb");
-        _ = entity.HasIndex(record => new { record.TenantId, record.Status, record.UpdatedAt });
-        _ = entity.HasOne<DefinitionReleaseRecord>().WithMany()
-            .HasForeignKey(record => new { record.TenantId, Digest = record.ReleaseDigest })
-            .HasPrincipalKey(record => new { record.TenantId, record.Digest })
-            .OnDelete(DeleteBehavior.Restrict);
         _ = entity.HasOne<EnvironmentRecord>().WithMany()
             .HasForeignKey(record => new { record.TenantId, Name = record.EnvironmentName })
             .OnDelete(DeleteBehavior.Restrict);

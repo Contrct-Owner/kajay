@@ -3,6 +3,7 @@ using System;
 using Kajay.Workflow.Host.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kajay.Workflow.Host.Persistence.Migrations
 {
     [DbContext(typeof(WorkflowDbContext))]
-    partial class WorkflowDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260807154414_AddSurveySubmissions")]
+    partial class AddSurveySubmissions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -633,75 +636,6 @@ namespace Kajay.Workflow.Host.Persistence.Migrations
                     b.ToTable("workflow_instances", (string)null);
                 });
 
-            modelBuilder.Entity("Kajay.Workflow.Host.Persistence.WorkflowResumeRecord", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Attempts")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("AvailableAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DispatchId")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("Kind")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.Property<string>("LastError")
-                        .HasMaxLength(2048)
-                        .HasColumnType("character varying(2048)");
-
-                    b.Property<Guid?>("LeaseToken")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset?>("LeaseUntil")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("StepKey")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
-                    b.Property<Guid?>("SubmissionId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("WorkflowInstanceId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Status", "AvailableAt");
-
-                    b.HasIndex("TenantId", "DispatchId")
-                        .IsUnique();
-
-                    b.HasIndex("TenantId", "WorkflowInstanceId");
-
-                    b.ToTable("workflow_resumes", (string)null);
-                });
-
             modelBuilder.Entity("Kajay.Workflow.Host.Persistence.ActivationRecord", b =>
                 {
                     b.HasOne("Kajay.Workflow.Host.Persistence.EnvironmentRecord", null)
@@ -782,15 +716,6 @@ namespace Kajay.Workflow.Host.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("TenantId", "ReleaseDigest")
                         .HasPrincipalKey("TenantId", "Digest")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Kajay.Workflow.Host.Persistence.WorkflowResumeRecord", b =>
-                {
-                    b.HasOne("Kajay.Workflow.Host.Persistence.WorkflowInstanceRecord", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId", "WorkflowInstanceId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

@@ -5,12 +5,14 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Testcontainers.PostgreSql;
 
 namespace Kajay.Workflow.Host.Tests;
 
 public sealed class WorkflowHostFixture : IAsyncLifetime
 {
+    private readonly ILoggerFactory _loggerFactory = LoggerFactory.Create(_ => { });
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18-alpine")
         .WithDatabase("kajay_tests")
         .WithUsername("kajay")
@@ -26,6 +28,7 @@ public sealed class WorkflowHostFixture : IAsyncLifetime
         IWorkflowEffectHandler? effectHandler = null,
         int maximumAttempts = 8)
     {
+        Quartz.Logging.LogContext.SetCurrentLogProvider(_loggerFactory);
         var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             _ = builder.UseSetting("ConnectionStrings:Workflow", _postgres.GetConnectionString());
@@ -52,6 +55,7 @@ public sealed class WorkflowHostFixture : IAsyncLifetime
     public async Task InitializeAsync()
     {
         await _postgres.StartAsync().ConfigureAwait(false);
+        Quartz.Logging.LogContext.SetCurrentLogProvider(_loggerFactory);
         _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             _ = builder.UseSetting("ConnectionStrings:Workflow", _postgres.GetConnectionString());
@@ -69,6 +73,7 @@ public sealed class WorkflowHostFixture : IAsyncLifetime
             await _factory.DisposeAsync().ConfigureAwait(false);
         }
         await _postgres.DisposeAsync().ConfigureAwait(false);
+        _loggerFactory.Dispose();
     }
 
     private static void ConfigureWorkOS(IWebHostBuilder builder)
@@ -78,8 +83,12 @@ public sealed class WorkflowHostFixture : IAsyncLifetime
         _ = builder.UseSetting("WorkOS:Issuer", TestTokenIssuer.Issuer);
     }
 
-    private static void ConfigureAuthentication(IServiceCollection services)
+    private void ConfigureAuthentication(IServiceCollection services)
     {
+        // Quartz.NET's logging bridge is process-global. Test replicas therefore share an
+        // externally owned logger factory that remains valid until the collection is disposed.
+        services.RemoveAll<ILoggerFactory>();
+        services.AddSingleton(_loggerFactory);
         services.PostConfigure<JwtBearerOptions>(
             JwtBearerDefaults.AuthenticationScheme,
             TestTokenIssuer.Instance.Configure);

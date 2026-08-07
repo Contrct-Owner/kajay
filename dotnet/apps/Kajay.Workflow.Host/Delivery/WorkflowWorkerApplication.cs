@@ -8,11 +8,10 @@ namespace Kajay.Workflow.Host.Delivery;
 internal sealed class WorkflowWorkerApplication(
     WorkflowDbContext database,
     WorkflowReleaseResolver releases,
-    WorkflowStepEntry stepEntry,
     WorkflowAudit audit,
     TimeProvider timeProvider)
 {
-    internal async Task CompleteEffectAsync(
+    internal async Task<Guid> CompleteEffectAsync(
         OutboxLease lease,
         CancellationToken cancellationToken)
     {
@@ -42,55 +41,28 @@ internal sealed class WorkflowWorkerApplication(
         message.DeliveredAt = now;
         message.LeaseToken = null;
         message.LeaseUntil = null;
-        stepEntry.Enter(instance, release, step.Next!, now);
+        var resume = new WorkflowResumeRecord
+        {
+            Id = Guid.CreateVersion7(),
+            TenantId = instance.TenantId,
+            WorkflowInstanceId = instance.Id,
+            DispatchId = $"effect:{message.EffectId}",
+            Kind = "effect",
+            StepKey = step.Key,
+            Status = "pending",
+            AvailableAt = now,
+            CreatedAt = now,
+        };
+        database.WorkflowResumes.Add(resume);
         Touch(instance, now);
         audit.Append(instance, "effect-delivered", new
         {
             effectId = message.EffectId,
             effectType = message.EffectType,
-            nextStepKey = instance.ActiveStepKey,
+            nextStepKey = step.Next,
         }, "workflow-worker", now);
         await database.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-    }
-
-    internal async Task CompleteScheduledActionAsync(
-        ScheduledActionLease lease,
-        CancellationToken cancellationToken)
-    {
-        ScheduledActionRecord action = await database.ScheduledActions.SingleOrDefaultAsync(
-            item => item.Id == lease.ActionRecordId
-                && item.LeaseToken == lease.LeaseToken
-                && item.Status == "leased",
-            cancellationToken).ConfigureAwait(false)
-            ?? throw new InvalidOperationException("The scheduled-action lease is no longer current.");
-        WorkflowInstanceRecord instance = await LoadInstanceAsync(
-            action.TenantId,
-            action.WorkflowInstanceId,
-            cancellationToken).ConfigureAwait(false);
-        WorkflowRelease release = await releases.ResolveAsync(
-            instance.TenantId,
-            instance.ReleaseDigest,
-            cancellationToken).ConfigureAwait(false);
-        WorkflowStep step = RequireStep(instance, release, WorkflowStepKind.Delay, "waiting-delay");
-        if (!string.Equals(action.StepKey, step.Key, StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException("The scheduled action does not own the active delay.");
-        }
-
-        DateTimeOffset now = timeProvider.GetUtcNow();
-        action.Status = "completed";
-        action.CompletedAt = now;
-        action.LeaseToken = null;
-        action.LeaseUntil = null;
-        stepEntry.Enter(instance, release, step.Next!, now);
-        Touch(instance, now);
-        audit.Append(instance, "scheduled-action-completed", new
-        {
-            actionId = action.ActionId,
-            stepKey = step.Key,
-            nextStepKey = instance.ActiveStepKey,
-        }, "workflow-worker", now);
-        await database.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        return resume.Id;
     }
 
     private async Task<WorkflowInstanceRecord> LoadInstanceAsync(

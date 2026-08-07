@@ -27,6 +27,7 @@ internal sealed class WorkflowOperationsApplication(WorkflowDbContext database)
             .AsNoTracking()
             .Where(item => item.TenantId == tenantId && item.WorkflowInstanceId == instanceId)
             .OrderBy(item => item.CreatedAt)
+            .ThenBy(item => item.Id)
             .Select(item => new EffectDeliveryResult(
                 item.EffectId,
                 item.EffectType,
@@ -49,6 +50,21 @@ internal sealed class WorkflowOperationsApplication(WorkflowDbContext database)
                 item.LastError,
                 item.CompletedAt))
             .ToArrayAsync(cancellationToken).ConfigureAwait(false);
-        return new WorkflowWorkResult(effects, actions);
+        WorkflowResumeResult[] resumes = await database.WorkflowResumes
+            .AsNoTracking()
+            .Where(item => item.TenantId == tenantId && item.WorkflowInstanceId == instanceId)
+            .OrderBy(item => item.CreatedAt)
+            .ThenBy(item => item.Id)
+            .Select(item => new WorkflowResumeResult(
+                item.DispatchId,
+                item.Kind,
+                item.StepKey,
+                item.Status,
+                item.Attempts,
+                item.AvailableAt,
+                item.LastError,
+                item.CompletedAt))
+            .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        return new WorkflowWorkResult(effects, actions, resumes);
     }
 }

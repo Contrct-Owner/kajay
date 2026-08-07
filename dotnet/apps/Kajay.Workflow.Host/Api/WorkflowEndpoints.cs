@@ -16,6 +16,8 @@ internal static class WorkflowEndpoints
             .RequireAuthorization(KajayPolicies.WorkflowRead);
         api.MapGet("/instances/{instanceId:guid}/audit", GetAuditAsync)
             .RequireAuthorization(KajayPolicies.WorkflowRead);
+        api.MapGet("/instances/{instanceId:guid}/submissions", GetSubmissionsAsync)
+            .RequireAuthorization(KajayPolicies.WorkflowRead);
         api.MapGet("/instances/{instanceId:guid}/work", GetWorkAsync)
             .RequireAuthorization(KajayPolicies.WorkflowRead);
         api.MapPut("/instances/{instanceId:guid}/response", SaveResponseAsync)
@@ -64,6 +66,19 @@ internal static class WorkflowEndpoints
         CancellationToken cancellationToken)
     {
         IReadOnlyList<WorkflowAuditEventResult> result = await application.GetAuditAsync(
+            WorkflowRequestContext.ReadTenant(context),
+            instanceId,
+            cancellationToken).ConfigureAwait(false);
+        return Results.Ok(result);
+    }
+
+    private static async Task<IResult> GetSubmissionsAsync(
+        HttpContext context,
+        Guid instanceId,
+        WorkflowApplication application,
+        CancellationToken cancellationToken)
+    {
+        IReadOnlyList<SurveySubmissionResult> result = await application.GetSubmissionsAsync(
             WorkflowRequestContext.ReadTenant(context),
             instanceId,
             cancellationToken).ConfigureAwait(false);

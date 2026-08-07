@@ -1,3 +1,7 @@
+using Elsa.Extensions;
+using Elsa.Persistence.EFCore.Extensions;
+using Elsa.Persistence.EFCore.Modules.Management;
+using Elsa.Persistence.EFCore.Modules.Runtime;
 using Kajay.Workflow.Host.Api;
 using Kajay.Workflow.Host.Authentication;
 using Kajay.Workflow.Host.Definitions;
@@ -10,6 +14,25 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 string connectionString = builder.Configuration.GetConnectionString("Workflow")
     ?? throw new InvalidOperationException("Connection string 'Workflow' is required.");
 builder.Services.AddDbContext<WorkflowDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddElsa(elsa =>
+{
+    elsa.UseWorkflowManagement(management =>
+    {
+        management.AddActivity<KajaySurveyActivity>();
+        management.AddActivity<KajayDelayStartedActivity>();
+        management.AddActivity<KajayDelayCompletedActivity>();
+        management.AddActivity<KajayEffectActivity>();
+        management.AddActivity<KajayEndActivity>();
+        management.UseEntityFrameworkCore(
+            persistence => persistence.UsePostgreSql(connectionString));
+    });
+    elsa.UseWorkflowRuntime(runtime => runtime.UseEntityFrameworkCore(
+        persistence => persistence.UsePostgreSql(connectionString)));
+    elsa.UseScheduling(scheduling => scheduling.UseQuartzScheduler());
+    elsa.UseQuartz(quartz => quartz.UsePostgreSql(
+        connectionString,
+        useClustering: true));
+});
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<PromotionApplication>();
 builder.Services.AddScoped<EnvironmentApplication>();
@@ -17,23 +40,25 @@ builder.Services.AddScoped<DefinitionAuthoringApplication>();
 builder.Services.AddScoped<DefinitionProvenanceApplication>();
 builder.Services.AddScoped<DefinitionReleaseComparisonApplication>();
 builder.Services.AddScoped<WorkflowApplication>();
+builder.Services.AddScoped<ElsaWorkflowEngine>();
+builder.Services.AddScoped<WorkflowProjection>();
+builder.Services.AddScoped<WorkflowResumeProcessor>();
+builder.Services.AddScoped<WorkflowResumeLeaseStore>();
 builder.Services.AddScoped<WorkflowReleaseResolver>();
 builder.Services.AddScoped<IdempotencyCoordinator>();
-builder.Services.AddScoped<WorkflowStepEntry>();
 builder.Services.AddScoped<WorkflowAudit>();
 builder.Services.AddScoped<WorkflowOperationsApplication>();
 builder.Services.AddScoped<WorkflowWorkerApplication>();
 builder.Services.AddScoped<OutboxLeaseStore>();
-builder.Services.AddScoped<ScheduledActionLeaseStore>();
 builder.Services.AddSingleton<IWorkflowEffectHandler, LoggingWorkflowEffectHandler>();
 builder.Services.AddWorkOSAuthentication(builder.Configuration);
 builder.Services.Configure<WorkflowWorkerOptions>(
     builder.Configuration.GetSection(WorkflowWorkerOptions.SectionName));
 builder.Services.AddHostedService<DatabaseMigrationService>();
+builder.Services.AddHostedService<WorkflowResumeDispatcher>();
 if (builder.Configuration.GetValue<bool>($"{WorkflowWorkerOptions.SectionName}:Enabled", true))
 {
     builder.Services.AddHostedService<OutboxDispatcher>();
-    builder.Services.AddHostedService<ScheduledActionDispatcher>();
 }
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<WorkflowExceptionHandler>();

@@ -52,8 +52,13 @@ internal sealed class OutboxDispatcher(
             await handler.DeliverAsync(lease.Effect, cancellationToken).ConfigureAwait(false);
 
             await using AsyncServiceScope completionScope = scopeFactory.CreateAsyncScope();
-            await completionScope.ServiceProvider.GetRequiredService<WorkflowWorkerApplication>()
+            Guid resumeId = await completionScope.ServiceProvider
+                .GetRequiredService<WorkflowWorkerApplication>()
                 .CompleteEffectAsync(lease, cancellationToken).ConfigureAwait(false);
+
+            await using AsyncServiceScope resumeScope = scopeFactory.CreateAsyncScope();
+            await resumeScope.ServiceProvider.GetRequiredService<WorkflowResumeProcessor>()
+                .ResumeNowAsync(resumeId, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {

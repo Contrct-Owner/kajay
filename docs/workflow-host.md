@@ -105,17 +105,23 @@ flowchart LR
     Environment --> Store
     Workflow --> SDK
     Workflow --> Store
-    Store --> Timer["Scheduled-action worker"]
-    Store --> Outbox["Outbox worker"]
-    Timer --> Workflow
+    Workflow --> Elsa["Elsa runtime"]
+    Elsa --> Quartz["Clustered Quartz scheduler"]
+    Quartz --> Store
+    Elsa --> Store
+    Store --> Resume["Durable resume dispatcher"]
+    Resume --> Elsa
+    Store --> Outbox["Effect outbox worker"]
     Outbox --> Effect["IWorkflowEffectHandler"]
-    Outbox --> Workflow
+    Outbox --> Resume
 ```
 
 `Definitions`, `Workflows`, `Delivery`, `Persistence`, and `Api` are capability
 folders inside one deployable application. They are not separately published
 packages. Controllers do not reproduce release validation, snapshot restoration,
-concurrency, idempotency, audit, timer, or outbox choreography.
+concurrency, idempotency, audit, timer, or outbox choreography. Definition Releases
+remain authoritative; a host-only compiler translates their portable graph to Elsa
+activities without adding Elsa types to SDKs, bundles, or HTTP contracts.
 
 ## Workflow Definition format v1
 
@@ -193,8 +199,9 @@ Workflow commands additionally require `Idempotency-Key`; updates require a nume
 | Read/resume an instance | `kajay:workflow:read` | `GET /api/instances/{id}` |
 | Save a Response Snapshot | `kajay:workflow:execute` | `PUT /api/instances/{id}/response` |
 | Complete the active survey step | `kajay:workflow:execute` | `POST /api/instances/{id}/complete` |
+| Read immutable Survey Submissions | `kajay:workflow:read` | `GET /api/instances/{id}/submissions` |
 | Inspect audit facts | `kajay:workflow:read` | `GET /api/instances/{id}/audit` |
-| Inspect timers/effect delivery | `kajay:workflow:read` | `GET /api/instances/{id}/work` |
+| Inspect timers, effect delivery, and resume dispatch | `kajay:workflow:read` | `GET /api/instances/{id}/work` |
 
 Bundle request bodies use `application/vnd.kajay.bundle+zip`. Activation of any
 Environment whose policy requires approval also requires
@@ -271,16 +278,25 @@ production credential.
   accepted only on writes and never returned or included in audit payloads.
 - Each Workflow Command takes a transaction-scoped PostgreSQL advisory lock for its
   tenant/idempotency key. Concurrent retries therefore return one stored result.
+- Compiled Elsa definition registration takes a digest-scoped PostgreSQL advisory
+  lock so concurrent starts on different replicas cannot race Elsa's unique index.
 - Workflow Instance `Version` is an EF concurrency token and is returned as an ETag.
   A stale command fails with `412 Precondition Failed`.
-- Instance state, Response Snapshot, audit fact, idempotency result, and any new
-  scheduled action or outbox message commit in one database transaction.
+- Instance state, mutable Response Snapshot, immutable Survey Submission, audit fact,
+  idempotency result, and any new resume or effect-outbox record commit in one database
+  transaction.
+- Instance creation, Survey acceptance, and effect delivery enqueue stable, leased
+  Workflow Resume records.
+  Synchronous dispatch keeps the common path responsive; background retry closes the
+  crash window between Kajay's transaction and Elsa's persistence transaction.
 - Workers claim short batches with `FOR UPDATE SKIP LOCKED` and expiring leases.
 - Effects are at-least-once. `WorkflowEffect.Id` is stable so real downstream adapters
   can deduplicate retries.
 - Failed work retries with capped exponential backoff and becomes `dead-letter` after
   the configured maximum. Operational state remains queryable through the work route.
-- Timers store absolute UTC deadlines. Restarting the process does not reset them.
+- Elsa owns delay suspension and advancement. Clustered Quartz stores absolute UTC
+  deadlines in PostgreSQL and transfers due work between replicas during a rolling
+  restart. `scheduled_actions` is an operational projection, not a second scheduler.
 
 ## `.kajay` bundle format v1
 
@@ -302,9 +318,10 @@ missing binding names before idempotent install and atomic Activation.
 ## Verification
 
 `Kajay.Workflow.Host.Tests` uses Testcontainers with PostgreSQL 18. Its HTTP tracers
-prove promotion and rollback concurrency, save/resume behavior, stale-write rejection,
-concurrent idempotency, atomic effect creation, timer recovery, outbox delivery, and
-dead-letter behavior through the same routes used by consumers. Authentication proofs
+prove promotion and rollback concurrency, save/resume behavior, immutable submission
+history, stale-write rejection, concurrent idempotency and Elsa registration, atomic
+effect creation, Quartz failover, outbox delivery, and dead-letter behavior through the
+same routes used by consumers. Authentication proofs
 use signed RS256 bearer tokens and the real JWT middleware to cover missing identity,
 permission denial, organization isolation, and authenticated production approval.
 The WorkOS Emulate proof additionally runs the pinned emulator on a random port and
@@ -338,3 +355,4 @@ dotnet test dotnet/tests/Kajay.Workflow.Host.Tests
 - [Promotion CLI and machine identity decision](./adr/0040-promotion-cli-and-workos-machine-identity.md)
 - [Managed release history and provenance decision](./adr/0041-managed-release-history-and-provenance.md)
 - [Portable Response Snapshot decision](./adr/0034-portable-response-snapshot-contract.md)
+- [Elsa execution-engine decision](./adr/0043-elsa-host-workflow-engine.md)

@@ -6,6 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Elsa" />
+    <PackageReference Include="Elsa.Persistence.EFCore.PostgreSql" />
+    <PackageReference Include="Elsa.Scheduling" />
+    <PackageReference Include="Elsa.Scheduling.Quartz" />
+    <PackageReference Include="Elsa.Scheduling.Quartz.EFCore.PostgreSql" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="All" />

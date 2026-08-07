@@ -64,6 +64,38 @@ public sealed class DurableWorkerFlowTests(WorkflowHostFixture fixture)
         Assert.Equal(5, await CountAuditEventsAsync(api, instanceId).ConfigureAwait(true));
     }
 
+    [Fact]
+    public async Task ElsaDelayResumesAfterHostRestart()
+    {
+        string suffix = Guid.NewGuid().ToString("N");
+        string managedName = $"restart-{suffix}";
+        string tenantId = $"tenant-{suffix}";
+        KajayBundleScenario scenario = KajayBundleFixture.CreateScenario(
+            managedName,
+            delaySeconds: 2);
+        Guid instanceId;
+
+        await using WorkflowWorkerHost firstHost = fixture.CreateWorkerHost();
+        var firstApi = new WorkflowTestClient(firstHost.Client, tenantId);
+        _ = await firstApi.InstallAndActivateAsync("test", managedName, scenario.Bundle)
+            .ConfigureAwait(true);
+        instanceId = await StartAsync(firstApi, managedName).ConfigureAwait(true);
+        string snapshot = await CreateCompletedSnapshotAsync(scenario.Survey)
+            .ConfigureAwait(true);
+        await SaveAsync(firstApi, instanceId, snapshot).ConfigureAwait(true);
+        await CompleteAsync(firstApi, instanceId).ConfigureAwait(true);
+
+        // Start the replacement before stopping the original to model a rolling restart and
+        // keep Quartz.NET's process-global logging provider valid inside this test process.
+        await using WorkflowWorkerHost secondHost = fixture.CreateWorkerHost();
+        await firstHost.DisposeAsync().ConfigureAwait(true);
+        var secondApi = new WorkflowTestClient(secondHost.Client, tenantId);
+        JsonElement completed = await WaitForCompletionAsync(secondApi, instanceId)
+            .ConfigureAwait(true);
+
+        Assert.Equal("end", completed.GetProperty("activeStepKey").GetString());
+    }
+
     private static async Task<Guid> StartAsync(WorkflowTestClient api, string managedName)
     {
         using HttpRequestMessage request = api.Create(

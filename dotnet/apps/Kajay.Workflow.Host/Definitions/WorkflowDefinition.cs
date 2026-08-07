@@ -17,6 +17,21 @@ internal sealed class WorkflowDefinition
 
     internal IReadOnlyCollection<WorkflowStep> Steps => _steps.Values;
 
+    internal IReadOnlyList<WorkflowStep> ExecutionSteps()
+    {
+        var result = new List<WorkflowStep>(_steps.Count);
+        WorkflowStep step = GetStep(InitialStep);
+        while (true)
+        {
+            result.Add(step);
+            if (step.Next is null)
+            {
+                return result;
+            }
+            step = GetStep(step.Next);
+        }
+    }
+
     internal WorkflowStep GetStep(string key)
     {
         return _steps.TryGetValue(key, out WorkflowStep? step)

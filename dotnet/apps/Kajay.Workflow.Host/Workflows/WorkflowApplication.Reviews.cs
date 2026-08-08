@@ -26,7 +26,7 @@ internal sealed partial class WorkflowApplication
         ReviewTaskRecord authorizationTask = await LoadReviewTaskAsync(
             tenantId, instanceId, reviewTaskId, tracked: false, cancellationToken)
             .ConfigureAwait(false);
-        EnsureAssigned(actor, authorizationTask);
+        ReviewTaskAuthorization.EnsureAssigned(actor, authorizationTask);
         string requestHash = WorkflowCommandIdentity.Compute(
             operation,
             instanceId.ToString("N"),
@@ -54,7 +54,7 @@ internal sealed partial class WorkflowApplication
             tenantId, instanceId, reviewTaskId, tracked: true, cancellationToken)
             .ConfigureAwait(false);
         EnsurePending(instance, task);
-        EnsureAssigned(actor, task);
+        ReviewTaskAuthorization.EnsureAssigned(actor, task);
         DateTimeOffset now = timeProvider.GetUtcNow();
         task.Status = outcome;
         task.Comment = comment;
@@ -127,17 +127,6 @@ internal sealed partial class WorkflowApplication
                 StatusCodes.Status409Conflict,
                 "review-task-not-pending",
                 "The Review Task is no longer pending for the active workflow step.");
-        }
-    }
-
-    private static void EnsureAssigned(AuthenticatedActor actor, ReviewTaskRecord task)
-    {
-        if (!actor.HasPermission(task.AssignedPermission))
-        {
-            throw new WorkflowProblemException(
-                StatusCodes.Status403Forbidden,
-                "review-task-not-assigned",
-                "The authenticated principal is not assigned to this Review Task.");
         }
     }
 

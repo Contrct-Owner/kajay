@@ -48,6 +48,9 @@ published implementation is TypeScript; C# is the second runtime in development.
   v2 adds persisted Review Tasks and authenticated approve, deny, or request-changes
   decisions; Elsa bookmarks drive repeated Survey Attempts without moving task or
   authorization policy into either SDK.
+  The Managed UI now adds an assignment-scoped, cursor-paged reviewer workbench with
+  pinned Submission rendering, prior rounds, audit history, ETag-protected decisions,
+  and a seeded Compose review loop that exercises request-changes resubmission.
 
 ## Topic index
 
@@ -217,6 +220,8 @@ meaning of each test seam.
 
 ## Change log
 
+- 2026-08-07: Added the permission-scoped Review Task workbench and local Compose
+  review-loop demo without adding workflow policy to either SDK.
 - 2026-08-07: Added Review Tasks, Review Rounds, and Review Decisions as host-owned
   concepts while Elsa owns human-review suspension and request-changes cycles.
 - 2026-08-07: Distinguished mutable Survey Attempts from immutable Survey

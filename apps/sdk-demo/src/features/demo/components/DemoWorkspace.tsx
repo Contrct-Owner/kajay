@@ -1,5 +1,5 @@
 import type { SurveyDefinition } from '@kajay/core';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import type { DemoRuntime } from '../api/DemoRuntime.js';
 import type { DemoDefinitionResult } from '../api/DemoRuntimeTypes.js';
@@ -7,9 +7,18 @@ import { CreatorPanel } from './CreatorPanel.js';
 import { RendererPanel } from './RendererPanel.js';
 import { RuntimeResult } from './RuntimeResult.js';
 import { PersistencePanel } from './PersistencePanel.js';
-import { DefinitionAuthoringPanel } from '../../definition-authoring/index.js';
 
-type DemoView = 'renderer' | 'creator' | 'persistence' | 'managed';
+const DefinitionAuthoringPanel = lazy(async () => ({
+  default: (await import('../../definition-authoring/index.js')).DefinitionAuthoringPanel,
+}));
+const ReviewWorkbenchPanel = lazy(async () => ({
+  default: (await import('../../review-workbench/index.js')).ReviewWorkbenchPanel,
+}));
+const WorkflowDemoPanel = lazy(async () => ({
+  default: (await import('../../workflow-demo/index.js')).WorkflowDemoPanel,
+}));
+
+type DemoView = 'renderer' | 'creator' | 'persistence' | 'managed' | 'workflow' | 'reviews';
 
 export function DemoWorkspace({ runtime }: { readonly runtime: DemoRuntime }): ReactElement {
   const [definition, setDefinition] = useState<SurveyDefinition>();
@@ -69,15 +78,21 @@ function LoadedWorkspace({
     <main>
       <RuntimeResult result={loadResult} compact />
       <ViewTabs selected={view} onSelected={setView} />
-      {view === 'renderer' ? (
-        <RendererPanel definition={definition} runtime={runtime} />
-      ) : view === 'creator' ? (
-        <CreatorPanel definition={definition} runtime={runtime} onDefinition={onDefinition} />
-      ) : view === 'persistence' ? (
-        <PersistencePanel definition={definition} runtime={runtime} />
-      ) : (
-        <DefinitionAuthoringPanel initialDefinition={definition} />
-      )}
+      <Suspense fallback={<p role="status">Loading demo surface…</p>}>
+        {view === 'renderer' ? (
+          <RendererPanel definition={definition} runtime={runtime} />
+        ) : view === 'creator' ? (
+          <CreatorPanel definition={definition} runtime={runtime} onDefinition={onDefinition} />
+        ) : view === 'persistence' ? (
+          <PersistencePanel definition={definition} runtime={runtime} />
+        ) : view === 'managed' ? (
+          <DefinitionAuthoringPanel initialDefinition={definition} />
+        ) : view === 'workflow' ? (
+          <WorkflowDemoPanel />
+        ) : (
+          <ReviewWorkbenchPanel />
+        )}
+      </Suspense>
     </main>
   );
 }
@@ -89,7 +104,9 @@ function ViewTabs({
   readonly selected: DemoView;
   readonly onSelected: (view: DemoView) => void;
 }): ReactElement {
-  const views: readonly DemoView[] = ['renderer', 'creator', 'persistence', 'managed'];
+  const views: readonly DemoView[] = [
+    'renderer', 'creator', 'persistence', 'managed', 'workflow', 'reviews',
+  ];
   return (
     <nav className="demo-tabs" aria-label="Demo surface">
       {views.map((view) => (

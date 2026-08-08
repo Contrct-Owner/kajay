@@ -43,5 +43,17 @@ services:
     volumes:
       - kajay-workflow-data-protection:/var/lib/kajay/data-protection
 
+  kajay-workflow-demo-seed:
+    profiles: [workflow]
+    build:
+      context: .
+      dockerfile: apps/workflow-demo-seed/Dockerfile
+    depends_on:
+      kajay-workos-emulate:
+        condition: service_healthy
+      kajay-workflow-host:
+        condition: service_started
+    restart: "no"
+
 volumes:
   kajay-workflow-data-protection:

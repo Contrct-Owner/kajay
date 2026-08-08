@@ -36,7 +36,7 @@ Each profile publishes port 4173, so run one frontend profile at a time. Stop it
 `docker compose --profile <profile> down`.
 
 The workflow profile adds PostgreSQL, WorkOS Emulate, the authenticated workflow host,
-and a **Managed** Creator tab while retaining both SDK comparison peers. It publishes
+and **Managed**, **Workflow**, and **Reviews** tabs while retaining both SDK comparison peers. It publishes
 the combined frontend at <http://localhost:4175>:
 
 ```bash
@@ -61,6 +61,14 @@ Environment administration
 edits versioned display/order/approval policy, configures write-only binding references,
 and preflights installed releases without downloading a `.kajay` bundle. The browser
 never constructs or interprets that artifact.
+
+The Emulate overlay uses a dedicated local M2M client to install and activate a
+deterministic `review-demo` release through the real management interface. **Workflow**
+starts or resumes its Workflow Instance and submits immutable Survey Attempts.
+**Reviews** pages only tasks assigned to the signed-in principal, opens the pinned
+Definition and Submission in the read-only TypeScript renderer, and sends
+concurrency-checked approve, deny, or request-changes decisions. Request changes,
+return to Workflow, refresh, resubmit, and approve to exercise the complete Elsa cycle.
 
 ## Run from source
 
@@ -107,6 +115,11 @@ This is the visible integration proof; the adapter-neutral
   interface, HTTP adapters, and comparing decorator.
 - `apps/sdk-demo/src/features/definition-authoring/` owns the authenticated managed
   Creator feature, host HTTP adapter, external-response validation, and UI state.
+- `apps/sdk-demo/src/features/workflow-demo/` owns the respondent side of the seeded
+  human-review loop.
+- `apps/sdk-demo/src/features/review-workbench/` owns assigned task discovery, pinned
+  submission rendering, decision commands, and review history.
+- `apps/workflow-demo-seed/` owns the local-only authenticated Compose seed process.
 - `apps/sdk-demo-api/` owns the Node HTTP host for public `@kajay/core` operations.
 - `dotnet/apps/Kajay.Demo.Api/` owns the C# application use cases and thin HTTP
   endpoints over public `Kajay.Core` interfaces.

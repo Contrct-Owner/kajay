@@ -43,6 +43,7 @@ builder.Services.AddScoped<DefinitionAuthoringApplication>();
 builder.Services.AddScoped<DefinitionProvenanceApplication>();
 builder.Services.AddScoped<DefinitionReleaseComparisonApplication>();
 builder.Services.AddScoped<WorkflowApplication>();
+builder.Services.AddScoped<ReviewWorkbenchApplication>();
 builder.Services.AddScoped<ElsaWorkflowEngine>();
 builder.Services.AddScoped<WorkflowProjection>();
 builder.Services.AddScoped<WorkflowResumeProcessor>();

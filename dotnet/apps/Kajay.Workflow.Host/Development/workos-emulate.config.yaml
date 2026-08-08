@@ -88,6 +88,16 @@ connectApplications:
     client_id: client_kajay_local_environment
     client_secret: secret_kajay_local_environment
     audience: client_kajay_local
+  - name: Kajay Local Demo Seeder
+    type: m2m
+    organization: Kajay Local
+    scopes:
+      - kajay:definition:manage
+      - kajay:definition:promote
+      - kajay:environment:manage
+    client_id: client_kajay_local_demo
+    client_secret: secret_kajay_local_demo
+    audience: client_kajay_local
 
 roles:
   - slug: kajay-admin

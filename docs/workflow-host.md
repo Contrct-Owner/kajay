@@ -30,6 +30,15 @@ interactive AuthKit login. The callback stores a data-protected HTTP-only sessio
 returns to the demo. The authenticated same-origin proxy then supplies the session to
 the workflow host. Logout is `POST /auth/logout`.
 
+The Emulate overlay also runs a one-shot, authenticated seed container. It installs and
+activates the deterministic `review-demo` v2 release through the public management HTTP
+interface; it does not bypass host persistence or add production startup seeding. Sign in
+as `admin@kajay.local` for the shortest walkthrough, open **Workflow**, submit the survey,
+then open **Reviews** to request changes or approve it. After requesting changes, return
+to **Workflow**, refresh the instance, and submit the next immutable attempt. For the
+separation-of-duty version, alternate between the seeded operator and reviewer identities;
+the browser retains the demo Workflow Instance ID across AuthKit redirects.
+
 | Local identity | Role purpose |
 | --- | --- |
 | `admin@kajay.local` | Every Kajay permission |
@@ -41,6 +50,7 @@ the workflow host. Logout is `POST /auth/logout`.
 | `client_kajay_local_promotion` | M2M definition export/install without production approval |
 | `client_kajay_local_activation` | M2M production Activation after an external approval gate |
 | `client_kajay_local_environment` | M2M Environment and binding administration |
+| `client_kajay_local_demo` | Local-only M2M seed of the deterministic review demo release |
 
 Interactive Emulate selects by email; every seeded password is `kajay-local` for
 direct password-grant experiments. The emulator is exposed only on
@@ -48,7 +58,8 @@ direct password-grant experiments. The emulator is exposed only on
 facilities, never deployment defaults.
 
 The local M2M secrets are `secret_kajay_local_promotion`,
-`secret_kajay_local_activation`, and `secret_kajay_local_environment`. They are
+`secret_kajay_local_activation`, `secret_kajay_local_environment`, and
+`secret_kajay_local_demo`. They are
 deterministic test fixtures, not examples of acceptable deployed secrets.
 
 ### Real WorkOS environment
@@ -242,6 +253,8 @@ Workflow commands additionally require `Idempotency-Key`; updates require a nume
 | Complete the active survey step | `kajay:workflow:execute` | `POST /api/instances/{id}/complete` |
 | Read immutable Survey Submissions | `kajay:workflow:read` | `GET /api/instances/{id}/submissions` |
 | Read Review Tasks and decisions | `kajay:workflow:read` | `GET /api/instances/{id}/reviews` |
+| Page assigned Review Tasks | `kajay:workflow:review` plus each task assignment | `GET /api/reviews?status=...&managedDefinitionName=...&createdAfter=...&createdBefore=...&limit=...&cursor=...` |
+| Open assigned Review Task context | `kajay:workflow:review` plus the task assignment | `GET /api/reviews/{taskId}` |
 | Decide an assigned Review Task | `kajay:workflow:review` plus the task assignment | `POST /api/instances/{id}/reviews/{taskId}/decisions` |
 | Inspect audit facts | `kajay:workflow:read` | `GET /api/instances/{id}/audit` |
 | Inspect timers, effect delivery, and resume dispatch | `kajay:workflow:read` | `GET /api/instances/{id}/work` |
@@ -258,6 +271,15 @@ approver role should receive both promote and approve permissions. The host chec
 permissions rather than role names so role composition can evolve without code changes.
 Keep `kajay:environment:manage` separate from routine authoring, promotion, and
 approval roles because it changes the policy and configuration those operations trust.
+
+The cross-instance queue defaults to pending tasks and accepts `pending` or `completed`.
+It orders newest first with an opaque cursor and returns only tasks whose exact
+`assignedPermission` appears in the authenticated principal's validated permissions.
+Task detail includes the pinned Workflow Instance version, immutable Submission, released
+survey Definition, earlier Review Rounds, and Workflow Audit history required to decide.
+Detail history is explicitly bounded to 100 rounds and the latest 100 audit events; the
+response reports truncation instead of allowing an old Workflow Instance to grow one
+unbounded review payload.
 Keep `kajay:workflow:review` out of respondent/operator roles. A review step may use
 that permission directly or a narrower permission beginning with
 `kajay:workflow:review`; the authenticated principal must hold the exact assignment.

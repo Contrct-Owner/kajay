@@ -126,6 +126,32 @@ button { font: inherit; }
 .audit-history li div { display: grid; gap: 0.15rem; }
 .audit-history li span, .audit-history li code { color: #607168; font-size: 0.74rem; }
 .audit-marker { width: 0.65rem; height: 0.65rem; margin-top: 0.25rem; border: 2px solid #276248; border-radius: 50%; background: white; }
+.review-workbench > .managed-heading button, .review-workbench > button { border: 1px solid #276248; border-radius: 0.5rem; padding: 0.55rem 0.8rem; color: #276248; background: white; cursor: pointer; }
+.review-filters { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.25rem 0; }
+.review-filters label, .review-decision label { display: grid; gap: 0.3rem; color: #52645b; font-size: 0.8rem; font-weight: 700; }
+.review-filters input, .review-filters select, .review-decision textarea { border: 1px solid #b5c8ba; border-radius: 0.45rem; padding: 0.55rem; font: inherit; background: white; }
+.review-task-list { display: grid; gap: 0.65rem; margin: 0; padding: 0; list-style: none; }
+.review-task-card { width: 100%; display: grid; grid-template-columns: 1.4fr 1fr auto; align-items: center; gap: 1rem; border: 1px solid #d7e2d9; border-radius: 0.65rem; padding: 0.85rem; color: inherit; background: #f8faf8; text-align: left; cursor: pointer; }
+.review-task-card:hover, .review-task-card:focus-visible { border-color: #276248; box-shadow: 0 0 0 2px rgb(39 98 72 / 15%); }
+.review-task-card > span { display: grid; gap: 0.2rem; }
+.review-task-card small { color: #607168; }
+.history-status { border-radius: 999px; padding: 0.25rem 0.5rem; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
+.history-status.is-pending { color: #6f4a13; background: #f5e9c8; }
+.history-status.is-approved { color: #1f6041; background: #d9eee1; }
+.history-status.is-denied, .history-status.is-changes-requested { color: #8a273d; background: #f6dfe4; }
+.review-empty { padding: 1rem; border: 1px dashed #b5c8ba; border-radius: 0.6rem; color: #607168; text-align: center; }
+.review-submission { margin: 1.25rem 0; padding: 1rem; border: 1px solid #d7e2d9; border-radius: 0.8rem; background: #f8faf8; }
+.review-submission h3 { margin: 0; }
+.review-decision { display: grid; gap: 0.7rem; padding: 1rem; border-left: 4px solid #276248; background: #edf3ee; }
+.review-decision textarea { min-height: 6rem; resize: vertical; }
+.review-decision-actions { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+.review-decision-actions button { border: 1px solid #276248; border-radius: 0.5rem; padding: 0.6rem 0.85rem; color: #276248; background: white; cursor: pointer; }
+.review-decision-actions button:last-child { color: white; background: #276248; }
+.review-history-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.25rem; }
+.review-history-grid section { padding: 1rem; border: 1px solid #d7e2d9; border-radius: 0.7rem; }
+.review-history-grid h3 { margin-top: 0; }
+.review-history-grid ol { display: grid; gap: 0.5rem; padding-left: 1.25rem; }
+.review-history-grid blockquote { margin: 0.3rem 0; color: #52645b; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 @media (max-width: 640px) {
@@ -140,4 +166,5 @@ button { font: inherit; }
   .environment-admin-grid { grid-template-columns: 1fr; }
   .activation-summary, .release-history { grid-column: 1; }
   .activation-summary dl { justify-content: start; }
+  .review-task-card, .review-history-grid { grid-template-columns: 1fr; }
 }

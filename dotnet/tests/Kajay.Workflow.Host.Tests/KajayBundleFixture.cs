@@ -14,7 +14,8 @@ internal static class KajayBundleFixture
         IReadOnlyList<string>? requiredBindings = null,
         bool includeEffect = false,
         double? delaySeconds = null,
-        bool includeReview = false)
+        bool includeReview = false,
+        string assignedReviewPermission = "kajay:workflow:review")
     {
         return CreateScenario(
             managedDefinitionName,
@@ -22,7 +23,8 @@ internal static class KajayBundleFixture
             requiredBindings,
             includeEffect,
             delaySeconds,
-            includeReview).Bundle;
+            includeReview,
+            assignedReviewPermission).Bundle;
     }
 
     internal static KajayBundleScenario CreateScenario(
@@ -31,7 +33,8 @@ internal static class KajayBundleFixture
         IReadOnlyList<string>? requiredBindings = null,
         bool includeEffect = false,
         double? delaySeconds = null,
-        bool includeReview = false)
+        bool includeReview = false,
+        string assignedReviewPermission = "kajay:workflow:review")
     {
         SurveyDefinition survey = SurveyDefinition.Parse("""
             {
@@ -46,7 +49,8 @@ internal static class KajayBundleFixture
             survey.DefinitionDigest,
             includeEffect,
             delaySeconds,
-            includeReview);
+            includeReview,
+            assignedReviewPermission);
         string workflow = new JsonObject
         {
             ["formatVersion"] = includeReview ? 2 : 1,
@@ -86,7 +90,8 @@ internal static class KajayBundleFixture
         string surveyDigest,
         bool includeEffect,
         double? delaySeconds,
-        bool includeReview)
+        bool includeReview,
+        string assignedReviewPermission)
     {
         var survey = new JsonObject
         {
@@ -128,7 +133,7 @@ internal static class KajayBundleFixture
             {
                 ["key"] = "review",
                 ["kind"] = "review",
-                ["assignedPermission"] = "kajay:workflow:review",
+                ["assignedPermission"] = assignedReviewPermission,
                 ["approvedNext"] = "end",
                 ["deniedNext"] = "end",
                 ["changesRequestedNext"] = "survey",

@@ -20,6 +20,10 @@ internal static class WorkflowEndpoints
             .RequireAuthorization(KajayPolicies.WorkflowRead);
         api.MapGet("/instances/{instanceId:guid}/reviews", GetReviewTasksAsync)
             .RequireAuthorization(KajayPolicies.WorkflowRead);
+        api.MapGet("/reviews", GetReviewTaskPageAsync)
+            .RequireAuthorization(KajayPolicies.WorkflowReview);
+        api.MapGet("/reviews/{reviewTaskId:guid}", GetReviewTaskDetailAsync)
+            .RequireAuthorization(KajayPolicies.WorkflowReview);
         api.MapGet("/instances/{instanceId:guid}/work", GetWorkAsync)
             .RequireAuthorization(KajayPolicies.WorkflowRead);
         api.MapPut("/instances/{instanceId:guid}/response", SaveResponseAsync)
@@ -121,6 +125,28 @@ internal static class WorkflowEndpoints
             cancellationToken).ConfigureAwait(false);
         return Results.Ok(result);
     }
+
+    private static async Task<IResult> GetReviewTaskPageAsync(
+        HttpContext context,
+        [AsParameters] ReviewTaskPageQuery query,
+        ReviewWorkbenchApplication application,
+        CancellationToken cancellationToken) =>
+        Results.Ok(await application.GetPageAsync(
+            WorkflowRequestContext.ReadTenant(context),
+            WorkflowRequestContext.ReadPrincipal(context),
+            query,
+            cancellationToken).ConfigureAwait(false));
+
+    private static async Task<IResult> GetReviewTaskDetailAsync(
+        HttpContext context,
+        Guid reviewTaskId,
+        ReviewWorkbenchApplication application,
+        CancellationToken cancellationToken) =>
+        Results.Ok(await application.GetDetailAsync(
+            WorkflowRequestContext.ReadTenant(context),
+            WorkflowRequestContext.ReadPrincipal(context),
+            reviewTaskId,
+            cancellationToken).ConfigureAwait(false));
 
     private static async Task<IResult> GetWorkAsync(
         HttpContext context,

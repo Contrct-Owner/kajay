@@ -6,7 +6,11 @@ const repositoryRoot = resolve(import.meta.dirname, '..');
 const solution = resolve(repositoryRoot, 'dotnet/Kajay.slnx');
 
 run(process.execPath, [resolve(repositoryRoot, 'scripts/check-dotnet-structure.mjs')]);
-run('dotnet', ['restore', solution, '--locked-mode']);
+// No `--locked-mode`: the solution no longer keeps lock files. `IsTrimmable` makes the
+// SDK inject `Microsoft.NET.ILLink.Tasks`, and every platform's SDK bundles its own build
+// of it, so a content hash is true on exactly one image — see ADR-0030's amendment.
+// Transitive versions stay pinned by `CentralPackageTransitivePinningEnabled`.
+run('dotnet', ['restore', solution]);
 run('dotnet', ['format', solution, '--verify-no-changes', '--no-restore']);
 run('dotnet', ['build', solution, '--configuration', 'Release', '--no-restore']);
 run('dotnet', [

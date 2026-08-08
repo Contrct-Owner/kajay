@@ -207,6 +207,53 @@ than 20 percent requires review rather than failing heterogeneous shared runners
 Every release has zero compiler, analyzer, package-validation, trimming, and Native AOT
 warnings. Packed-package tests install the `.nupkg` into scratch consumers. CI runs the
 latest patched .NET 10 on Windows, Linux, and macOS and adds each later stable runtime.
+
+## Amendment (2026-08-05): one CI platform, and no NuGet lock files
+
+Two claims above are narrowed. Neither changes what the package guarantees a consumer,
+and both were found by the same defect.
+
+### CI runs ubuntu only
+
+Three platforms tripled the cost of the job to test the .NET SDK's portability rather
+than Kajay's: the code is managed, has no platform-specific paths, and every failure
+observed so far was identical on all three. The matrix is kept with a single entry, so
+restoring a platform is one word on the day something here differs by OS.
+
+**Trimming and Native AOT analysis are unaffected.** They are build-time analyzers and
+run wherever the build runs, so the zero-warning promise above still holds on every
+release. What is lost is the check that the *SDK* behaves the same on three operating
+systems, which is Microsoft's guarantee rather than this project's.
+
+### The solution keeps no `packages.lock.json`
+
+`RestorePackagesWithLockFile` is removed. `IsTrimmable` makes the SDK inject
+`Microsoft.NET.ILLink.Tasks`, and each platform's SDK bundles its own build of it: macOS,
+Linux and nuget.org publish three different byte-streams under version 10.0.2, verified
+by hashing all three. A lock file holds one content hash per package, so it is true on
+exactly one image and fails everywhere else — observed as NU1403 in both directions.
+
+**A lock file that only one machine can satisfy is not a reproducibility guarantee; it is
+a tripwire.** Three narrower fixes were tried and each failed for a recorded reason:
+
+- *Regenerating it locally* changed nothing, because the machine agreed with itself.
+- *Declaring the package explicitly*, under central package management with the local
+  cache cleared, still resolved the SDK's copy — the SDK injects a folder source that
+  wins however the reference is written.
+- *Applying `--locked-mode` only in CI* does nothing, because
+  `RestorePackagesWithLockFile` validates hashes on every restore. That flag governs
+  whether the lock may be **updated**, not whether it is **checked**.
+
+**What survives.** `ManagePackageVersionsCentrally` still pins every direct version in
+one file, and `CentralPackageTransitivePinningEnabled` still pins transitive ones — so
+version drift, the reason most projects adopt a lock file, remains closed. What is
+genuinely given up is content-hash tamper detection, which cannot be honoured for an
+SDK-injected package and so was never being honoured off CI.
+
+**Dropping `IsTrimmable` would have removed the cause** and was rejected: the trimming
+and Native AOT promises above are worth more than the inconvenience. Should the platform
+matrix return, nothing here needs revisiting — that was the other reason for choosing
+this over a lock file only CI could satisfy.
 Preview runtimes are informational. .NET 10 remains supported through its Microsoft
 support lifetime; removing a runtime floor is a package major with at least six months'
 notice. The latest Kajay major receives regular fixes, and the previous major receives

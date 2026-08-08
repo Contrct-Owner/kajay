@@ -1,0 +1,116 @@
+name: Release .NET
+
+# **Manual only, and separate from `release.yml` on purpose.** ADR-0030 rejects synchronising
+# the NuGet and npm versions, so the two releases cannot share a version input; and a NuGet
+# trusted-publishing policy is bound to a *workflow file name*, so the .NET publish needs a
+# stable file of its own regardless. ADR-0046 records the walkthrough this implements.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version being published, exactly as it appears in Kajay.Core.csproj (e.g. 1.0.0)'
+        required: true
+        type: string
+      confirm:
+        description: 'Type RELEASE to confirm. Anything else stops before publishing.'
+        required: true
+        type: string
+
+concurrency:
+  group: release-dotnet
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '24'
+
+jobs:
+  release:
+    name: Publish to NuGet
+    runs-on: ubuntu-latest
+    # Same reasoning as the npm release: a publish a fork could trigger, or a bot could
+    # reach, is not a publish anybody controls. The trusted-publishing policy names this
+    # environment, so removing it here stops publishing rather than merely widening it.
+    environment: release
+    permissions:
+      contents: read
+      # Lets GitHub mint the OIDC token that nuget.org exchanges for a one-hour API key.
+      id-token: write
+    steps:
+      - name: Refuse unless confirmed
+        if: inputs.confirm != 'RELEASE'
+        run: |
+          echo "Confirmation was '${{ inputs.confirm }}', not RELEASE. Nothing published."
+          exit 1
+
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      # `global.json` pins an SDK that is not one of the runner's preinstalled ones. The npm
+      # release learned this the hard way — it failed on a missing SDK rather than on
+      # anything to do with releasing.
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - run: pnpm install --frozen-lockfile
+
+      # `verify` runs the browser suite in real Chromium and the E2E suite against the built
+      # site, so the runner needs a browser even though neither touches the .NET package.
+      - run: pnpm exec playwright install --with-deps chromium
+
+      # **The full chain, not just `verify:dotnet`.** The generated `contracts/*.json` that
+      # `check:contract` guards are embedded *inside* the nupkg as assembly resources, and
+      # `check:conformance` is what proves the two runtimes still agree. Publishing code CI
+      # has not proven is the one failure this workflow exists to make impossible, and a bad
+      # version on nuget.org cannot be deleted — only unlisted.
+      - name: Verify
+        run: pnpm run verify
+
+      - name: Pack
+        run: >
+          dotnet pack dotnet/src/Kajay.Core/Kajay.Core.csproj
+          --configuration Release
+          --output publish-artifacts
+
+      # **Check the artifact, not the manifest.** Grepping `<Version>` would prove what the
+      # csproj says; this proves what `dotnet pack` actually produced, which is the thing
+      # about to be pushed. The `.snupkg` rides along because the csproj sets `IncludeSymbols`
+      # and `SymbolPackageFormat`.
+      - name: Refuse if the package is not the version being released
+        run: |
+          expected="publish-artifacts/Kajay.Core.${{ inputs.version }}.nupkg"
+          if [ ! -f "$expected" ]; then
+            echo "Expected $expected, but pack produced:"
+            ls -1 publish-artifacts
+            exit 1
+          fi
+          echo "Packed $expected."
+
+      # **No API key.** nuget.org mints a short-lived one from the OIDC identity GitHub issues
+      # for this workflow, so nothing long-lived is stored in the repository or the
+      # environment. The key lives one hour and is single-use, so this step sits immediately
+      # before the push rather than earlier in the job.
+      #
+      # The policy registered on nuget.org names this repository owner, this repository, this
+      # workflow file and the `release` environment. Renaming any of the four stops publishing
+      # until nuget.org is told — which is the point of it.
+      #
+      # `user` is the nuget.org *profile name*, not the account's email address.
+      - name: NuGet login (OIDC to a temporary API key)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      # **No `--skip-duplicate`.** A version that already exists means the release ran twice or
+      # the version input is wrong; both should stop the workflow rather than pass quietly.
+      - name: Push
+        run: >
+          dotnet nuget push publish-artifacts/*.nupkg
+          --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json

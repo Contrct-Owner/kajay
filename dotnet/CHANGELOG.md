@@ -5,16 +5,6 @@ independently from the Kajay TypeScript packages.
 
 ## Unreleased
 
-### Added
-
-- Definition-bound Response Snapshot Format v1 capture, JSON parsing, and silent
-  restore through `Survey.CreateSnapshot`, `SurveySnapshot.Parse`, and
-  `Survey.RestoreSnapshot`.
-- Recursively tagged values preserve absent, JSON scalar, UTC instant, array, and object
-  values across process and language boundaries.
-- Shared TypeScript/C# snapshot conformance, installed-package coverage, timer-anchor
-  persistence, and lowercase SHA-256 definition identities.
-
 ## [1.0.0] - 2026-08-05
 
 First stable release.
@@ -26,6 +16,13 @@ First stable release.
   validation, navigation, lifecycle, timers, scoring, localization, and question models.
 - Cancellation-aware host seams for remote choices, async functions, validation, and
   file upload, download, and cleanup.
+- Definition-bound Response Snapshot Format v1 capture, JSON parsing, and silent
+  restore through `Survey.CreateSnapshot`, `SurveySnapshot.Parse`, and
+  `Survey.RestoreSnapshot`.
+- Recursively tagged values preserve absent, JSON scalar, UTC instant, array, and object
+  values across process and language boundaries.
+- Shared TypeScript/C# snapshot conformance, installed-package coverage, timer-anchor
+  persistence, and lowercase SHA-256 definition identities.
 - Immutable metadata and native question-factory registry for host extensions.
 - Embedded generated contracts and public supported-version discovery.
 - Source Link and symbol packages, trimming and Native AOT analysis, installed-package

@@ -68,6 +68,7 @@ recorded here (status `superseded`) **and** in the
 | [0043](./0043-elsa-host-workflow-engine.md) | Elsa executes host-owned durable workflows | superseded by 0045 | 2026-08-07 |
 | [0044](./0044-versioned-human-review-workflow-graph.md) | Version the portable human-review graph | superseded by 0045 | 2026-08-07 |
 | [0045](./0045-focus-repository-on-sdks-and-site.md) | Focus the repository on the SDKs and Kajay.io | accepted | 2026-08-08 |
+| [0046](./0046-nuget-release-walkthrough.md) | The NuGet release walkthrough | accepted | 2026-08-08 |
 
 ## Parent and related links
 

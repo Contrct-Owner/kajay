@@ -48,7 +48,12 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-          registry-url: 'https://registry.npmjs.org'
+          # **No `registry-url`.** It writes an `.npmrc` line reading
+          # `_authToken=${NODE_AUTH_TOKEN}`, which is right for token publishing and wrong
+          # here: with no such variable npm finds a broken auth entry and never reaches the
+          # OIDC path, warning `Failed to replace env in config` on the way past. The
+          # default registry is npmjs.org anyway, so the setting bought nothing even when
+          # the token existed.
 
       - run: pnpm install --frozen-lockfile
 

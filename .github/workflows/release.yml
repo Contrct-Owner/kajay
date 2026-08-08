@@ -76,6 +76,14 @@ jobs:
       # built site, so the runner needs a browser. CI installs one per job that needs it;
       # this job needs it for the same reason and had no line for it — the release failed
       # here rather than at anything to do with releasing.
+      # `verify` runs the .NET checks too, and the runner's preinstalled SDKs are not the
+      # one `global.json` pins. CI's dedicated .NET job has always installed it; this job
+      # runs the same chain and had no such step, so the release failed on a missing SDK
+      # rather than on anything about releasing.
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
       - run: pnpm exec playwright install --with-deps chromium
 
       # **The full chain, not a subset.** Publishing code that CI has not proven is the one

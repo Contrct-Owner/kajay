@@ -106,13 +106,27 @@ process.stdout.write(
 );
 
 const rl = createInterface({ input: process.stdin, output: process.stdout });
-const confirm = await rl.question("Type BOOTSTRAP to publish, anything else to stop: ");
+const confirm = await rl.question('Type BOOTSTRAP to publish, anything else to stop: ');
 if (confirm !== 'BOOTSTRAP') {
   rl.close();
   fail('Not confirmed. Nothing published.');
 }
-const otp = (await rl.question('npm OTP (leave blank if 2FA is off): ')).trim();
-rl.close();
+
+/**
+ * **A fresh code per package, asked for immediately before it is used.**
+ *
+ * An npm one-time password lasts about thirty seconds and five publishes take longer than
+ * that, so a single code collected up front expires somewhere in the middle — publishing
+ * two packages and failing on the third, which is the worst outcome available: a partial
+ * release, with no way to retry the whole thing because the first names now exist.
+ *
+ * Blank means 2FA is off, or that a granular token with 2FA bypass is in use; in both
+ * cases `--otp` is simply omitted.
+ */
+async function otpFor(name) {
+  const code = (await rl.question(`  npm OTP for @kajay/${name} (blank if 2FA is off): `)).trim();
+  return code === '' ? [] : ['--otp', code];
+}
 
 // --- Restore no matter how this ends ----------------------------------------
 
@@ -154,6 +168,12 @@ try {
     delete manifest.publishConfig.provenance;
     writeFileSync(manifestPath(name), `${JSON.stringify(manifest, undefined, 2)}\n`);
 
+    // Sequential on purpose, so the rule's `Promise.all` advice is the one thing that must
+    // not happen here: these publish in dependency order, and each code has to be minted
+    // seconds before the request it authenticates. Collecting five up front is precisely
+    // the bug this loop shape exists to avoid.
+    // eslint-disable-next-line no-await-in-loop
+    const otp = await otpFor(name);
     process.stdout.write(`  publishing @kajay/${name} …`);
     // **`pnpm`, never `npm`.** Rewriting `workspace:*` into a real version is a pnpm
     // feature; `npm publish` would push the literal specifier and produce a package
@@ -169,7 +189,7 @@ try {
         // The tree is clean — checked above — but the manifests are edited right now,
         // which pnpm's own check would refuse.
         '--no-git-checks',
-        ...(otp === '' ? [] : ['--otp', otp]),
+        ...otp,
       ],
       { cwd: resolve(ROOT, 'packages', name), stdio: 'inherit' },
     );
@@ -177,6 +197,7 @@ try {
     process.stdout.write(' done\n');
   }
 } catch (error) {
+  rl.close();
   restore();
   process.stderr.write(`\n${String(error.stderr ?? error.message ?? error)}\n`);
   fail(
@@ -187,6 +208,7 @@ try {
   );
 }
 
+rl.close();
 restore();
 
 process.stdout.write(

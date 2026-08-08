@@ -72,6 +72,12 @@ jobs:
           done
           echo "All five packages are at ${{ inputs.version }}."
 
+      # `verify` runs the browser suite in real Chromium and the E2E suite against the
+      # built site, so the runner needs a browser. CI installs one per job that needs it;
+      # this job needs it for the same reason and had no line for it — the release failed
+      # here rather than at anything to do with releasing.
+      - run: pnpm exec playwright install --with-deps chromium
+
       # **The full chain, not a subset.** Publishing code that CI has not proven is the one
       # failure this workflow exists to make impossible; the gates take minutes and a bad
       # version on npm is forever.

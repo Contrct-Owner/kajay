@@ -3,14 +3,15 @@
 - Area: Phased delivery plan from foundation to full parity
 - Status: active
 - Owner: Jarod
-- Last updated: 2026-08-05
+- Last updated: 2026-08-08
 
 This is the single index that sequences the work into **delivery phases** with explicit
 entry and exit gates, so work has an order and each milestone has a definition of done.
 It does not restate the designs; it points at the docs that specify each phase's work.
 
 **Overall acceptance target: Phase 3 exit** — full Form Library + Creator parity,
-proven by the host application and the parity checklist. **Met on 2026-08-04**; see the
+proven by named package, browser, and application evidence in the parity checklist.
+**Met on 2026-08-04**; see the
 Phase 3 exit record below for what that did and did not include. Phase 4 is horizon.
 
 ## How to read this
@@ -33,7 +34,12 @@ Phase 3 exit record below for what that did and did not include. Phase 4 is hori
 | **1 — Runtime core** | Expression engine, core question types, logic, validation, flow | Checklist §A–§E green via host-demo scenarios, less the rows that name later-phase surface | **complete (2026-08-02)** |
 | **2 — Form Library parity** | Matrix family, dynamic panels, quiz, theming, localization, a11y | Checklist §A–§J (all Form Library sections) green | **delivered 2026-08-03**, but for A4/A5 (Phase 3) |
 | **3 — Creator parity** ⭐ | Drag-drop designer, property grid, logic/JSON/translation/theme editors | Checklist §K–§N green; build→render→round-trip proven in host-demo | **delivered 2026-08-04; 1.0.0 published 2026-08-05** |
-| **4 — Horizon** | PDF, dashboard, other frameworks/runtimes, SSR | Opportunity-driven; each promoted workstream gets its own gate | **C# SDK active; remaining items horizon** |
+| **4 — Horizon** | PDF, dashboard, and other frameworks | Opportunity-driven; each promoted workstream gets its own gate | **C# SDK release-ready; remaining items horizon** |
+
+The phase records below preserve how acceptance was originally reached, including
+references to the former `apps/host-demo`. That application was retired after TypeScript
+1.0; maintained evidence now lives in package tests, `apps/site` E2E, conformance, and pack
+tests under [ADR-0045](./adr/0045-focus-repository-on-sdks-and-site.md).
 
 ## Phase 0 — Foundation & scaffolding
 

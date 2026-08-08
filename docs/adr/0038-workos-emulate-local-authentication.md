@@ -1,9 +1,9 @@
 # ADR-0038 — WorkOS Emulate provides local workflow-host identity
 
 - Area: Workflow-host local development
-- Status: accepted
+- Status: superseded by 0045
 - Owner: Jarod
-- Last updated: 2026-08-06
+- Last updated: 2026-08-08
 
 ## Context
 
@@ -62,5 +62,4 @@ be designed explicitly if M2M workflow access is introduced.
 ## Parent and related links
 
 - [ADR-0037 — WorkOS AuthKit owns workflow-host identity](./0037-workos-authenticated-workflow-host.md)
-- [Workflow host guide](../workflow-host.md)
 - [WorkOS Emulate](https://github.com/workos/emulate)

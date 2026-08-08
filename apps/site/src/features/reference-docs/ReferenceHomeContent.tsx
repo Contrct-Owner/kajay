@@ -39,8 +39,8 @@ export function ReferenceHomeContent({ manifest }: ReferenceHomeContentProps): R
         <h2 id="reference-version">Compatibility</h2>
         <p>
           Definition Schema {manifest.sources.definitionSchemaVersion}; expression conformance{' '}
-          {manifest.sources.expressionConformanceVersion}. This is Preview documentation for the
-          unpublished TypeScript SDK.
+          {manifest.sources.expressionConformanceVersion}. This reference describes the published
+          TypeScript 1.0 package surface.
         </p>
       </section>
     </>

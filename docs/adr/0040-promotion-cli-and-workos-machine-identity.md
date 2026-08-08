@@ -1,9 +1,9 @@
 # ADR-0040 — Promotion automation uses a CLI and scoped WorkOS machine identity
 
 - Area: Definition promotion automation and non-human identity
-- Status: accepted
+- Status: superseded by 0045
 - Owner: Jarod
-- Last updated: 2026-08-07
+- Last updated: 2026-08-08
 
 ## Context
 
@@ -74,7 +74,6 @@ interface.
 ## Parent and related links
 
 - [Project context](../../CONTEXT.md)
-- [Workflow host guide](../workflow-host.md)
 - [Definition promotion decision](./0036-definition-release-promotion.md)
 - [WorkOS identity decision](./0037-workos-authenticated-workflow-host.md)
 - [WorkOS M2M applications](https://workos.com/docs/authkit/connect/m2m)

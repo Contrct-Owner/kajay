@@ -3,7 +3,7 @@
 - Area: Product vision, architecture, and guiding principles
 - Status: active
 - Owner: Jarod
-- Last updated: 2026-08-06
+- Last updated: 2026-08-08
 
 ---
 
@@ -74,8 +74,8 @@ Two embeddable products, mirroring how SurveyJS packages itself:
 | Form Library | `survey-core` + `survey-react-ui` | `@kajay/core` + `@kajay/react` |
 | Survey Creator | `survey-creator-core` + `survey-creator-react` | `@kajay/creator-core` + `@kajay/creator-react` |
 
-*(Scope `@kajay/*` per [ADR-0006](./adr/0006-npm-scope.md); the org claim is the one
-remaining gate.)*
+*(Scope `@kajay/*` per [ADR-0006](./adr/0006-npm-scope.md); the organization is claimed
+and the five-package 1.0 train is published.)*
 
 Feature scope per product is enumerated exhaustively in the
 [feature-parity checklist](./feature-parity-checklist.md), which is the authoritative
@@ -103,8 +103,10 @@ packages/
   creator-react/   @kajay/creator-react React designer UI over creator-core + react
   themes/          @kajay/themes        theme JSON presets + CSS variable stylesheets
 apps/
-  host-demo/       (private)             the proof application — consumes the above
-                                         strictly via public package APIs
+  site/            (private)             Kajay.io marketing, docs, and playground
+                                         consuming public package APIs
+dotnet/
+  src/Kajay.Core/  Kajay.Core            native .NET 10+ headless runtime
 docs/                                    this corpus
 ```
 
@@ -114,7 +116,8 @@ Dependency direction is one-way and enforced:
 core ← react
 core ← creator-core ← creator-react (also ← react)
 themes ← (consumed by apps; no package depends on themes)
-apps/host-demo ← published surface of all packages only
+apps/site ← published TypeScript package surfaces only
+Kajay.Core ← contracts + conformance (no TypeScript implementation dependency)
 ```
 
 ### 4.1 `@kajay/core` internals
@@ -195,10 +198,10 @@ executable JSON corpus under `conformance/`
   public surface; no bundler for libraries. Apps use **Vite 8**.
 - **UI:** React 19 for `@kajay/react` and `@kajay/creator-react` (peer
   dependency). Styling via plain CSS with CSS variables — published packages impose
-  **no CSS framework** on hosts; Tailwind is allowed only inside `apps/host-demo`.
+  **no CSS framework** on hosts; Tailwind is an application concern in `apps/site`.
 - **Testing:** **Vitest** for pure-logic unit tests; **Vitest browser mode
   (Playwright/Chromium)** for rendering-integration tests against a real DOM;
-  Playwright E2E for the host-demo parity scenarios.
+  Playwright E2E for Kajay.io marketing, docs, playground, and public acceptance paths.
 - **Lint:** oxlint. **Warnings are errors** everywhere.
 - **CI:** GitHub Actions; separate jobs (lint/typecheck, architecture checks, unit,
   browser integration, host-app E2E, contract drift, cross-language conformance, pack test) funneled into a
@@ -222,8 +225,8 @@ adapter, not the specification by accident. A C# implementation would reproduce 
 headless core behind that seam and prove compatibility by running the same cases
 ([ADR-0020](./adr/0020-versioned-cross-language-runtime-contract.md)). This does not
 turn the core into a network service; an HTTP/RPC deployment remains a separate design.
-Today only the TypeScript adapter exists, so the corpus is an executable portability
-contract, not yet evidence that two runtimes are compatible.
+TypeScript and C# both implement the corpus, making it the maintained evidence for
+cross-runtime compatibility without requiring parallel HTTP demo applications.
 
 The second maintained runtime is now decided: one native NuGet package,
 `Kajay.Core`, targeting `net10.0` and implementing the headless runtime rather than a
@@ -254,27 +257,29 @@ Mirrors SurveyJS's proven seams, all flowing from the metadata registry:
 
 ---
 
-## 8. The proof application (`apps/host-demo`)
+## 8. Kajay.io (`apps/site`)
 
-The host app exists to make embeddability falsifiable:
+The one first-party application makes adoption and embeddability falsifiable:
 
 - It consumes packages **only** through their public `exports` — deep imports are
   build errors.
+- It owns the marketing page, consumer documentation, read-only documentation MCP
+  endpoint, and a shareable Creator + renderer playground.
 - CI additionally runs a **pack test**: `pnpm pack` each package, install the
   tarballs into a scratch project outside the workspace, compile and run a smoke
   scenario. This simulates a true third-party consumer — the same artifact a real
   host would install — rather than trusting workspace symlinks.
-- Every parity-checklist item maps to at least one executable scenario in the host
-  app (a demo page + a Playwright test). The checklist is "green" only through
-  passing scenarios, never by assertion.
+- Package unit and browser suites carry detailed parity evidence. Site E2E proves the
+  public journeys and application-level obligations such as shipped CSS, keyboard
+  operation, and accessibility. The checklist is green only through named passing
+  evidence, never by assertion.
 
 ---
 
 ## 9. What this project is *not*
 
-- Not a survey **service**: no backend, no response storage, no hosting — like
-  SurveyJS, backend-agnostic by design. The host app persists to localStorage/JSON
-  files purely to demonstrate the save/resume seams.
+- Not a survey **service**: no response backend or storage. The SDKs are
+  backend-agnostic; consuming hosts own persistence and operational policy.
 - Not a no-code application builder. The Creator edits survey definitions, nothing
   more general.
 - Not a component library. UI pieces exist to render surveys, not for standalone
@@ -308,16 +313,16 @@ The host app exists to make embeddability falsifiable:
       zero-dep — [ADR-0003](./adr/0003-hand-rolled-expression-parser.md).
 - [x] **Core reactivity is an explicit dependency graph**, no signals library —
       [ADR-0004](./adr/0004-explicit-dependency-graph.md).
-- [x] **Working package scope is `@kajay/*`**, conditional on claiming the org —
-      [ADR-0006](./adr/0006-npm-scope.md). The ADR remains proposed and publication
-      remains blocked until the claim succeeds.
+- [x] **Package scope is `@kajay/*`** —
+      [ADR-0006](./adr/0006-npm-scope.md). The organization is claimed and the packages
+      published at 1.0.0 under ADR-0029.
       `@survey/*` was abandoned: the `survey` org is already taken on npm.
-- [x] **Private repo, unlicensed**, continued after the Phase 2 review as an interim
-      posture — [ADR-0007](./adr/0007-license-and-repo-posture.md).
-- [x] **Publication is on hold pending an explicit release walkthrough.** Working
-      package names stay private at `0.0.0`/`UNLICENSED`; that state does not select a
-      final brand, license, version, or release module —
-      [ADR-0024](./adr/0024-publication-hold.md).
+- [x] **Runtime packages are MIT and Creator packages use FSL-1.1-ALv2** —
+      [ADR-0028](./adr/0028-mit-runtime-source-available-creator.md), superseding the
+      earlier unlicensed posture.
+- [x] **The release walkthrough lifted the publication hold** and established brand,
+      licensing, versioning, and trusted publishing —
+      [ADR-0029](./adr/0029-release-walkthrough.md), superseding ADR-0024.
 - [x] **No SurveyJS theme-JSON import**; own token namespace —
       [ADR-0008](./adr/0008-no-surveyjs-theme-import.md).
 - [x] **Creator drag-and-drop deferred** to Phase 3 with three binding constraints —
@@ -364,6 +369,7 @@ The host app exists to make embeddability falsifiable:
 
 | Date | Decision |
 | --- | --- |
+| 2026-08-08 | **The repository supports the SDKs and one product application: Kajay.io.** Exploratory demo APIs, workflow/promotion applications, and local infrastructure were retired after validating their seams. Cross-runtime evidence stays in the shared conformance corpus; persistence, identity, workflow, and promotion stay host responsibilities. [ADR-0045](./adr/0045-focus-repository-on-sdks-and-site.md). |
 | 2026-08-07 | **Environments are tenant-owned, versioned promotion targets.** Approval follows Environment policy rather than a reserved name; bindings are write-only and concurrency checked under a separate permission; and unknown targets fail closed. The workflow host and Managed UI own this concern, not an SDK or separate control plane. [ADR-0042](./adr/0042-first-class-environment-catalog.md). |
 | 2026-08-07 | **Human review is a versioned host workflow concern.** Workflow format v2 adds permission-assigned Review Tasks and approve, deny, or request-changes transitions; Elsa owns bookmarks and cycles, while the host owns authenticated decisions and immutable history. Neither SDK learns task or authorization policy. [ADR-0044](./adr/0044-versioned-human-review-workflow-graph.md). |
 | 2026-08-06 | **Managed release history and provenance are a host-owned derived read model.** The host relates authored Revisions to content-addressed releases explicitly, derives active/ready/blocked state from Activation and Environment Bindings, and treats rollback as a version-checked Activation to a previously active release. The SDK and a separate control plane stay out of this concern. [ADR-0041](./adr/0041-managed-release-history-and-provenance.md). |

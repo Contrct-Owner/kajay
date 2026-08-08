@@ -1,9 +1,9 @@
 # ADR-0037 — WorkOS AuthKit owns workflow-host identity
 
 - Area: Workflow-host identity and authorization
-- Status: accepted
+- Status: superseded by 0045
 - Owner: Jarod
-- Last updated: 2026-08-06
+- Last updated: 2026-08-08
 
 ## Context
 
@@ -66,4 +66,3 @@ deployments may leave it disabled and require no WorkOS API key.
 
 - [ADR-0035 — workflow host owns durable orchestration](./0035-workflow-host-owns-durable-orchestration.md)
 - [ADR-0036 — promote immutable definition releases](./0036-definition-release-promotion.md)
-- [Workflow host guide](../workflow-host.md)

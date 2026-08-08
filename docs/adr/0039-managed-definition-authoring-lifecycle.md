@@ -1,9 +1,9 @@
 # ADR-0039 — Draft, checkpoint, then assemble a Definition Release
 
 - Area: Managed Definition authoring and release creation
-- Status: accepted
+- Status: superseded by 0045
 - Owner: Jarod
-- Last updated: 2026-08-06
+- Last updated: 2026-08-08
 
 ## Context
 
@@ -50,4 +50,3 @@ on the same browser origin.
 
 - [ADR-0035 — workflow host owns durable orchestration](./0035-workflow-host-owns-durable-orchestration.md)
 - [ADR-0036 — promote immutable definition releases](./0036-definition-release-promotion.md)
-- [Workflow host guide](../workflow-host.md)

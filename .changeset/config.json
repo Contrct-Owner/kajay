@@ -14,6 +14,6 @@
   ],
   "linked": [],
   "access": "public",
-  "ignore": ["@kajay/host-demo", "@kajay/site"],
+  "ignore": ["@kajay/site"],
   "privatePackages": { "version": true, "tag": false }
 }

@@ -128,7 +128,7 @@ jobs:
       - run: node scripts/verify-dotnet.mjs
 
   e2e:
-    name: Host E2E
+    name: Site E2E
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

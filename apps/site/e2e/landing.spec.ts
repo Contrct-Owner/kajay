@@ -58,16 +58,19 @@ test('parity/P8-landing: the component-map claim matches the renderer API', asyn
   await expect(page.getByText(/Kajay draws every control through your design system/u)).toHaveCount(0);
 });
 
-test('parity/P8-landing: it does not tell anyone to install something that is not there', async ({
+test('parity/P8-landing: it gives visitors a working installation path', async ({
   page,
 }) => {
   await page.goto('/');
 
-  // The packages are private, unlicensed and the scope is unclaimed. A page whose first
-  // instruction fails is worse than a page with one fewer button, so the page says so and
-  // offers the playground instead.
-  await expect(page.getByTestId('availability')).toContainText('not published yet');
-  await expect(page.getByText('npm install')).toHaveCount(0);
+  await expect(page.getByTestId('availability')).toContainText('Kajay 1.0 is available now');
+  await expect(page.getByTestId('availability')).toContainText(
+    'npm install @kajay/core @kajay/react @kajay/themes',
+  );
+  await expect(page.getByRole('link', { name: 'runtime quickstart' })).toHaveAttribute(
+    'href',
+    '/docs/quickstart/runtime',
+  );
   await expect(page.getByRole('link', { name: 'Open the playground' })).toBeVisible();
 });
 

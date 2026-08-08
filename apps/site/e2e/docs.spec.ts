@@ -11,13 +11,12 @@ test('documentation home and runtime quickstart are server-rendered', async ({ p
   await expect(page.getByRole('combobox', { name: 'Search documentation' })).toBeVisible();
 });
 
-test('preview posture never offers an unavailable installation command', async ({ page }) => {
+test('runtime quickstart gives the published installation command', async ({ page }) => {
   await page.goto('/docs/quickstart/runtime');
 
   await expect(page.getByText('Preview', { exact: true })).toBeVisible();
-  await expect(page.getByText('Kajay packages are not published yet.')).toBeVisible();
-  await expect(page.getByText(/npm install/iu)).toHaveCount(0);
-  await expect(page.getByText(/pnpm add/iu)).toHaveCount(0);
+  await expect(page.getByText('Install Kajay 1.0')).toBeVisible();
+  await expect(page.getByText('npm install @kajay/core @kajay/react @kajay/themes')).toBeVisible();
 });
 
 test('expression and validation guides are reachable as consumer pages', async ({ page }) => {

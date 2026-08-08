@@ -1,9 +1,9 @@
 # ADR-0036 — Promote immutable definition releases by digest
 
 - Area: Managed definitions and environment promotion
-- Status: accepted
+- Status: superseded by 0045
 - Owner: Jarod
-- Last updated: 2026-08-06
+- Last updated: 2026-08-08
 
 ## Context
 

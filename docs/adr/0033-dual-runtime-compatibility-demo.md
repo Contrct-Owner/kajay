@@ -1,9 +1,9 @@
 # ADR-0033: Compare C# and TypeScript through symmetric HTTP peers
 
 - Area: SDK demonstrations and deployment
-- Status: accepted
+- Status: superseded by 0045
 - Owner: Jarod
-- Last updated: 2026-08-06
+- Last updated: 2026-08-08
 
 ## Context
 
@@ -46,6 +46,5 @@ comparison works.
 ## Parent and related links
 
 - [ADR index](./README.md)
-- [SDK demo guide](../sdk-demos.md)
 - [Superseded deployment decision](./0032-compose-sdk-demo-profiles.md)
 - [Versioned runtime contract](./0020-versioned-cross-language-runtime-contract.md)

@@ -3,7 +3,7 @@
 - Area: Package architecture, TypeScript configuration, and automated testing
 - Status: active
 - Owner: Jarod
-- Last updated: 2026-08-05
+- Last updated: 2026-08-08
 
 These guidelines define the default shape of code and tests in this repository. A
 change is acceptable only when it preserves package ownership and dependency
@@ -70,7 +70,7 @@ they execute, not by how fast they run.
 | --- | --- | --- |
 | Unit | Prove deterministic model/engine logic in isolation | In-process objects and explicit values only; Node environment; no DOM |
 | Rendering integration | Prove renderer + model behavior through a real browser | Vitest browser mode on real Chromium; the packages' public APIs |
-| Host E2E / parity scenarios | Prove the embeddable product end-to-end, as a consumer | Playwright against the running host-demo app; public APIs only |
+| Site E2E / acceptance scenarios | Prove public product journeys end-to-end, as a consumer | Playwright against the built `apps/site` artifact; public APIs only |
 
 The C# solution mirrors those boundaries without importing the TypeScript
 implementation. `Kajay.Core.Tests` proves deterministic library behavior through the
@@ -91,7 +91,7 @@ exactly what the headless-core architecture exists to make exhaustively testable
   is at the wrong boundary — test through the real model.
 - A unit test may use a relative import into its own package's `src` tree when it proves
   an internal module. That creates an internal test seam, not consumer surface. Imports
-  into another package, rendering tests, and host E2E scenarios use published package
+  into another package, rendering tests, and site E2E scenarios use published package
   entries only.
 - jsdom is banned repo-wide, not just in unit tests: DOM behavior is proven in a real
   browser or not at all.
@@ -109,9 +109,10 @@ real consumer uses.
   would — never internal component imports or implementation details.
 - Run in **real Chromium** via Vitest browser mode; keyboard interaction, focus
   management, and ARIA assertions (axe) live here.
-- Host E2E scenarios in `apps/host-demo` are the parity ledger's currency: a parity
-  checklist item is green **only** when a named scenario proves it. Scenario names
-  reference checklist IDs (e.g. `parity/B3-visible-if`).
+- Named tests are the parity ledger's currency. Detailed package behavior belongs in
+  unit or real-browser package tests; public journeys and application-level obligations
+  belong in `apps/site` E2E. Scenario names reference checklist IDs (for example,
+  `parity/B3-visible-if`).
 - The **pack test** is part of this category: CI runs `pnpm pack` on every package,
   installs the tarballs into a scratch project outside the workspace, compiles it
   under TypeScript 5.5, 6, and 7, and runs a smoke scenario. This catches broken
@@ -152,7 +153,7 @@ Phase 0 implements these as build-failing checks; until then they are active pol
 via `AGENTS.md`.
 
 - **Architecture checks:** dependency direction between packages; no DOM lib or
-  DOM globals in core packages; no cross-package deep imports; host-demo imports only
+  DOM globals in core packages; no cross-package deep imports; `apps/site` imports only
   public entry points; zero runtime dependencies in core packages absent an ADR;
   React only as peerDependency in UI packages.
 - **Test-boundary checks:** unit-test projects declare no browser/jsdom/mocking
@@ -164,7 +165,7 @@ via `AGENTS.md`.
   formatting, build Release with analyzers, run unit and conformance projects, pack
   `Kajay.Core`, and compile and execute a fresh installed-package consumer.
 - **CI gates:** lint/typecheck (TypeScript 7 + TypeScript 6), architecture, unit, rendering
-  integration, host E2E, contract, conformance, TypeScript pack test, and native SDK
+  integration, site E2E, contract, conformance, TypeScript pack test, and native SDK
   verification — separate jobs behind the single required `survey-checks` gate.
 
 Checks must report the violated rule and the file or package responsible, so the

@@ -28,7 +28,6 @@
     "verify:dotnet": "node scripts/verify-dotnet.mjs",
     "test:unit": "vitest run --project unit",
     "test:browser": "vitest run --project browser",
-    "build:demo": "pnpm --filter @kajay/host-demo run build",
     "test:e2e": "playwright test",
     "test:pack": "node scripts/pack-test.mjs",
     "verify": "pnpm run lint && pnpm run typecheck && pnpm run check:arch && pnpm run check:test-policy && pnpm run check:parity && pnpm run test:unit && pnpm run test:browser && pnpm run check:contract && pnpm run check:conformance && pnpm run verify:dotnet && pnpm run check:docs && pnpm run test:e2e && pnpm run test:pack"

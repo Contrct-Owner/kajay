@@ -1,1 +1,0 @@
-{"schemaVersion":1,"title":"Review onboarding","pages":[{"name":"profile","elements":[{"type":"text","name":"fullName","title":"Full name","required":true}]}]}

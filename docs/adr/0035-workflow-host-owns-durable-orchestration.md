@@ -1,9 +1,9 @@
 # ADR-0035 — The workflow host owns durable orchestration
 
 - Area: SDK and host application architecture
-- Status: accepted
+- Status: superseded by 0045
 - Owner: Jarod
-- Last updated: 2026-08-06
+- Last updated: 2026-08-08
 
 ## Context
 

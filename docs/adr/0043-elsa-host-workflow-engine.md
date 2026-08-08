@@ -1,9 +1,9 @@
 # ADR-0043 — Elsa executes host-owned durable workflows
 
 - Area: Workflow-host execution and response persistence
-- Status: accepted
+- Status: superseded by 0045
 - Owner: Jarod
-- Last updated: 2026-08-07
+- Last updated: 2026-08-08
 
 ## Context
 
@@ -74,6 +74,5 @@ and PostgreSQL.
 ## Parent and related links
 
 - [Project context](../../CONTEXT.md)
-- [Workflow host guide](../workflow-host.md)
 - [Host ownership decision](./0035-workflow-host-owns-durable-orchestration.md)
 - [Portable Response Snapshot](./0034-portable-response-snapshot-contract.md)

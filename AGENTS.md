@@ -19,7 +19,7 @@ Before planning, implementing, or reviewing code or tests, read
   DOM, and carry zero runtime dependencies unless an ADR grants one.
 - A package's public surface is exactly its `package.json` `exports` map. Cross-package
   imports always use that published surface; package subpath imports are forbidden,
-  including in tests and `apps/host-demo`. A package's unit tests may use relative
+  including in tests and `apps/site`. A package's unit tests may use relative
   imports into its own `src` tree to prove internal modules. Browser/E2E tests and the
   host demo use public package imports only.
 - **Consumers are supported from TypeScript 5.5 upward** (ADR-0014). Nothing may reach
@@ -66,7 +66,7 @@ pnpm run typecheck    # tsc -b && tsc7 -b  (see ADR-0012; tsgo is superseded)
 pnpm run check:arch   # dependency direction, DOM-free core, no deep imports
 pnpm run test:unit    # Vitest, node environment, pure logic
 pnpm run test:browser # Vitest browser mode, real Chromium
-pnpm run test:e2e     # Playwright against apps/host-demo
+pnpm run test:e2e     # Playwright against the built apps/site artifact
 pnpm run check:contract # regenerate the committed contracts, fail on drift
 pnpm run check:conformance # run the TypeScript runtime against the shared corpus
 pnpm run verify:dotnet # restore, format-check, build, test, pack, installed consumer

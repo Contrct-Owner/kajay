@@ -10,9 +10,9 @@
     "tsBuildInfoFile": ".tsbuild/tests-e2e.tsbuildinfo"
   },
   "include": [
-    "apps/host-demo/e2e/**/*.ts",
+    "apps/site/e2e/**/*.ts",
     "playwright.config.ts",
-    "apps/host-demo/vite.config.ts"
+    "apps/site/vite.config.ts"
   ],
   "references": [
     { "path": "./packages/core" },

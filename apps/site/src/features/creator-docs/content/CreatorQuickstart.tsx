@@ -7,11 +7,12 @@ import { CREATOR_QUICKSTART } from '../examples/creatorExamples';
 export function CreatorQuickstart(): ReactElement {
   return (
     <>
-      <CreatorCallout title="Preview availability" kind="preview">
+      <CreatorCallout title="Install the Creator" kind="preview">
         <p>
-          The <code>@kajay/*</code> packages are not published yet. This example uses the
-          intended public package names and the APIs exercised by Kajay&rsquo;s reference
-          application, but there is nothing to install today.
+          <code>
+            npm install @kajay/core @kajay/react @kajay/themes @kajay/creator-core
+            @kajay/creator-react
+          </code>
         </p>
       </CreatorCallout>
       <CreatorDocSection id="create-a-controlled-creator" title="Create a controlled Creator">

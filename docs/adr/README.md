@@ -3,7 +3,7 @@
 - Area: Decision record index
 - Status: established
 - Owner: Jarod
-- Last updated: 2026-08-07
+- Last updated: 2026-08-08
 
 Non-trivial decisions get an ADR. An ADR states the context, the decision, and the
 consequences that follow from it — including the costs accepted. Reversals are
@@ -55,18 +55,19 @@ recorded here (status `superseded`) **and** in the
 | [0030](./0030-native-csharp-sdk-and-v2-runtime-semantics.md) | Native C# SDK and v2 runtime semantics | accepted | 2026-08-05 |
 | [0031](./0031-csharp-sdk-source-and-namespace-architecture.md) | C# SDK source and namespace architecture | accepted | 2026-08-05 |
 | [0032](./0032-compose-sdk-demo-profiles.md) | One SDK demo frontend with Compose runtime profiles | superseded by 0033 | 2026-08-06 |
-| [0033](./0033-dual-runtime-compatibility-demo.md) | Compare C# and TypeScript through symmetric HTTP peers | accepted | 2026-08-06 |
+| [0033](./0033-dual-runtime-compatibility-demo.md) | Compare C# and TypeScript through symmetric HTTP peers | superseded by 0045 | 2026-08-06 |
 | [0034](./0034-portable-response-snapshot-contract.md) | Portable, definition-bound response snapshots | accepted | 2026-08-06 |
-| [0035](./0035-workflow-host-owns-durable-orchestration.md) | The workflow host owns durable orchestration | accepted | 2026-08-06 |
-| [0036](./0036-definition-release-promotion.md) | Promote immutable definition releases by digest | accepted | 2026-08-06 |
-| [0037](./0037-workos-authenticated-workflow-host.md) | WorkOS AuthKit owns workflow-host identity | accepted | 2026-08-06 |
-| [0038](./0038-workos-emulate-local-authentication.md) | WorkOS Emulate provides local workflow-host identity | accepted | 2026-08-06 |
-| [0039](./0039-managed-definition-authoring-lifecycle.md) | Draft, checkpoint, then assemble a Definition Release | accepted | 2026-08-06 |
-| [0040](./0040-promotion-cli-and-workos-machine-identity.md) | Promotion automation uses a CLI and scoped WorkOS machine identity | accepted | 2026-08-06 |
-| [0041](./0041-managed-release-history-and-provenance.md) | Managed release history is a host-owned derived read model | accepted | 2026-08-06 |
-| [0042](./0042-first-class-environment-catalog.md) | Environments are versioned host-owned promotion targets | accepted | 2026-08-07 |
-| [0043](./0043-elsa-host-workflow-engine.md) | Elsa executes host-owned durable workflows | accepted | 2026-08-07 |
-| [0044](./0044-versioned-human-review-workflow-graph.md) | Version the portable human-review graph | accepted | 2026-08-07 |
+| [0035](./0035-workflow-host-owns-durable-orchestration.md) | The workflow host owns durable orchestration | superseded by 0045 | 2026-08-06 |
+| [0036](./0036-definition-release-promotion.md) | Promote immutable definition releases by digest | superseded by 0045 | 2026-08-06 |
+| [0037](./0037-workos-authenticated-workflow-host.md) | WorkOS AuthKit owns workflow-host identity | superseded by 0045 | 2026-08-06 |
+| [0038](./0038-workos-emulate-local-authentication.md) | WorkOS Emulate provides local workflow-host identity | superseded by 0045 | 2026-08-06 |
+| [0039](./0039-managed-definition-authoring-lifecycle.md) | Draft, checkpoint, then assemble a Definition Release | superseded by 0045 | 2026-08-06 |
+| [0040](./0040-promotion-cli-and-workos-machine-identity.md) | Promotion automation uses a CLI and scoped WorkOS machine identity | superseded by 0045 | 2026-08-06 |
+| [0041](./0041-managed-release-history-and-provenance.md) | Managed release history is a host-owned derived read model | superseded by 0045 | 2026-08-06 |
+| [0042](./0042-first-class-environment-catalog.md) | Environments are versioned host-owned promotion targets | superseded by 0045 | 2026-08-07 |
+| [0043](./0043-elsa-host-workflow-engine.md) | Elsa executes host-owned durable workflows | superseded by 0045 | 2026-08-07 |
+| [0044](./0044-versioned-human-review-workflow-graph.md) | Version the portable human-review graph | superseded by 0045 | 2026-08-07 |
+| [0045](./0045-focus-repository-on-sdks-and-site.md) | Focus the repository on the SDKs and Kajay.io | accepted | 2026-08-08 |
 
 ## Parent and related links
 

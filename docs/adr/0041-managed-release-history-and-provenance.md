@@ -1,9 +1,9 @@
 # ADR-0041 — Managed release history is a host-owned derived read model
 
 - Area: Managed Definition release operations and provenance
-- Status: accepted
+- Status: superseded by 0045
 - Owner: Jarod
-- Last updated: 2026-08-07
+- Last updated: 2026-08-08
 
 ## Context
 
@@ -142,7 +142,6 @@ comparison failure that remains local to the review.
 ## Parent and related links
 
 - [Project context](../../CONTEXT.md)
-- [Workflow host guide](../workflow-host.md)
 - [Workflow host ownership](./0035-workflow-host-owns-durable-orchestration.md)
 - [Definition promotion](./0036-definition-release-promotion.md)
 - [Managed authoring](./0039-managed-definition-authoring-lifecycle.md)

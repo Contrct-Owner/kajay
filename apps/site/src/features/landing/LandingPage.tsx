@@ -11,9 +11,8 @@ import { HeroSurvey } from './components/HeroSurvey';
  *
  * Every claim here is one the repository can back. The capability list is the parity
  * ledger read out loud, and the survey beside the headline is a real one, server-rendered,
- * drawn with this site's own primitive adapters. Nothing says "install", because nothing
- * is installable yet: a page whose first instruction fails is worse than a page with one
- * fewer button.
+ * drawn with this site's own primitive adapters. The packages are published, so the page
+ * now gives visitors a working installation path as well as an interactive one.
  */
 export function LandingPage(): ReactElement {
   return (
@@ -182,8 +181,9 @@ function Availability(): ReactElement {
   return (
     <footer className="border-border text-muted-foreground border-t py-8 text-sm">
       <p data-testid="availability">
-        Kajay is not published yet — there is nothing to install today. The playground runs the
-        real thing.
+        Kajay 1.0 is available now. Install the runtime with{' '}
+        <code className="text-foreground">npm install @kajay/core @kajay/react @kajay/themes</code>,
+        or start with the <a href="/docs/quickstart/runtime">runtime quickstart</a>.
       </p>
     </footer>
   );

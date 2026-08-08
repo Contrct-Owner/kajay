@@ -143,13 +143,3 @@ response targets are specified in
 See the packaged `CHANGELOG.md` for release history and migration notes.
 
 `Kajay.Core` is licensed under the MIT License.
-
-## Workflow host reference
-
-`apps/Kajay.Workflow.Host` is a separate host application, not part of the NuGet SDK.
-It demonstrates PostgreSQL-backed Response Snapshot persistence, workflow instances,
-ETag concurrency, idempotent commands, audit facts, durable timers, transactional
-outbox delivery, immutable Definition Release promotion, and WorkOS AuthKit-backed
-organization identity and permissions. See the
-[workflow host guide](../docs/workflow-host.md) for its Compose profile, routes, bundle
-format, and production integration seams.

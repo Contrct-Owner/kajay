@@ -1,8 +1,8 @@
 name: Release
 
 # **Manual only.** Nothing here runs on a push, a tag or a merge. Publishing is a decision
-# somebody takes, and ADR-0024's hold means the decision has not been taken — so the trigger
-# is a person opening this workflow and typing the version they mean.
+# somebody takes, so the trigger is a person opening this workflow and typing the version
+# they mean. ADR-0029 records the release and rollback policy.
 on:
   workflow_dispatch:
     inputs:

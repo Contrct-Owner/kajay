@@ -1,9 +1,9 @@
 # ADR-0042 — Environments are versioned host-owned promotion targets
 
 - Area: Workflow-host environment and promotion operations
-- Status: accepted
+- Status: superseded by 0045
 - Owner: Jarod
-- Last updated: 2026-08-07
+- Last updated: 2026-08-08
 
 ## Context
 
@@ -75,7 +75,6 @@ rollback against catalog targets.
 ## Parent and related links
 
 - [Project context](../../CONTEXT.md)
-- [Workflow host guide](../workflow-host.md)
 - [Definition promotion](./0036-definition-release-promotion.md)
 - [WorkOS identity](./0037-workos-authenticated-workflow-host.md)
 - [Managed release history](./0041-managed-release-history-and-provenance.md)

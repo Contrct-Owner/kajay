@@ -1,9 +1,9 @@
 # ADR-0044 — Version the portable human-review graph
 
 - Area: Workflow-host definition and human work
-- Status: accepted
+- Status: superseded by 0045
 - Owner: Jarod
-- Last updated: 2026-08-07
+- Last updated: 2026-08-08
 
 Workflow Definition format v1 remains the immutable linear, acyclic survey/delay/effect
 format. Format v2 adds a host-portable review node with three explicit transitions and
@@ -29,5 +29,4 @@ latest authored Definition or reconstructs review context through unrelated endp
 ## Parent and related links
 
 - [Project context](../../CONTEXT.md)
-- [Workflow host guide](../workflow-host.md)
 - [Elsa execution decision](./0043-elsa-host-workflow-engine.md)

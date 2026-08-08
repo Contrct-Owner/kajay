@@ -81,57 +81,6 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vitest@4.1.10)
 
-  apps/host-demo:
-    dependencies:
-      '@kajay/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@kajay/creator-core':
-        specifier: workspace:*
-        version: link:../../packages/creator-core
-      '@kajay/creator-react':
-        specifier: workspace:*
-        version: link:../../packages/creator-react
-      '@kajay/react':
-        specifier: workspace:*
-        version: link:../../packages/react
-      '@kajay/themes':
-        specifier: workspace:*
-        version: link:../../packages/themes
-      react:
-        specifier: 'catalog:'
-        version: 19.2.8
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.2.8(react@19.2.8)
-
-  apps/sdk-demo:
-    dependencies:
-      '@kajay/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@kajay/creator-react':
-        specifier: workspace:*
-        version: link:../../packages/creator-react
-      '@kajay/react':
-        specifier: workspace:*
-        version: link:../../packages/react
-      '@kajay/themes':
-        specifier: workspace:*
-        version: link:../../packages/themes
-      react:
-        specifier: 'catalog:'
-        version: 19.2.8
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.2.8(react@19.2.8)
-
-  apps/sdk-demo-api:
-    dependencies:
-      '@kajay/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-
   apps/site:
     dependencies:
       '@kajay/core':

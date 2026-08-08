@@ -7,9 +7,6 @@
     { "path": "./packages/creator-core" },
     { "path": "./packages/creator-react" },
     { "path": "./packages/themes" },
-    { "path": "./apps/host-demo" },
-    { "path": "./apps/sdk-demo" },
-    { "path": "./apps/sdk-demo-api" },
     { "path": "./apps/site" },
     { "path": "./tsconfig.tests.json" }
   ]

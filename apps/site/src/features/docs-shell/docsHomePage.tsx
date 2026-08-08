@@ -11,7 +11,7 @@ export const docsHomePage: DocPageDefinition = {
   framework: 'neutral',
   toc: [
     { id: 'choose-a-path', label: 'Choose a path', depth: 2 },
-    { id: 'preview-documentation', label: 'Preview documentation', depth: 2 },
+    { id: 'version-1', label: 'Version 1.0', depth: 2 },
   ],
   content: (
     <>
@@ -34,12 +34,12 @@ export const docsHomePage: DocPageDefinition = {
           </a>
         </div>
       </section>
-      <section aria-labelledby="preview-documentation">
-        <h2 id="preview-documentation">Preview documentation</h2>
+      <section aria-labelledby="version-1">
+        <h2 id="version-1">Version 1.0</h2>
         <p>
-          Kajay is not published yet, so there is nothing to install today. These pages
-          describe behavior the repository already proves and will grow alongside the public
-          release. You can use the playground now without signing up or saving data.
+          Kajay 1.0 is published as five focused TypeScript packages. These pages describe
+          behavior the repository proves on every change, and the playground lets you try the
+          same public APIs without signing up or saving data.
         </p>
         <p>
           <a href="/playground">Open the playground</a>

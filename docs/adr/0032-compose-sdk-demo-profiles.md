@@ -53,6 +53,5 @@ extend the adapter-neutral conformance corpus.
 ## Parent and related links
 
 - [ADR index](./README.md)
-- [SDK demo guide](../sdk-demos.md)
 - [C# SDK architecture](./0031-csharp-sdk-source-and-namespace-architecture.md)
 - [Dual-runtime comparison](./0033-dual-runtime-compatibility-demo.md)

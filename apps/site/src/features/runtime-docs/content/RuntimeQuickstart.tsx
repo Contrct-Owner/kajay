@@ -11,9 +11,8 @@ import {
 export function RuntimeQuickstart(): ReactElement {
   return (
     <>
-      <Callout title="Preview documentation">
-        Kajay packages are not published yet. These examples run against the real workspace packages,
-        but there is no installation command to run today.
+      <Callout title="Install Kajay 1.0">
+        <code>npm install @kajay/core @kajay/react @kajay/themes</code>
       </Callout>
       <DocSection id="define" title="1. Define the survey">
         <p>

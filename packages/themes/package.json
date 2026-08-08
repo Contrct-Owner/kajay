@@ -4,6 +4,13 @@
     "type": "module",
   "description": "CSS-variable design tokens and theme presets.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Contrct-Owner/kajay.git",
+    "directory": "packages/themes"
+  },
+  "homepage": "https://kajay.io",
+  "bugs": "https://github.com/Contrct-Owner/kajay/issues",
   "sideEffects": [
     "*.css"
   ],

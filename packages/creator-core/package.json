@@ -4,6 +4,13 @@
     "type": "module",
   "description": "Headless survey designer model over @kajay/core: the design surface, toolbox, property grid, logic, translations and theme editors.",
   "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Contrct-Owner/kajay.git",
+    "directory": "packages/creator-core"
+  },
+  "homepage": "https://kajay.io",
+  "bugs": "https://github.com/Contrct-Owner/kajay/issues",
   "sideEffects": false,
   "engines": {
     "node": ">=22.12.0",

@@ -4,6 +4,13 @@
     "type": "module",
   "description": "React designer UI over @kajay/creator-core: the Creator's pieces, and the default assembly built from them.",
   "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Contrct-Owner/kajay.git",
+    "directory": "packages/creator-react"
+  },
+  "homepage": "https://kajay.io",
+  "bugs": "https://github.com/Contrct-Owner/kajay/issues",
   "sideEffects": false,
   "engines": {
     "node": ">=22.12.0",

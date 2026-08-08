@@ -4,6 +4,13 @@
     "type": "module",
   "description": "Headless survey model, metadata registry, and serializer.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Contrct-Owner/kajay.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://kajay.io",
+  "bugs": "https://github.com/Contrct-Owner/kajay/issues",
   "sideEffects": false,
   "engines": {
     "node": ">=22.12.0",

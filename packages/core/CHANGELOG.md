@@ -4,6 +4,18 @@
 
 ### Major Changes
 
+- Add definition-bound Response Snapshot Format v1 capture, JSON parsing, and silent
+  restore. Snapshot values recursively preserve absent values and UTC instants, timers
+  count offline time, and a shared corpus proves equivalent TypeScript and C# storage.
+
+- Use Kajay's invariant decimal grammar for expression numeric coercion. Hexadecimal,
+  binary, octal, empty, locale-formatted, and non-finite text no longer acts as a number,
+  booleans no longer coerce to zero or one, and arithmetic overflow produces an absent
+  value instead of a non-finite JavaScript number. Equality now follows Kajay value kinds
+  instead of converting unlike values to host-language text. Explicit expression text
+  conversion uses invariant Kajay spellings rather than host defaults, and never
+  implicitly stringifies arrays or objects.
+
 - 854a1cd: Kajay 1.0.0 — a survey engine and designer that draw with your components.
 
   **Surveys that look like your application.** Pass your own `Button`, `Input`, `Select`,

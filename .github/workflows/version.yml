@@ -1,0 +1,62 @@
+name: Version
+
+# **The mechanical half of a release, and only that half.** Changesets accumulate on `main`
+# as pull requests merge; this turns them into the version bump, the changelog entries and
+# the deletion of the consumed files, and puts the result in a pull request for somebody to
+# read. Merging it is a decision; opening it is not, and there is no reason a person should
+# be the one to run `changeset version`.
+#
+# **It does not publish, and the missing `publish:` input is the point.** `changesets/action`
+# will happily do both, and letting it would put publishing on a merge trigger — exactly what
+# [ADR-0029](../../docs/adr/0029-release-walkthrough.md) decided against, and it would bypass
+# `release.yml`'s confirmation, its version check and its OIDC trusted publishing. Releasing
+# stays a person opening that workflow and typing the version they mean.
+on:
+  push:
+    branches: [main]
+
+# Two pushes to `main` in quick succession would otherwise race to write the same branch.
+# Not `cancel-in-progress`: the second run wants the first run's changesets too, and it will
+# pick them up when it starts.
+concurrency:
+  group: version
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '24'
+
+jobs:
+  version:
+    name: Open the version pull request
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        # The action reads the history to work out what has already been released.
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # **No lockfile refresh after versioning, because there is nothing to refresh.** The
+      # packages depend on each other through `workspace:*`, which names no version, so a
+      # bump rewrites five `package.json` version fields and five changelogs and touches
+      # `pnpm-lock.yaml` not at all. Were that ever to change, CI's `--frozen-lockfile` would
+      # fail on the version pull request rather than on `main`.
+      #
+      # Does nothing when no changesets are waiting, and closes its own pull request when the
+      # last one is consumed — so a quiet `main` produces no noise.
+      - uses: changesets/action@v1
+        with:
+          version: pnpm changeset:version
+          title: 'Release: version packages'
+          commit: 'Version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

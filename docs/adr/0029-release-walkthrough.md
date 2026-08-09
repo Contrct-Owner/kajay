@@ -64,6 +64,22 @@ it. It takes the version and a typed `RELEASE` confirmation, refuses if any pack
 with that version or if changesets are still pending, and runs the full `verify` chain before
 publishing.
 
+**Versioning is automated; publishing is not, and the split is the decision.** Running
+`changeset version` is mechanical — bump five manifests, write five changelogs, delete the
+files consumed — and nothing is served by a person typing it. `.github/workflows/version.yml`
+does it on every push to `main` and opens a pull request with the result, which is a diff
+somebody reads rather than a command somebody remembers. `changesets/action` would publish
+from the same step and is deliberately not asked to: that would put publishing on a merge
+trigger and bypass this workflow's confirmation, its version check and its OIDC identity.
+
+**A branch says what it does to the packages, or says that it does nothing.**
+`check:changeset` asks Changesets which packages a branch touched and whether a changeset
+covers them, so documentation, CI and `apps/site` pass without one and `packages/*` does not.
+`changeset add --empty` is the escape hatch and is meant to be used: a refactor with no
+observable behaviour is a real thing, and recording that judgement is a sentence in a review
+rather than a silence. It is the one check outside `verify`, because it compares a branch
+against a base and only a pull request has one.
+
 **Access control: trusted publishing, so there is no token.** npm mints a short-lived
 credential from the OIDC identity GitHub issues for this workflow. Nothing long-lived is
 stored in the repository, the environment, or anywhere else — the strongest version of an

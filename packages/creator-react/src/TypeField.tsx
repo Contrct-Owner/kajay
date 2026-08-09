@@ -3,6 +3,7 @@ import type { SurveyElement } from '@kajay/core';
 import type { ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
 import { useCreatorText } from './CreatorStringsContext.js';
+import { PropertyLabel } from './PropertyLabel.js';
 
 export interface TypeFieldProps {
   readonly surface: DesignSurface;
@@ -38,12 +39,16 @@ export function TypeField({ surface, element, scope }: TypeFieldProps): ReactEle
 
   return (
     <div className="kajay-properties__row" data-property="type">
-      <label className="kajay-properties__label" htmlFor={`kajay-prop-${scope}-type`}>
+      <PropertyLabel htmlFor={`kajay-prop-${scope}-type`} hasHint>
         {text('typeOf', String(element.getPropertyValue('name') ?? element.type))}
-      </label>
+      </PropertyLabel>
       <Select
         id={`kajay-prop-${scope}-type`}
         className="kajay-properties__input"
+        // Wired here for the first time. The hint has always been on screen, so nothing
+        // needed to point at it; now that it is revealed on demand, the description has to
+        // reach a screen reader the way every other row's does.
+        aria-describedby={`kajay-prop-${scope}-type-hint`}
         data-testid={`property-${scope}-type`}
         value={element.type}
         options={types.map((type) => ({ value: type, label: type }))}
@@ -51,7 +56,7 @@ export function TypeField({ surface, element, scope }: TypeFieldProps): ReactEle
           surface.convert(String(element.getPropertyValue('name') ?? ''), type);
         }}
       />
-      <p className="kajay-properties__hint">
+      <p className="kajay-properties__hint" id={`kajay-prop-${scope}-type-hint`}>
         {text('typeHint')}
       </p>
     </div>

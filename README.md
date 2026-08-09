@@ -1,8 +1,8 @@
 # Kajay
 
 Kajay is an embeddable survey runtime and Creator built around an authoritative JSON
-definition. TypeScript 1.0 is published as five `@kajay/*` packages; `Kajay.Core` is the
-native .NET 10+ headless runtime.
+definition. TypeScript 1.0 is published as five `@kajay/*` packages, and `Kajay.Core` 1.0.0
+is published on NuGet as the native .NET 10+ headless runtime.
 
 The repository intentionally contains one product application: `apps/site`, which is the
 Kajay marketing site, documentation, and playground. Persistence, authentication,

@@ -1,9 +1,9 @@
 # ADR-0009 — Creator drag-and-drop implementation
 
 - Area: Creator interaction
-- Status: accepted
+- Status: accepted, amended
 - Owner: Jarod
-- Last updated: 2026-08-04
+- Last updated: 2026-08-09
 
 ## Context
 
@@ -167,6 +167,222 @@ the structured narration facts into localized text. `DesignSurface.place` remain
 compatibility facade over the same atomic placement command; it is not a second
 implementation.
 
+### 7 — The indicator is a reserved space, not a mark (amendment)
+
+**A drop is drawn by putting the thing where it would go and letting the container move
+around it.** A placeholder the size of what is being carried takes the active slot as a
+cell of that container's own layout; the element being moved gives up its place for as
+long as the preview stands.
+
+The line this replaces was not merely plain, it was **less expressive than the model
+behind it**. Decision 2 made the active slot a number, and the geometry that picks it has
+been able to say left-or-right as readily as above-or-below since the day panels became
+targets. A horizontal rule cannot draw "left of this one", and the end-of-list marker
+spanned every column, so in a `colCount: 2` page it pointed at a whole row whichever half
+was meant. The indicator was answering a coarser question than the drop was.
+
+Three things follow, and each was forced rather than chosen:
+
+- **A second decorator seam, on the slot rather than in it.** A container is a grid whose
+  items are the layout slots (I5), so an indicator drawn *inside* a slot is inside a cell:
+  it can push one element down and it cannot take a cell of its own. `PageElementSlot`
+  therefore gained a decorator applied around itself, beside the one from decision 5 that
+  wraps an element's contents. Two seams, because they wrap genuinely different things —
+  an adorner belongs to an element and travels with it, a placeholder belongs to the
+  container and is one of its children. Panels needed no change again, for decision 5's
+  reason: the slot is still the one wrapper every page element passes through.
+- **Withdrawal is model state, not a rendering trick.** `PlacementSnapshot.withdrawn` says
+  which element stands aside, because a preview showing where a drop would land is showing
+  the survey as it *would be*, and the thing being moved is in one place in that survey
+  rather than two. Every adapter has to answer this identically or they disagree about
+  what a drag looks like. Nothing withdraws without an active slot: an aim at a forbidden
+  or no-op position must leave the element where it sits, since "nothing would happen" and
+  "your question has vanished" are not the same answer.
+- **Standing aside is never unmounting.** The obvious way to take an element out of the
+  layout is to stop rendering it, and it ends the drag: the handle inside it is holding the
+  pointer capture the gesture is being delivered through. The slot keeps its DOM and gives
+  up its box, which is also why the geometry now skips withdrawn slots — an element with no
+  visible box must not keep a hit area at whatever corner its collapsed box lands in.
+
+**None of this applies the edit**, so decision 4 stands unchanged. A display order is not a
+structural edit: it re-parses nothing, mutates nothing and pushes no history. The rule
+decision 4 protects is that a drag previews and commits *once*, and it still does.
+
+### 8 — What the pointer carries is the question, drawn again (amendment)
+
+The placeholder says where a drop would land. A ghost beside the pointer says *what* is
+being dropped, and without one a drag is still an invisible thing being held: the canvas
+opens a space and nothing at all is attached to the cursor, so the gesture reads as pushing
+the page around rather than carrying something across it.
+
+**It is the question, rendered a second time — not a label naming it.** The first attempt
+here shipped a chip, on the reasoning that what is carried is already drawn at full size in
+the placeholder and spoken in the live region, so the ghost only had to say *held*. That
+reasoning is wrong about what this canvas is for. The whole argument for rendering the real
+survey rather than a diagram of it is that a designer works on what they can see; a drag is
+the one moment the thing they are working on would have become a word, and the moment they
+are looking straight at it.
+
+**A copy, not the element lifted.** They look identical and only one is correct: the
+original has to stay where it is when the drop would change nothing, which is how
+`withdrawn` says so, and it cannot be in its place and under the pointer at once.
+
+**A copy is legal because it gets its own id scope, and could not have been written
+before.** Two renderings of one question emit one set of ids, so the document would carry
+duplicates and every `<label for>` in the second would resolve to the first — P7's defect,
+reintroduced by the picture of the question. `<Survey>` had always minted a scope from
+`useId` and nothing else could; `IdScopeProvider` is that mechanism with nothing else
+attached, and it is public under P9's rule that a seam exports what its own implementations
+use. `inert` and `aria-hidden` finish it: what is inside is a picture, so nothing in it
+takes focus, answers a pointer, or is read out beside the live region.
+
+**Opaque, and the shadow is what says lifted.** Translucency was the obvious way to keep
+the canvas legible underneath and it does the opposite — the questions behind show *through*
+the one in hand, making the thing being carried the least readable thing on screen.
+
+**Toolbox items keep a label**, and that is not a shortcut: a new element has not been
+created, so there is no rendered question to copy. What the drag carries is the *type*, and
+its name is what represents it.
+
+**It hangs from where it was grabbed**, measured on the press. A drag begins on the first
+*move*, by which time the pointer has left the element — an offset taken then is the
+distance to wherever it went, and the copy is drawn that far from the cursor in the opposite
+direction for the rest of the gesture. At a chip's size that is a cosmetic error; at the
+element's own size it is the difference between lifting a question and dragging a card that
+jumped out from under your hand.
+
+**It is written to the DOM, never through React state.** A ghost follows the pointer, so
+its position changes on every `pointermove` — and publishing pointer motion as state is the
+thing decision 6 separated the placement signal to avoid. Two custom properties on one node
+re-render nothing, and the node is the input adapter's own furniture rather than anything
+the model knows about.
+
+**Still no portal.** Decision 1 objected to a drag library owning a portal and a drag layer
+underneath a decision to leave markup to the host, and that objection would apply to us. The
+ghost is an ordinary child of the design surface, positioned against the viewport — so it
+paints over the toolbox and the page navigator without leaving the Creator's own tree. Where
+those coordinates start from is **measured rather than assumed**: a `position: fixed` node is
+placed against the viewport unless an ancestor carries a transform, a filter or
+`will-change`, and nothing here can know whether a host's layout does. Reading the ghost's
+own box at the grab answers it, which is also why the node is mounted for the whole session
+rather than appearing with the drag — an element that arrives with the gesture cannot be
+measured until a frame into it.
+
+**One ghost, drawn by the canvas.** A drag can begin in the toolbox or the page navigator,
+and each piece rendering its own would give the pointer two things to follow and one ref for
+both to fight over. The canvas is the piece present whenever anything is being placed.
+
+### 9 — Which axis decides is a fact about the container (amendment)
+
+A slot boundary sits on an element's midpoint: the bottom half of the element above and the
+top half of the one below both aim at the position between them. That falls out of decision
+2's "nearest centre, then which side" rather than being written down — for a point between
+two centres, "nearest, then which side" and "which half am I in" agree.
+
+**What has to be chosen is the axis, and it was being chosen from the pointer.** The
+original rule took whichever axis the pointer was further out on, so that one piece of code
+could read a stacked list and a `colCount: 2` row without being told which it was looking
+at. It does not survive contact with a real canvas: elements are as wide as the surface, so
+`|dx|` beats `|dy|` almost everywhere and the answer quietly becomes *left or right of
+centre* — in a single column, where left and right mean nothing. Aiming at the end of a list
+meant dropping far enough below the last element to out-distance however far sideways the
+pointer happened to be, which is a long way down and reads as the drop target being broken.
+
+The axis is a property of the **container**: it either puts things side by side or it does
+not, and two of its elements sharing a row is the whole of the evidence. Asking each element
+for its own neighbour instead was tried first and breaks on the case every grid has — the
+last row is usually partial, so its element has nothing beside it and reads as a column,
+though "after it" is plainly the empty cell to its right.
+
+A page whose elements all take a new line is therefore a column and reads like one, whatever
+its declared `colCount`, which is the right answer for the same reason: what the rule is
+after is the layout on screen, not the property that usually produces it.
+
+**Found by building it: the canvas had never had columns.** The design surface is the
+page's grid and the stylesheet had always read `--kajay-col-count` from it, but only
+`SurveyPage` ever wrote one — so every canvas was a single column and the two-column case
+this decision exists to serve could not be reached at all. The test that should have
+caught it asserted `startWithNewLine`, which is a property of an element rather than of the
+grid it sits in. A row about *where a drop lands* is what surfaced it, because a
+placeholder that takes a cell has nothing to say on a surface that only ever has one.
+
+### 10 — The rearrangement is moved into, and the stylesheet decides whether (amendment)
+
+A placeholder that takes a cell moves everything after it, so without motion the page
+teleports on every aim: a different arrangement each time the pointer crosses a midpoint,
+and nothing to say what became what. First and last positions, then the difference —
+hand-written, because it is twenty lines and decision 1's objection to a library owning the
+Creator's markup applies to an animation library exactly as it did to a drag one.
+
+**Whether any of it happens is a CSS decision, not ours.** Duration and easing are read from
+custom properties, and an unset one — which is what a host who ships their own stylesheet
+has — reads as zero and skips the measuring as well as the animating. That is
+[ADR-0022](./0022-design-system-primitives.md) applied to motion: the library offers it and
+the host owns it, down to turning it off.
+
+**`prefers-reduced-motion` is the exception, and is asked in the adapter.** Duration and
+easing are the host's choice; this is not one of theirs. Somebody who has told their system
+they want less motion has already answered, and a host who forgets the media query must not
+be able to overrule them.
+
+**The baseline is taken at the grab.** The adapter only re-renders when the *placement*
+changes, so anything that moved the page in between — a selection opening an action row, an
+inline edit growing a title — would still be in a remembered position and the first aim
+would animate every element from wherever it used to be. Measuring at the press is both
+correct and cheaper: once per drag rather than once per render.
+
+**It stays armed through the drop**, because the last rearrangement a drag makes is the one
+that commits, and by then the placement is idle again — a guard watching for "a drag is in
+progress" would animate every step except the one the gesture was for. Positions are keyed
+by **name**, which is the only thing that survives the re-parse decision 3 performs, and the
+withdrawn element's position is recorded as *the ghost's*: it has been invisible for the
+whole drag, so the ghost is where it was on screen, and the question settles from the
+pointer that carried it rather than flying in from the corner its collapsed box occupies.
+
+The cost is real and worth stating: every scenario that measures a position during a drag
+now races an animation, and the end-to-end ones wait for the page to come to rest first. A
+test that measured mid-settle would be reading where an element is passing through.
+
+### 11 — A drag must be able to end, whatever happens to the pointer (amendment)
+
+**A drag that cannot end is the worst state decisions 7 to 10 can produce**, and it was
+reachable. The element being moved has given up its box, so a *question is invisible* on
+the canvas, the ghost is frozen wherever the pointer was, and nothing on screen offers a way
+out. The definition is untouched — a Creator drag previews and commits once — which is what
+makes it disorienting rather than destructive: the survey is fine and the canvas says
+otherwise.
+
+Pointer capture is supposed to make this impossible; the handle keeps receiving events
+wherever the pointer goes, so `pointerup` always arrives. That stops being true when the
+handle **stops existing** mid-gesture. Capture is released with the node, the release lands
+on nothing, and the session waits for an event that will never come. A hot reload is how it
+was found, and it is the least of the ways to get there — a host re-rendering its tree and a
+question hidden by logic somebody just edited both do it in production.
+
+Three defences, deliberately independent, so no single one has to be the one that works:
+
+- **A move with no button down.** A drag always reports the button holding it; one that does
+  not is the first event after a release nobody saw. It is also the only one that recovers a
+  *press* whose release went missing, before any drag began.
+- **`lostpointercapture`.** Capture taken away by a native drag starting, or by the browser
+  deciding it has finished routing this pointer. It fires after `pointerup` on an ordinary
+  drop, so it asks whether a gesture was still in progress rather than assuming one was.
+- **`pointerup` and `pointercancel` on the window**, for the length of one drag and no
+  longer. That distinction is what makes it compatible with the rule this package otherwise
+  keeps — a Creator that grabbed these permanently would be taking them from the rest of a
+  host's application, exactly as K6 says about `Ctrl+Z`, while one holding them between a
+  press and a release is describing the gesture it is already in the middle of.
+
+**All three abandon rather than commit.** Reaching any of them means the gesture did not end
+the way it was supposed to, so what the last aim pointed at is not evidence of intent.
+Putting the question back is recoverable in a way that moving it somewhere nobody chose is
+not.
+
+**A defect the tests could not have caught, because they were not honest.** Every synthetic
+pointer event in the suite left `buttons` unset, which is what a *released* pointer reports —
+so the first of these defences failed six existing scenarios the moment it was added. They
+were asserting against a gesture no real pointer produces.
+
 ## Consequences
 
 - Phase 1's ranking work carried a small extra design obligation (generalize the reorder
@@ -182,6 +398,11 @@ implementation.
 - A second framework adapter can reuse the entire placement lifecycle without copying
   React state. Its remaining work is geometry, input translation, focus/ARIA, drawing,
   and narration wording.
+- **The rendering seam now has two decorators, and that is a cost worth naming.** A host
+  reading `@kajay/react`'s surface meets both and has to work out which one they want. The
+  alternative was widening the first until it could return the slot as well, which would
+  have moved the adorner outside the layout wrapper and taken I5's `width` and
+  `startWithNewLine` with it — a layout bug in design mode in exchange for one fewer name.
 - If a library is ever adopted after all, it is a dependency of `creator-react` only —
   permitted, since UI packages may carry dependencies while core packages may not — and
   it replaces the input adapter without touching the placement model.

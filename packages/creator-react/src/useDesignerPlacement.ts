@@ -1,61 +1,66 @@
 import type {
   DesignSurface,
-  DropList,
   DropSlot,
   PlacementNarration,
   PlacementSource,
   ToolboxItem,
 } from '@kajay/creator-core';
 import { reorderAnnouncement } from '@kajay/react';
-import type { KeyboardEvent, PointerEvent } from 'react';
-import { useCallback, useRef, useSyncExternalStore } from 'react';
-import { slotAtPoint } from './placementGeometry.js';
-import { placementIntent } from './placementKeys.js';
-import type { PlacementIntent } from './placementKeys.js';
+import { useCallback, useRef, useState, useSyncExternalStore } from 'react';
+import type { Point } from './ghostPosition.js';
+import { handleProps, itemProps } from './placementGestures.js';
+import type {
+  Carry,
+  ElementRef,
+  Gesture,
+  PlacementContext,
+  PlacementHandleProps,
+  PlacementItemProps,
+} from './placementGestures.js';
+import type { PlacementShape } from './placementShape.js';
+import { useReleasedDrag } from './useReleasedDrag.js';
+import { useSettledPlacement } from './useSettledPlacement.js';
+import type { SettleSurface } from './useSettledPlacement.js';
 
-/** Pointer handlers for anything draggable: a toolbox item, an element, a page. */
-export interface PlacementDragProps {
-  readonly onPointerDown: (event: PointerEvent<HTMLElement>) => void;
-  readonly onPointerMove: (event: PointerEvent<HTMLElement>) => void;
-  readonly onPointerUp: (event: PointerEvent<HTMLElement>) => void;
-  readonly onPointerCancel: (event: PointerEvent<HTMLElement>) => void;
-}
+export type {
+  PlacementDragProps,
+  PlacementHandleProps,
+  PlacementItemProps,
+} from './placementGestures.js';
 
-/** Drag handlers plus the atomic click-to-append interaction for a toolbox item. */
-export interface PlacementItemProps extends PlacementDragProps {
-  readonly onClick: () => void;
-}
-
-/** Everything an element or page drag handle needs. */
-export interface PlacementHandleProps extends PlacementDragProps {
-  readonly 'aria-roledescription': string;
-  readonly 'data-grabbed': 'true' | undefined;
-  readonly onKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
-}
+/**
+ * The two lists a placement rearranges, and what identifies their items across an edit.
+ *
+ * Names, not nodes: a structural edit re-parses and every element on the canvas is a new
+ * one afterwards (ADR-0009 decision 3), so node identity cannot survive the drop that the
+ * most important of these animations is *for*.
+ */
+const CANVAS_SURFACE = { selector: '[data-element-slot]', attribute: 'data-element-slot' };
+const PAGE_SURFACE = { selector: '.kajay-pages__item', attribute: 'data-page-name' };
 
 export interface DesignerPlacement {
   readonly surfaceRef: (element: HTMLElement | null) => void;
   readonly pageListRef: (element: HTMLElement | null) => void;
   readonly source: PlacementSource | undefined;
   readonly activeSlot: DropSlot | undefined;
+  /** The element standing aside while a preview shows where it would go. */
+  readonly withdrawn: string | undefined;
+  /** What the placeholder is holding a place for, measured when the drag began. */
+  readonly shape: PlacementShape | undefined;
+  /**
+   * What the pointer is carrying, for the ghost that follows it.
+   *
+   * Present only while a **pointer** is driving the drag. A keyboard walk has no pointer
+   * for anything to follow, and a ghost parked in a corner of the screen through a
+   * keyboard drag would be furniture rather than feedback.
+   */
+  readonly carrying: PlacementShape | undefined;
+  /** Goes on the node drawn beside the pointer — see `PlacementGhost`. */
+  readonly ghostRef: (element: HTMLElement | null) => void;
   readonly announcement: string;
   readonly getItemProps: (item: ToolboxItem) => PlacementItemProps;
   readonly getHandleProps: (elementName: string) => PlacementHandleProps;
   readonly getPageHandleProps: (pageName: string, index: number) => PlacementHandleProps;
-}
-
-interface Gesture {
-  pending: boolean;
-  dragged: boolean;
-}
-
-type ElementRef = { current: HTMLElement | null };
-
-interface PlacementContext {
-  readonly surface: DesignSurface;
-  readonly measure: ElementRef;
-  readonly gesture: { current: Gesture };
-  readonly fixedList?: DropList | undefined;
 }
 
 /**
@@ -66,33 +71,57 @@ interface PlacementContext {
  * second UI adapter receives exactly the same placement meaning.
  */
 export function useDesignerPlacement(surface: DesignSurface): DesignerPlacement {
-  const canvas = useRef<HTMLElement | null>(null);
-  const pageList = useRef<HTMLElement | null>(null);
-  const gesture = useRef<Gesture>({ pending: false, dragged: false });
+  const { canvas, pageList, ghost, gesture, anchor, grab } = usePlacementRefs();
+  // Measured once, when the drag begins, and read for as long as it lasts. Re-measuring
+  // as the pointer moves would measure an element that has already stood aside — the
+  // placeholder would collapse to nothing the moment it did its job.
+  const [shape, setShape] = useState<PlacementShape>();
+  // Whether a *pointer* is driving this drag. The snapshot cannot say — a keyboard grab
+  // and a pointer drag are the same placement to the model, and correctly so; what
+  // differs is only whether there is a pointer for anything to follow.
+  const [carrying, setCarrying] = useState(false);
   const snapshot = useSyncExternalStore(
     surface.placement.subscribe,
     (): typeof surface.placement.snapshot => surface.placement.snapshot,
   );
-  const surfaceRef = useCallback((element: HTMLElement | null): void => {
-    canvas.current = element;
-  }, []);
-  const pageListRef = useCallback((element: HTMLElement | null): void => {
-    pageList.current = element;
-  }, []);
+  const surfaces: readonly SettleSurface[] = [
+    { node: canvas, ...CANVAS_SURFACE },
+    { node: pageList, ...PAGE_SURFACE },
+  ];
+  const settle = useSettledPlacement(surfaces, ghost, snapshot.kind === 'idle');
+  // The pointer half of a drag, undone. Kept apart from the transition it usually
+  // accompanies because the window has to be able to do this for a handle that no longer
+  // exists — see `useReleasedDrag`.
+  const release = useCallback((): void => {
+    gesture.current.pending = false;
+    anchor.current = null;
+    setCarrying(false);
+  }, [gesture, anchor]);
+  useReleasedDrag(surface, carrying, release);
 
-  const onCanvas: PlacementContext = { surface, measure: canvas, gesture };
-  const inPageList: PlacementContext = {
+  const carry: Carry = { node: ghost, anchor, grab, show: setCarrying };
+  const onCanvas: PlacementContext = {
     surface,
-    measure: pageList,
+    measure: canvas,
     gesture,
-    fixedList: { of: 'pages' },
+    remember: setShape,
+    carry,
+    settle,
   };
+  const inPageList: PlacementContext = { ...onCanvas, measure: pageList, fixedList: { of: 'pages' } };
 
   return {
-    surfaceRef,
-    pageListRef,
+    surfaceRef: attach(canvas),
+    pageListRef: attach(pageList),
+    ghostRef: attach(ghost),
     source: snapshot.source,
     activeSlot: snapshot.activeSlot,
+    withdrawn: snapshot.withdrawn,
+    // Tied to the snapshot rather than cleared when a drag ends: a measurement that
+    // outlives its drag is never read, and a state update to forget it would be a second
+    // render on every drop for something nothing can see.
+    shape: snapshot.kind === 'preview' ? shape : undefined,
+    carrying: snapshot.kind === 'preview' && carrying ? shape : undefined,
     announcement: formatNarration(snapshot.narration),
     getItemProps: (item) => itemProps(onCanvas, item),
     getHandleProps: (name) => handleProps(onCanvas, name),
@@ -100,107 +129,41 @@ export function useDesignerPlacement(surface: DesignSurface): DesignerPlacement 
   };
 }
 
-function itemProps(context: PlacementContext, item: ToolboxItem): PlacementItemProps {
-  const { surface } = context;
-  const source: PlacementSource = { kind: 'new', item };
+/**
+ * Every mutable handle the adapter keeps between renders.
+ *
+ * Together rather than scattered because they are one thing: what the browser handed us
+ * last time, kept so the next pointer event can be answered without a render.
+ */
+function usePlacementRefs(): {
+  readonly canvas: ElementRef;
+  readonly pageList: ElementRef;
+  readonly ghost: ElementRef;
+  readonly gesture: { current: Gesture };
+  readonly anchor: { current: Point | null };
+  readonly grab: { current: Point };
+} {
   return {
-    ...dragProps(context, source),
-    onClick: () => {
-      const page = surface.page;
-      if (!context.gesture.current.dragged && page !== undefined) {
-        surface.placement.transition({
-          kind: 'place',
-          source,
-          slot: {
-            list: { of: 'elements', container: page.name },
-            index: page.elements.length,
-          },
-        });
-      }
-    },
+    canvas: useRef<HTMLElement | null>(null),
+    pageList: useRef<HTMLElement | null>(null),
+    ghost: useRef<HTMLElement | null>(null),
+    gesture: useRef<Gesture>({ pending: false, dragged: false }),
+    anchor: useRef<Point | null>(null),
+    grab: useRef<Point>({ x: 0, y: 0 }),
   };
 }
 
-function handleProps(context: PlacementContext, name: string): PlacementHandleProps {
-  const source: PlacementSource = { kind: 'move', name };
-  const snapshot = context.surface.placement.snapshot;
-  return {
-    ...dragProps(context, source),
-    'aria-roledescription': 'Sortable item',
-    'data-grabbed':
-      snapshot.source?.kind === 'move' && snapshot.source.name === name ? 'true' : undefined,
-    onKeyDown: (event) => {
-      const intent = placementIntent(event.key);
-      if (intent === undefined) {
-        return;
-      }
-      event.preventDefault();
-      applyIntent(context.surface, intent, source);
-    },
+/**
+ * A ref callback that only records the node.
+ *
+ * Not memoised, and it does not need to be: React detaches and re-attaches a changed
+ * callback ref during commit, which for a function whose whole body is an assignment costs
+ * one null and one node — and no pointer event can arrive in between.
+ */
+function attach(ref: ElementRef): (element: HTMLElement | null) => void {
+  return (element) => {
+    ref.current = element;
   };
-}
-
-/** A drag begins on movement, leaving a press available for focus and selection. */
-function dragProps(context: PlacementContext, source: PlacementSource): PlacementDragProps {
-  const { measure, gesture, surface } = context;
-  return {
-    onPointerDown: (event) => {
-      event.currentTarget.setPointerCapture(event.pointerId);
-      gesture.current = { pending: true, dragged: false };
-    },
-    onPointerMove: (event) => {
-      if (!gesture.current.pending || measure.current === null) {
-        return;
-      }
-      gesture.current.dragged = true;
-      const slot = slotAtPoint(
-        measure.current,
-        { x: event.clientX, y: event.clientY },
-        context.fixedList,
-      );
-      const placement = surface.placement;
-      if (slot === undefined) {
-        if (placement.snapshot.kind === 'preview') {
-          placement.transition({ kind: 'aim', slot: undefined });
-        }
-        return;
-      }
-      placement.transition(
-        placement.snapshot.kind === 'idle'
-          ? { kind: 'start', source, slot }
-          : { kind: 'aim', slot },
-      );
-    },
-    onPointerUp: () => {
-      gesture.current.pending = false;
-      surface.placement.transition({ kind: 'finish', action: 'commit' });
-    },
-    onPointerCancel: () => {
-      gesture.current.pending = false;
-      surface.placement.transition({ kind: 'finish', action: 'abandon' });
-    },
-  };
-}
-
-function applyIntent(
-  surface: DesignSurface,
-  intent: PlacementIntent,
-  source: PlacementSource,
-): void {
-  const placement = surface.placement;
-  if (intent === 'cancel') {
-    placement.transition({ kind: 'finish', action: 'abandon' });
-    return;
-  }
-  if (intent === 'toggle') {
-    placement.transition(
-      placement.snapshot.kind === 'idle'
-        ? { kind: 'start', source }
-        : { kind: 'finish', action: 'commit' },
-    );
-    return;
-  }
-  placement.transition({ kind: 'step', direction: intent });
 }
 
 function formatNarration(narration: PlacementNarration | undefined): string {

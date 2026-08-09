@@ -16,6 +16,7 @@ import {
   offerableSlots,
   placementNarration,
   sameSlot,
+  withdrawnDuring,
 } from './placementLifecycle.js';
 
 export type { PlacementNarration, PlacementNarrationKind } from './placementLifecycle.js';
@@ -52,6 +53,7 @@ const IDLE: PlacementSnapshot = {
   source: undefined,
   origin: undefined,
   activeSlot: undefined,
+  withdrawn: undefined,
   narration: undefined,
 };
 
@@ -149,11 +151,13 @@ export class PlacementSessionModel implements PlacementSession {
     this.#target = target;
     this.#lastNarrationSlot = target;
     this.#startedAt = this.#host.revision();
+    const active = canPlace(definition, source, target) ? target : undefined;
     this.#snapshot = {
       kind: 'preview',
       source,
       origin,
-      activeSlot: canPlace(definition, source, target) ? target : undefined,
+      activeSlot: active,
+      withdrawn: withdrawnDuring(source, active),
       narration: placementNarration('grabbed', source, origin, target, definition),
     };
     this.publish();
@@ -176,7 +180,7 @@ export class PlacementSessionModel implements PlacementSession {
         return 'ignored';
       }
       this.#target = undefined;
-      this.#snapshot = { ...state, activeSlot: undefined };
+      this.#snapshot = { ...state, activeSlot: undefined, withdrawn: undefined };
       this.publish();
       return 'updated';
     }
@@ -192,6 +196,7 @@ export class PlacementSessionModel implements PlacementSession {
     this.#snapshot = {
       ...state,
       activeSlot: allowed ? slot : undefined,
+      withdrawn: withdrawnDuring(state.source, allowed ? slot : undefined),
       narration: allowed
         ? placementNarration('moved', state.source, state.origin, slot, definition)
         : state.narration,

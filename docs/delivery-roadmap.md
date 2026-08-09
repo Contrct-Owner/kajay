@@ -34,7 +34,7 @@ Phase 3 exit record below for what that did and did not include. Phase 4 is hori
 | **1 — Runtime core** | Expression engine, core question types, logic, validation, flow | Checklist §A–§E green via host-demo scenarios, less the rows that name later-phase surface | **complete (2026-08-02)** |
 | **2 — Form Library parity** | Matrix family, dynamic panels, quiz, theming, localization, a11y | Checklist §A–§J (all Form Library sections) green | **delivered 2026-08-03**, but for A4/A5 (Phase 3) |
 | **3 — Creator parity** ⭐ | Drag-drop designer, property grid, logic/JSON/translation/theme editors | Checklist §K–§N green; build→render→round-trip proven in host-demo | **delivered 2026-08-04; 1.0.0 published 2026-08-05** |
-| **4 — Horizon** | PDF, dashboard, and other frameworks | Opportunity-driven; each promoted workstream gets its own gate | **C# SDK release-ready; remaining items horizon** |
+| **4 — Horizon** | PDF, dashboard, and other frameworks | Opportunity-driven; each promoted workstream gets its own gate | **`Kajay.Core` 1.0.0 published 2026-08-08; remaining items horizon** |
 
 The phase records below preserve how acceptance was originally reached, including
 references to the former `apps/host-demo`. That application was retired after TypeScript
@@ -351,7 +351,7 @@ project outside the workspace and drives the Creator from them.
 **The phase grew a section it did not start with.** §P — the reference application —
 was added on the judgement that checklist-green proves *function* and not *fitness*,
 and that a library nobody has built an application with is untested in the way that
-matters. It earned its place: eleven rows, and among them a server-rendering defect no
+matters. It earned its place: twelve rows, and among them a server-rendering defect no
 unit test could have found, four cases where the composition story promised something
 the public surface could not deliver, duplicate DOM ids across two surveys of one
 definition, and the silence ADR-0023 now forbids. None of those were visible from

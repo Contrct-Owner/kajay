@@ -4,7 +4,7 @@ import type { ReactElement, ReactNode } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
 import { useCreatorText } from './CreatorStringsContext.js';
 import { ElementActions } from './ElementActions.js';
-import { DropEndIndicator } from './DropEndIndicator.js';
+import { PlacementPlaceholder } from './PlacementPlaceholder.js';
 import {
   CONTAINER_ATTRIBUTE,
   ELEMENT_INDEX_ATTRIBUTE,
@@ -22,10 +22,8 @@ export interface DesignedElementProps {
   readonly children: ReactNode;
   /** Absent when the host wired no placement: the canvas is then read-only furniture. */
   readonly placement?: DesignerPlacement | undefined;
-  /** Whether a drop would land immediately before this element. */
-  readonly isDropTarget: boolean;
-  /** Whether a drop would land after this container's final child. */
-  readonly isDropAtEnd: boolean;
+  /** Whether a drop would land inside this element, which holds nothing yet. */
+  readonly isEmptyDropTarget: boolean;
 }
 
 /**
@@ -53,8 +51,7 @@ export function DesignedElement({
   container,
   children,
   placement,
-  isDropTarget,
-  isDropAtEnd,
+  isEmptyDropTarget,
 }: DesignedElementProps): ReactElement {
   const isSelected = surface.isSelected(element);
   // A container with nothing in it has no child to aim at, so it says so itself —
@@ -67,7 +64,6 @@ export function DesignedElement({
       className="kajay-designer__element"
       data-selected={isSelected ? 'true' : undefined}
       data-element-type={element.type}
-      data-drop-before={isDropTarget ? 'true' : undefined}
       {...{
         [ELEMENT_INDEX_ATTRIBUTE]: String(index),
         [CONTAINER_ATTRIBUTE]: container,
@@ -83,7 +79,16 @@ export function DesignedElement({
     >
       <Adorner surface={surface} element={element} placement={placement} />
       {children}
-      {isDropAtEnd ? <DropEndIndicator container={element.name} /> : null}
+      {isEmptyDropTarget ? (
+        // Inside the container's own element rather than inside its layout, because there
+        // is no layout yet: a panel with no children draws no grid for a cell to join.
+        <PlacementPlaceholder
+          className="kajay-designer__placeholder"
+          shape={placement?.shape}
+          container={element.name}
+          index={0}
+        />
+      ) : null}
     </div>
   );
 }

@@ -15,6 +15,7 @@ import type { CreatorStringKey } from '@kajay/creator-core';
 import { useCreatorText } from './CreatorStringsContext.js';
 import type { CreatorText } from './CreatorStringsContext.js';
 import { ExpressionField } from './ExpressionField.js';
+import { PropertyLabel } from './PropertyLabel.js';
 import { TranslationsField } from './TranslationsField.js';
 import { usePropertyEditor } from './PropertyEditors.js';
 import type { PropertyEditorProps } from './PropertyEditors.js';
@@ -102,9 +103,9 @@ function PropertyField({ surface, element, row, scope }: FieldProps): ReactEleme
       data-property={row.name}
       data-read-only={row.isReadOnly ? 'true' : undefined}
     >
-      <label className="kajay-properties__label" htmlFor={id}>
+      <PropertyLabel htmlFor={id} hasHint={row.description !== undefined}>
         {row.title}
-      </label>
+      </PropertyLabel>
       <Editor
         Custom={Custom}
         surface={surface}

@@ -15,8 +15,10 @@ versioned behavior contract support maintained native runtimes.
 - **Functional parity is delivered.** Checklist sections A–N and the assembled-Creator
   acceptance path are backed by named unit, browser, site E2E, conformance, and pack
   proofs.
-- **The C# SDK is release-ready.** `Kajay.Core` targets .NET 10 and implements the
-  framework-independent runtime behind the shared schema and conformance seam.
+- **`Kajay.Core` 1.0.0 is published on NuGet.** It targets .NET 10 and implements the
+  framework-independent runtime behind the shared schema and conformance seam. Its
+  version train is independent of the npm packages ([ADR-0030](./docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md));
+  interoperability is claimed by schema and conformance version, never by version equality.
 - **Kajay.io is the only application.** `apps/site` owns the marketing page,
   documentation, read-only documentation MCP endpoint, and playground.
 - **Host policy is out of SDK scope.** Persistence, identity, authorization, workflow,

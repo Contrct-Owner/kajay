@@ -1,9 +1,11 @@
 import type { DesignSurface } from '@kajay/creator-core';
 import type { Page } from '@kajay/core';
+import { Fragment } from 'react';
 import type { ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
 import { useCreatorText } from './CreatorStringsContext.js';
-import { ELEMENT_INDEX_ATTRIBUTE } from './placementGeometry.js';
+import { ELEMENT_INDEX_ATTRIBUTE, WITHDRAWN_ATTRIBUTE } from './placementGeometry.js';
+import { PlacementPlaceholder } from './PlacementPlaceholder.js';
 import { useSurfaceVersion } from './useSurfaceVersion.js';
 import type { DesignerPlacement } from './useDesignerPlacement.js';
 
@@ -43,21 +45,26 @@ export function PageNavigatorPanel({
       <SurveyEntry surface={surface} />
       <ol className="kajay-pages__list" ref={placement?.pageListRef}>
         {pages.map((page, index) => (
-          <PageEntry
-            key={page.name}
-            surface={surface}
-            page={page}
-            index={index}
-            placement={placement}
-            isDropTarget={activeSlot === index}
-          />
+          <Fragment key={page.name}>
+            {activeSlot === index ? <PagePlaceholder placement={placement} index={index} /> : null}
+            <PageEntry
+              surface={surface}
+              page={page}
+              index={index}
+              placement={placement}
+              isWithdrawn={placement?.withdrawn === page.name}
+            />
+          </Fragment>
         ))}
+        {/*
+          The end of the list has no page to draw beside, and it is where a designer most
+          often wants one. Inside the list rather than after it, so the row lays it out as
+          one of its own — a marker outside would sit past the wrap rather than in it.
+        */}
+        {activeSlot === pages.length ? (
+          <PagePlaceholder placement={placement} index={activeSlot} />
+        ) : null}
       </ol>
-      {activeSlot === pages.length ? (
-        // The end of the list has no page to draw a line above, and it is where a
-        // designer most often wants one.
-        <div className="kajay-pages__drop-end" data-testid="page-drop-at-end" />
-      ) : null}
       <Button
         className="kajay-pages__add"
         data-testid="add-page"
@@ -100,12 +107,38 @@ function SurveyEntry({ surface }: { readonly surface: DesignSurface }): ReactEle
   );
 }
 
+/**
+ * The place a dragged page would take, as a row of the list.
+ *
+ * A list item rather than a bare marker, because it is going in an `<ol>` and the row it
+ * joins is that list's own layout. `aria-hidden` puts it back out of the list a screen
+ * reader hears, where an unnamed entry would be one more thing to step past while the
+ * live region is already saying where the page has got to.
+ */
+function PagePlaceholder({
+  placement,
+  index,
+}: {
+  readonly placement: DesignerPlacement | undefined;
+  readonly index: number;
+}): ReactElement {
+  return (
+    <li className="kajay-pages__placeholder-row" aria-hidden="true">
+      <PlacementPlaceholder
+        className="kajay-pages__placeholder"
+        shape={placement?.shape}
+        index={index}
+      />
+    </li>
+  );
+}
+
 interface PageEntryProps {
   readonly surface: DesignSurface;
   readonly page: Page;
   readonly index: number;
   readonly placement: DesignerPlacement | undefined;
-  readonly isDropTarget?: boolean;
+  readonly isWithdrawn?: boolean;
 }
 
 /**
@@ -120,7 +153,7 @@ function PageEntry({
   page,
   index,
   placement,
-  isDropTarget,
+  isWithdrawn,
 }: PageEntryProps): ReactElement {
   const { Button } = useCreatorComponents();
   const isCurrent = surface.page?.name === page.name;
@@ -130,8 +163,16 @@ function PageEntry({
     <li
       className="kajay-pages__item"
       data-current={isCurrent ? 'true' : undefined}
-      data-drop-before={isDropTarget ? 'true' : undefined}
-      {...{ [ELEMENT_INDEX_ATTRIBUTE]: String(index) }}
+      // What identifies this row across a reorder, so it can be *moved* into its new
+      // position rather than redrawn there. An index cannot: reordering is precisely the
+      // operation that changes it, so every row would look like a different row.
+      data-page-name={page.name}
+      {...{
+        [ELEMENT_INDEX_ATTRIBUTE]: String(index),
+        // Standing aside, not unmounted: the handle inside it is holding the pointer
+        // capture that is driving the drag, and removing it would end the gesture.
+        ...(isWithdrawn === true ? { [WITHDRAWN_ATTRIBUTE]: 'true' } : {}),
+      }}
     >
       <Button
         className="kajay-pages__go"

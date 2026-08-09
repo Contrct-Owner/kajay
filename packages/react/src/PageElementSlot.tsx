@@ -1,6 +1,7 @@
 import type { PageElement } from '@kajay/core';
 import type { CSSProperties, ReactElement, ReactNode } from 'react';
 import { usePageElementDecorator } from './PageElementDecoratorContext.js';
+import { usePageElementSlotDecorator } from './PageElementSlotDecoratorContext.js';
 import { useCssClass } from './SurveyCssContext.js';
 
 export interface PageElementSlotProps {
@@ -26,6 +27,10 @@ export function PageElementSlot({ element, children }: PageElementSlotProps): Re
   // how the Creator gets an adorner around an element inside a panel without any
   // renderer knowing the Creator exists.
   const decorate = usePageElementDecorator();
+  // And whatever a host has drawn *beside* the slot — nothing, for a respondent. This is
+  // how the Creator puts a drop placeholder in a container's own layout without any
+  // renderer knowing the Creator exists.
+  const decorateSlot = usePageElementSlotDecorator();
   const style: Record<string, string> = {};
   if (element.startWithNewLine) {
     style['gridColumnStart'] = '1';
@@ -37,7 +42,7 @@ export function PageElementSlot({ element, children }: PageElementSlotProps): Re
     style['minWidth'] = element.minWidth;
   }
 
-  return (
+  const slot = (
     <div
       className={className}
       data-element-slot={element.name}
@@ -47,4 +52,10 @@ export function PageElementSlot({ element, children }: PageElementSlotProps): Re
       {decorate(element, children)}
     </div>
   );
+
+  // The fragment is unconditional so the slot keeps its position among whatever the
+  // decorator draws beside it. A decorator that appeared and disappeared *around* the
+  // slot would remount the element on every change — which, mid-drag, destroys the very
+  // handle holding the pointer capture that is driving the drag.
+  return <>{decorateSlot(element, slot)}</>;
 }

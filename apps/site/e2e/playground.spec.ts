@@ -207,3 +207,42 @@ test('parity/P3-playground: it says what it did unasked', async ({ page }) => {
   // renumbers a name is exactly the case: the designer goes looking for `name`.
   await expect(page.getByRole('status')).toContainText('Names already in use were renumbered');
 });
+
+test('parity/L1-grid: an explanation is there when wanted and out of the way when not', async ({
+  page,
+}) => {
+  await page.goto(PLAYGROUND);
+  await canvas(page).getByTestId('select-name').click();
+  const row = page.locator('.kajay-properties__row[data-property="width"]');
+  const hint = row.locator('.kajay-properties__hint');
+
+  // **Measured rather than asked whether it is "visible"**, and the difference is the whole
+  // design: it is *rendered* at all times so a screen reader can still read it, and merely
+  // not shown — Playwright rightly calls a clipped one-pixel box visible.
+  const shown = async (): Promise<boolean> =>
+    ((await hint.boundingBox())?.height ?? 0) > 4;
+
+  // **Present always, shown on demand.** A property panel whose every field carried a line
+  // of prose was mostly prose; these are useful and rarely needed at the same time. Only
+  // the *stylesheet* hides them, so this claim can only be made where one is loaded.
+  expect(await shown()).toBe(false);
+
+  // A pointer asks the marker.
+  await row.locator('.kajay-properties__mark').hover();
+  expect(await shown()).toBe(true);
+  await expect(hint).toContainText('CSS length');
+
+  // A keyboard — and a touch, which focuses by tapping — asks by working on the field, so
+  // the marker needs no tab stop of its own: the hint arrives with the field rather than
+  // one Tab later.
+  await page.getByTestId('theme-toggle').hover();
+  expect(await shown()).toBe(false);
+  await row.getByRole('textbox').focus();
+  expect(await shown()).toBe(true);
+
+  // And it is in the accessibility tree the whole time, whichever of those is happening.
+  await expect(row.getByRole('textbox')).toHaveAttribute(
+    'aria-describedby',
+    (await hint.getAttribute('id')) ?? '',
+  );
+});

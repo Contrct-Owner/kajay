@@ -142,8 +142,10 @@ test('parity/K4-reorder-pages: dragging a page leaves the canvas alone', async (
   await userEvent.keyboard('{ }');
   await userEvent.keyboard('{Home}');
 
-  expect(screen.container.querySelectorAll('.kajay-pages [data-drop-before]')).toHaveLength(1);
-  expect(screen.container.querySelectorAll('.kajay-designer [data-drop-before]')).toHaveLength(0);
+  expect(screen.container.querySelectorAll('.kajay-pages [data-testid="drop-placeholder"]'))
+    .toHaveLength(1);
+  expect(screen.container.querySelectorAll('.kajay-designer [data-testid="drop-placeholder"]'))
+    .toHaveLength(0);
 });
 
 test('parity/K4-reorder-pages: dragging a question leaves the page list alone', async () => {
@@ -169,8 +171,10 @@ test('parity/K4-reorder-pages: dragging a question leaves the page list alone', 
   await userEvent.keyboard('{ }');
   await userEvent.keyboard('{ArrowDown}');
 
-  expect(screen.container.querySelectorAll('.kajay-designer [data-drop-before]')).toHaveLength(1);
-  expect(screen.container.querySelectorAll('.kajay-pages [data-drop-before]')).toHaveLength(0);
+  expect(screen.container.querySelectorAll('.kajay-designer [data-testid="drop-placeholder"]'))
+    .toHaveLength(1);
+  expect(screen.container.querySelectorAll('.kajay-pages [data-testid="drop-placeholder"]'))
+    .toHaveLength(0);
 });
 
 test('parity/K4-page-adorner: the page has a title editor of its own', async () => {

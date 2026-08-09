@@ -19,6 +19,28 @@ import { spawnSync } from 'node:child_process';
  * this is one, which is a sentence in a review rather than a silence.
  */
 const base = process.env['CHANGESET_BASE'] ?? 'origin/main';
+const head = process.env['CHANGESET_HEAD'] ?? '';
+
+/**
+ * The branch `changesets/action` writes the version bump to.
+ *
+ * **The one pull request that legitimately changes every package and carries no changeset**,
+ * because consuming them is what it is *for*: it bumps five manifests, writes five
+ * changelogs and deletes the files that asked for it. `changeset status` compares changed
+ * packages against available changesets and cannot tell that apart from an undeclared
+ * change — nor should it, since from where it stands the two are identical.
+ *
+ * Without this the check blocks the release it exists to protect: the version pull request
+ * could never go green, so `main` could never reach a version, so nothing could ever be
+ * published. Recorded at this length because the failure is silent until the first release
+ * and looks like the automation being broken rather than the guard being too strict.
+ */
+const VERSION_BRANCH = 'changeset-release/';
+
+if (head.startsWith(VERSION_BRANCH)) {
+  console.log(`${head} is the version pull request; consuming changesets is what it is for.`);
+  process.exit(0);
+}
 
 /**
  * Only a pull request has something to compare against.

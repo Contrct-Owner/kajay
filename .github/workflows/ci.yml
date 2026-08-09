@@ -55,6 +55,9 @@ jobs:
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           CHANGESET_BASE: origin/${{ github.base_ref }}
+          # Which branch is being merged, so the version pull request can be recognised —
+          # it is the one that changes every package and consumes every changeset.
+          CHANGESET_HEAD: ${{ github.head_ref }}
 
   architecture:
     name: Architecture checks

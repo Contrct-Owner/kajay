@@ -69,6 +69,17 @@ export function ExpressionField({
         value={value}
         onValueChange={completion.type}
         onKeyDown={completion.keys}
+        // **Leaving the field closes the list**, and without this nothing ever did: it
+        // opened on a keystroke and shut only on Escape or on accepting something, so a
+        // designer who typed here and then clicked anywhere else left a list of suggestions
+        // standing over the property grid for the rest of the session — for a field they
+        // were no longer in, offering completions for a token they had stopped writing.
+        //
+        // A different rule from the menu's, and the same reasoning underneath: this is a
+        // combobox, so focus never leaves the input while it is being used, and blur is
+        // therefore exactly the signal that it is not. Choosing an option cannot blur it —
+        // the options cancel their own `mousedown` for this reason — so the two never race.
+        onBlur={completion.close}
       />
       <SuggestionList
         listId={listId}
@@ -87,6 +98,7 @@ interface Completion {
   readonly type: (next: string) => void;
   readonly keys: (event: KeyboardEvent<HTMLInputElement>) => void;
   readonly accept: (suggestion: ExpressionSuggestion) => void;
+  readonly close: () => void;
 }
 
 /**
@@ -109,10 +121,16 @@ function useCompletion(
     ? matchingSuggestions(expressionSuggestions(surface.survey, owner), token)
     : [];
   const current = matches[Math.min(active, matches.length - 1)];
-  const accept = (suggestion: ExpressionSuggestion): void => {
-    onValueChange(applySuggestion(value, token, suggestion).text);
+  // Closing resets which option is current as well as whether any are shown. A list
+  // re-opened on the *next* token with somebody else's choice still highlighted would offer
+  // to complete a word nobody was writing.
+  const close = (): void => {
     setIsOpen(false);
     setActive(0);
+  };
+  const accept = (suggestion: ExpressionSuggestion): void => {
+    onValueChange(applySuggestion(value, token, suggestion).text);
+    close();
   };
 
   return {
@@ -120,19 +138,14 @@ function useCompletion(
     current,
     activeId: current === undefined ? undefined : optionId(listId, matches, current),
     accept,
+    close,
     type: (next) => {
       setIsOpen(true);
       setActive(0);
       onValueChange(next);
     },
     keys: (event) => {
-      handleKey(event, matches, active, {
-        setActive,
-        close: () => {
-          setIsOpen(false);
-        },
-        accept,
-      });
+      handleKey(event, matches, active, { setActive, close, accept });
     },
   };
 }

@@ -156,3 +156,36 @@ test('parity/L2-translations: a property that is not localizable has none', asyn
 
   expect(screen.container.querySelector('[data-testid="translations-visibleIf"]')).toBeNull();
 });
+
+test('parity/L2-expression: leaving the field takes the suggestions with it', async () => {
+  const designed = surface();
+  const screen = await render(<PropertyGridPanel surface={designed} />);
+  const field = screen.getByTestId('property-who-visibleIf');
+
+  await field.fill('{ag');
+  expect(screen.container.querySelectorAll('[role="option"]').length).toBeGreaterThan(0);
+
+  // **Nothing closed this list before.** It opened on a keystroke and shut only on Escape
+  // or on accepting something, so a designer who typed here and then clicked anywhere else
+  // left a list of suggestions standing over the property grid for the rest of the session
+  // — belonging to a field they were no longer in, offering completions for a token they
+  // had stopped writing. Blur is the signal precisely because this is a combobox: focus
+  // never leaves the input while the list is in use.
+  await screen.getByTestId('property-who-name').click();
+
+  await expect.element(field).toHaveAttribute('aria-expanded', 'false');
+  expect(screen.container.querySelectorAll('[role="option"]')).toHaveLength(0);
+});
+
+test('parity/L2-expression: choosing with the pointer still accepts', async () => {
+  const designed = surface();
+  const screen = await render(<PropertyGridPanel surface={designed} />);
+
+  await screen.getByTestId('property-who-visibleIf').fill('{ag');
+  // The half that closing on blur must not break: an option cancels its own `mousedown`, so
+  // choosing one never moves focus out of the field and the two rules never race.
+  const option = screen.container.querySelector<HTMLElement>('[role="option"]')!;
+  option.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+
+  await expect.poll(() => property(designed, 'visibleIf')).toBe('{age}');
+});

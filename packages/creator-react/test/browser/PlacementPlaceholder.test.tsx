@@ -120,6 +120,9 @@ test('parity/K2-placeholder: a toolbox drag holds a place for the thing it would
   const rect = target.getBoundingClientRect();
   const pointer = {
     bubbles: true,
+    // A real drag reports the button holding it, and the adapter now checks: a move with
+    // no button down is how it recognises a release that landed somewhere it could not see.
+    buttons: 1,
     pointerId: 88,
     clientX: rect.left + rect.width / 2,
     clientY: rect.top + rect.height * 0.1,
@@ -153,6 +156,9 @@ test('parity/K2-ghost: a pointer drag carries the question itself', async () => 
   const rect = target.getBoundingClientRect();
   const pointer = {
     bubbles: true,
+    // A real drag reports the button holding it, and the adapter now checks: a move with
+    // no button down is how it recognises a release that landed somewhere it could not see.
+    buttons: 1,
     pointerId: 91,
     clientX: rect.left + rect.width / 2,
     clientY: rect.top + rect.height * 0.9,
@@ -213,6 +219,9 @@ test('parity/K2-ghost: the copy does not take the original question ids', async 
   const rect = target.getBoundingClientRect();
   const pointer = {
     bubbles: true,
+    // A real drag reports the button holding it, and the adapter now checks: a move with
+    // no button down is how it recognises a release that landed somewhere it could not see.
+    buttons: 1,
     pointerId: 92,
     clientX: rect.left + rect.width / 2,
     clientY: rect.top + rect.height * 0.9,
@@ -250,6 +259,9 @@ test('parity/K2-ghost: a toolbox drag carries the type, which is all there is ye
   const rect = target.getBoundingClientRect();
   const pointer = {
     bubbles: true,
+    // A real drag reports the button holding it, and the adapter now checks: a move with
+    // no button down is how it recognises a release that landed somewhere it could not see.
+    buttons: 1,
     pointerId: 93,
     clientX: rect.left + rect.width / 2,
     clientY: rect.top + rect.height * 0.1,
@@ -282,6 +294,9 @@ test('parity/K2-aim: in a column the halves of an element decide, wherever you a
   // enough below the last question to out-distance however far sideways you happened to be.
   const pointer = {
     bubbles: true,
+    // A real drag reports the button holding it, and the adapter now checks: a move with
+    // no button down is how it recognises a release that landed somewhere it could not see.
+    buttons: 1,
     pointerId: 94,
     clientX: rect.left + 4,
     clientY: rect.top + rect.height * 0.75,

@@ -343,6 +343,46 @@ The cost is real and worth stating: every scenario that measures a position duri
 now races an animation, and the end-to-end ones wait for the page to come to rest first. A
 test that measured mid-settle would be reading where an element is passing through.
 
+### 11 — A drag must be able to end, whatever happens to the pointer (amendment)
+
+**A drag that cannot end is the worst state decisions 7 to 10 can produce**, and it was
+reachable. The element being moved has given up its box, so a *question is invisible* on
+the canvas, the ghost is frozen wherever the pointer was, and nothing on screen offers a way
+out. The definition is untouched — a Creator drag previews and commits once — which is what
+makes it disorienting rather than destructive: the survey is fine and the canvas says
+otherwise.
+
+Pointer capture is supposed to make this impossible; the handle keeps receiving events
+wherever the pointer goes, so `pointerup` always arrives. That stops being true when the
+handle **stops existing** mid-gesture. Capture is released with the node, the release lands
+on nothing, and the session waits for an event that will never come. A hot reload is how it
+was found, and it is the least of the ways to get there — a host re-rendering its tree and a
+question hidden by logic somebody just edited both do it in production.
+
+Three defences, deliberately independent, so no single one has to be the one that works:
+
+- **A move with no button down.** A drag always reports the button holding it; one that does
+  not is the first event after a release nobody saw. It is also the only one that recovers a
+  *press* whose release went missing, before any drag began.
+- **`lostpointercapture`.** Capture taken away by a native drag starting, or by the browser
+  deciding it has finished routing this pointer. It fires after `pointerup` on an ordinary
+  drop, so it asks whether a gesture was still in progress rather than assuming one was.
+- **`pointerup` and `pointercancel` on the window**, for the length of one drag and no
+  longer. That distinction is what makes it compatible with the rule this package otherwise
+  keeps — a Creator that grabbed these permanently would be taking them from the rest of a
+  host's application, exactly as K6 says about `Ctrl+Z`, while one holding them between a
+  press and a release is describing the gesture it is already in the middle of.
+
+**All three abandon rather than commit.** Reaching any of them means the gesture did not end
+the way it was supposed to, so what the last aim pointed at is not evidence of intent.
+Putting the question back is recoverable in a way that moving it somewhere nobody chose is
+not.
+
+**A defect the tests could not have caught, because they were not honest.** Every synthetic
+pointer event in the suite left `buttons` unset, which is what a *released* pointer reports —
+so the first of these defences failed six existing scenarios the moment it was added. They
+were asserting against a gesture no real pointer produces.
+
 ## Consequences
 
 - Phase 1's ranking work carried a small extra design obligation (generalize the reorder

@@ -42,6 +42,12 @@ decides which one.
   the pointer happened to be further out on. Elements are as wide as the canvas, so the old
   rule read a single column as a *row* almost everywhere, and reaching the end of a list
   meant dragging far below the last question.
+- A drag can always end. Pointer capture is meant to guarantee the release arrives and
+  cannot when the handle stops existing mid-gesture — a host re-rendering its tree, or a
+  question hidden by logic somebody just edited. A move with no button down,
+  `lostpointercapture`, and a window listener held for the length of one drag each end it,
+  and all three abandon rather than commit. Without them the element being moved stays
+  invisible and the drag never finishes.
 - The design surface now honours the page's `colCount`. The canvas *is* the page's grid
   and the stylesheet had always read the column count from it, but nothing ever wrote one,
   so a two-column page was drawn in a single column.

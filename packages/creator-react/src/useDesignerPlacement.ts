@@ -6,7 +6,7 @@ import type {
   ToolboxItem,
 } from '@kajay/creator-core';
 import { reorderAnnouncement } from '@kajay/react';
-import { useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useRef, useState, useSyncExternalStore } from 'react';
 import type { Point } from './ghostPosition.js';
 import { handleProps, itemProps } from './placementGestures.js';
 import type {
@@ -18,6 +18,7 @@ import type {
   PlacementItemProps,
 } from './placementGestures.js';
 import type { PlacementShape } from './placementShape.js';
+import { useReleasedDrag } from './useReleasedDrag.js';
 import { useSettledPlacement } from './useSettledPlacement.js';
 import type { SettleSurface } from './useSettledPlacement.js';
 
@@ -88,6 +89,15 @@ export function useDesignerPlacement(surface: DesignSurface): DesignerPlacement 
     { node: pageList, ...PAGE_SURFACE },
   ];
   const settle = useSettledPlacement(surfaces, ghost, snapshot.kind === 'idle');
+  // The pointer half of a drag, undone. Kept apart from the transition it usually
+  // accompanies because the window has to be able to do this for a handle that no longer
+  // exists — see `useReleasedDrag`.
+  const release = useCallback((): void => {
+    gesture.current.pending = false;
+    anchor.current = null;
+    setCarrying(false);
+  }, [gesture, anchor]);
+  useReleasedDrag(surface, carrying, release);
 
   const carry: Carry = { node: ghost, anchor, grab, show: setCarrying };
   const onCanvas: PlacementContext = {

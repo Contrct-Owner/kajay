@@ -124,6 +124,9 @@ test('parity/K2-drag: leaving the measured surface clears the pending target', a
   const rect = target.getBoundingClientRect();
   const pointer = {
     bubbles: true,
+    // A real drag reports the button holding it, and the adapter now checks: a move with
+    // no button down is how it recognises a release that landed somewhere it could not see.
+    buttons: 1,
     pointerId: 71,
     clientX: rect.left + rect.width / 2,
     clientY: rect.top + rect.height * 0.9,

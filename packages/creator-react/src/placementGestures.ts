@@ -23,6 +23,7 @@ export interface PlacementDragProps {
   readonly onPointerMove: (event: PointerEvent<HTMLElement>) => void;
   readonly onPointerUp: (event: PointerEvent<HTMLElement>) => void;
   readonly onPointerCancel: (event: PointerEvent<HTMLElement>) => void;
+  readonly onLostPointerCapture: (event: PointerEvent<HTMLElement>) => void;
 }
 
 /** Drag handlers plus the atomic click-to-append interaction for a toolbox item. */
@@ -120,20 +121,50 @@ function dragProps(context: PlacementContext, source: PlacementSource): Placemen
       if (!gesture.current.pending || measure.current === null) {
         return;
       }
+      // **No button is down, so the release happened where we could not see it.** A move
+      // during a drag always reports the button holding it; one that does not is the first
+      // event after a `pointerup` that landed on nothing, and continuing would leave a
+      // question invisible and following a pointer nobody is pressing.
+      if (event.buttons === 0) {
+        releaseDrag(context);
+        surface.placement.transition({ kind: 'finish', action: 'abandon' });
+        return;
+      }
       gesture.current.dragged = true;
       aim(context, source, event, measure.current);
     },
     onPointerUp: () => {
-      gesture.current.pending = false;
-      drop(context);
+      releaseDrag(context);
       surface.placement.transition({ kind: 'finish', action: 'commit' });
     },
     onPointerCancel: () => {
-      gesture.current.pending = false;
-      drop(context);
+      releaseDrag(context);
       surface.placement.transition({ kind: 'finish', action: 'abandon' });
     },
+    // Capture taken away mid-gesture — a native drag starting, or the browser deciding it
+    // is done routing this pointer. It fires *after* `pointerup` on an ordinary drop, which
+    // is why this asks whether a gesture was still in progress rather than assuming one was.
+    onLostPointerCapture: () => {
+      if (releaseDrag(context)) {
+        surface.placement.transition({ kind: 'finish', action: 'abandon' });
+      }
+    },
   };
+}
+
+/**
+ * Ends the pointer half of a gesture, and says whether there was one to end.
+ *
+ * Every way a drag can finish comes through here, including the ways that are not supposed
+ * to happen — see {@link useReleasedDrag}. What it deliberately does *not* do is decide
+ * between committing and abandoning: that is the caller's, because the difference between
+ * the two is whether the gesture ended the way it meant to.
+ */
+export function releaseDrag(context: PlacementContext): boolean {
+  const wasDragging = context.gesture.current.pending;
+  context.gesture.current.pending = false;
+  drop(context);
+  return wasDragging;
 }
 
 /**

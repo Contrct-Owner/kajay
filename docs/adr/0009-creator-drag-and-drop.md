@@ -209,6 +209,43 @@ Three things follow, and each was forced rather than chosen:
 structural edit: it re-parses nothing, mutates nothing and pushes no history. The rule
 decision 4 protects is that a drag previews and commits *once*, and it still does.
 
+### 8 — What the pointer carries is a chip, not the element (amendment)
+
+The placeholder says where a drop would land. A ghost beside the pointer says *what* is
+being dropped, and without one a drag is still an invisible thing being held: the canvas
+opens a space and nothing at all is attached to the cursor, so the gesture reads as pushing
+the page around rather than carrying something across it.
+
+**Lifting the real element under the pointer was the tempting version**, and it is worse
+three times over. A full-size question follows the cursor across the very canvas it is
+being aimed at, covering the thing it is being aimed *into*. The element cannot be under
+the pointer and back in its place at the same time, and being back in its place is how
+decision 7 says "this drop would change nothing". And cloning its markup would put a second
+copy of every `id` in the document — the defect P7 removed everywhere else. What is being
+carried is already drawn twice, at full size in the placeholder and in words in the live
+region, so the ghost's job is to say *held*.
+
+**It is written to the DOM, never through React state.** A ghost follows the pointer, so
+its position changes on every `pointermove` — and publishing pointer motion as state is the
+thing decision 6 separated the placement signal to avoid. Two custom properties on one node
+re-render nothing, and the node is the input adapter's own furniture rather than anything
+the model knows about.
+
+**Still no portal.** Decision 1 objected to a drag library owning a portal and a drag layer
+underneath a decision to leave markup to the host, and that objection would apply to us. The
+ghost is an ordinary child of the design surface, positioned against the viewport — so it
+paints over the toolbox and the page navigator without leaving the Creator's own tree. Where
+those coordinates start from is **measured rather than assumed**: a `position: fixed` node is
+placed against the viewport unless an ancestor carries a transform, a filter or
+`will-change`, and nothing here can know whether a host's layout does. Reading the ghost's
+own box at the grab answers it, which is also why the node is mounted for the whole session
+rather than appearing with the drag — an element that arrives with the gesture cannot be
+measured until a frame into it.
+
+**One ghost, drawn by the canvas.** A drag can begin in the toolbox or the page navigator,
+and each piece rendering its own would give the pointer two things to follow and one ref for
+both to fight over. The canvas is the piece present whenever anything is being placed.
+
 **Found by building it: the canvas had never had columns.** The design surface is the
 page's grid and the stylesheet had always read `--kajay-col-count` from it, but only
 `SurveyPage` ever wrote one — so every canvas was a single column and the two-column case

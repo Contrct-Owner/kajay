@@ -290,3 +290,30 @@ test('parity/K2-placeholder: in two columns it takes a cell, not a row', async (
   expect(Math.abs(placeholder.y - neighbour.y)).toBeLessThan(8);
   await page.mouse.up();
 });
+
+test('parity/K2-ghost: what is being carried follows a real pointer', async ({ page }) => {
+  await page.goto(PLAYGROUND);
+  const ghost = canvas(page).getByTestId('drag-ghost');
+
+  await dragTo(page, 'move-name', 'notes', 0.9);
+
+  await expect(ghost).toBeVisible();
+  await expect(ghost).toHaveText(/name/u);
+  const first = (await ghost.boundingBox())!;
+
+  // Moved again, to somewhere with the *same* drop target: the ghost has to track the
+  // pointer rather than the aim, or it would sit still through every move that does not
+  // happen to change which slot is active — which is most of them.
+  const notes = (await canvas(page).locator('[data-element-slot="notes"]').boundingBox())!;
+  await page.mouse.move(notes.x + notes.width * 0.2, notes.y + notes.height * 0.95, { steps: 4 });
+  const second = (await ghost.boundingBox())!;
+  expect(second.x).toBeLessThan(first.x - 20);
+
+  // Under the pointer, not merely somewhere on screen. Positioned against the viewport,
+  // so a host whose layout puts a transform above the canvas is the case that would put it
+  // in the wrong corner entirely — which is why the origin is measured rather than assumed.
+  expect(Math.abs(second.x - (notes.x + notes.width * 0.2))).toBeLessThan(40);
+
+  await page.mouse.up();
+  await expect(ghost).toBeHidden();
+});

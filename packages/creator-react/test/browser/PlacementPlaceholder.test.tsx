@@ -136,3 +136,59 @@ test('parity/K2-placeholder: a toolbox drag holds a place for the thing it would
   expect(screen.container.querySelectorAll('[data-withdrawn="true"]')).toHaveLength(0);
   expect(placedOrder(screen.container)).toEqual(['who', '<1>', 'plan', 'why']);
 });
+
+/**
+ * The ghost — what the pointer is carrying.
+ *
+ * Structural again: that it says the right thing, that a keyboard drag does not summon
+ * one, and that it is measurable before the drag it is going to follow. That it *tracks*
+ * the pointer is the playground's, where a real mouse produces real coordinates.
+ */
+test('parity/K2-ghost: a pointer drag carries what it picked up', async () => {
+  const designed = surface();
+  const screen = await render(<Harness designed={designed} />);
+  const handle = screen.getByRole('button', { name: 'Move who' }).element() as HTMLElement;
+  const target = screen.container.querySelector<HTMLElement>('[data-element-slot="why"]')!;
+  const rect = target.getBoundingClientRect();
+  const pointer = {
+    bubbles: true,
+    pointerId: 91,
+    clientX: rect.left + rect.width / 2,
+    clientY: rect.top + rect.height * 0.9,
+  };
+  Object.defineProperty(handle, 'setPointerCapture', { value: (): undefined => undefined });
+
+  // Mounted and measurable *before* anything is carried, which is the point: where a fixed
+  // node's coordinates start from depends on the host's ancestors, and that is answered by
+  // measuring this element at the grab rather than a frame into the gesture.
+  const ghost = screen.container.querySelector<HTMLElement>('[data-testid="drag-ghost"]')!;
+  expect(ghost.dataset['carrying']).toBeUndefined();
+
+  handle.dispatchEvent(new PointerEvent('pointerdown', pointer));
+  handle.dispatchEvent(new PointerEvent('pointermove', pointer));
+  await expect.element(screen.getByTestId('drag-ghost')).toHaveTextContent('who');
+  expect(ghost.dataset['carrying']).toBe('true');
+
+  handle.dispatchEvent(new PointerEvent('pointerup', pointer));
+  // Let go on drop, and put back: the next drag measures its origin off this node, so one
+  // left where the last pointer was would anchor every drag after it to that spot.
+  await expect.poll(() => ghost.dataset['carrying']).toBeUndefined();
+  expect(ghost.style.getPropertyValue('--kajay-ghost-x')).toBe('0px');
+});
+
+test('parity/K2-ghost: a keyboard drag summons nothing to follow', async () => {
+  const designed = surface();
+  const screen = await render(<Harness designed={designed} />);
+
+  await screen.getByRole('button', { name: 'Move who' }).click();
+  await userEvent.keyboard('{ }');
+  await userEvent.keyboard('{ArrowDown}');
+
+  // The placement is identical — the model cannot tell these apart, and correctly so. What
+  // differs is that there is no pointer, and a ghost parked in the corner of the screen for
+  // the length of a keyboard walk would be furniture rather than feedback.
+  await expect.element(screen.getByTestId('drop-placeholder')).toBeInTheDocument();
+  expect(
+    screen.container.querySelector<HTMLElement>('[data-testid="drag-ghost"]')?.dataset['carrying'],
+  ).toBeUndefined();
+});

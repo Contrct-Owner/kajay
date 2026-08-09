@@ -11,6 +11,8 @@ Dragging a question, a panel or a page now opens the space the drop would take: 
 placeholder the size of what is being carried appears in the target position, the
 elements around it move out of its way, and the item being moved leaves the place it is
 going to vacate. What is on screen mid-drag is the page the drop is about to produce.
+A chip beside the pointer says what is being carried, so a drag is no longer an
+invisible thing being held; a keyboard drag summons none, having no pointer to follow.
 
 The indicator it replaces was a rule drawn between two elements, which a single column
 makes unambiguous and a `colCount: 2` page does not — the geometry has always decided

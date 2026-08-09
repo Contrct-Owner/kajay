@@ -11,6 +11,7 @@ import type { PageElementDecorator, PageElementRendererResolver } from '@kajay/r
 import type { CSSProperties, KeyboardEvent, ReactElement } from 'react';
 import { useCreatorText } from './CreatorStringsContext.js';
 import { DesignedElement } from './DesignedElement.js';
+import { PlacementGhost } from './PlacementGhost.js';
 import { PlacementPlaceholder } from './PlacementPlaceholder.js';
 import { historyShortcut, isTextEntry } from './historyShortcut.js';
 import { PageAdorner } from './PageAdorner.js';
@@ -138,18 +139,36 @@ export function DesignSurfacePanel({
         </TextRendererProvider>
       </QuestionRenderersProvider>
       <EmptyPagePlaceholder surface={surface} placement={placement} activeSlot={activeSlot} />
-      {placement === undefined ? null : (
-        // `aria-live` on its own, not `role="status"`. The ranking question's live
-        // region is the same shape, and for a reason that shows up immediately: a
-        // status role is a *landmark-ish* thing a page-wide `getByRole('status')`
-        // finds, and adding a second one to the demo broke seven scenarios that had
-        // nothing to do with the Creator. A live region needs `aria-live`; the role
-        // adds only a name for something nobody looks up by name.
-        <p className="kajay-designer__announcement" aria-live="polite" aria-atomic="true">
-          {placement.announcement}
-        </p>
-      )}
+      {placement === undefined ? null : <DragFurniture placement={placement} />}
     </div>
+  );
+}
+
+/**
+ * The two things a drag draws that belong to no element: the ghost, and the live region.
+ *
+ * **The ghost is drawn here, and here once**, though a drag can begin in the toolbox or the
+ * page navigator too. It follows the pointer from a fixed position, so where it sits in the
+ * tree decides nothing about where it appears — and one node with one ref is the difference
+ * between a ghost and two of them arguing over the pointer. The canvas is the piece that is
+ * present whenever anything is being placed.
+ */
+function DragFurniture({ placement }: { readonly placement: DesignerPlacement }): ReactElement {
+  return (
+    <>
+      <PlacementGhost placement={placement} />
+      {/*
+        `aria-live` on its own, not `role="status"`. The ranking question's live region is
+        the same shape, and for a reason that shows up immediately: a status role is a
+        *landmark-ish* thing a page-wide `getByRole('status')` finds, and adding a second
+        one to the demo broke seven scenarios that had nothing to do with the Creator. A
+        live region needs `aria-live`; the role adds only a name for something nobody looks
+        up by name.
+      */}
+      <p className="kajay-designer__announcement" aria-live="polite" aria-atomic="true">
+        {placement.announcement}
+      </p>
+    </>
   );
 }
 

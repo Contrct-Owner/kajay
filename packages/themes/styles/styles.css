@@ -980,6 +980,50 @@
   opacity: 0;
 }
 
+/* What the pointer is carrying. The placeholder says where a drop would land; this says
+   what is being dropped, which is the half a drag had no picture of at all.
+
+   `fixed`, and positioned by two custom properties the adapter writes straight to the
+   node — a ghost follows the pointer, so anything that re-rendered to move it would
+   rebuild the canvas on every pointer event. */
+.kajay-designer__ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--kajay-ghost-layer, 1000);
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 3);
+  align-items: center;
+  max-width: 16rem;
+  padding: calc(var(--kajay-spacing) / 3) calc(var(--kajay-spacing) / 2);
+  overflow: hidden;
+  border: 1px solid var(--kajay-color-accent);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  color: var(--kajay-color-text);
+  font-family: var(--kajay-font-family);
+  font-size: 0.875rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
+  transform: translate(var(--kajay-ghost-x, 0px), var(--kajay-ghost-y, 0px));
+  /* Never hit-tested. The pointer driving the drag is captured by the handle, so the
+     ghost sitting under the cursor must not be able to answer for anything. */
+  pointer-events: none;
+  /* `hidden`, not `display: none`: the node has to keep a box even when nothing is being
+     carried, because where its coordinates start from is measured off it when a drag
+     begins — and an unrendered element has nothing to measure. */
+  visibility: hidden;
+}
+
+.kajay-designer__ghost[data-carrying='true'] {
+  visibility: visible;
+}
+
+.kajay-designer__ghost-grip {
+  color: var(--kajay-color-muted);
+}
+
 /* The live region carries the whole interaction for anyone who cannot see the line.
    Positioned rather than hidden: `display: none` is not read out. */
 .kajay-designer__announcement {

@@ -351,7 +351,7 @@ project outside the workspace and drives the Creator from them.
 **The phase grew a section it did not start with.** §P — the reference application —
 was added on the judgement that checklist-green proves *function* and not *fitness*,
 and that a library nobody has built an application with is untested in the way that
-matters. It earned its place: eleven rows, and among them a server-rendering defect no
+matters. It earned its place: twelve rows, and among them a server-rendering defect no
 unit test could have found, four cases where the composition story promised something
 the public surface could not deliver, duplicate DOM ids across two surveys of one
 definition, and the silence ADR-0023 now forbids. None of those were visible from

@@ -24,6 +24,17 @@ export const CONTAINER_ATTRIBUTE = 'data-in-container';
  */
 export const EMPTY_CONTAINER_ATTRIBUTE = 'data-empty-container';
 
+/**
+ * Marks a slot that has stood aside for the drag in progress.
+ *
+ * Its element is still in the document — it is holding the pointer capture the drag is
+ * being delivered through — but it has given up its box, so it is nowhere the designer can
+ * see. Measuring it would let the pointer aim at something invisible, and at whatever
+ * corner of the page a collapsed box happens to occupy rather than where the element
+ * used to be.
+ */
+export const WITHDRAWN_ATTRIBUTE = 'data-withdrawn';
+
 interface Point {
   readonly x: number;
   readonly y: number;
@@ -112,7 +123,11 @@ function elementCandidates(surface: HTMLElement, anyContainer: boolean): readonl
   for (const element of found) {
     const container = element.getAttribute(CONTAINER_ATTRIBUTE) ?? '';
     const index = Number(element.getAttribute(ELEMENT_INDEX_ATTRIBUTE));
-    if ((container.length === 0 && !anyContainer) || !Number.isInteger(index)) {
+    if (
+      (container.length === 0 && !anyContainer) ||
+      !Number.isInteger(index) ||
+      element.closest(`[${WITHDRAWN_ATTRIBUTE}]`) !== null
+    ) {
       continue;
     }
     const rect = element.getBoundingClientRect();

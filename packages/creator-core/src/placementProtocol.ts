@@ -16,6 +16,7 @@ export type PlacementSnapshot =
       readonly source: undefined;
       readonly origin: undefined;
       readonly activeSlot: undefined;
+      readonly withdrawn: undefined;
       readonly narration: PlacementNarration | undefined;
     }
   | {
@@ -24,6 +25,16 @@ export type PlacementSnapshot =
       readonly origin: DropSlot | undefined;
       /** Present only when committing this slot would change the definition. */
       readonly activeSlot: DropSlot | undefined;
+      /**
+       * The element that gives up its place while this preview stands, if any.
+       *
+       * A view drawing the drop where it would land has to take it from where it is, or
+       * the same question is on screen twice and the layout it shows is one the commit
+       * will never produce. Absent whenever `activeSlot` is — an aim at a forbidden or
+       * no-op position must leave the element exactly where it sits, because "nothing
+       * would happen" and "your question has vanished" are not the same answer.
+       */
+      readonly withdrawn: string | undefined;
       readonly narration: PlacementNarration;
     };
 

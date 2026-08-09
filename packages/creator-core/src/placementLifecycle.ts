@@ -50,6 +50,29 @@ export function nextPlacementSlot(
   return current;
 }
 
+/**
+ * Which element leaves its place while a preview stands — checklist K2.
+ *
+ * **Model policy, not a drawing detail**, which is why it is here rather than in whichever
+ * adapter happens to be rendering. A preview that shows where a drop would land is showing
+ * the survey as it *would be*, and the item being moved is in one place in that survey, not
+ * two. Every adapter has to make the same call, and one that made it differently would
+ * disagree with this one about what a drag looks like.
+ *
+ * Nothing withdraws without an active slot. A drag aimed somewhere forbidden, or at the
+ * position the element already occupies, would otherwise take the element off screen to
+ * illustrate a change that is not going to happen — the one moment a designer most needs
+ * to see that their question is still where they left it.
+ *
+ * A new element withdraws nothing: it is not anywhere yet.
+ */
+export function withdrawnDuring(
+  source: PlacementSource,
+  activeSlot: DropSlot | undefined,
+): string | undefined {
+  return source.kind === 'move' && activeSlot !== undefined ? source.name : undefined;
+}
+
 /** Builds accessibility facts from the pre-edit definition. */
 export function placementNarration(
   kind: PlacementNarrationKind,

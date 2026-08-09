@@ -1,9 +1,9 @@
 # ADR-0009 — Creator drag-and-drop implementation
 
 - Area: Creator interaction
-- Status: accepted
+- Status: accepted, amended
 - Owner: Jarod
-- Last updated: 2026-08-04
+- Last updated: 2026-08-09
 
 ## Context
 
@@ -167,6 +167,56 @@ the structured narration facts into localized text. `DesignSurface.place` remain
 compatibility facade over the same atomic placement command; it is not a second
 implementation.
 
+### 7 — The indicator is a reserved space, not a mark (amendment)
+
+**A drop is drawn by putting the thing where it would go and letting the container move
+around it.** A placeholder the size of what is being carried takes the active slot as a
+cell of that container's own layout; the element being moved gives up its place for as
+long as the preview stands.
+
+The line this replaces was not merely plain, it was **less expressive than the model
+behind it**. Decision 2 made the active slot a number, and the geometry that picks it has
+decided left-or-right as readily as above-or-below since the day panels became targets —
+it chooses along whichever axis the pointer is further out on. A horizontal rule cannot
+draw "left of this one", and the end-of-list marker spanned every column, so in a
+`colCount: 2` page it pointed at a whole row whichever half was meant. The indicator was
+answering a coarser question than the drop was.
+
+Three things follow, and each was forced rather than chosen:
+
+- **A second decorator seam, on the slot rather than in it.** A container is a grid whose
+  items are the layout slots (I5), so an indicator drawn *inside* a slot is inside a cell:
+  it can push one element down and it cannot take a cell of its own. `PageElementSlot`
+  therefore gained a decorator applied around itself, beside the one from decision 5 that
+  wraps an element's contents. Two seams, because they wrap genuinely different things —
+  an adorner belongs to an element and travels with it, a placeholder belongs to the
+  container and is one of its children. Panels needed no change again, for decision 5's
+  reason: the slot is still the one wrapper every page element passes through.
+- **Withdrawal is model state, not a rendering trick.** `PlacementSnapshot.withdrawn` says
+  which element stands aside, because a preview showing where a drop would land is showing
+  the survey as it *would be*, and the thing being moved is in one place in that survey
+  rather than two. Every adapter has to answer this identically or they disagree about
+  what a drag looks like. Nothing withdraws without an active slot: an aim at a forbidden
+  or no-op position must leave the element where it sits, since "nothing would happen" and
+  "your question has vanished" are not the same answer.
+- **Standing aside is never unmounting.** The obvious way to take an element out of the
+  layout is to stop rendering it, and it ends the drag: the handle inside it is holding the
+  pointer capture the gesture is being delivered through. The slot keeps its DOM and gives
+  up its box, which is also why the geometry now skips withdrawn slots — an element with no
+  visible box must not keep a hit area at whatever corner its collapsed box lands in.
+
+**None of this applies the edit**, so decision 4 stands unchanged. A display order is not a
+structural edit: it re-parses nothing, mutates nothing and pushes no history. The rule
+decision 4 protects is that a drag previews and commits *once*, and it still does.
+
+**Found by building it: the canvas had never had columns.** The design surface is the
+page's grid and the stylesheet had always read `--kajay-col-count` from it, but only
+`SurveyPage` ever wrote one — so every canvas was a single column and the two-column case
+this decision exists to serve could not be reached at all. The test that should have
+caught it asserted `startWithNewLine`, which is a property of an element rather than of the
+grid it sits in. A row about *where a drop lands* is what surfaced it, because a
+placeholder that takes a cell has nothing to say on a surface that only ever has one.
+
 ## Consequences
 
 - Phase 1's ranking work carried a small extra design obligation (generalize the reorder
@@ -182,6 +232,11 @@ implementation.
 - A second framework adapter can reuse the entire placement lifecycle without copying
   React state. Its remaining work is geometry, input translation, focus/ARIA, drawing,
   and narration wording.
+- **The rendering seam now has two decorators, and that is a cost worth naming.** A host
+  reading `@kajay/react`'s surface meets both and has to work out which one they want. The
+  alternative was widening the first until it could return the slot as well, which would
+  have moved the adorner outside the layout wrapper and taken I5's `width` and
+  `startWithNewLine` with it — a layout bug in design mode in exchange for one fewer name.
 - If a library is ever adopted after all, it is a dependency of `creator-react` only —
   permitted, since UI packages may carry dependencies while core packages may not — and
   it replaces the input adapter without touching the placement model.

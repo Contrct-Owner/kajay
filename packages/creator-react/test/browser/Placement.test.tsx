@@ -76,10 +76,10 @@ test('parity/K2-keyboard: the first arrow press moves past a whole element', asy
   // "before plan" both put it back. Stepping one slot at a time would make the first
   // press appear to do nothing, which reads as a broken key.
   expect(
-    screen.container.querySelector<HTMLElement>('[data-element-index="2"]')?.dataset[
-      'dropBefore'
+    screen.container.querySelector<HTMLElement>('[data-testid="drop-placeholder"]')?.dataset[
+      'dropIndex'
     ],
-  ).toBe('true');
+  ).toBe('2');
 });
 
 test('parity/K2-keyboard: escape abandons and changes nothing', async () => {
@@ -94,10 +94,11 @@ test('parity/K2-keyboard: escape abandons and changes nothing', async () => {
   // Nothing to undo, because nothing was applied: a Creator drag previews and commits
   // once (ADR-0009 decision 4), unlike the ranking question which applies every move.
   expect(orderOn(designed)).toEqual(['who', 'plan', 'why']);
-  expect(screen.container.querySelectorAll('[data-drop-before]')).toHaveLength(0);
+  expect(screen.container.querySelectorAll('[data-testid="drop-placeholder"]')).toHaveLength(0);
+  expect(screen.container.querySelectorAll('[data-withdrawn]')).toHaveLength(0);
 });
 
-test('parity/K2-indicator: the end of the list gets its own marker', async () => {
+test('parity/K2-indicator: the end of the list gets its own placeholder', async () => {
   const designed = surface();
   const screen = await render(<Harness designed={designed} />);
 
@@ -105,9 +106,14 @@ test('parity/K2-indicator: the end of the list gets its own marker', async () =>
   await userEvent.keyboard('{ }');
   await userEvent.keyboard('{End}');
 
-  // The last position is the one place with no element to draw a line above, and the
-  // most common place to add a question. Without its own marker it could not be aimed.
-  await expect.element(screen.getByTestId('drop-at-end')).toBeInTheDocument();
+  // The last position has no element to sit before, and it is the most common place to
+  // add a question. Its container's final element carries the placeholder instead.
+  await expect.element(screen.getByTestId('drop-placeholder')).toBeInTheDocument();
+  expect(
+    screen.container.querySelector<HTMLElement>('[data-testid="drop-placeholder"]')?.dataset[
+      'dropIndex'
+    ],
+  ).toBe('3');
 });
 
 test('parity/K2-drag: leaving the measured surface clears the pending target', async () => {
@@ -128,7 +134,7 @@ test('parity/K2-drag: leaving the measured surface clears the pending target', a
 
   handle.dispatchEvent(new PointerEvent('pointerdown', pointer));
   handle.dispatchEvent(new PointerEvent('pointermove', pointer));
-  await expect.element(screen.getByTestId('drop-at-end')).toBeInTheDocument();
+  await expect.element(screen.getByTestId('drop-placeholder')).toBeInTheDocument();
 
   // Keep the handle connected so React still receives its captured move, while making
   // the measured surface expose no candidate for this one event.
@@ -138,7 +144,7 @@ test('parity/K2-drag: leaving the measured surface clears the pending target', a
   handle.dispatchEvent(
     new PointerEvent('pointermove', { ...pointer, clientX: -100, clientY: -100 }),
   );
-  await expect.element(screen.getByTestId('drop-at-end')).not.toBeInTheDocument();
+  await expect.element(screen.getByTestId('drop-placeholder')).not.toBeInTheDocument();
 
   handle.dispatchEvent(new PointerEvent('pointerup', pointer));
   await expect
@@ -184,7 +190,7 @@ test('parity/K2-handle: dragging is on a handle, not on the element', async () =
 
   // The arrow keys already mean something inside a radio group, a rating and a ranking
   // list. A grab mode listening on the whole element would fight most of §C.
-  expect(screen.container.querySelectorAll('[data-drop-before]')).toHaveLength(0);
+  expect(screen.container.querySelectorAll('[data-testid="drop-placeholder"]')).toHaveLength(0);
   await expect.element(screen.getByRole('button', { name: 'Move tier' })).toBeInTheDocument();
 });
 
@@ -239,7 +245,7 @@ test('parity/K2-nesting: the final slot in a non-empty panel has an indicator', 
     index: 1,
   });
   const indicators = screen.container.querySelectorAll<HTMLElement>(
-    '[data-testid="drop-at-end"][data-in-container="group"]',
+    '[data-testid="drop-placeholder"][data-in-container="group"]',
   );
   expect(indicators).toHaveLength(1);
 });
@@ -269,7 +275,7 @@ test('parity/K2-nesting: an empty panel keeps its pointer target and end indicat
   expect(screen.container.querySelector('[data-empty-container="group"]')).not.toBeNull();
   expect(
     screen.container.querySelectorAll(
-      '[data-testid="drop-at-end"][data-in-container="group"]',
+      '[data-testid="drop-placeholder"][data-in-container="group"]',
     ),
   ).toHaveLength(1);
 });

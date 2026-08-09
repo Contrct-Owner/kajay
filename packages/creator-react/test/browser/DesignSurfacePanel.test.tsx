@@ -140,6 +140,15 @@ test('parity/K3-design-surface: elements keep the layout they will have', async 
   const slots = screen.container.querySelectorAll('.kajay-element');
   expect((slots[0] as HTMLElement).style.gridColumnStart).toBe('');
   expect((slots[1] as HTMLElement).style.gridColumnStart).toBe('1');
+
+  // **And the page's own column count, which had been missing.** The canvas *is* the
+  // page's grid and the stylesheet had always read this variable from it, but only
+  // `SurveyPage` ever wrote one — so a two-column page was drawn in one column and the
+  // assertions above passed anyway, because both are about an element rather than the
+  // grid it sits in. Found by a scenario about where a drop lands: a placeholder that
+  // takes a cell has nothing to say on a surface that only ever has one.
+  const designer = screen.container.querySelector<HTMLElement>('.kajay-designer')!;
+  expect(designer.style.getPropertyValue('--kajay-col-count')).toBe('2');
 });
 
 test('parity/K3-design-surface: a survey with no pages says so', async () => {

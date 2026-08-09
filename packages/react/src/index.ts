@@ -15,6 +15,13 @@ export type {
   PageElementDecorator,
   PageElementDecoratorProviderProps,
 } from './PageElementDecoratorContext.js';
+// The slot's own decorator, for anything that has to draw in a *container's* layout rather
+// than inside one of its cells — the Creator's drop placeholder is the worked example.
+export { PageElementSlotDecoratorProvider } from './PageElementSlotDecoratorContext.js';
+export type {
+  PageElementSlotDecorator,
+  PageElementSlotDecoratorProviderProps,
+} from './PageElementSlotDecoratorContext.js';
 export type { PageElementSlotProps } from './PageElementSlot.js';
 export type {
   PageElementRenderer,

@@ -3,18 +3,20 @@ import {
   defaultPageElementRenderers,
   PageElementDecoratorProvider,
   PageElementSlot,
+  PageElementSlotDecoratorProvider,
   TextRendererProvider,
   QuestionRenderersProvider,
 } from '@kajay/react';
 import type { PageElementDecorator, PageElementRendererResolver } from '@kajay/react';
-import type { KeyboardEvent, ReactElement } from 'react';
+import type { CSSProperties, KeyboardEvent, ReactElement } from 'react';
 import { useCreatorText } from './CreatorStringsContext.js';
 import { DesignedElement } from './DesignedElement.js';
-import { DropEndIndicator } from './DropEndIndicator.js';
+import { PlacementPlaceholder } from './PlacementPlaceholder.js';
 import { historyShortcut, isTextEntry } from './historyShortcut.js';
 import { PageAdorner } from './PageAdorner.js';
 import { useSurfaceVersion } from './useSurfaceVersion.js';
 import type { DesignerPlacement } from './useDesignerPlacement.js';
+import { useDesignerSlotDecorator } from './useDesignerSlotDecorator.js';
 import { useInlineTextRenderer } from './useInlineTextRenderer.js';
 
 export interface DesignSurfacePanelProps {
@@ -56,9 +58,15 @@ export interface DesignSurfacePanelProps {
  * {@link handleCanvasKey}.
  *
  * **The drop indicator is drawn from the model, not from the pointer.** Which slot is
- * active is a number the placement already tracks, so the line between two elements is
+ * active is a number the placement already tracks, so where the placeholder goes is
  * rendered from state — assertable in a test, and identical whether a pointer or the
  * arrow keys put it there.
+ *
+ * It is drawn by **two** things, and the split is a fact about layout rather than a
+ * convenience. Every position beside an element is a cell of that container's own layout,
+ * so it comes through the slot decorator ({@link useDesignerSlotDecorator}). The two
+ * positions with no element to be beside — an empty page, and an empty panel — cannot be,
+ * so the canvas and the container's own element draw those.
  */
 export function DesignSurfacePanel({
   surface,
@@ -67,21 +75,26 @@ export function DesignSurfacePanel({
   className,
 }: DesignSurfacePanelProps): ReactElement {
   useSurfaceVersion(surface);
-  const page = surface.page;
-  // Only a drop aimed at *this* page's elements draws a line here. A page being
-  // dragged in the navigator is aiming at a different list entirely, and an indicator
-  // that ignored which would light up the canvas while somebody reordered pages.
-  // Only a drop aimed at an element list draws a line on the canvas. A page being
-  // dragged in the navigator is aiming at a different list entirely.
+  // Only a drop aimed at an element list is drawn here. A page being dragged in the
+  // navigator is aiming at a different list entirely, and a placeholder that ignored
+  // which would open a gap on the canvas while somebody reordered pages.
   const slot = placement?.activeSlot;
   const activeSlot = slot?.list.of === 'elements' ? slot : undefined;
   const decorate = useDesignerDecorator(surface, placement, activeSlot);
+  const decorateSlot = useDesignerSlotDecorator(surface, placement, activeSlot);
   const renderText = useInlineTextRenderer(surface);
 
   return (
     <div
       className={joinClasses('kajay-designer', className)}
       ref={placement?.surfaceRef}
+      // **The canvas is the page's grid, so it has to be told how many columns the page
+      // has** — set exactly as `SurveyPage` sets it, because this is the same layout.
+      // The stylesheet had always read this variable here and nothing had ever written it,
+      // so a `colCount: 2` page was drawn in one column and only the *elements* kept their
+      // layout properties. It went unseen because the one test about canvas layout asserted
+      // `startWithNewLine`, which is a property of an element rather than of the grid.
+      style={{ '--kajay-col-count': String(surface.page?.colCount ?? 1) } as CSSProperties}
       // Clicking the *background* clears the selection — the only way out of one
       // without picking something else. Guarded on the target being this element
       // rather than a descendant: a click on an element selects it in the capture
@@ -118,18 +131,13 @@ export function DesignSurfacePanel({
         */}
         <TextRendererProvider renderText={renderText}>
           <PageElementDecoratorProvider decorate={decorate}>
-            <CanvasBody surface={surface} renderers={renderers} />
+            <PageElementSlotDecoratorProvider decorate={decorateSlot}>
+              <CanvasBody surface={surface} renderers={renderers} />
+            </PageElementSlotDecoratorProvider>
           </PageElementDecoratorProvider>
         </TextRendererProvider>
       </QuestionRenderersProvider>
-      {activeSlot?.list.of === 'elements' &&
-      activeSlot.list.container === page?.name &&
-      activeSlot.index === (page?.elements.length ?? 0) ? (
-        // The end of the list has no element to draw a line above, so it gets its own
-        // marker. Without it the last position would be the one place a drop could not
-        // be aimed at, which is also the most common place to add a question.
-        <DropEndIndicator container={page.name} />
-      ) : null}
+      <EmptyPagePlaceholder surface={surface} placement={placement} activeSlot={activeSlot} />
       {placement === undefined ? null : (
         // `aria-live` on its own, not `role="status"`. The ranking question's live
         // region is the same shape, and for a reason that shows up immediately: a
@@ -142,6 +150,42 @@ export function DesignSurfacePanel({
         </p>
       )}
     </div>
+  );
+}
+
+/**
+ * The placeholder for a page that has nothing on it yet.
+ *
+ * Every other position on the canvas is drawn beside a slot, by the container's own
+ * layout — see {@link useDesignerSlotDecorator}. A page with no elements has no slot to be
+ * beside, and it is the position every new survey needs first, so the canvas draws this
+ * one itself.
+ */
+function EmptyPagePlaceholder({
+  surface,
+  placement,
+  activeSlot,
+}: {
+  readonly surface: DesignSurface;
+  readonly placement: DesignerPlacement | undefined;
+  readonly activeSlot: DropSlot | undefined;
+}): ReactElement | null {
+  const page = surface.page;
+  if (
+    page === undefined ||
+    page.elements.length > 0 ||
+    activeSlot?.list.of !== 'elements' ||
+    activeSlot.list.container !== page.name
+  ) {
+    return null;
+  }
+  return (
+    <PlacementPlaceholder
+      className="kajay-designer__placeholder"
+      shape={placement?.shape}
+      container={page.name}
+      index={0}
+    />
   );
 }
 
@@ -211,17 +255,15 @@ function useDesignerDecorator(
         index={at.index}
         container={at.list.container}
         placement={placement}
-        isDropTarget={
-          activeSlot !== undefined &&
-          activeSlot.list.of === 'elements' &&
-          activeSlot.list.container === at.list.container &&
-          activeSlot.index === at.index
-        }
-        isDropAtEnd={
+        // Only the *empty* container: everywhere else the placeholder is a cell of the
+        // container's own layout, drawn beside a slot rather than inside one. A container
+        // with no children has no slot to be beside, and is the one case that has to be
+        // drawn from within the container's own element.
+        isEmptyDropTarget={
           surface.isContainer(element) &&
+          element.getChildren('elements').length === 0 &&
           activeSlot?.list.of === 'elements' &&
-          activeSlot.list.container === element.name &&
-          activeSlot.index === element.getChildren('elements').length
+          activeSlot.list.container === element.name
         }
       >
         {children}

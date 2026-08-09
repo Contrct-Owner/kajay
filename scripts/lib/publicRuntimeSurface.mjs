@@ -58,6 +58,7 @@ export const PUBLIC_RUNTIME_SURFACE = Object.freeze({
   ]),
   '@kajay/react': Object.freeze([
     'PageElementDecoratorProvider',
+    'PageElementSlotDecoratorProvider',
     'PageElementRendererRegistry',
     'PageElementSlot',
     'TextRendererProvider',

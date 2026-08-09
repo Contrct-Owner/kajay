@@ -207,3 +207,86 @@ test('parity/P3-playground: it says what it did unasked', async ({ page }) => {
   // renumbers a name is exactly the case: the designer goes looking for `name`.
   await expect(page.getByRole('status')).toContainText('Names already in use were renumbered');
 });
+
+/**
+ * The drop placeholder — checklist K2, with the shipped stylesheet.
+ *
+ * These are the scenarios the package's own browser suite cannot run: the reflow *is* the
+ * indicator, and reflow is entirely the stylesheet's work — a suite that loads no CSS can
+ * prove where the placeholder went in the tree and nothing about where it went on screen.
+ * The mouse here is a real mouse, so the pointer capture that carries a drag is under test
+ * rather than stubbed.
+ */
+async function dragTo(page: Page, handle: string, target: string, at: number): Promise<void> {
+  const grip = (await canvas(page).getByTestId(handle).boundingBox())!;
+  await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
+  await page.mouse.down();
+  const onto = (await canvas(page).locator(`[data-element-slot="${target}"]`).boundingBox())!;
+  // In steps, because one jump is one `pointermove` and a drag that only ever reports its
+  // destination would pass while every intermediate aim was broken.
+  await page.mouse.move(onto.x + onto.width / 2, onto.y + onto.height * at, { steps: 8 });
+}
+
+test('parity/K2-placeholder: the drop opens the space it would take', async ({ page }) => {
+  await page.goto(PLAYGROUND);
+  const notes = canvas(page).locator('[data-element-slot="notes"]');
+  const before = (await notes.boundingBox())!;
+
+  await dragTo(page, 'move-name', 'notes', 0.9);
+
+  // Two halves of one claim, and neither is worth much alone: the placeholder has a real
+  // box at the end of the list, and the question being carried has given its own box up —
+  // so what is on screen mid-drag is the page the drop is about to produce rather than
+  // that page plus a ghost of the one before it.
+  const placeholder = canvas(page).getByTestId('drop-placeholder');
+  await expect(placeholder).toBeVisible();
+  expect((await placeholder.boundingBox())!.height).toBeGreaterThan(20);
+  expect((await notes.boundingBox())!.y).toBeLessThan(before.y);
+
+  await page.mouse.up();
+  await expect(canvas(page).getByTestId('drop-placeholder')).toHaveCount(0);
+  await expect(canvas(page).locator('[data-element-slot]').last()).toHaveAttribute(
+    'data-element-slot',
+    'name',
+  );
+});
+
+test('parity/K2-placeholder: in two columns it takes a cell, not a row', async ({ page }) => {
+  await page.goto(PLAYGROUND);
+  await page.getByTestId('editor-mode-json').click();
+  await page.getByTestId('json-text').fill(
+    JSON.stringify({
+      pages: [
+        {
+          name: 'p1',
+          // The layout the old indicator could not describe. A horizontal rule between two
+          // rows says nothing about which of two side-by-side cells a drop belongs in, and
+          // the end-of-list marker spanned every column — so it pointed at the whole row
+          // whichever half was meant.
+          colCount: 2,
+          elements: [
+            { type: 'text', name: 'a', title: 'A' },
+            { type: 'text', name: 'b', title: 'B' },
+            { type: 'text', name: 'c', title: 'C' },
+            { type: 'text', name: 'd', title: 'D' },
+          ],
+        },
+      ],
+    }),
+  );
+  await page.getByTestId('json-apply').click();
+  await page.getByTestId('editor-mode-design').click();
+
+  await dragTo(page, 'move-a', 'd', 0.5);
+
+  const placeholder = (await canvas(page).getByTestId('drop-placeholder').boundingBox())!;
+  const surface = (await canvas(page).locator('.kajay-designer').boundingBox())!;
+  const neighbour = (await canvas(page).locator('[data-element-slot="d"]').boundingBox())!;
+
+  // A cell: about half the surface wide, and sharing a row with the element it landed
+  // beside rather than sitting above it. Both assertions fail against a full-width bar,
+  // which is what every version of this before it drew.
+  expect(placeholder.width).toBeLessThan(surface.width * 0.75);
+  expect(Math.abs(placeholder.y - neighbour.y)).toBeLessThan(8);
+  await page.mouse.up();
+});

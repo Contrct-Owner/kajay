@@ -771,15 +771,23 @@
   outline: 1px solid var(--kajay-color-accent);
 }
 
-.kajay-pages__item[data-drop-before='true'] {
-  box-shadow: inset 3px 0 0 -1px var(--kajay-color-accent);
+/* The same placeholder the canvas draws, in a row instead of a grid. It carries the page
+   list's own row shape rather than the measured height, because every row here is one
+   line of text: reserving the height of the *page entry* being dragged would be exact and
+   would still look like a mistake beside the entries it sits between. */
+.kajay-pages__placeholder-row {
+  display: flex;
 }
 
-.kajay-pages__drop-end {
-  width: 3px;
-  align-self: stretch;
+.kajay-pages__placeholder {
+  display: flex;
+  align-items: center;
+  padding: calc(var(--kajay-spacing) / 4);
+  border: 2px dashed var(--kajay-color-accent);
   border-radius: var(--kajay-radius);
-  background: var(--kajay-color-accent);
+  background: color-mix(in srgb, var(--kajay-color-accent) 8%, transparent);
+  color: var(--kajay-color-accent);
+  font-size: 0.875rem;
 }
 
 .kajay-pages__go,
@@ -931,17 +939,45 @@
   border-color: var(--kajay-color-accent);
 }
 
-/* Where a drop would land. Drawn on the element it would go *before*, and on its own
-   marker for the end of the list — which has no element to sit above. */
-.kajay-designer__element[data-drop-before='true'] {
-  box-shadow: inset 0 3px 0 -1px var(--kajay-color-accent);
+/* Where a drop would land, drawn as a cell of the container's own layout so the elements
+   around it move out of its way. A line could only say "between these two", which is an
+   answer a single column makes unambiguous and a `colCount: 2` page does not. */
+.kajay-designer__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* The height of the element being carried, measured when the drag began, so the page
+     under the placeholder settles where the drop will actually leave it. A toolbox item
+     has nothing to measure yet and falls back to the minimum. */
+  min-height: var(--kajay-placeholder-height, 3rem);
+  padding: calc(var(--kajay-spacing) / 2);
+  border: 2px dashed var(--kajay-color-accent);
+  border-radius: var(--kajay-radius);
+  /* `color-mix` rather than an opacity: the placeholder sits over the canvas background
+     and a translucent box would tint whatever it happens to overlap mid-reflow. */
+  background: color-mix(in srgb, var(--kajay-color-accent) 8%, transparent);
+  color: var(--kajay-color-accent);
+  font-family: var(--kajay-font-family);
+  font-size: 0.875rem;
 }
 
-.kajay-designer__drop-end {
-  grid-column: 1 / -1;
-  height: 3px;
-  border-radius: var(--kajay-radius);
-  background: var(--kajay-color-accent);
+/* The layout-transparent wrapper the Creator puts around every slot, so a withdrawn
+   element can give up its cell without being unmounted — see `useDesignerSlotDecorator`.
+   `contents` because the slot itself must stay the container's grid item: I5's `width`
+   and `startWithNewLine` are set on it, and a box in between would take them over. */
+.kajay-designer__slot {
+  display: contents;
+}
+
+/* Out of flow, not `display: none`. The element is holding the pointer capture that is
+   driving the drag, and it has to keep being rendered to keep receiving the moves. */
+.kajay-designer__slot[data-withdrawn='true'] > .kajay-element,
+.kajay-pages__item[data-withdrawn='true'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
 }
 
 /* The live region carries the whole interaction for anyone who cannot see the line.

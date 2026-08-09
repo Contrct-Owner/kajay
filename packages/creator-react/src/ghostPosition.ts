@@ -16,8 +16,24 @@ export interface Point {
   readonly y: number;
 }
 
-/** Far enough that the pointer is never inside the ghost, close enough to read as held. */
-const CARRY_OFFSET = 12;
+/** Where the ghost sits when it has nothing to hold it — a copy of nothing has no grip. */
+const LOOSE_OFFSET: Point = { x: 12, y: 12 };
+
+/**
+ * Where the pointer sits inside the thing it picked up.
+ *
+ * Kept so the copy hangs from the point it was grabbed by, rather than snapping a corner to
+ * the cursor. When the ghost is the element at its own size, that difference is the whole
+ * feeling of the gesture: one is lifting a question, the other is dragging a card that
+ * jumped out from under your hand.
+ */
+export function grabOffsetIn(node: HTMLElement | null, at: Point): Point {
+  if (node === null) {
+    return LOOSE_OFFSET;
+  }
+  const rect = node.getBoundingClientRect();
+  return { x: rect.left - at.x, y: rect.top - at.y };
+}
 
 /**
  * Where the ghost's own coordinates are measured from.
@@ -35,8 +51,8 @@ export function anchorGhost(ghost: HTMLElement): Point {
   return { x: rect.left, y: rect.top };
 }
 
-/** Puts the ghost beside the pointer, or back to its origin when nothing is held. */
+/** Puts the ghost under the pointer, or back to its origin when nothing is held. */
 export function carryGhost(ghost: HTMLElement, at?: Point | undefined): void {
-  ghost.style.setProperty('--kajay-ghost-x', `${at === undefined ? 0 : at.x + CARRY_OFFSET}px`);
-  ghost.style.setProperty('--kajay-ghost-y', `${at === undefined ? 0 : at.y + CARRY_OFFSET}px`);
+  ghost.style.setProperty('--kajay-ghost-x', `${at?.x ?? 0}px`);
+  ghost.style.setProperty('--kajay-ghost-y', `${at?.y ?? 0}px`);
 }

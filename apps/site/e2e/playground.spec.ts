@@ -297,9 +297,15 @@ test('parity/K2-ghost: what is being carried follows a real pointer', async ({ p
 
   await dragTo(page, 'move-name', 'notes', 0.9);
 
+  // The question itself, drawn by its own renderer at the width it had — not a word
+  // standing in for it. A canvas exists so a designer works on what they can see, and a
+  // drag was the one moment the thing they were working on became a label.
   await expect(ghost).toBeVisible();
-  await expect(ghost).toHaveText(/name/u);
+  await expect(ghost).toContainText('What is your name?');
+  await expect(ghost.locator('input')).toHaveCount(1);
   const first = (await ghost.boundingBox())!;
+  const carried = (await canvas(page).locator('[data-testid="drop-placeholder"]').boundingBox())!;
+  expect(Math.abs(first.width - carried.width)).toBeLessThan(2);
 
   // Moved again, to somewhere with the *same* drop target: the ghost has to track the
   // pointer rather than the aim, or it would sit still through every move that does not
@@ -309,10 +315,14 @@ test('parity/K2-ghost: what is being carried follows a real pointer', async ({ p
   const second = (await ghost.boundingBox())!;
   expect(second.x).toBeLessThan(first.x - 20);
 
-  // Under the pointer, not merely somewhere on screen. Positioned against the viewport,
-  // so a host whose layout puts a transform above the canvas is the case that would put it
-  // in the wrong corner entirely — which is why the origin is measured rather than assumed.
-  expect(Math.abs(second.x - (notes.x + notes.width * 0.2))).toBeLessThan(40);
+  // **Hanging from where it was grabbed**, not with a corner snapped to the cursor. The
+  // grip is at the element's left edge, so the pointer stays a grip's width inside the copy
+  // for the whole drag — measured on the press, because by the first move the pointer has
+  // left the element and an offset taken then is the distance to wherever it went.
+  const pointer = { x: notes.x + notes.width * 0.2, y: notes.y + notes.height * 0.95 };
+  expect(pointer.x - second.x).toBeGreaterThan(0);
+  expect(pointer.x - second.x).toBeLessThan(60);
+  expect(Math.abs(pointer.y - second.y)).toBeLessThan(60);
 
   await page.mouse.up();
   await expect(ghost).toBeHidden();

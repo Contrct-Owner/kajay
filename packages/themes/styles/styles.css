@@ -991,21 +991,22 @@
   top: 0;
   left: 0;
   z-index: var(--kajay-ghost-layer, 1000);
-  display: flex;
-  gap: calc(var(--kajay-spacing) / 3);
-  align-items: center;
-  max-width: 16rem;
-  padding: calc(var(--kajay-spacing) / 3) calc(var(--kajay-spacing) / 2);
-  overflow: hidden;
+  /* The width the element had where it was, written by the adapter at the grab. A copy
+     carried over the page has left the grid that was giving it one, and without this it
+     shrinks to its own text — the moment it stops reading as the question and starts
+     reading as a tooltip about the question. */
+  width: var(--kajay-ghost-width, auto);
+  padding: calc(var(--kajay-spacing) / 2);
   border: 1px solid var(--kajay-color-accent);
   border-radius: var(--kajay-radius);
   background: var(--kajay-color-surface);
   color: var(--kajay-color-text);
   font-family: var(--kajay-font-family);
-  font-size: 0.875rem;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
+  /* Opaque, and the shadow is what says *lifted*. A translucent copy was the obvious way
+     to keep the canvas legible underneath and it does the opposite: the questions behind
+     show *through* the one in hand, so the thing being carried is the least readable thing
+     on screen at the moment a designer is looking straight at it. */
+  box-shadow: 0 8px 24px rgb(0 0 0 / 35%);
   transform: translate(var(--kajay-ghost-x, 0px), var(--kajay-ghost-y, 0px));
   /* Never hit-tested. The pointer driving the drag is captured by the handle, so the
      ghost sitting under the cursor must not be able to answer for anything. */
@@ -1020,8 +1021,11 @@
   visibility: visible;
 }
 
-.kajay-designer__ghost-grip {
-  color: var(--kajay-color-muted);
+/* A toolbox item has no rendered question to copy, because it has not been created yet.
+   What the drag carries is the *type*, so the type's name is what represents it. */
+.kajay-designer__ghost-label {
+  font-size: 0.875rem;
+  white-space: nowrap;
 }
 
 /* The live region carries the whole interaction for anyone who cannot see the line.

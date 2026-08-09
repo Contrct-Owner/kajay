@@ -140,11 +140,12 @@ test('parity/K2-placeholder: a toolbox drag holds a place for the thing it would
 /**
  * The ghost — what the pointer is carrying.
  *
- * Structural again: that it says the right thing, that a keyboard drag does not summon
- * one, and that it is measurable before the drag it is going to follow. That it *tracks*
- * the pointer is the playground's, where a real mouse produces real coordinates.
+ * Structural again: that it is the question rather than a word standing for one, that the
+ * copy does not collide with the original, that a keyboard drag summons none, and that it
+ * is measurable before the drag it is going to follow. That it *tracks* the pointer is the
+ * playground's, where a real mouse produces real coordinates.
  */
-test('parity/K2-ghost: a pointer drag carries what it picked up', async () => {
+test('parity/K2-ghost: a pointer drag carries the question itself', async () => {
   const designed = surface();
   const screen = await render(<Harness designed={designed} />);
   const handle = screen.getByRole('button', { name: 'Move who' }).element() as HTMLElement;
@@ -166,8 +167,15 @@ test('parity/K2-ghost: a pointer drag carries what it picked up', async () => {
 
   handle.dispatchEvent(new PointerEvent('pointerdown', pointer));
   handle.dispatchEvent(new PointerEvent('pointermove', pointer));
-  await expect.element(screen.getByTestId('drag-ghost')).toHaveTextContent('who');
+
+  // **The question, drawn by its own renderer** — its title and its control, not a word
+  // standing in for them. A canvas exists so a designer works on what they can see, and a
+  // drag was the one moment the thing they were working on became a label.
+  await expect.element(screen.getByTestId('drag-ghost')).toHaveTextContent('Your name');
+  expect(ghost.querySelectorAll('input')).toHaveLength(1);
   expect(ghost.dataset['carrying']).toBe('true');
+  // Carried at the width it had, because a copy has left the grid that was giving it one.
+  expect(ghost.style.getPropertyValue('--kajay-ghost-width')).toMatch(/^\d+(\.\d+)?px$/u);
 
   handle.dispatchEvent(new PointerEvent('pointerup', pointer));
   // Let go on drop, and put back: the next drag measures its origin off this node, so one
@@ -191,4 +199,66 @@ test('parity/K2-ghost: a keyboard drag summons nothing to follow', async () => {
   expect(
     screen.container.querySelector<HTMLElement>('[data-testid="drag-ghost"]')?.dataset['carrying'],
   ).toBeUndefined();
+});
+
+test('parity/K2-ghost: the copy does not take the original question ids', async () => {
+  const designed = surface();
+  const screen = await render(<Harness designed={designed} />);
+  const handle = screen.getByRole('button', { name: 'Move who' }).element() as HTMLElement;
+  const target = screen.container.querySelector<HTMLElement>('[data-element-slot="why"]')!;
+  const rect = target.getBoundingClientRect();
+  const pointer = {
+    bubbles: true,
+    pointerId: 92,
+    clientX: rect.left + rect.width / 2,
+    clientY: rect.top + rect.height * 0.9,
+  };
+  Object.defineProperty(handle, 'setPointerCapture', { value: (): undefined => undefined });
+
+  handle.dispatchEvent(new PointerEvent('pointerdown', pointer));
+  handle.dispatchEvent(new PointerEvent('pointermove', pointer));
+
+  // **This is what makes a copy legal**, and the reason a ghost like this could not have
+  // been written before `IdScopeProvider`. Two renderings of one question emit one set of
+  // ids without it, so the document has duplicates and every `<label for>` in the second
+  // resolves to the first — P7's defect, reintroduced by the picture of the question.
+  await expect.element(screen.getByTestId('drag-ghost')).toHaveTextContent('Your name');
+  const ghosted = [
+    ...screen.container.querySelectorAll<HTMLElement>('[data-testid="drag-ghost"] [id]'),
+  ];
+  const ids = [...screen.container.querySelectorAll<HTMLElement>('[id]')].map((node) => node.id);
+  // The ghost has to actually carry ids, or uniqueness below is a claim about nothing.
+  expect(ghosted.length).toBeGreaterThan(0);
+  expect(new Set(ids).size).toBe(ids.length);
+
+  // And nothing inside it is reachable: it is a picture, so it takes no focus and answers
+  // no pointer, beside a live region that is already narrating the drag.
+  const ghost = screen.container.querySelector<HTMLElement>('[data-testid="drag-ghost"]')!;
+  expect(ghost.getAttribute('inert')).not.toBeNull();
+  expect(ghost.getAttribute('aria-hidden')).toBe('true');
+});
+
+test('parity/K2-ghost: a toolbox drag carries the type, which is all there is yet', async () => {
+  const designed = surface();
+  const screen = await render(<Harness designed={designed} />);
+  const item = screen.getByTestId('toolbox-rating').element() as HTMLElement;
+  const target = screen.container.querySelector<HTMLElement>('[data-element-slot="plan"]')!;
+  const rect = target.getBoundingClientRect();
+  const pointer = {
+    bubbles: true,
+    pointerId: 93,
+    clientX: rect.left + rect.width / 2,
+    clientY: rect.top + rect.height * 0.1,
+  };
+  Object.defineProperty(item, 'setPointerCapture', { value: (): undefined => undefined });
+
+  item.dispatchEvent(new PointerEvent('pointerdown', pointer));
+  item.dispatchEvent(new PointerEvent('pointermove', pointer));
+
+  // Not a shortcut: a new element has not been created, so there is no rendered question to
+  // copy. What the drag is carrying is the *type*, and its name is what represents it.
+  await expect.element(screen.getByTestId('drag-ghost')).toHaveTextContent('Rating');
+  expect(
+    screen.container.querySelectorAll('[data-testid="drag-ghost"] input'),
+  ).toHaveLength(0);
 });

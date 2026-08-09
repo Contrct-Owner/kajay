@@ -209,21 +209,48 @@ Three things follow, and each was forced rather than chosen:
 structural edit: it re-parses nothing, mutates nothing and pushes no history. The rule
 decision 4 protects is that a drag previews and commits *once*, and it still does.
 
-### 8 — What the pointer carries is a chip, not the element (amendment)
+### 8 — What the pointer carries is the question, drawn again (amendment)
 
 The placeholder says where a drop would land. A ghost beside the pointer says *what* is
 being dropped, and without one a drag is still an invisible thing being held: the canvas
 opens a space and nothing at all is attached to the cursor, so the gesture reads as pushing
 the page around rather than carrying something across it.
 
-**Lifting the real element under the pointer was the tempting version**, and it is worse
-three times over. A full-size question follows the cursor across the very canvas it is
-being aimed at, covering the thing it is being aimed *into*. The element cannot be under
-the pointer and back in its place at the same time, and being back in its place is how
-decision 7 says "this drop would change nothing". And cloning its markup would put a second
-copy of every `id` in the document — the defect P7 removed everywhere else. What is being
-carried is already drawn twice, at full size in the placeholder and in words in the live
-region, so the ghost's job is to say *held*.
+**It is the question, rendered a second time — not a label naming it.** The first attempt
+here shipped a chip, on the reasoning that what is carried is already drawn at full size in
+the placeholder and spoken in the live region, so the ghost only had to say *held*. That
+reasoning is wrong about what this canvas is for. The whole argument for rendering the real
+survey rather than a diagram of it is that a designer works on what they can see; a drag is
+the one moment the thing they are working on would have become a word, and the moment they
+are looking straight at it.
+
+**A copy, not the element lifted.** They look identical and only one is correct: the
+original has to stay where it is when the drop would change nothing, which is how
+`withdrawn` says so, and it cannot be in its place and under the pointer at once.
+
+**A copy is legal because it gets its own id scope, and could not have been written
+before.** Two renderings of one question emit one set of ids, so the document would carry
+duplicates and every `<label for>` in the second would resolve to the first — P7's defect,
+reintroduced by the picture of the question. `<Survey>` had always minted a scope from
+`useId` and nothing else could; `IdScopeProvider` is that mechanism with nothing else
+attached, and it is public under P9's rule that a seam exports what its own implementations
+use. `inert` and `aria-hidden` finish it: what is inside is a picture, so nothing in it
+takes focus, answers a pointer, or is read out beside the live region.
+
+**Opaque, and the shadow is what says lifted.** Translucency was the obvious way to keep
+the canvas legible underneath and it does the opposite — the questions behind show *through*
+the one in hand, making the thing being carried the least readable thing on screen.
+
+**Toolbox items keep a label**, and that is not a shortcut: a new element has not been
+created, so there is no rendered question to copy. What the drag carries is the *type*, and
+its name is what represents it.
+
+**It hangs from where it was grabbed**, measured on the press. A drag begins on the first
+*move*, by which time the pointer has left the element — an offset taken then is the
+distance to wherever it went, and the copy is drawn that far from the cursor in the opposite
+direction for the rest of the gesture. At a chip's size that is a cosmetic error; at the
+element's own size it is the difference between lifting a question and dragging a card that
+jumped out from under your hand.
 
 **It is written to the DOM, never through React state.** A ghost follows the pointer, so
 its position changes on every `pointermove` — and publishing pointer motion as state is the

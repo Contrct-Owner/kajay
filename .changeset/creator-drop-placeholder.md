@@ -11,8 +11,10 @@ Dragging a question, a panel or a page now opens the space the drop would take: 
 placeholder the size of what is being carried appears in the target position, the
 elements around it move out of its way, and the item being moved leaves the place it is
 going to vacate. What is on screen mid-drag is the page the drop is about to produce.
-A chip beside the pointer says what is being carried, so a drag is no longer an
-invisible thing being held; a keyboard drag summons none, having no pointer to follow.
+The question itself follows the pointer, drawn by its own renderer at the width it
+had and hanging from the point it was grabbed by, so a drag is no longer an invisible
+thing being held. A keyboard drag summons none, having no pointer to follow, and a
+toolbox drag carries the type's name — nothing has been created yet to draw.
 
 The indicator it replaces was a rule drawn between two elements, which a single column
 makes unambiguous and a `colCount: 2` page does not — the geometry has always decided
@@ -20,6 +22,10 @@ left-or-right as readily as above-or-below, and a horizontal line could not draw
 answer. The placeholder takes a cell of the container's own layout, so the container
 decides which one.
 
+- `@kajay/react` gains `IdScopeProvider`: the per-`<Survey>` id scoping P7 introduced,
+  with nothing else attached, so anything drawing a **second copy** of an element already
+  on the page can keep its ids off the original's. Without it both copies emit one set of
+  ids and every `label for` in the second resolves to the first.
 - `@kajay/react` gains `PageElementSlotDecoratorProvider`, the sibling of
   `PageElementDecoratorProvider`: it wraps an element's whole layout slot rather than its
   contents, which is the only way to add something a container lays out as one of its own

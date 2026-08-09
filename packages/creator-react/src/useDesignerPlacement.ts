@@ -12,9 +12,9 @@ import { useCallback, useRef, useState, useSyncExternalStore } from 'react';
 import { slotAtPoint } from './placementGeometry.js';
 import { placementIntent } from './placementKeys.js';
 import type { PlacementIntent } from './placementKeys.js';
-import { anchorGhost, carryGhost } from './ghostPosition.js';
+import { anchorGhost, carryGhost, grabOffsetIn } from './ghostPosition.js';
 import type { Point } from './ghostPosition.js';
-import { shapeOfSource } from './placementShape.js';
+import { shapeOfSource, sourceNodeOf } from './placementShape.js';
 import type { PlacementShape } from './placementShape.js';
 
 /** Pointer handlers for anything draggable: a toolbox item, an element, a page. */
@@ -69,10 +69,13 @@ interface Gesture {
 
 type ElementRef = { current: HTMLElement | null };
 
-/** The ghost node, where its coordinates are measured from, and whether it is shown. */
+/** The ghost node, how its coordinates are worked out, and whether it is shown. */
 interface Carry {
   readonly node: ElementRef;
+  /** Where a fixed node's coordinates start from in this host's layout. */
   readonly anchor: { current: Point | null };
+  /** Where the pointer sat inside what it picked up, so the copy hangs from that point. */
+  readonly grab: { current: Point };
   readonly show: (carrying: boolean) => void;
 }
 
@@ -106,6 +109,7 @@ export function useDesignerPlacement(surface: DesignSurface): DesignerPlacement 
   const [carrying, setCarrying] = useState(false);
   const ghost = useRef<HTMLElement | null>(null);
   const anchor = useRef<Point | null>(null);
+  const grab = useRef<Point>({ x: 0, y: 0 });
   const snapshot = useSyncExternalStore(
     surface.placement.subscribe,
     (): typeof surface.placement.snapshot => surface.placement.snapshot,
@@ -120,7 +124,7 @@ export function useDesignerPlacement(surface: DesignSurface): DesignerPlacement 
     ghost.current = element;
   }, []);
 
-  const carry: Carry = { node: ghost, anchor, show: setCarrying };
+  const carry: Carry = { node: ghost, anchor, grab, show: setCarrying };
   const onCanvas: PlacementContext = {
     surface,
     measure: canvas,
@@ -196,37 +200,14 @@ function dragProps(context: PlacementContext, source: PlacementSource): Placemen
     onPointerDown: (event) => {
       event.currentTarget.setPointerCapture(event.pointerId);
       gesture.current = { pending: true, dragged: false };
+      grip(context, event);
     },
     onPointerMove: (event) => {
       if (!gesture.current.pending || measure.current === null) {
         return;
       }
       gesture.current.dragged = true;
-      const slot = slotAtPoint(
-        measure.current,
-        { x: event.clientX, y: event.clientY },
-        context.fixedList,
-      );
-      const placement = surface.placement;
-      if (slot === undefined) {
-        // The ghost keeps following even here. A pointer past the edge of the surface has
-        // nowhere to drop, and the thing in hand has not stopped being in hand — freezing
-        // it where the last valid aim was would read as the drag having let go.
-        follow(context, event);
-        if (placement.snapshot.kind === 'preview') {
-          placement.transition({ kind: 'aim', slot: undefined });
-        }
-        return;
-      }
-      if (placement.snapshot.kind === 'idle') {
-        context.remember(shapeOfSource(source, event.currentTarget));
-        lift(context);
-        follow(context, event);
-        placement.transition({ kind: 'start', source, slot });
-        return;
-      }
-      follow(context, event);
-      placement.transition({ kind: 'aim', slot });
+      aim(context, source, event, measure.current);
     },
     onPointerUp: () => {
       gesture.current.pending = false;
@@ -242,11 +223,56 @@ function dragProps(context: PlacementContext, source: PlacementSource): Placemen
 }
 
 /**
+ * Notes where the pointer took hold, on the press.
+ *
+ * A drag only *begins* on the first move, by which time the pointer has left the element —
+ * an offset measured then is the distance to wherever it went, which draws the copy that
+ * far from the cursor, in the opposite direction, for the rest of the drag.
+ */
+function grip(context: PlacementContext, event: PointerEvent<HTMLElement>): void {
+  context.carry.grab.current = grabOffsetIn(sourceNodeOf(event.currentTarget), {
+    x: event.clientX,
+    y: event.clientY,
+  });
+}
+
+/** Where this move points, and what that means for a drag that may not have begun yet. */
+function aim(
+  context: PlacementContext,
+  source: PlacementSource,
+  event: PointerEvent<HTMLElement>,
+  within: HTMLElement,
+): void {
+  const placement = context.surface.placement;
+  const slot = slotAtPoint(within, { x: event.clientX, y: event.clientY }, context.fixedList);
+  if (slot === undefined) {
+    // The ghost keeps following even here. A pointer past the edge of the surface has
+    // nowhere to drop, and the thing in hand has not stopped being in hand — freezing it
+    // where the last valid aim was would read as the drag having let go.
+    follow(context, event);
+    if (placement.snapshot.kind === 'preview') {
+      placement.transition({ kind: 'aim', slot: undefined });
+    }
+    return;
+  }
+  if (placement.snapshot.kind === 'idle') {
+    context.remember(shapeOfSource(source, event.currentTarget));
+    lift(context);
+    follow(context, event);
+    placement.transition({ kind: 'start', source, slot });
+    return;
+  }
+  follow(context, event);
+  placement.transition({ kind: 'aim', slot });
+}
+
+/**
  * Picks the ghost up: measures where its coordinates are counted from, and shows it.
  *
  * The anchor is taken per drag rather than once, because a host's layout can change
  * between one and the next — and it is taken *before* the first move is applied, which is
- * the only moment the ghost is reliably back at its origin.
+ * the only moment the ghost is reliably back at its origin. Where the pointer grabbed the
+ * element is not taken here: by now it has moved, so that belongs to the press.
  */
 function lift(context: PlacementContext): void {
   const { node, anchor, show } = context.carry;
@@ -268,9 +294,10 @@ function follow(context: PlacementContext, event: PointerEvent<HTMLElement>): vo
   if (node.current === null || anchor.current === null) {
     return;
   }
+  const { grab } = context.carry;
   carryGhost(node.current, {
-    x: event.clientX - anchor.current.x,
-    y: event.clientY - anchor.current.y,
+    x: event.clientX - anchor.current.x + grab.current.x,
+    y: event.clientY - anchor.current.y + grab.current.y,
   });
 }
 

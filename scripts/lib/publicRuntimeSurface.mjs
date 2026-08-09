@@ -57,6 +57,7 @@ export const PUBLIC_RUNTIME_SURFACE = Object.freeze({
     'serializeSurvey',
   ]),
   '@kajay/react': Object.freeze([
+    'IdScopeProvider',
     'PageElementDecoratorProvider',
     'PageElementSlotDecoratorProvider',
     'PageElementRendererRegistry',

@@ -139,7 +139,9 @@ export function DesignSurfacePanel({
         </TextRendererProvider>
       </QuestionRenderersProvider>
       <EmptyPagePlaceholder surface={surface} placement={placement} activeSlot={activeSlot} />
-      {placement === undefined ? null : <DragFurniture placement={placement} />}
+      {placement === undefined ? null : (
+        <DragFurniture surface={surface} renderers={renderers} placement={placement} />
+      )}
     </div>
   );
 }
@@ -153,10 +155,18 @@ export function DesignSurfacePanel({
  * between a ghost and two of them arguing over the pointer. The canvas is the piece that is
  * present whenever anything is being placed.
  */
-function DragFurniture({ placement }: { readonly placement: DesignerPlacement }): ReactElement {
+function DragFurniture({
+  surface,
+  renderers,
+  placement,
+}: {
+  readonly surface: DesignSurface;
+  readonly renderers: PageElementRendererResolver;
+  readonly placement: DesignerPlacement;
+}): ReactElement {
   return (
     <>
-      <PlacementGhost placement={placement} />
+      <PlacementGhost surface={surface} renderers={renderers} placement={placement} />
       {/*
         `aria-live` on its own, not `role="status"`. The ranking question's live region is
         the same shape, and for a reason that shows up immediately: a status role is a

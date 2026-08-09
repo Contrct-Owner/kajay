@@ -39,6 +39,10 @@ export type { QuestionRendererProps } from './QuestionRendererProps.js';
 // collide again, which is the defect P7 had just removed everywhere except here.
 export { questionErrorId, questionId } from './questionId.js';
 export { useIdScope } from './idScope.js';
+// And the other half of it, for anything drawing a *second* copy of an element the page is
+// already showing — the Creator's drag ghost is the worked example.
+export { IdScopeProvider } from './IdScopeProvider.js';
+export type { IdScopeProviderProps } from './IdScopeProvider.js';
 export { QuestionErrors } from './QuestionErrors.js';
 export type { QuestionErrorsProps } from './QuestionErrors.js';
 export { QuestionTitleContent } from './QuestionTitleContent.js';

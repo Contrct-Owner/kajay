@@ -80,6 +80,16 @@ observable behaviour is a real thing, and recording that judgement is a sentence
 rather than a silence. It is the one check outside `verify`, because it compares a branch
 against a base and only a pull request has one.
 
+**The version pull request is exempt, and finding out why cost a release.** It is the one
+branch that legitimately changes every package and carries no changeset, because consuming
+them is what it is *for* — and `changeset status` compares changed packages against available
+changesets, so it cannot tell that apart from an undeclared change. Nor should it: from where
+it stands the two are identical. Left unexempted the guard blocks the release it exists to
+protect — the version pull request never goes green, `main` never reaches a version, nothing
+is ever published — and it fails in a way that reads as the automation being broken rather
+than the check being too strict. The exemption is the branch `changesets/action` writes to,
+which is the only thing about that pull request that is not a coincidence.
+
 **Access control: trusted publishing, so there is no token.** npm mints a short-lived
 credential from the OIDC identity GitHub issues for this workflow. Nothing long-lived is
 stored in the repository, the environment, or anywhere else — the strongest version of an

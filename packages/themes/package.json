@@ -1,7 +1,7 @@
 {
   "name": "@kajay/themes",
-  "version": "1.0.0",
-    "type": "module",
+  "version": "1.1.0",
+  "type": "module",
   "description": "CSS-variable design tokens and theme presets.",
   "license": "MIT",
   "repository": {

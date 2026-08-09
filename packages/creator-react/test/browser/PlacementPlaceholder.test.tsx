@@ -262,3 +262,29 @@ test('parity/K2-ghost: a toolbox drag carries the type, which is all there is ye
     screen.container.querySelectorAll('[data-testid="drag-ghost"] input'),
   ).toHaveLength(0);
 });
+
+test('parity/K2-aim: in a column the halves of an element decide, wherever you are across it', async () => {
+  const designed = surface();
+  const screen = await render(<Harness designed={designed} />);
+  const handle = screen.getByRole('button', { name: 'Move who' }).element() as HTMLElement;
+  const last = screen.container.querySelector<HTMLElement>('[data-element-slot="why"]')!;
+  const rect = last.getBoundingClientRect();
+  Object.defineProperty(handle, 'setPointerCapture', { value: (): undefined => undefined });
+
+  // **The bottom half of the last element, hard against its left edge.** The axis used to
+  // be whichever one the pointer was further out on, and an element is as wide as the
+  // canvas — so from here `|dx|` beat `|dy|` and the answer became *left of centre*, which
+  // in a single column means nothing at all. Aiming at the end of a list meant dropping far
+  // enough below the last question to out-distance however far sideways you happened to be.
+  const pointer = {
+    bubbles: true,
+    pointerId: 94,
+    clientX: rect.left + 4,
+    clientY: rect.top + rect.height * 0.75,
+  };
+  handle.dispatchEvent(new PointerEvent('pointerdown', pointer));
+  handle.dispatchEvent(new PointerEvent('pointermove', pointer));
+
+  await expect.poll(() => designed.placement.snapshot.activeSlot?.index).toBe(3);
+  expect(placedOrder(screen.container)).toEqual(['who', 'plan', 'why', '<3>']);
+});

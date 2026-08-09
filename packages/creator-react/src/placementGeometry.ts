@@ -44,19 +44,36 @@ interface Candidate {
   readonly container: string;
   readonly index: number;
   readonly centre: Point;
+  readonly box: Box;
+}
+
+interface Box {
+  readonly top: number;
+  readonly bottom: number;
 }
 
 /**
  * The slot nearest a point, or `undefined` when the canvas holds nothing.
  *
- * **Nearest centre, then which side of it**, rather than the usual "is the pointer past
- * this element's top half". The simple version assumes a single column, and a page with
- * `colCount: 2` puts elements side by side — where a vertical midpoint says nothing at
- * all about whether a drop belongs left or right of the one under the pointer.
+ * **Nearest centre, then which side of it.** In a column the two together put every slot
+ * boundary exactly on an element's midpoint, which is the rule a designer expects: the
+ * bottom half of the element above and the top half of the one below aim at the position
+ * between them. That falls out rather than being coded — for a point between two centres,
+ * "nearest, then which side" and "which half am I in" give the same answer.
  *
- * Which side is decided along whichever axis the pointer is further out on, so the same
- * code reads "above/below" in a stacked layout and "left/right" in a row without being
- * told which it is looking at.
+ * **Which axis decides is a question about the layout, not about the pointer.** It used to
+ * be whichever axis the pointer was further out on, which reads as above/below in a stacked
+ * list only while the pointer stays near the vertical middle of the page. Elements are as
+ * wide as the canvas, so `|dx|` beat `|dy|` almost everywhere and the answer quietly became
+ * *left or right of centre* — in a single column, where left and right mean nothing. Aiming
+ * at the end of a list then meant dropping far enough below the last element to out-distance
+ * however far from its centre you happened to be sideways.
+ *
+ * So the axis comes from where the element's **own neighbour** sits: side by side means the
+ * list runs across at that point and the horizontal midpoint decides; otherwise it runs down
+ * and the vertical one does. One rule reads a column, a `colCount: 2` grid — where a row's
+ * two cells are horizontal neighbours and the row below is a vertical one — and the page
+ * navigator's horizontal strip, without being told which it is looking at.
  *
  * **The container comes from the element, not from the canvas.** Once a panel became a
  * place a drop can land, "which list" stopped being a property of the surface being
@@ -77,17 +94,44 @@ export function slotAtPoint(
       return { list: { of: 'elements', container: empty }, index: 0 };
     }
   }
-  const nearest = nearestTo(elementCandidates(surface, fixed !== undefined), point);
+  const candidates = elementCandidates(surface, fixed !== undefined);
+  const nearest = nearestTo(candidates, point);
   if (nearest === undefined) {
     return undefined;
   }
-  const dx = point.x - nearest.centre.x;
-  const dy = point.y - nearest.centre.y;
-  const isAfter = Math.abs(dx) > Math.abs(dy) ? dx > 0 : dy > 0;
+  const isAfter = runsSideways(nearest, candidates)
+    ? point.x > nearest.centre.x
+    : point.y > nearest.centre.y;
   return {
     list: fixed ?? { of: 'elements', container: nearest.container },
     index: isAfter ? nearest.index + 1 : nearest.index,
   };
+}
+
+/**
+ * Whether this element's list runs across the page rather than down it.
+ *
+ * **A question about the container, not about the element.** Asking each element for its own
+ * neighbour was the first attempt and it breaks on the case a grid always has: the last row
+ * is usually a partial one, so its element has nothing beside it and would be read as a
+ * column — even though "after it" is plainly the empty cell to its right. A container either
+ * puts things side by side or it does not, and that is answered once by looking for any two
+ * of its elements sharing a row.
+ *
+ * Two boxes share a row when their vertical bands overlap, so moving between them is a
+ * horizontal move. A single column never produces such a pair, whatever the container's
+ * declared `colCount`, which is the right answer: a page whose elements all take a new line
+ * *is* a column, and reads like one.
+ */
+function runsSideways(candidate: Candidate, candidates: readonly Candidate[]): boolean {
+  const siblings = candidates.filter((one) => one.container === candidate.container);
+  return siblings.some((one, at) =>
+    siblings.slice(at + 1).some((other) => sharesRow(one.box, other.box)),
+  );
+}
+
+function sharesRow(one: Box, other: Box): boolean {
+  return one.top < other.bottom && other.top < one.bottom;
 }
 
 /**
@@ -135,6 +179,7 @@ function elementCandidates(surface: HTMLElement, anyContainer: boolean): readonl
       container,
       index,
       centre: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
+      box: { top: rect.top, bottom: rect.bottom },
     });
   }
   return candidates;

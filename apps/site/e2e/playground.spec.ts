@@ -217,14 +217,20 @@ test('parity/P3-playground: it says what it did unasked', async ({ page }) => {
  * The mouse here is a real mouse, so the pointer capture that carries a drag is under test
  * rather than stubbed.
  */
-async function dragTo(page: Page, handle: string, target: string, at: number): Promise<void> {
+async function dragTo(
+  page: Page,
+  handle: string,
+  target: string,
+  at: number,
+  across = 0.5,
+): Promise<void> {
   const grip = (await canvas(page).getByTestId(handle).boundingBox())!;
   await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
   await page.mouse.down();
   const onto = (await canvas(page).locator(`[data-element-slot="${target}"]`).boundingBox())!;
   // In steps, because one jump is one `pointermove` and a drag that only ever reports its
   // destination would pass while every intermediate aim was broken.
-  await page.mouse.move(onto.x + onto.width / 2, onto.y + onto.height * at, { steps: 8 });
+  await page.mouse.move(onto.x + onto.width * across, onto.y + onto.height * at, { steps: 8 });
 }
 
 test('parity/K2-placeholder: the drop opens the space it would take', async ({ page }) => {
@@ -277,7 +283,11 @@ test('parity/K2-placeholder: in two columns it takes a cell, not a row', async (
   await page.getByTestId('json-apply').click();
   await page.getByTestId('editor-mode-design').click();
 
-  await dragTo(page, 'move-a', 'd', 0.5);
+  // The *left* quarter of the last cell. Which axis decides is a question about the layout:
+  // these two are on one row, so the list runs across here and the horizontal midpoint is
+  // the one that means anything — the vertical rule that reads a column correctly would
+  // make "before d" unreachable without leaving the row.
+  await dragTo(page, 'move-a', 'd', 0.5, 0.25);
 
   const placeholder = (await canvas(page).getByTestId('drop-placeholder').boundingBox())!;
   const surface = (await canvas(page).locator('.kajay-designer').boundingBox())!;
@@ -288,6 +298,17 @@ test('parity/K2-placeholder: in two columns it takes a cell, not a row', async (
   // which is what every version of this before it drew.
   expect(placeholder.width).toBeLessThan(surface.width * 0.75);
   expect(Math.abs(placeholder.y - neighbour.y)).toBeLessThan(8);
+  expect(placeholder.x).toBeLessThan(neighbour.x);
+
+  // And the other half of the same cell is the other side of it. Both boxes are measured
+  // again, because the first aim is what put `d` where it is: a placeholder that takes a
+  // cell moves everything after it, so a position captured before the move is a position
+  // nothing is at any more.
+  await page.mouse.move(neighbour.x + neighbour.width * 0.8, neighbour.y + neighbour.height / 2);
+  const moved = (await canvas(page).locator('[data-element-slot="d"]').boundingBox())!;
+  const after = (await canvas(page).getByTestId('drop-placeholder').boundingBox())!;
+  expect(after.x).toBeGreaterThan(moved.x);
+  expect(Math.abs(after.y - moved.y)).toBeLessThan(8);
   await page.mouse.up();
 });
 

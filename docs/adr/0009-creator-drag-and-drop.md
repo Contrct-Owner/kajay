@@ -176,11 +176,10 @@ long as the preview stands.
 
 The line this replaces was not merely plain, it was **less expressive than the model
 behind it**. Decision 2 made the active slot a number, and the geometry that picks it has
-decided left-or-right as readily as above-or-below since the day panels became targets —
-it chooses along whichever axis the pointer is further out on. A horizontal rule cannot
-draw "left of this one", and the end-of-list marker spanned every column, so in a
-`colCount: 2` page it pointed at a whole row whichever half was meant. The indicator was
-answering a coarser question than the drop was.
+been able to say left-or-right as readily as above-or-below since the day panels became
+targets. A horizontal rule cannot draw "left of this one", and the end-of-list marker
+spanned every column, so in a `colCount: 2` page it pointed at a whole row whichever half
+was meant. The indicator was answering a coarser question than the drop was.
 
 Three things follow, and each was forced rather than chosen:
 
@@ -272,6 +271,32 @@ measured until a frame into it.
 **One ghost, drawn by the canvas.** A drag can begin in the toolbox or the page navigator,
 and each piece rendering its own would give the pointer two things to follow and one ref for
 both to fight over. The canvas is the piece present whenever anything is being placed.
+
+### 9 — Which axis decides is a fact about the container (amendment)
+
+A slot boundary sits on an element's midpoint: the bottom half of the element above and the
+top half of the one below both aim at the position between them. That falls out of decision
+2's "nearest centre, then which side" rather than being written down — for a point between
+two centres, "nearest, then which side" and "which half am I in" agree.
+
+**What has to be chosen is the axis, and it was being chosen from the pointer.** The
+original rule took whichever axis the pointer was further out on, so that one piece of code
+could read a stacked list and a `colCount: 2` row without being told which it was looking
+at. It does not survive contact with a real canvas: elements are as wide as the surface, so
+`|dx|` beats `|dy|` almost everywhere and the answer quietly becomes *left or right of
+centre* — in a single column, where left and right mean nothing. Aiming at the end of a list
+meant dropping far enough below the last element to out-distance however far sideways the
+pointer happened to be, which is a long way down and reads as the drop target being broken.
+
+The axis is a property of the **container**: it either puts things side by side or it does
+not, and two of its elements sharing a row is the whole of the evidence. Asking each element
+for its own neighbour instead was tried first and breaks on the case every grid has — the
+last row is usually partial, so its element has nothing beside it and reads as a column,
+though "after it" is plainly the empty cell to its right.
+
+A page whose elements all take a new line is therefore a column and reads like one, whatever
+its declared `colCount`, which is the right answer for the same reason: what the rule is
+after is the layout on screen, not the property that usually produces it.
 
 **Found by building it: the canvas had never had columns.** The design surface is the
 page's grid and the stylesheet had always read `--kajay-col-count` from it, but only

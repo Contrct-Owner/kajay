@@ -34,6 +34,11 @@ decides which one.
   its place while a preview stands. Nothing is withdrawn without an active slot, so a drag
   aimed somewhere forbidden, or at the position an element already occupies, leaves it
   exactly where it is.
+- Aiming is fixed in the case it was most used: which axis decides a drop is now a fact
+  about the container — whether it puts elements side by side — rather than whichever axis
+  the pointer happened to be further out on. Elements are as wide as the canvas, so the old
+  rule read a single column as a *row* almost everywhere, and reaching the end of a list
+  meant dragging far below the last question.
 - The design surface now honours the page's `colCount`. The canvas *is* the page's grid
   and the stylesheet had always read the column count from it, but nothing ever wrote one,
   so a two-column page was drawn in a single column.

@@ -67,6 +67,7 @@ pnpm run check:arch   # dependency direction, DOM-free core, no deep imports
 pnpm run test:unit    # Vitest, node environment, pure logic
 pnpm run test:browser # Vitest browser mode, real Chromium
 pnpm run test:e2e     # Playwright against the built apps/site artifact
+pnpm run check:changeset # a branch declares what it does to the published packages
 pnpm run check:contract # regenerate the committed contracts, fail on drift
 pnpm run check:conformance # run the TypeScript runtime against the shared corpus
 pnpm run verify:dotnet # restore, format-check, build, test, pack, installed consumer
@@ -76,6 +77,10 @@ pnpm run test:pack    # pnpm pack all packages, install tarballs in scratch proj
 
 - The `survey-checks` CI job is the single status to require in branch protection;
   adding a job or shard never means editing the protected-checks list.
+- `check:changeset` is the one check that is **not** part of `verify`: it compares a
+  branch against its base, which only a pull request has. It passes on any branch that
+  touched no published package — documentation, CI and `apps/site` need no changeset —
+  and `pnpm changeset -- --empty` records the judgement that a change needs no release.
 
 ## File responsibility
 

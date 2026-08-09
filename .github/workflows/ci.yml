@@ -33,6 +33,29 @@ jobs:
       # Both compilers must agree: TypeScript 6 emits, TypeScript 7 verifies (ADR-0012).
       - run: pnpm run typecheck
 
+  changeset:
+    name: Changeset declared
+    runs-on: ubuntu-latest
+    steps:
+      # The comparison is against the base branch, so the base branch has to be here.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # **Runs on every event and checks on one.** A pull request is the only thing with a
+      # base to compare against, and the script says so and passes elsewhere — rather than
+      # the job carrying an `if:`, which would leave it *skipped* on `main`, and the
+      # aggregate below counts a skipped job as a failed one.
+      - run: pnpm run check:changeset
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          CHANGESET_BASE: origin/${{ github.base_ref }}
+
   architecture:
     name: Architecture checks
     runs-on: ubuntu-latest
@@ -195,7 +218,8 @@ jobs:
     name: survey-checks
     runs-on: ubuntu-latest
     if: always()
-    needs: [lint-typecheck, architecture, unit, browser, contract, conformance, dotnet, e2e, pack]
+    needs:
+      [changeset, lint-typecheck, architecture, unit, browser, contract, conformance, dotnet, e2e, pack]
     steps:
       - name: Fail if any upstream job did not succeed
         run: |

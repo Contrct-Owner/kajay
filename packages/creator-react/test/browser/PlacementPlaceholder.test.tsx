@@ -177,11 +177,15 @@ test('parity/K2-ghost: a pointer drag carries the question itself', async () => 
   // Carried at the width it had, because a copy has left the grid that was giving it one.
   expect(ghost.style.getPropertyValue('--kajay-ghost-width')).toMatch(/^\d+(\.\d+)?px$/u);
 
+  const carriedTo = ghost.style.getPropertyValue('--kajay-ghost-y');
   handle.dispatchEvent(new PointerEvent('pointerup', pointer));
-  // Let go on drop, and put back: the next drag measures its origin off this node, so one
-  // left where the last pointer was would anchor every drag after it to that spot.
+
+  // Let go on drop — and left exactly where it was, on purpose. The element it was carrying
+  // has been invisible for the whole drag, so the ghost's last position is the only record
+  // of where that question was on screen, and the settle animation is measured from it.
+  // The next drag re-anchors before it measures, so nothing is left stale.
   await expect.poll(() => ghost.dataset['carrying']).toBeUndefined();
-  expect(ghost.style.getPropertyValue('--kajay-ghost-x')).toBe('0px');
+  expect(ghost.style.getPropertyValue('--kajay-ghost-y')).toBe(carriedTo);
 });
 
 test('parity/K2-ghost: a keyboard drag summons nothing to follow', async () => {

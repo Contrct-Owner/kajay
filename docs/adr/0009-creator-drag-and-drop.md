@@ -306,6 +306,43 @@ caught it asserted `startWithNewLine`, which is a property of an element rather 
 grid it sits in. A row about *where a drop lands* is what surfaced it, because a
 placeholder that takes a cell has nothing to say on a surface that only ever has one.
 
+### 10 — The rearrangement is moved into, and the stylesheet decides whether (amendment)
+
+A placeholder that takes a cell moves everything after it, so without motion the page
+teleports on every aim: a different arrangement each time the pointer crosses a midpoint,
+and nothing to say what became what. First and last positions, then the difference —
+hand-written, because it is twenty lines and decision 1's objection to a library owning the
+Creator's markup applies to an animation library exactly as it did to a drag one.
+
+**Whether any of it happens is a CSS decision, not ours.** Duration and easing are read from
+custom properties, and an unset one — which is what a host who ships their own stylesheet
+has — reads as zero and skips the measuring as well as the animating. That is
+[ADR-0022](./0022-design-system-primitives.md) applied to motion: the library offers it and
+the host owns it, down to turning it off.
+
+**`prefers-reduced-motion` is the exception, and is asked in the adapter.** Duration and
+easing are the host's choice; this is not one of theirs. Somebody who has told their system
+they want less motion has already answered, and a host who forgets the media query must not
+be able to overrule them.
+
+**The baseline is taken at the grab.** The adapter only re-renders when the *placement*
+changes, so anything that moved the page in between — a selection opening an action row, an
+inline edit growing a title — would still be in a remembered position and the first aim
+would animate every element from wherever it used to be. Measuring at the press is both
+correct and cheaper: once per drag rather than once per render.
+
+**It stays armed through the drop**, because the last rearrangement a drag makes is the one
+that commits, and by then the placement is idle again — a guard watching for "a drag is in
+progress" would animate every step except the one the gesture was for. Positions are keyed
+by **name**, which is the only thing that survives the re-parse decision 3 performs, and the
+withdrawn element's position is recorded as *the ghost's*: it has been invisible for the
+whole drag, so the ghost is where it was on screen, and the question settles from the
+pointer that carried it rather than flying in from the corner its collapsed box occupies.
+
+The cost is real and worth stating: every scenario that measures a position during a drag
+now races an animation, and the end-to-end ones wait for the page to come to rest first. A
+test that measured mid-settle would be reading where an element is passing through.
+
 ## Consequences
 
 - Phase 1's ranking work carried a small extra design obligation (generalize the reorder

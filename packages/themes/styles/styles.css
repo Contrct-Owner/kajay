@@ -579,6 +579,17 @@
 
 /* --- Creator: the design surface (K3) ------------------------------------ */
 
+/* How a drop settles, and the only thing that decides whether it does at all. The adapter
+   measures and animates nothing when this is zero or unset — so a host who ships their own
+   stylesheet gets no motion until they ask for it, and turns it off by setting `0`.
+   `prefers-reduced-motion` is *not* handled here on purpose: that is the reader's answer
+   rather than the host's, so it is honoured in the adapter where a host cannot forget it. */
+.kajay-designer,
+.kajay-pages {
+  --kajay-settle-duration: 160ms;
+  --kajay-settle-easing: cubic-bezier(0.2, 0, 0, 1);
+}
+
 .kajay-designer {
   display: grid;
   grid-template-columns: repeat(var(--kajay-col-count, 1), minmax(0, 1fr));

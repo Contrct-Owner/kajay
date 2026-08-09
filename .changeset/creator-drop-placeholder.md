@@ -34,6 +34,9 @@ decides which one.
   its place while a preview stands. Nothing is withdrawn without an active slot, so a drag
   aimed somewhere forbidden, or at the position an element already occupies, leaves it
   exactly where it is.
+- The rearrangement is animated rather than cut to, and the stylesheet decides whether:
+  `--kajay-settle-duration` and `--kajay-settle-easing`, with an unset or zero duration
+  meaning no motion and no measuring. `prefers-reduced-motion` is honoured regardless.
 - Aiming is fixed in the case it was most used: which axis decides a drop is now a fact
   about the container — whether it puts elements side by side — rather than whichever axis
   the pointer happened to be further out on. Elements are as wide as the canvas, so the old

@@ -163,6 +163,10 @@ function PageEntry({
     <li
       className="kajay-pages__item"
       data-current={isCurrent ? 'true' : undefined}
+      // What identifies this row across a reorder, so it can be *moved* into its new
+      // position rather than redrawn there. An index cannot: reordering is precisely the
+      // operation that changes it, so every row would look like a different row.
+      data-page-name={page.name}
       {...{
         [ELEMENT_INDEX_ATTRIBUTE]: String(index),
         // Standing aside, not unmounted: the handle inside it is holding the pointer

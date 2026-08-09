@@ -1,41 +1,41 @@
 import type {
   DesignSurface,
-  DropList,
   DropSlot,
   PlacementNarration,
   PlacementSource,
   ToolboxItem,
 } from '@kajay/creator-core';
 import { reorderAnnouncement } from '@kajay/react';
-import type { KeyboardEvent, PointerEvent } from 'react';
-import { useCallback, useRef, useState, useSyncExternalStore } from 'react';
-import { slotAtPoint } from './placementGeometry.js';
-import { placementIntent } from './placementKeys.js';
-import type { PlacementIntent } from './placementKeys.js';
-import { anchorGhost, carryGhost, grabOffsetIn } from './ghostPosition.js';
+import { useRef, useState, useSyncExternalStore } from 'react';
 import type { Point } from './ghostPosition.js';
-import { shapeOfSource, sourceNodeOf } from './placementShape.js';
+import { handleProps, itemProps } from './placementGestures.js';
+import type {
+  Carry,
+  ElementRef,
+  Gesture,
+  PlacementContext,
+  PlacementHandleProps,
+  PlacementItemProps,
+} from './placementGestures.js';
 import type { PlacementShape } from './placementShape.js';
+import { useSettledPlacement } from './useSettledPlacement.js';
+import type { SettleSurface } from './useSettledPlacement.js';
 
-/** Pointer handlers for anything draggable: a toolbox item, an element, a page. */
-export interface PlacementDragProps {
-  readonly onPointerDown: (event: PointerEvent<HTMLElement>) => void;
-  readonly onPointerMove: (event: PointerEvent<HTMLElement>) => void;
-  readonly onPointerUp: (event: PointerEvent<HTMLElement>) => void;
-  readonly onPointerCancel: (event: PointerEvent<HTMLElement>) => void;
-}
+export type {
+  PlacementDragProps,
+  PlacementHandleProps,
+  PlacementItemProps,
+} from './placementGestures.js';
 
-/** Drag handlers plus the atomic click-to-append interaction for a toolbox item. */
-export interface PlacementItemProps extends PlacementDragProps {
-  readonly onClick: () => void;
-}
-
-/** Everything an element or page drag handle needs. */
-export interface PlacementHandleProps extends PlacementDragProps {
-  readonly 'aria-roledescription': string;
-  readonly 'data-grabbed': 'true' | undefined;
-  readonly onKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
-}
+/**
+ * The two lists a placement rearranges, and what identifies their items across an edit.
+ *
+ * Names, not nodes: a structural edit re-parses and every element on the canvas is a new
+ * one afterwards (ADR-0009 decision 3), so node identity cannot survive the drop that the
+ * most important of these animations is *for*.
+ */
+const CANVAS_SURFACE = { selector: '[data-element-slot]', attribute: 'data-element-slot' };
+const PAGE_SURFACE = { selector: '.kajay-pages__item', attribute: 'data-page-name' };
 
 export interface DesignerPlacement {
   readonly surfaceRef: (element: HTMLElement | null) => void;
@@ -62,32 +62,6 @@ export interface DesignerPlacement {
   readonly getPageHandleProps: (pageName: string, index: number) => PlacementHandleProps;
 }
 
-interface Gesture {
-  pending: boolean;
-  dragged: boolean;
-}
-
-type ElementRef = { current: HTMLElement | null };
-
-/** The ghost node, how its coordinates are worked out, and whether it is shown. */
-interface Carry {
-  readonly node: ElementRef;
-  /** Where a fixed node's coordinates start from in this host's layout. */
-  readonly anchor: { current: Point | null };
-  /** Where the pointer sat inside what it picked up, so the copy hangs from that point. */
-  readonly grab: { current: Point };
-  readonly show: (carrying: boolean) => void;
-}
-
-interface PlacementContext {
-  readonly surface: DesignSurface;
-  readonly measure: ElementRef;
-  readonly gesture: { current: Gesture };
-  readonly remember: (shape: PlacementShape) => void;
-  readonly carry: Carry;
-  readonly fixedList?: DropList | undefined;
-}
-
 /**
  * The React input adapter for creator-core's placement lifecycle.
  *
@@ -96,9 +70,7 @@ interface PlacementContext {
  * second UI adapter receives exactly the same placement meaning.
  */
 export function useDesignerPlacement(surface: DesignSurface): DesignerPlacement {
-  const canvas = useRef<HTMLElement | null>(null);
-  const pageList = useRef<HTMLElement | null>(null);
-  const gesture = useRef<Gesture>({ pending: false, dragged: false });
+  const { canvas, pageList, ghost, gesture, anchor, grab } = usePlacementRefs();
   // Measured once, when the drag begins, and read for as long as it lasts. Re-measuring
   // as the pointer moves would measure an element that has already stood aside — the
   // placeholder would collapse to nothing the moment it did its job.
@@ -107,22 +79,15 @@ export function useDesignerPlacement(surface: DesignSurface): DesignerPlacement 
   // and a pointer drag are the same placement to the model, and correctly so; what
   // differs is only whether there is a pointer for anything to follow.
   const [carrying, setCarrying] = useState(false);
-  const ghost = useRef<HTMLElement | null>(null);
-  const anchor = useRef<Point | null>(null);
-  const grab = useRef<Point>({ x: 0, y: 0 });
   const snapshot = useSyncExternalStore(
     surface.placement.subscribe,
     (): typeof surface.placement.snapshot => surface.placement.snapshot,
   );
-  const surfaceRef = useCallback((element: HTMLElement | null): void => {
-    canvas.current = element;
-  }, []);
-  const pageListRef = useCallback((element: HTMLElement | null): void => {
-    pageList.current = element;
-  }, []);
-  const ghostRef = useCallback((element: HTMLElement | null): void => {
-    ghost.current = element;
-  }, []);
+  const surfaces: readonly SettleSurface[] = [
+    { node: canvas, ...CANVAS_SURFACE },
+    { node: pageList, ...PAGE_SURFACE },
+  ];
+  const settle = useSettledPlacement(surfaces, ghost, snapshot.kind === 'idle');
 
   const carry: Carry = { node: ghost, anchor, grab, show: setCarrying };
   const onCanvas: PlacementContext = {
@@ -131,12 +96,14 @@ export function useDesignerPlacement(surface: DesignSurface): DesignerPlacement 
     gesture,
     remember: setShape,
     carry,
+    settle,
   };
   const inPageList: PlacementContext = { ...onCanvas, measure: pageList, fixedList: { of: 'pages' } };
 
   return {
-    surfaceRef,
-    pageListRef,
+    surfaceRef: attach(canvas),
+    pageListRef: attach(pageList),
+    ghostRef: attach(ghost),
     source: snapshot.source,
     activeSlot: snapshot.activeSlot,
     withdrawn: snapshot.withdrawn,
@@ -145,7 +112,6 @@ export function useDesignerPlacement(surface: DesignSurface): DesignerPlacement 
     // render on every drop for something nothing can see.
     shape: snapshot.kind === 'preview' ? shape : undefined,
     carrying: snapshot.kind === 'preview' && carrying ? shape : undefined,
-    ghostRef,
     announcement: formatNarration(snapshot.narration),
     getItemProps: (item) => itemProps(onCanvas, item),
     getHandleProps: (name) => handleProps(onCanvas, name),
@@ -153,188 +119,41 @@ export function useDesignerPlacement(surface: DesignSurface): DesignerPlacement 
   };
 }
 
-function itemProps(context: PlacementContext, item: ToolboxItem): PlacementItemProps {
-  const { surface } = context;
-  const source: PlacementSource = { kind: 'new', item };
+/**
+ * Every mutable handle the adapter keeps between renders.
+ *
+ * Together rather than scattered because they are one thing: what the browser handed us
+ * last time, kept so the next pointer event can be answered without a render.
+ */
+function usePlacementRefs(): {
+  readonly canvas: ElementRef;
+  readonly pageList: ElementRef;
+  readonly ghost: ElementRef;
+  readonly gesture: { current: Gesture };
+  readonly anchor: { current: Point | null };
+  readonly grab: { current: Point };
+} {
   return {
-    ...dragProps(context, source),
-    onClick: () => {
-      const page = surface.page;
-      if (!context.gesture.current.dragged && page !== undefined) {
-        surface.placement.transition({
-          kind: 'place',
-          source,
-          slot: {
-            list: { of: 'elements', container: page.name },
-            index: page.elements.length,
-          },
-        });
-      }
-    },
-  };
-}
-
-function handleProps(context: PlacementContext, name: string): PlacementHandleProps {
-  const source: PlacementSource = { kind: 'move', name };
-  const snapshot = context.surface.placement.snapshot;
-  return {
-    ...dragProps(context, source),
-    'aria-roledescription': 'Sortable item',
-    'data-grabbed':
-      snapshot.source?.kind === 'move' && snapshot.source.name === name ? 'true' : undefined,
-    onKeyDown: (event) => {
-      const intent = placementIntent(event.key);
-      if (intent === undefined) {
-        return;
-      }
-      event.preventDefault();
-      applyIntent(context, intent, source, event.currentTarget);
-    },
-  };
-}
-
-/** A drag begins on movement, leaving a press available for focus and selection. */
-function dragProps(context: PlacementContext, source: PlacementSource): PlacementDragProps {
-  const { measure, gesture, surface } = context;
-  return {
-    onPointerDown: (event) => {
-      event.currentTarget.setPointerCapture(event.pointerId);
-      gesture.current = { pending: true, dragged: false };
-      grip(context, event);
-    },
-    onPointerMove: (event) => {
-      if (!gesture.current.pending || measure.current === null) {
-        return;
-      }
-      gesture.current.dragged = true;
-      aim(context, source, event, measure.current);
-    },
-    onPointerUp: () => {
-      gesture.current.pending = false;
-      drop(context);
-      surface.placement.transition({ kind: 'finish', action: 'commit' });
-    },
-    onPointerCancel: () => {
-      gesture.current.pending = false;
-      drop(context);
-      surface.placement.transition({ kind: 'finish', action: 'abandon' });
-    },
+    canvas: useRef<HTMLElement | null>(null),
+    pageList: useRef<HTMLElement | null>(null),
+    ghost: useRef<HTMLElement | null>(null),
+    gesture: useRef<Gesture>({ pending: false, dragged: false }),
+    anchor: useRef<Point | null>(null),
+    grab: useRef<Point>({ x: 0, y: 0 }),
   };
 }
 
 /**
- * Notes where the pointer took hold, on the press.
+ * A ref callback that only records the node.
  *
- * A drag only *begins* on the first move, by which time the pointer has left the element —
- * an offset measured then is the distance to wherever it went, which draws the copy that
- * far from the cursor, in the opposite direction, for the rest of the drag.
+ * Not memoised, and it does not need to be: React detaches and re-attaches a changed
+ * callback ref during commit, which for a function whose whole body is an assignment costs
+ * one null and one node — and no pointer event can arrive in between.
  */
-function grip(context: PlacementContext, event: PointerEvent<HTMLElement>): void {
-  context.carry.grab.current = grabOffsetIn(sourceNodeOf(event.currentTarget), {
-    x: event.clientX,
-    y: event.clientY,
-  });
-}
-
-/** Where this move points, and what that means for a drag that may not have begun yet. */
-function aim(
-  context: PlacementContext,
-  source: PlacementSource,
-  event: PointerEvent<HTMLElement>,
-  within: HTMLElement,
-): void {
-  const placement = context.surface.placement;
-  const slot = slotAtPoint(within, { x: event.clientX, y: event.clientY }, context.fixedList);
-  if (slot === undefined) {
-    // The ghost keeps following even here. A pointer past the edge of the surface has
-    // nowhere to drop, and the thing in hand has not stopped being in hand — freezing it
-    // where the last valid aim was would read as the drag having let go.
-    follow(context, event);
-    if (placement.snapshot.kind === 'preview') {
-      placement.transition({ kind: 'aim', slot: undefined });
-    }
-    return;
-  }
-  if (placement.snapshot.kind === 'idle') {
-    context.remember(shapeOfSource(source, event.currentTarget));
-    lift(context);
-    follow(context, event);
-    placement.transition({ kind: 'start', source, slot });
-    return;
-  }
-  follow(context, event);
-  placement.transition({ kind: 'aim', slot });
-}
-
-/**
- * Picks the ghost up: measures where its coordinates are counted from, and shows it.
- *
- * The anchor is taken per drag rather than once, because a host's layout can change
- * between one and the next — and it is taken *before* the first move is applied, which is
- * the only moment the ghost is reliably back at its origin. Where the pointer grabbed the
- * element is not taken here: by now it has moved, so that belongs to the press.
- */
-function lift(context: PlacementContext): void {
-  const { node, anchor, show } = context.carry;
-  if (node.current !== null) {
-    anchor.current = anchorGhost(node.current);
-  }
-  show(true);
-}
-
-/**
- * Moves the ghost, by writing to the element rather than through React.
- *
- * A ghost follows the pointer, so this runs on every `pointermove` — and re-rendering the
- * canvas that often is exactly what the placement session's aim-only publishing exists to
- * avoid. Two custom properties on one node render nothing.
- */
-function follow(context: PlacementContext, event: PointerEvent<HTMLElement>): void {
-  const { node, anchor } = context.carry;
-  if (node.current === null || anchor.current === null) {
-    return;
-  }
-  const { grab } = context.carry;
-  carryGhost(node.current, {
-    x: event.clientX - anchor.current.x + grab.current.x,
-    y: event.clientY - anchor.current.y + grab.current.y,
-  });
-}
-
-/** Lets go: hides the ghost and puts it back, so the next drag measures a clean origin. */
-function drop(context: PlacementContext): void {
-  const { node, anchor, show } = context.carry;
-  if (node.current !== null) {
-    carryGhost(node.current);
-  }
-  anchor.current = null;
-  show(false);
-}
-
-function applyIntent(
-  context: PlacementContext,
-  intent: PlacementIntent,
-  source: PlacementSource,
-  from: HTMLElement,
-): void {
-  const placement = context.surface.placement;
-  if (intent === 'cancel') {
-    placement.transition({ kind: 'finish', action: 'abandon' });
-    return;
-  }
-  if (intent === 'toggle') {
-    if (placement.snapshot.kind === 'idle') {
-      // Measured on the grab, before anything has stood aside, exactly as the pointer
-      // path does — the two gestures have to produce the same placeholder or the keyboard
-      // walk would show a different page from the one a drag shows.
-      context.remember(shapeOfSource(source, from));
-      placement.transition({ kind: 'start', source });
-      return;
-    }
-    placement.transition({ kind: 'finish', action: 'commit' });
-    return;
-  }
-  placement.transition({ kind: 'step', direction: intent });
+function attach(ref: ElementRef): (element: HTMLElement | null) => void {
+  return (element) => {
+    ref.current = element;
+  };
 }
 
 function formatNarration(narration: PlacementNarration | undefined): string {

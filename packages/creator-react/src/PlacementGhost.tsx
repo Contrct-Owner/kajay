@@ -61,10 +61,15 @@ export function PlacementGhost({
       // left the grid that was giving it one and would otherwise shrink to its own text —
       // which is the moment it stops looking like the question and starts looking like a
       // tooltip about it.
+      //
+      // **Always an object, never `undefined`.** React clears the whole `style` attribute
+      // when the prop goes away, taking the two custom properties the adapter writes
+      // straight to this node with it — and one of those is the last place the question was
+      // seen, which the drop animation is measured from.
       style={
-        carrying?.width === undefined
-          ? undefined
-          : ({ '--kajay-ghost-width': `${carrying.width}px` } as CSSProperties)
+        {
+          '--kajay-ghost-width': carrying?.width === undefined ? 'auto' : `${carrying.width}px`,
+        } as CSSProperties
       }
     >
       {carrying === undefined || placement.source === undefined ? null : (

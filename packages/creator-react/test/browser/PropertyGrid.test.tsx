@@ -77,6 +77,35 @@ test('parity/L1-grid: the registry’s description is wired to its field', async
   expect(screen.container.querySelector(`#${hint ?? ''}`)?.textContent).toContain('Expression');
 });
 
+test('parity/L1-grid: a row with an explanation says so, and keeps it either way', async () => {
+  const designed = select(surface(), 'who');
+  const screen = await render(<PropertyGridPanel surface={designed} />);
+  const row = screen.container.querySelector<HTMLElement>('[data-property="visibleIf"]')!;
+
+  // The explanations are no longer permanently on screen — a panel whose every field
+  // carried a line of prose was mostly prose. What replaces them is a marker, and *not* a
+  // control: whether the words are visible is a question for the stylesheet, while the
+  // words themselves never leave the accessibility tree, because the field still points at
+  // them. That is the claim worth pinning here; that the stylesheet hides and reveals them
+  // is the playground's, where there is a stylesheet.
+  expect(row.querySelector('.kajay-properties__mark')).not.toBeNull();
+  expect(row.querySelector('.kajay-properties__mark')?.getAttribute('aria-hidden')).toBe('true');
+  expect(row.querySelector('.kajay-properties__mark')?.closest('label')).toBeNull();
+  expect(row.querySelector('.kajay-properties__hint')?.textContent).toContain('Expression');
+});
+
+test('parity/L1-grid: a row with nothing to explain draws no marker', async () => {
+  const designed = select(surface(), 'who');
+  const screen = await render(<PropertyGridPanel surface={designed} />);
+  const row = screen.container.querySelector<HTMLElement>('[data-property="placeholder"]')!;
+
+  // A marker promising an explanation that does not exist is worse than no marker: it is
+  // an affordance that does nothing, on the one control in the panel where nothing is what
+  // the designer would be expecting.
+  expect(row.querySelector('.kajay-properties__hint')).toBeNull();
+  expect(row.querySelector('.kajay-properties__mark')).toBeNull();
+});
+
 test('parity/L1-editors: a checkbox writes a boolean, and shows the one it wrote', async () => {
   const designed = select(surface(), 'who');
   const screen = await render(<PropertyGridPanel surface={designed} />);

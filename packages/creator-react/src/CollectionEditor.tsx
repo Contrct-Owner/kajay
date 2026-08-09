@@ -5,6 +5,7 @@ import { useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
 import { PropertySection } from './PropertyFields.js';
+import { PropertyLabel } from './PropertyLabel.js';
 
 export interface CollectionEditorProps {
   readonly surface: DesignSurface;
@@ -298,9 +299,9 @@ function FastEntry({
 
   return (
     <div className="kajay-collection__fast">
-      <label className="kajay-properties__label" htmlFor={id}>
+      <PropertyLabel htmlFor={id} hasHint>
         {`${collection.title}, one per line`}
-      </label>
+      </PropertyLabel>
       <Textarea
         className="kajay-collection__fast-text"
         id={id}

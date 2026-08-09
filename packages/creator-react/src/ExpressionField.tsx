@@ -51,6 +51,7 @@ export function ExpressionField({
   const { Input } = useCreatorComponents();
   const listId = `${id}-suggestions`;
   const completion = useCompletion(surface, owner, listId, value, onValueChange);
+  const isOpen = completion.matches.length > 0;
 
   return (
     <>
@@ -60,8 +61,11 @@ export function ExpressionField({
         data-testid={testId}
         aria-describedby={hint}
         role="combobox"
-        aria-expanded={completion.matches.length > 0}
-        aria-controls={listId}
+        aria-expanded={isOpen}
+        // Only while there is a list to point at. `aria-controls` naming an element that
+        // is not in the document is a dangling reference, and the popup is not rendered
+        // when it holds nothing — see {@link SuggestionList}.
+        aria-controls={isOpen ? listId : undefined}
         aria-activedescendant={completion.activeId}
         aria-autocomplete="list"
         // The browser's own history menu over a suggestion list is two popups on one field.
@@ -81,12 +85,14 @@ export function ExpressionField({
         // the options cancel their own `mousedown` for this reason — so the two never race.
         onBlur={completion.close}
       />
-      <SuggestionList
-        listId={listId}
-        matches={completion.matches}
-        current={completion.current}
-        onAccept={completion.accept}
-      />
+      {isOpen ? (
+        <SuggestionList
+          listId={listId}
+          matches={completion.matches}
+          current={completion.current}
+          onAccept={completion.accept}
+        />
+      ) : null}
     </>
   );
 }
@@ -155,6 +161,12 @@ function useCompletion(
  *
  * `mousedown` rather than `click`, because the field is about to lose focus and a blur that
  * closed the list first would take the option out from under the pointer choosing it.
+ *
+ * **Rendered only when it holds something.** It used to be unconditional, so every
+ * expression property on a selected element contributed an empty `role="listbox"` to the
+ * document — nine of them on an ordinary page — each announced as a list with nothing in
+ * it. An element that exists to hold options and holds none is not a collapsed popup, it is
+ * a list a screen-reader user has to step past.
  */
 function SuggestionList({
   listId,

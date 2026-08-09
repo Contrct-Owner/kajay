@@ -1118,11 +1118,66 @@
   justify-self: start;
 }
 
+.kajay-properties__heading {
+  display: flex;
+  gap: calc(var(--kajay-spacing) / 4);
+  align-items: baseline;
+  min-width: 0;
+}
+
+/* There is an explanation here. Not a control: what it would reveal is already in the
+   accessibility tree, so a button for it would be one more thing to step past for the one
+   audience that does not need it. `help` is the cursor that says so without any words. */
+.kajay-properties__mark {
+  display: inline-flex;
+  width: 1.1em;
+  height: 1.1em;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid currentcolor;
+  border-radius: 50%;
+  opacity: 0.65;
+  font-size: 0.7em;
+  font-style: italic;
+  cursor: help;
+}
+
+/* **Present always, shown on demand.** A property panel whose every field carried a line of
+   prose was mostly prose; these are useful and rarely needed at the same time. Out of sight
+   is not out of the tree — the field points here with `aria-describedby`, so a screen reader
+   reads it whichever state this is in. */
 .kajay-properties__hint {
-  grid-column: 1 / -1;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Revealed by a pointer on the marker, and by focus anywhere in the row — which is how a
+   keyboard and a touch reach it, and why the marker needs no tab stop of its own: the hint
+   arrives with the field rather than one Tab later.
+
+   In place rather than over the row below, which is what makes it need no dismiss gesture:
+   content shown on hover has to be dismissable without moving the pointer only when it
+   obscures something. */
+.kajay-properties__row:focus-within > .kajay-properties__hint,
+.kajay-collection__fast:focus-within > .kajay-properties__hint,
+.kajay-properties__heading:has(.kajay-properties__mark:hover) ~ .kajay-properties__hint {
+  position: static;
+  width: auto;
+  height: auto;
   margin: 0;
+  overflow: visible;
+  clip-path: none;
+  grid-column: 1 / -1;
   color: var(--kajay-color-muted);
   font-size: 0.85em;
+  white-space: normal;
 }
 
 /* Why an edit was refused (ADR-0023). Danger-coloured rather than muted like the hint

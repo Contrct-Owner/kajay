@@ -122,3 +122,42 @@ test('parity/P8-landing: the survey is served and the designer is not', async ({
   expect(html).not.toContain('data-testid="designer-demo"');
   await expect(page.getByTestId('designer-demo')).toBeVisible();
 });
+
+test('parity/P13-sharing: the page says what it is to something that never runs it', async ({
+  page,
+  request,
+}) => {
+  const html = (await (await page.goto('/'))?.text()) ?? '';
+
+  // **None of this is for the browser.** A link pasted into Slack, a search result, a
+  // preview card: each renders from the head of the document the server sent, having run
+  // none of the page. The site had none of it, which for a library whose entire
+  // distribution is somebody sharing a link meant every share rendered as a bare URL.
+  for (const tag of [
+    'property="og:title"',
+    'property="og:description"',
+    'property="og:image"',
+    'name="twitter:card" content="summary_large_image"',
+    'rel="canonical"',
+  ]) {
+    expect(html).toContain(tag);
+  }
+
+  // The card has to be a raster image and has to exist. Clients that render one — Slack,
+  // iMessage, Discord — do not render SVG, and a card that 404s is the same as no card at
+  // all except that it looks like a mistake.
+  const card = await request.get('/og.png');
+  expect(card.status()).toBe(200);
+  expect(card.headers()['content-type']).toContain('image/png');
+
+  // Crawlable, and pointed at a map of the site rather than left to guess.
+  const robots = await request.get('/robots.txt');
+  expect(await robots.text()).toContain('Sitemap: https://kajay.io/sitemap.xml');
+
+  // The map is *generated* from the same manifests the documentation is built from, so it
+  // cannot fall behind the pages it lists — most of which nobody wrote by hand either.
+  const sitemap = await request.get('/sitemap.xml');
+  expect(sitemap.headers()['content-type']).toContain('xml');
+  const urls = (await sitemap.text()).match(/<loc>/gu)?.length ?? 0;
+  expect(urls).toBeGreaterThan(100);
+});

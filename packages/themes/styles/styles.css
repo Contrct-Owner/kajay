@@ -131,6 +131,24 @@
   font-weight: 600;
 }
 
+/* **A `legend` sizes itself, and the browsers disagree about how.** Seven question types
+   draw their title as one — anything whose control is a *group* rather than a single input
+   needs a fieldset, so the title has to be a legend for it to be the group's name. A legend
+   is not laid out like its siblings: engines shrink it to its own content rather than
+   giving it the box's width, and Firefox then rounds the result a fraction under what the
+   text measured, so a two-word title breaks in half with hundreds of pixels to spare beside
+   it. Measured, not guessed: "How was it?" needs 91px, the legend was given 91px, and
+   Firefox wrapped it to two lines while Chromium did not.
+
+   Naming the width takes the decision away from the engine, and there is nothing to
+   overflow — every fieldset here has its padding removed below. */
+.kajay-question__title,
+.kajay-matrix-list__row-title,
+.kajay-panel__title,
+.kajay-paneldynamic__panel-title {
+  width: 100%;
+}
+
 .kajay-question__required {
   color: var(--kajay-color-accent);
 }

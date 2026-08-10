@@ -4,6 +4,14 @@ packages:
   - 'packages/*'
   - 'apps/*'
 
+# Postinstall scripts are denied by default; these two are allowed because they are how
+# the tool arrives. `esbuild` and `workerd` ship a platform binary that their install step
+# links — a denied build leaves the package present and the binary missing, which fails at
+# the first `wrangler` invocation rather than at install.
+allowBuilds:
+  esbuild: true
+  workerd: true
+
 # One place to pin versions shared across the workspace (ADR-0015). This is the
 # concrete reason the swap was worth making: the single version train (ADR-0005) wants
 # every package on the same React, and npm had no equivalent to this.

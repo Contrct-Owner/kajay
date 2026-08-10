@@ -17,6 +17,10 @@ dotnet/artifacts/
 **/bin/
 **/obj/
 
+# Wrangler's local state: the workerd instance `dev` and `preview` run the site in, plus
+# its caches. Machine-local by nature, and regenerated on demand.
+.wrangler/
+
 # Pack test scratch area (created outside the workspace, but ignore any stray local copy)
 .pack-scratch/
 *.tgz

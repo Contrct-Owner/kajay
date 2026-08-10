@@ -1,0 +1,49 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+
+  // kajay.io. The name is the Worker's identity in the account and in the deploy
+  // command's output; the domain it answers on is a route, bound separately, so this
+  // never has to change to move the site.
+  "name": "kajay-site",
+
+  // **The entry is the framework's, not a file of ours.** TanStack Start builds a server
+  // whose default export is already `{ fetch }` — the module shape a Worker is — so there
+  // is nothing for this repository to write, and a hand-rolled entry would be a second
+  // opinion about the framework's own output.
+  "main": "@tanstack/react-start/server-entry",
+
+  // Pinned rather than floating. A compatibility date is how a Worker says which runtime
+  // semantics it was written against, so moving it is a deliberate act with its own
+  // deploy — the point of the mechanism is that the platform cannot change underneath a
+  // running site.
+  //
+  // **It must be a date the *local* runtime can also run.** `workerd` ships inside
+  // `wrangler` and trails the platform by a day or two, and a date ahead of it fails the
+  // preview outright: "requires compatibility date X, but the newest date supported by
+  // this server binary is Y". Since `dev`, `preview` and every E2E scenario run through
+  // that binary, dating this ahead of it would mean the suite could not start — so the
+  // rule is to raise it when `wrangler` is upgraded, not when the calendar moves.
+  "compatibility_date": "2026-08-08",
+
+  // The server render reaches `node:async_hooks` and `node:stream`, both of which the
+  // Workers runtime provides only under this flag. Verified rather than assumed: those two
+  // are the only `node:` imports in the built server.
+  "compatibility_flags": ["nodejs_compat"],
+
+  // **The domain, declared here rather than clicked in a dashboard.** `custom_domain`
+  // makes the deploy create and maintain the binding, so the site's address is part of
+  // the artifact that CI produces rather than a piece of account state somebody has to
+  // remember. It requires the zone to already be in this Cloudflare account; a deploy
+  // before that fails saying the zone was not found, which is the right way round.
+  //
+  // Only the apex. Binding `www` here too would serve one site at two addresses and split
+  // it in search; the redirect belongs in a Cloudflare rule, where it costs no Worker
+  // invocation.
+  "routes": [{ "pattern": "kajay.io", "custom_domain": true }],
+
+  // Logs and traces in the dashboard. A site nobody can see the errors of is a site whose
+  // first outage is reported by a stranger.
+  "observability": {
+    "enabled": true
+  }
+}

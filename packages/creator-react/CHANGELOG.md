@@ -1,5 +1,13 @@
 # @kajay/creator-react
 
+## 1.1.1
+
+### Patch Changes
+
+- @kajay/core@1.1.1
+- @kajay/react@1.1.1
+- @kajay/creator-core@1.1.1
+
 ## 1.1.0
 
 ### Minor Changes

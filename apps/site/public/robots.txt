@@ -1,0 +1,9 @@
+# kajay.io
+
+# Everything here is public documentation and a playground that stores nothing, so there is
+# nothing to keep out of an index. Stated rather than left absent: a missing robots.txt is
+# a 404 on every crawl, and an empty allowance is a decision somebody made.
+User-agent: *
+Allow: /
+
+Sitemap: https://kajay.io/sitemap.xml

@@ -84,9 +84,55 @@ const authoredOutput = [
   '',
 ].join('\n');
 
+/**
+ * The sitemap, from the same pages the manifests were just built from — checklist P13.
+ *
+ * **Generated, because a hand-kept list is wrong the day somebody adds a page**, and most
+ * of this site's pages were never written by hand at all: the reference is a page per
+ * definition type, generated from the metadata registry. A list maintained beside it would
+ * be a second copy of what this script already knows, and the two would part company
+ * silently.
+ *
+ * Written here rather than by the framework's own sitemap option, which would mean the Vite
+ * config importing application source — and the site's project resolves modules as a
+ * bundler does while the config is type-checked as Node does, so the two would fight over
+ * which files they own. Emitting it here also makes it a **committed artifact with a drift
+ * check**, exactly like `contracts/`: `check:docs` already fails when a generated file and
+ * its source disagree, so the sitemap inherits that for nothing.
+ *
+ * Priority is a hint about *relative* importance within one site, and the honest ranking is
+ * that somebody arriving from a search wants the thing they can try or the thing that
+ * explains it, not the reference page for a validator property.
+ */
+const SITE_ORIGIN = 'https://kajay.io';
+const sitemapEntries = [
+  { path: '/', priority: '1.0', changefreq: 'weekly' },
+  { path: '/playground', priority: '0.9', changefreq: 'weekly' },
+  ...[...authoredPages.map((page) => page.url), ...Object.values(manifest).flatMap((group) => (Array.isArray(group) ? group : [])).map((fact) => fact.url)]
+    .filter((url) => typeof url === 'string' && url.startsWith('/'))
+    .filter((url, at, all) => all.indexOf(url) === at && url !== '/' && url !== '/playground')
+    .map((url) => ({ path: url, priority: '0.5', changefreq: 'monthly' })),
+];
+const sitemapOutput = [
+  '<?xml version="1.0" encoding="UTF-8"?>',
+  '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+  ...sitemapEntries.map((entry) =>
+    [
+      '  <url>',
+      `    <loc>${SITE_ORIGIN}${entry.path}</loc>`,
+      `    <changefreq>${entry.changefreq}</changefreq>`,
+      `    <priority>${entry.priority}</priority>`,
+      '  </url>',
+    ].join('\n'),
+  ),
+  '</urlset>',
+  '',
+].join('\n');
+
 const outputs = [
   ['apps/site/src/features/docs-reference/generated/docsReferenceManifest.ts', referenceOutput],
   ['apps/site/src/features/docs-reference/generated/authoredDocsManifest.ts', authoredOutput],
+  ['apps/site/public/sitemap.xml', sitemapOutput],
 ];
 
 for (const [relativeOutputPath, output] of outputs) {

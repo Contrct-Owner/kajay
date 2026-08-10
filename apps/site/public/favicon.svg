@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Kajay">
+  <!-- A tab strip and a field under it: a survey, at 16 pixels. Drawn rather than
+       lettered because a K at favicon size is a smudge, and drawn in `currentColor` so a
+       browser tinting it for a dark tab strip gets something legible either way. -->
+  <rect width="64" height="64" rx="14" fill="#4f46e5"/>
+  <rect x="14" y="17" width="26" height="6" rx="3" fill="#fff"/>
+  <rect x="14" y="29" width="36" height="6" rx="3" fill="#fff" opacity="0.75"/>
+  <rect x="14" y="41" width="20" height="6" rx="3" fill="#fff" opacity="0.5"/>
+</svg>

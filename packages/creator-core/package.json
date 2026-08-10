@@ -1,6 +1,6 @@
 {
   "name": "@kajay/creator-core",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "module",
   "description": "Headless survey designer model over @kajay/core: the design surface, toolbox, property grid, logic, translations and theme editors.",
   "license": "SEE LICENSE IN LICENSE",

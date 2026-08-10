@@ -2,53 +2,29 @@ import { MoonIcon, SunIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import { Button } from '@/components/ui/button';
-
-type Appearance = 'light' | 'dark';
-
-const STORAGE_KEY = 'kajay-site-appearance';
+import { APPEARANCE_STORAGE_KEY, applyAppearance } from '@/appearance';
+import type { Appearance } from '@/appearance';
 
 /**
- * One switch, two token systems — and the point is how little it takes.
+ * The switch, and only the switch.
  *
- * shadcn's dark mode is the class `dark` on the root element. Kajay's is the attribute
- * `data-kajay-theme="dark"` on the root element ([ADR-0008](../../../../docs/adr/0008-no-surveyjs-theme-import.md)).
- * Setting both is this function's entire job: neither library knows the other exists, and
- * there is no bridge, no synchronised variable table and nothing to fall out of step.
- *
- * That is worth demonstrating rather than describing. A survey engine whose theming had to
- * be *wired* to the host's would be a survey engine you could not drop into an application
- * that already had a dark mode.
+ * **Deciding the appearance is no longer this component's job** — a decision taken in a
+ * React effect happens after the browser has painted, which is what made every page flash
+ * white before settling into dark. The document now applies it before it paints
+ * (`APPEARANCE_SCRIPT`), and what is left here is what a button is actually for: reading
+ * back what is on screen, and changing it.
  */
-function apply(appearance: Appearance): void {
-  const root = globalThis.document.documentElement;
-  root.classList.toggle('dark', appearance === 'dark');
-  root.dataset['kajayTheme'] = appearance;
-}
-
-/**
- * What the reader already asked for, before this page has an opinion.
- *
- * A remembered choice wins over the system preference, because somebody who has pressed
- * the button meant it. Read in an effect rather than during render: the server has no
- * `matchMedia` and no `localStorage`, and a first paint that guessed would flash.
- */
-function preferred(): Appearance {
-  const stored = globalThis.localStorage?.getItem(STORAGE_KEY);
-  if (stored === 'light' || stored === 'dark') {
-    return stored;
-  }
-  return globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches === true
-    ? 'dark'
-    : 'light';
-}
-
 export function ThemeToggle(): ReactElement {
+  // The server has no reader to ask, so it renders the light label and the first client
+  // render corrects it. That correction is a word and an icon on one button, after the
+  // page is already in the right colours — the flash this used to cause was the whole page.
   const [appearance, setAppearance] = useState<Appearance>('light');
 
   useEffect(() => {
-    const initial = preferred();
-    setAppearance(initial);
-    apply(initial);
+    // Read rather than decided: the script in the head has already chosen and applied it,
+    // and asking again here is how the two could disagree.
+    const applied = globalThis.document.documentElement.dataset['kajayTheme'];
+    setAppearance(applied === 'dark' ? 'dark' : 'light');
   }, []);
 
   return (
@@ -58,10 +34,10 @@ export function ThemeToggle(): ReactElement {
       data-testid="theme-toggle"
       aria-label={appearance === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
       onClick={() => {
-        const next = appearance === 'dark' ? 'light' : 'dark';
+        const next: Appearance = appearance === 'dark' ? 'light' : 'dark';
         setAppearance(next);
-        apply(next);
-        globalThis.localStorage?.setItem(STORAGE_KEY, next);
+        applyAppearance(next);
+        globalThis.localStorage?.setItem(APPEARANCE_STORAGE_KEY, next);
       }}
     >
       {appearance === 'dark' ? <SunIcon /> : <MoonIcon />}

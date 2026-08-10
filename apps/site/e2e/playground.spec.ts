@@ -246,3 +246,48 @@ test('parity/L1-grid: an explanation is there when wanted and out of the way whe
     (await hint.getAttribute('id')) ?? '',
   );
 });
+
+test('parity/P14-appearance: the page is in the right colours before its own JavaScript runs', async ({
+  browser,
+}) => {
+  // A reader whose system asks for dark, arriving with nothing remembered.
+  const context = await browser.newContext({ colorScheme: 'dark' });
+  const page = await context.newPage();
+
+  // **Every module the application ships, refused.** That is what makes this a claim about
+  // the *first paint* rather than about the end state: if the theme still lands with the
+  // app unable to run, the only thing that can have applied it is the blocking script in
+  // the head — which is exactly the thing that runs before the browser paints.
+  //
+  // The bug this pins was reported as the documentation "flashing white on load", and it
+  // was every page: the appearance was decided in a React effect, and an effect happens
+  // after the browser has already put a white page on screen.
+  await page.route('**/assets/*.js', (route) => route.abort());
+  await page.goto(PLAYGROUND);
+
+  const root = page.locator('html');
+  await expect(root).toHaveClass(/dark/u);
+  // Both token systems, because the site drives two: shadcn's class and Kajay's attribute.
+  // A page that switched one would be half in the dark.
+  await expect(root).toHaveAttribute('data-kajay-theme', 'dark');
+
+  await context.close();
+});
+
+test('parity/P14-appearance: a remembered choice outranks the system', async ({ browser }) => {
+  const context = await browser.newContext({ colorScheme: 'dark' });
+  await context.addInitScript(() => {
+    localStorage.setItem('kajay-site-appearance', 'light');
+  });
+  const page = await context.newPage();
+  await page.route('**/assets/*.js', (route) => route.abort());
+  await page.goto(PLAYGROUND);
+
+  // Somebody who pressed the button meant it, and meant it more than their operating
+  // system did. Asserted with the app's JavaScript refused for the reason above: the
+  // ranking has to hold in the script that runs first, or it holds one paint too late.
+  await expect(page.locator('html')).not.toHaveClass(/dark/u);
+  await expect(page.locator('html')).toHaveAttribute('data-kajay-theme', 'light');
+
+  await context.close();
+});

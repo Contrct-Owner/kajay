@@ -48,8 +48,12 @@ export default defineConfig({
     },
   ],
   // `vite preview` serves the SSR build TanStack Start emits, so the site is exercised as
-  // it would be deployed rather than through a dev server. Never reuse an existing server:
-  // reuse skips the build and can silently test a stale bundle.
+  // it would be deployed rather than through a dev server — and since the site became a
+  // Cloudflare Worker, "as it would be deployed" got literal: the Cloudflare Vite plugin
+  // runs that build in `workerd`, the same engine Cloudflare serves it from. A server-side
+  // dependency on a Node API that Workers does not provide now fails a scenario here
+  // rather than a request in production. Never reuse an existing server: reuse skips the
+  // build and can silently test a stale bundle.
   webServer: {
     command:
       `pnpm --filter @kajay/site run build && pnpm --filter @kajay/site run preview --port ${sitePort} --strictPort`,

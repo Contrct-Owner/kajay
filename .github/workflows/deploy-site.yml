@@ -1,0 +1,89 @@
+name: Deploy site
+
+# **kajay.io, deployed from what CI proved.** A site is not a versioned artifact the way a
+# package is — there is no changelog to write and nothing downstream pins it — so the
+# failure mode worth designing against is the opposite one: a site that quietly falls
+# behind the library it documents. This deploys continuously.
+#
+# It is deliberately *not* modelled on `release.yml`. Publishing to npm is irreversible and
+# therefore a decision somebody takes ([ADR-0029](../../docs/adr/0029-release-walkthrough.md));
+# a deploy is replaced by the next one, so the confirmation ritual would buy nothing and
+# cost a stale site.
+on:
+  # After CI, not beside it. `push` would race the checks and could put a broken page up
+  # while the suite that would have caught it is still running.
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+  # And by hand, for a redeploy that no commit caused — a rolled-back Cloudflare setting,
+  # a re-run after fixing account state.
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-site
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '24'
+
+jobs:
+  deploy:
+    name: Deploy to Cloudflare Workers
+    runs-on: ubuntu-latest
+    # A completed workflow is not a passed one. Without this, a red CI run deploys.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    # Scopes the Cloudflare credentials to this job, and gives somebody a place to add a
+    # required reviewer later without touching the workflow.
+    environment: site
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The commit CI actually proved, rather than whatever `main` has become since.
+          # On a manual run there is no originating workflow, so this is empty and the
+          # checkout takes the default branch.
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # The site imports the packages through their workspace links, so it needs them
+      # built — the same reason CI's own site jobs do.
+      - run: pnpm run build
+
+      - name: Build the site
+        run: pnpm --filter @kajay/site run build
+
+      # `wrangler deploy` reads the config the Vite plugin emitted beside the server
+      # bundle, which is the one that knows where the client assets ended up.
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/site
+          command: deploy
+
+      # A deploy that reported success and served a 500 would be worse than a failed one,
+      # because nothing would say so. One request against the real domain, after the fact.
+      - name: Check the site answers
+        run: |
+          for attempt in 1 2 3 4 5; do
+            code=$(curl -s -o /tmp/body.html -w '%{http_code}' https://kajay.io/ || echo 000)
+            if [ "$code" = "200" ] && grep -q 'What are you building?' /tmp/body.html; then
+              echo "kajay.io is serving the server-rendered hero."
+              exit 0
+            fi
+            echo "Attempt $attempt: HTTP $code; waiting for propagation."
+            sleep 10
+          done
+          echo "kajay.io did not serve the expected page after deploying."
+          exit 1

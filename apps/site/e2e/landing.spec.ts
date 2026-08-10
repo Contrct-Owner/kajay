@@ -27,6 +27,20 @@ test('parity/P8-landing: the hero survey is a real one, not a picture', async ({
   // The second question is `visibleIf` the first, so it cannot be on screen yet.
   await expect(hero.getByText('What has to work on day one?')).toBeHidden();
 
+  // **Waited for, because this is the one scenario that interacts with server-rendered
+  // markup.** Everything else on the site that a test clicks is client-only and therefore
+  // cannot exist before it works; the hero is the opposite — it is in the document the
+  // server sent, so it is *clickable* a moment before it is *live*. A click that lands in
+  // that window checks the radio in the DOM, reaches no model, and fires no `visibleIf`,
+  // which is exactly the failure CI produced while three local runs passed: the race is
+  // real everywhere and only lost on a machine under load.
+  //
+  // Nothing weaker recovers it. Retrying the interaction cannot: `check()` is a no-op once
+  // the input is checked, so the retry never dispatches anything, and clicking the radio
+  // again would *clear* the answer rather than repeat it — a selected radio re-picked is
+  // how §C8 lets a respondent take an answer back.
+  await page.waitForLoadState('networkidle');
+
   await hero.getByLabel('A product with a survey in it').check();
 
   // Logic ran in the page. A screenshot cannot do this, which is the argument for putting

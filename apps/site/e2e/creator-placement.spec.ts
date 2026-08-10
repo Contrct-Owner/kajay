@@ -34,13 +34,29 @@ async function dragTo(
   at: number,
   across = 0.5,
 ): Promise<void> {
+  const dropOn = canvas(page).locator(`[data-element-slot="${target}"]`);
+
+  // **Scrolled into view first, because a pointer cannot leave the viewport.** The default
+  // 1280×720 puts the last question's lower edge at y=737, so aiming at 90% of its height
+  // meant aiming seventeen pixels past the bottom of the window — at nothing. Chromium
+  // tolerated the out-of-bounds move and Firefox did not, which is how a scenario that had
+  // been quietly aiming off-screen since it was written finally said so.
+  await dropOn.scrollIntoViewIfNeeded();
+
   const grip = (await canvas(page).getByTestId(handle).boundingBox())!;
+  const onto = (await dropOn.boundingBox())!;
+  const bottom = page.viewportSize()?.height ?? 0;
+  const aim = onto.y + onto.height * at;
+  // Named rather than left to time out. A drag that misses is fifteen seconds of a locator
+  // waiting for a placeholder that was never going to appear, and nothing saying why.
+  expect(aim, 'the drag target must be inside the viewport').toBeLessThan(bottom);
+  expect(grip.y, 'the drag handle must be inside the viewport').toBeLessThan(bottom);
+
   await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
   await page.mouse.down();
-  const onto = (await canvas(page).locator(`[data-element-slot="${target}"]`).boundingBox())!;
   // In steps, because one jump is one `pointermove` and a drag that only ever reports its
   // destination would pass while every intermediate aim was broken.
-  await page.mouse.move(onto.x + onto.width * across, onto.y + onto.height * at, { steps: 8 });
+  await page.mouse.move(onto.x + onto.width * across, aim, { steps: 8 });
 }
 
 /**

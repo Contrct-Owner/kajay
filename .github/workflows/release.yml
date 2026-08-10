@@ -89,7 +89,8 @@ jobs:
         with:
           global-json-file: global.json
 
-      - run: pnpm exec playwright install --with-deps chromium
+      # `verify` runs the E2E suite in both engines (see ci.yml).
+      - run: pnpm exec playwright install --with-deps chromium firefox
 
       # **The full chain, not a subset.** Publishing code that CI has not proven is the one
       # failure this workflow exists to make impossible; the gates take minutes and a bad

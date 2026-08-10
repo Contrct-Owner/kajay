@@ -61,7 +61,7 @@ jobs:
 
       # `verify` runs the browser suite in real Chromium and the E2E suite against the built
       # site, so the runner needs a browser even though neither touches the .NET package.
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm exec playwright install --with-deps chromium firefox
 
       # **The full chain, not just `verify:dotnet`.** The generated `contracts/*.json` that
       # `check:contract` guards are embedded *inside* the nupkg as assembly resources, and

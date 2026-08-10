@@ -40,11 +40,26 @@ export default defineConfig({
     baseURL: siteUrl,
     trace: 'retain-on-failure',
   },
+  // **Two engines, because one of them found a bug this suite could not.** A group
+  // question's title is a `legend`, engines size legends by shrinking them to their own
+  // content, and Firefox rounds that a fraction under what the text measured — so a title
+  // broke in half in Firefox and rendered on one line in Chromium. The stylesheet is the
+  // half of this product that no unit test reaches and that every consumer sees, and it is
+  // exactly the half where engines disagree.
+  //
+  // Firefox rather than all three: WebKit would double the cost again for a third opinion,
+  // and the two here already cover the split that matters — one Blink engine and one that
+  // is not. Adding WebKit is a decision to take when something is found in it.
   projects: [
     {
       name: 'site',
       testDir: './apps/site/e2e',
       use: { ...devices['Desktop Chrome'], baseURL: siteUrl },
+    },
+    {
+      name: 'site-firefox',
+      testDir: './apps/site/e2e',
+      use: { ...devices['Desktop Firefox'], baseURL: siteUrl },
     },
   ],
   // `vite preview` serves the SSR build TanStack Start emits, so the site is exercised as

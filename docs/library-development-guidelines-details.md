@@ -109,6 +109,12 @@ real consumer uses.
   would — never internal component imports or implementation details.
 - Run in **real Chromium** via Vitest browser mode; keyboard interaction, focus
   management, and ARIA assertions (axe) live here.
+- **The site E2E suite runs in two engines, Chromium and Firefox.** The stylesheet is the
+  half of this product no unit test reaches and every consumer sees, and it is exactly the
+  half where engines disagree: a `legend` sized by shrinking it to its own content rendered
+  on one line in one and two in the other. The Vitest browser suite stays single-engine on
+  purpose — it loads no stylesheet, so a second engine there would buy a second opinion
+  about markup the two already agree on.
 - Named tests are the parity ledger's currency. Detailed package behavior belongs in
   unit or real-browser package tests; public journeys and application-level obligations
   belong in `apps/site` E2E. Scenario names reference checklist IDs (for example,

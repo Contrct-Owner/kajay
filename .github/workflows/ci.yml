@@ -169,7 +169,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      # **Both engines.** The site's stylesheet is the half of this product no unit test
+      # reaches and every consumer sees, and it is exactly the half where engines disagree —
+      # a `legend` sized by shrinking it to its own content rendered on one line in Chromium
+      # and two in Firefox. The browser suite above stays Chromium-only: it loads no
+      # stylesheet, so a second engine there would buy a second opinion about markup that
+      # both already agree on.
+      - run: pnpm exec playwright install --with-deps chromium firefox
       - run: pnpm run build
       - run: pnpm run test:e2e
       - uses: actions/upload-artifact@v7

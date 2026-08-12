@@ -98,6 +98,62 @@ test('parity/P3-playground: on a phone the toolbox is a sheet that closes on a p
   await expect(live(page).getByRole('group', { name: /rating1/iu })).toBeVisible();
 });
 
+test('parity/P3-playground: on a phone the actions stay reachable down a long survey', async ({
+  page,
+}) => {
+  await page.goto(PLAYGROUND);
+
+  // Seeded through the JSON editor rather than by clicking the toolbox thirteen times: the
+  // subject here is scrolling, so how the questions got there is setup, and one apply is
+  // both faster and deterministic where a run of clicks is a run of chances to be flaky.
+  // Thirteen questions is ~8.5 screens at this viewport — an ordinary survey, not an
+  // extreme one.
+  await page.getByTestId('editor-mode-json').click();
+  await page.getByTestId('json-text').fill(
+    JSON.stringify({
+      pages: [
+        {
+          name: 'p1',
+          elements: Array.from({ length: 13 }, (_, index) => ({
+            type: 'radiogroup',
+            name: `q${index}`,
+            choices: ['Item 1', 'Item 2', 'Item 3'],
+          })),
+        },
+      ],
+    }),
+  );
+  await page.getByTestId('json-apply').click();
+  await page.getByTestId('editor-mode-design').click();
+
+  const actions = page.getByTestId('compact-actions');
+  const viewportHeight = page.viewportSize()?.height ?? 0;
+  await page.mouse.wheel(0, 2000);
+
+  // Pinned to the bottom edge of the viewport, several screens below where the row used to
+  // sit. `boundingBox` reports x/y/width/height, so the bottom edge is `y + height`.
+  await expect
+    .poll(async () => {
+      const box = await actions.boundingBox();
+      return box === null ? -1 : Math.round(box.y + box.height);
+    })
+    .toBe(viewportHeight);
+
+  // **Still usable, not merely on screen.** The row used to sit statically above the canvas,
+  // so reaching either button from the question you had scrolled to meant scrolling back to
+  // the top and then finding your place again.
+  await page.getByTestId('pane-toolbox').click();
+  await expect(page.getByTestId('sheet-toolbox')).toBeVisible();
+  await page.keyboard.press('Escape');
+
+  // And it lets go at the end of the designer rather than floating over the live survey —
+  // the scoping that comes free with `sticky` and would need a scroll listener without it.
+  await live(page).scrollIntoViewIfNeeded();
+  const livePane = await live(page).boundingBox();
+  const parked = await actions.boundingBox();
+  expect((parked?.y ?? 0) + (parked?.height ?? 0)).toBeLessThanOrEqual(livePane?.y ?? 0);
+});
+
 test('parity/P3-playground: on a phone properties open on demand, not on selection', async ({
   page,
 }) => {

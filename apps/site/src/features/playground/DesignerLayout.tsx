@@ -47,8 +47,8 @@ export function DesignerLayout({
   if (!isWide) {
     return (
       <div className="flex min-w-0 flex-col gap-2">
-        <CompactPanels workspace={workspace} placement={placement} />
         {canvas}
+        <CompactPanels workspace={workspace} placement={placement} />
       </div>
     );
   }
@@ -108,6 +108,17 @@ const WIDE_ENOUGH = '(min-width: 40rem)';
  * and it is wrong in the case that matters: adding a question selects it, so every add
  * would bury the canvas under a panel at the exact moment the designer wanted to look at
  * what they had just added.
+ *
+ * **Pinned to the bottom of the viewport, and last in the column rather than first.** A
+ * static row at the top is only reachable from the top: a thirteen-question survey is 8.5
+ * screens on a phone, so a designer who scrolled to the question they wanted had to scroll
+ * all the way back to reach either button, then find their place again. Sticky needs no
+ * scroll listener and scopes itself for free — the row pins while the designer column is on
+ * screen and lets go when the column ends, so it never floats over the live survey below.
+ *
+ * Bottom rather than top because that is where a thumb already is, and last in the column
+ * because `bottom-0` pins an element that would otherwise sit *below* the fold; a sticky
+ * first child would simply render where it always did.
  */
 function CompactPanels({
   workspace,
@@ -124,7 +135,13 @@ function CompactPanels({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    // `-mx-6 px-6` spends the page's own padding so the bar reaches both edges: an inset
+    // bar reads as a card that happens to be stuck, and a full-bleed one reads as chrome.
+    // The width works out to exactly the viewport, so it adds no horizontal scroll.
+    <div
+      data-testid="compact-actions"
+      className="bg-background sticky bottom-0 z-10 -mx-6 flex flex-wrap items-center gap-2 border-t px-6 py-2"
+    >
       <PanelSheet
         panel="toolbox"
         title="Toolbox"

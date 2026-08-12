@@ -8,20 +8,15 @@ import type { PageElementRendererResolver, SurveyComponents } from '@kajay/react
 import type { ReactElement } from 'react';
 import { useCreatorComponents } from './CreatorComponents.js';
 import { useCreatorText } from './CreatorStringsContext.js';
-import { DesignSurfacePanel } from './DesignSurfacePanel.js';
-import { HistoryPanel } from './HistoryPanel.js';
+import { DesignTab } from './DesignerTab.js';
 import { JsonEditorPanel } from './JsonEditorPanel.js';
 import { LogicPanel } from './LogicPanel.js';
-import { PageNavigatorPanel } from './PageNavigatorPanel.js';
 import { PreviewPanel } from './PreviewPanel.js';
 import type { PreviewPanelProps } from './PreviewPanel.js';
-import { PropertyGridPanel } from './PropertyGridPanel.js';
 import { CreatorNotices } from './CreatorNotices.js';
 import { SaveButton } from './SaveButton.js';
 import { ThemeEditorPanel } from './ThemeEditorPanel.js';
-import { ToolboxPanel } from './ToolboxPanel.js';
 import { TranslationsPanel } from './TranslationsPanel.js';
-import { useDesignerPlacement } from './useDesignerPlacement.js';
 
 /** The tabs the default assembly can show. A host names the ones they want — §N2. */
 export type CreatorTab = 'design' | 'preview' | 'logic' | 'json' | 'translations' | 'theme';
@@ -176,44 +171,6 @@ function TabBody({
     case 'theme':
       return <ThemeEditorPanel session={workspace.themeEditor} />;
   }
-}
-
-/**
- * The designer: toolbox, canvas, property grid.
- *
- * The placement lives here rather than in the assembly above, because a drag from the
- * toolbox onto the canvas is one gesture crossing two pieces — and it only exists while
- * the design tab is on screen, which is the same span the two pieces do.
- */
-function DesignTab({
-  workspace,
-  renderers,
-  configuration,
-}: {
-  readonly workspace: CreatorWorkspace;
-  readonly renderers: PageElementRendererResolver | undefined;
-  readonly configuration: CreatorConfiguration | undefined;
-}): ReactElement {
-  const placement = useDesignerPlacement(workspace.surface);
-
-  return (
-    <div className="kajay-creator__designer">
-      <ToolboxPanel toolbox={workspace.toolbox} getItemProps={placement.getItemProps} />
-      <div className="kajay-creator__canvas">
-        <HistoryPanel surface={workspace.surface} />
-        <PageNavigatorPanel surface={workspace.surface} placement={placement} />
-        <DesignSurfacePanel
-          surface={workspace.surface}
-          placement={placement}
-          {...(renderers === undefined ? {} : { renderers })}
-        />
-      </div>
-      <PropertyGridPanel
-        surface={workspace.surface}
-        {...(configuration?.grid === undefined ? {} : { grid: configuration.grid })}
-      />
-    </div>
-  );
 }
 
 /**

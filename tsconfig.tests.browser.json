@@ -12,6 +12,13 @@
   "include": [
     "packages/*/test/browser/**/*.ts",
     "packages/*/test/browser/**/*.tsx",
+    "packages/*/test/browser/**/*.d.ts",
+    // Applications too, matching what Vitest already collects. The host application is the
+    // only place a package's markup and another package's stylesheet may be looked at
+    // together, because it is the only thing allowed to depend on both.
+    "apps/*/test/browser/**/*.ts",
+    "apps/*/test/browser/**/*.tsx",
+    "apps/*/test/browser/**/*.d.ts",
     "vitest.config.ts"
   ],
   "references": [

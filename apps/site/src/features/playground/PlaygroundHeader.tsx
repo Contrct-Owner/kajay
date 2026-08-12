@@ -25,7 +25,12 @@ export function PlaygroundHeader({
       <p className="text-muted-foreground text-sm">
         Click a question type to add it — it appears on the right instantly. Nothing is saved.
       </p>
-      <span className="ml-auto flex items-center gap-2">
+      {/* Wraps, like the header around it. Three controls side by side measure ~356px and
+          a phone's content box is ~327px, so without this the row ran off the right edge
+          and took the page's horizontal scrollbar with it — the theme toggle was half
+          off-screen at 375px. The `header` was already `flex-wrap`; this row was not, so
+          it wrapped as one block and then overflowed as one block. */}
+      <span className="ml-auto flex flex-wrap items-center justify-end gap-2">
         <ModeSwitch mode={mode} onModeChange={onModeChange} />
         <Button
           size="sm"

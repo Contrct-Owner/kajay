@@ -2,6 +2,7 @@ import { CreatorComponentsProvider, CreatorNotices, useCreatorWorkspace, usePrev
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { KAJAY_CREATOR_COMPONENTS } from '@/kajay/creatorComponents';
+import { fetchPlaygroundChoices } from './choiceEndpoints';
 import { EditorPane } from './EditorPane';
 import type { EditorMode } from './EditorMode';
 import { LivePane } from './LivePane';
@@ -22,7 +23,14 @@ export function PlaygroundWorkbench({
   // Read once: a share link is where the document came from, not a binding. Re-reading
   // would fight edits, while writing on every keystroke would flood browser history.
   const [opened] = useState(() => decodeDefinition(encodedDefinition) ?? STARTER_SURVEY);
-  const workspace = useCreatorWorkspace({ definition: opened });
+  // The preview gets the host's seams, which is what makes `choicesByUrl` work here at
+  // all: the library never fetches on its own, deliberately, so a playground that passed
+  // nothing rendered an empty dropdown and no request. What it passes is allowlisted —
+  // see `choiceEndpoints`, and note that a shared link is somebody else's browser.
+  const workspace = useCreatorWorkspace({
+    definition: opened,
+    preview: { parse: { fetchJson: fetchPlaygroundChoices } },
+  });
   const [mode, setMode] = useState<EditorMode>('design');
   usePreviewVersion(workspace.preview);
 

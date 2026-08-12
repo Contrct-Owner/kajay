@@ -269,6 +269,7 @@ describe('parity/B10-rest-choices', () => {
     expect(survey.choiceErrors.join(' ')).toMatch(/No choice fetcher is configured/u);
   });
 
+
   test('the URL round-trips; loaded choices never do', async () => {
     const registry = createTestRegistry();
     const survey = parseSurvey(restDefinition('https://example.test/c'), registry, {

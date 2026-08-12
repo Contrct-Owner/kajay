@@ -29,6 +29,11 @@ function live(page: Page) {
   return page.getByTestId('live-survey');
 }
 
+/** A box's vertical centre, so two of them can be asked whether they share a line. */
+function centre(box: { y: number; height: number } | null): number {
+  return box === null ? Number.NaN : box.y + box.height / 2;
+}
+
 test('parity/P3-playground: on a phone the canvas gets the width, not the panels', async ({
   page,
 }) => {
@@ -49,6 +54,28 @@ test('parity/P3-playground: on a phone the canvas gets the width, not the panels
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(overflow).toBeLessThanOrEqual(0);
+});
+
+test('parity/P3-playground: on a phone the header keeps its arrangement', async ({ page }) => {
+  await page.goto(PLAYGROUND);
+
+  const title = await page.getByRole('heading', { name: 'Playground' }).boundingBox();
+  const theme = await page.getByTestId('theme-toggle').boundingBox();
+  const design = await page.getByTestId('editor-mode-design').boundingBox();
+  const share = await page.getByTestId('share-link').boundingBox();
+
+  // **The same three rows a desktop reader gets**, which is the whole reason the header has
+  // no breakpoint in it: a `flex-wrap` row reflows into a different arrangement at every
+  // width, so the phone got the theme toggle stranded on a line of its own and the mode
+  // switch pushed up beside the share button. Asserting it here and at desktop is what
+  // makes "the same at every width" a claim rather than a hope.
+  expect(Math.abs(centre(title) - centre(theme))).toBeLessThan(6);
+  expect(Math.abs(centre(design) - centre(share))).toBeLessThan(6);
+  expect(centre(theme)).toBeLessThan(centre(share));
+
+  // Each holding its own edge, on a viewport where there is barely room for both.
+  expect(design?.x ?? 0).toBeLessThan(share?.x ?? 0);
+  expect((share?.x ?? 0) + (share?.width ?? 0)).toBeGreaterThan((design?.x ?? 0) + 200);
 });
 
 test('parity/P3-playground: on a phone the toolbox is a sheet that closes on a pick', async ({

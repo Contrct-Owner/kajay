@@ -98,16 +98,20 @@ test('parity/B10-rest-choices: a load that fails after the survey is on screen s
   // — the panel reads an array that is already populated. Here the survey is on screen and
   // answered *first*, so the failure arrives afterwards: without the loader announcing it,
   // nothing tells the panel to look again and the dropdown just sits there empty.
-  let requests = 0;
-  await page.route('https://api.restful-api.dev/**', (route) => {
-    requests += 1;
-    return requests === 1
+  // **Keyed on the URL, not on how many requests have arrived.** Counting is what broke
+  // this in CI Firefox: something ahead of the real load — a preflight, a retry, a repeated
+  // effect — took slot one, so the request that mattered got the failure meant for the
+  // second answer and the first assertion never saw an option. Which request is which is a
+  // property of the URL, and the empty `q=` is the unanswered state by construction.
+  await page.route('https://api.restful-api.dev/**', (route) =>
+    route.request().url().endsWith('q=')
       ? route.fulfill({
           contentType: 'application/json',
+          headers: { 'access-control-allow-origin': '*' },
           body: JSON.stringify([{ id: '1', name: 'Google Pixel 6 Pro' }]),
         })
-      : route.abort('connectionrefused');
-  });
+      : route.abort('connectionrefused'),
+  );
   await page.goto(
     sharedDefinition(
       { type: 'text', name: 'region', title: 'Region' },

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 test('documentation home and runtime quickstart are server-rendered', async ({ page }) => {
   const home = await page.goto('/docs');
@@ -121,35 +122,52 @@ test('inline elements keep word boundaries in consumer prose', async ({ page }) 
     .getByRole('link')
     .evaluateAll((links) => [...new Set(links.map((link) => link.getAttribute('href')).filter((href): href is string => href !== null))]);
 
-  const failures = (await Promise.all(documentationLinks.map(async (href) => {
-    const inspectedPage = await page.context().newPage();
-    try {
-      await inspectedPage.goto(href);
-      const joinedWords = await inspectedPage
-        .locator('main p > :is(a, code), main li > :is(a, code)')
-        .evaluateAll((nodes) => nodes.flatMap((node) => {
-          const before = node.previousSibling?.nodeType === Node.TEXT_NODE
-            ? node.previousSibling.textContent ?? ''
-            : '';
-          const after = node.nextSibling?.nodeType === Node.TEXT_NODE
-            ? node.nextSibling.textContent ?? ''
-            : '';
-          const inlineText = node.textContent ?? '';
-          const label = node.nodeName.toLocaleLowerCase('en-US');
-          return [
-            /[\p{L}\p{N}]$/u.test(before) && /^[\p{L}\p{N}]/u.test(inlineText)
-              ? `${before.slice(-18)}<${label}>${inlineText}</${label}>`
-              : undefined,
-            /[\p{L}\p{N}]$/u.test(inlineText) && /^[\p{L}\p{N}]/u.test(after)
-              ? `<${label}>${inlineText}</${label}>${after.slice(0, 18)}`
-              : undefined,
-          ].filter((value): value is string => value !== undefined);
-        }));
-      return joinedWords.map((value) => `${href}: ${value}`);
-    } finally {
-      await inspectedPage.close();
-    }
-  }))).flat();
+  // **One page, walked through the catalogue**, rather than a page per link opened at once.
+  // Twenty-seven simultaneous pages against a single `vite preview` is what this used to
+  // do, and with two workers both engines could be doing it at the same time — fifty-four
+  // pages waiting on one server. Alone that finished in 2.7s; inside the full suite the
+  // same scenario took 25-40s of its 30s budget and was the suite's only reliable failure.
+  // The pages were not doing anything concurrently that mattered, since each one navigates
+  // and reads static prose, so the fan-out bought nothing and cost the whole suite.
+  //
+  // Folded rather than looped because each navigation must wait for the one before it,
+  // which is the entire point — and a `for` loop saying so reads to the linter as
+  // parallelism somebody forgot to write.
+  const failures = await documentationLinks.reduce<Promise<string[]>>(
+    async (soFar, href) => [...(await soFar), ...(await joinedWordsOn(page, href))],
+    Promise.resolve([]),
+  );
 
   expect(failures).toEqual([]);
 });
+
+/**
+ * Inline elements on one documentation page that have grown into the word beside them.
+ *
+ * Takes the page it should navigate rather than making its own, which is the whole point of
+ * the change above: the caller owns exactly one and hands it round the catalogue.
+ */
+async function joinedWordsOn(page: Page, href: string): Promise<string[]> {
+  await page.goto(href);
+  const joinedWords = await page
+    .locator('main p > :is(a, code), main li > :is(a, code)')
+    .evaluateAll((nodes) => nodes.flatMap((node) => {
+      const before = node.previousSibling?.nodeType === Node.TEXT_NODE
+        ? node.previousSibling.textContent ?? ''
+        : '';
+      const after = node.nextSibling?.nodeType === Node.TEXT_NODE
+        ? node.nextSibling.textContent ?? ''
+        : '';
+      const inlineText = node.textContent ?? '';
+      const label = node.nodeName.toLocaleLowerCase('en-US');
+      return [
+        /[\p{L}\p{N}]$/u.test(before) && /^[\p{L}\p{N}]/u.test(inlineText)
+          ? `${before.slice(-18)}<${label}>${inlineText}</${label}>`
+          : undefined,
+        /[\p{L}\p{N}]$/u.test(inlineText) && /^[\p{L}\p{N}]/u.test(after)
+          ? `<${label}>${inlineText}</${label}>${after.slice(0, 18)}`
+          : undefined,
+      ].filter((value): value is string => value !== undefined);
+    }));
+  return joinedWords.map((value) => `${href}: ${value}`);
+}

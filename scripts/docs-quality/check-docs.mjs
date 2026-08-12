@@ -7,6 +7,8 @@ import { readGeneratedReferenceManifest } from './referenceManifest.mjs';
 import { validatePageRegistry } from './validatePageRegistry.mjs';
 import { validatePageCatalog } from './validatePageCatalog.mjs';
 import { validateReferenceCoverage } from './validateReferenceCoverage.mjs';
+import { validateMarkdownLinks } from './validateMarkdownLinks.mjs';
+import { validateRepositorySdkDocumentation } from './validateSdkDocumentation.mjs';
 
 const repositoryRoot = resolve(import.meta.dirname, '../..');
 
@@ -33,5 +35,7 @@ const metadata = JSON.parse(readFileSync(resolve(repositoryRoot, 'contracts/runt
 const manifest = readGeneratedReferenceManifest(repositoryRoot);
 fail(validatePageCatalog(pages, manifest));
 fail(validateReferenceCoverage({ manifest, metadata, publicRuntimeSurface: PUBLIC_RUNTIME_SURFACE }));
+fail(validateRepositorySdkDocumentation(repositoryRoot, pages, manifest));
+fail(validateMarkdownLinks(repositoryRoot));
 
 console.log(`Checked ${pages.length} authored documentation pages and generated reference coverage.`);

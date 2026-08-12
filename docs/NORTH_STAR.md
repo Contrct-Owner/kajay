@@ -3,17 +3,18 @@
 - Area: Product vision, architecture, and guiding principles
 - Status: active
 - Owner: Jarod
-- Last updated: 2026-08-08
+- Last updated: 2026-08-12
 
 ---
 
 ## 1. Vision
 
-A **TypeScript-native, embeddable survey engine** with feature parity with the SurveyJS
-product family's two embeddable libraries: the **Form Library** (JSON-driven survey
-runtime + renderer) and the **Survey Creator** (drag-and-drop designer). Both ship as
-npm packages that other applications consume exactly the way applications consume
-SurveyJS today: install, import, mount, and feed JSON.
+An **embeddable, multi-runtime survey engine** with a TypeScript runtime, React renderer
+and Creator plus a native C# headless runtime. The original parity target remains the
+SurveyJS product family's two embeddable libraries: the **Form Library** (JSON-driven
+survey runtime + renderer) and the **Survey Creator** (drag-and-drop designer). The
+authoritative JSON definition and versioned behavior corpus belong to Kajay rather than
+to either implementation.
 
 The acceptance criterion for the whole effort is external: **a separate host
 application, consuming the packages strictly through their published public API, can
@@ -233,7 +234,8 @@ The second maintained runtime is now decided: one native NuGet package,
 transport or JavaScript host. Its package versions independently and declares the
 schema and conformance versions it supports. Conformance v2 replaces host-language
 coercion, dates, rounding, and regex behavior with Kajay-owned value and pattern
-semantics before either v2 adapter implements them
+semantics. The C# runtime and TypeScript 2.x candidate pass the complete
+inherited-v1-plus-v2 corpus; the published TypeScript 1.x train continues to claim v1
 ([ADR-0030](./adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md)).
 
 ---
@@ -369,6 +371,7 @@ The one first-party application makes adoption and embeddability falsifiable:
 
 | Date | Decision |
 | --- | --- |
+| 2026-08-08 | **`Kajay.Core` 1.0.0 was published to nuget.org.** The native SDK keeps its independent NuGet version train and establishes cross-runtime compatibility through schema, conformance, and snapshot contract versions rather than matching npm version numbers. [ADR-0046](./adr/0046-nuget-release-walkthrough.md). |
 | 2026-08-08 | **The repository supports the SDKs and one product application: Kajay.io.** Exploratory demo APIs, workflow/promotion applications, and local infrastructure were retired after validating their seams. Cross-runtime evidence stays in the shared conformance corpus; persistence, identity, workflow, and promotion stay host responsibilities. [ADR-0045](./adr/0045-focus-repository-on-sdks-and-site.md). |
 | 2026-08-07 | **Environments are tenant-owned, versioned promotion targets.** Approval follows Environment policy rather than a reserved name; bindings are write-only and concurrency checked under a separate permission; and unknown targets fail closed. The workflow host and Managed UI own this concern, not an SDK or separate control plane. [ADR-0042](./adr/0042-first-class-environment-catalog.md). |
 | 2026-08-07 | **Human review is a versioned host workflow concern.** Workflow format v2 adds permission-assigned Review Tasks and approve, deny, or request-changes transitions; Elsa owns bookmarks and cycles, while the host owns authenticated decisions and immutable history. Neither SDK learns task or authorization policy. [ADR-0044](./adr/0044-versioned-human-review-workflow-graph.md). |

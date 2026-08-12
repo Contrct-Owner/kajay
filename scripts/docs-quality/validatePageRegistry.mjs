@@ -4,6 +4,7 @@ const SECTIONS = new Set([
   'Surveys',
   'Integration',
   'Creator',
+  '.NET',
   'Customize',
   'Customization',
   'Reference',
@@ -11,7 +12,7 @@ const SECTIONS = new Set([
 ]);
 const STATUSES = new Set(['preview', 'stable']);
 const AUDIENCES = new Set(['consumer', 'extension', 'advanced']);
-const SDKS = new Set(['neutral', 'typescript']);
+const SDKS = new Set(['dotnet', 'neutral', 'typescript']);
 const FRAMEWORKS = new Set(['neutral', 'react']);
 const SLUG = /^(?:[a-z0-9]+(?:-[a-z0-9]+)*)(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*$/u;
 const ANCHOR = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;

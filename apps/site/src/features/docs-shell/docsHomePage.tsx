@@ -11,7 +11,7 @@ export const docsHomePage: DocPageDefinition = {
   framework: 'neutral',
   toc: [
     { id: 'choose-a-path', label: 'Choose a path', depth: 2 },
-    { id: 'version-1', label: 'Version 1.0', depth: 2 },
+    { id: 'version-1', label: 'Version 1.x', depth: 2 },
   ],
   content: (
     <>
@@ -25,6 +25,13 @@ export const docsHomePage: DocPageDefinition = {
               your React components.
             </p>
           </a>
+          <a className="border-border hover:bg-muted/40 block rounded-lg border p-5 no-underline" href="/docs/quickstart/dotnet">
+            <h3>Run surveys in .NET</h3>
+            <p>
+              Parse the same Kajay definition and execute its headless runtime natively
+              with <code>Kajay.Core</code>.
+            </p>
+          </a>
           <a className="border-border hover:bg-muted/40 block rounded-lg border p-5 no-underline" href="/docs/quickstart/creator">
             <h3>Embed the Creator</h3>
             <p>
@@ -35,11 +42,11 @@ export const docsHomePage: DocPageDefinition = {
         </div>
       </section>
       <section aria-labelledby="version-1">
-        <h2 id="version-1">Version 1.0</h2>
+        <h2 id="version-1">Version 1.x</h2>
         <p>
-          Kajay 1.0 is published as five focused TypeScript packages. These pages describe
-          behavior the repository proves on every change, and the playground lets you try the
-          same public APIs without signing up or saving data.
+          Kajay ships five focused TypeScript packages and the native <code>Kajay.Core</code>{' '}
+          NuGet package. Shared definition and compatibility pages apply to both runtimes;
+          SDK-specific guides state where their APIs and product surfaces differ.
         </p>
         <p>
           <a href="/playground">Open the playground</a>

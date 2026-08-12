@@ -4,6 +4,7 @@ import { dirname, resolve } from 'node:path';
 import { PUBLIC_RUNTIME_SURFACE } from '../lib/publicRuntimeSurface.mjs';
 import { readAuthoredPageRegistry } from '../docs-quality/pageRegistrySource.mjs';
 import { buildReferenceManifest } from './buildReferenceManifest.mjs';
+import { readDotnetApiFacts } from './dotnetApiFacts.mjs';
 
 const repositoryRoot = resolve(import.meta.dirname, '../..');
 
@@ -49,6 +50,7 @@ const manifest = buildReferenceManifest({
   functionSource: coreDocSources.functionSource,
   publicInterfaceLedger: read('docs/public-package-interfaces.md'),
   packageIndexSources,
+  dotnetApiSymbols: readDotnetApiFacts(repositoryRoot),
   publicRuntimeSurface: PUBLIC_RUNTIME_SURFACE,
 });
 

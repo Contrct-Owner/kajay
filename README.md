@@ -1,7 +1,7 @@
 # Kajay
 
 Kajay is an embeddable survey runtime and Creator built around an authoritative JSON
-definition. TypeScript 1.0 is published as five `@kajay/*` packages, and `Kajay.Core` 1.0.0
+definition. TypeScript 1.x is published as five `@kajay/*` packages, and `Kajay.Core` 1.x
 is published on NuGet as the native .NET 10+ headless runtime.
 
 The repository intentionally contains one product application: `apps/site`, which is the
@@ -13,9 +13,9 @@ not part of either SDK.
 
 | Path | Responsibility |
 | --- | --- |
-| `packages/` | Published TypeScript runtime, React adapters, Creator, and themes |
-| `dotnet/src/Kajay.Core/` | Published C# headless runtime |
-| `apps/site/` | Kajay.io marketing, documentation, and playground |
+| [`packages/`](./packages/core/README.md) | Published TypeScript runtime, React adapters, Creator, and themes |
+| [`dotnet/`](./dotnet/README.md) | Published C# headless runtime, sample, tests, and benchmarks |
+| [`apps/site/`](./apps/site/README.md) | Kajay.io marketing, documentation, and playground |
 | `contracts/` | Generated, committed definition and diagnostic contracts |
 | `conformance/` | Versioned, language-neutral behavioral corpus |
 | `dotnet/tests/`, `packages/*/test/` | SDK and adapter evidence |
@@ -44,9 +44,10 @@ The complete build and test policy is in
 
 ## Documentation
 
+- [SDK overview](./docs/sdk-summary.md)
+- [Documentation system](./docs/documentation-system-details.md)
 - [North Star](./docs/NORTH_STAR.md)
 - [Delivery roadmap](./docs/delivery-roadmap.md)
 - [Feature-parity checklist](./docs/feature-parity-checklist.md)
 - [Architecture decisions](./docs/adr/README.md)
 - [Documentation catalog](./docs/README.md)
-

@@ -11,7 +11,7 @@ import {
 export function RuntimeQuickstart(): ReactElement {
   return (
     <>
-      <Callout title="Install Kajay 1.0">
+      <Callout title="Install Kajay 1.x">
         <code>npm install @kajay/core @kajay/react @kajay/themes</code>
       </Callout>
       <DocSection id="define" title="1. Define the survey">

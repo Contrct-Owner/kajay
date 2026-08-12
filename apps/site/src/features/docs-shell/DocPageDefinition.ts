@@ -4,7 +4,7 @@ export type DocPageStatus = 'preview' | 'stable';
 
 export type DocPageAudience = 'consumer' | 'extension' | 'advanced';
 
-export type DocPageSdk = 'neutral' | 'typescript';
+export type DocPageSdk = 'dotnet' | 'neutral' | 'typescript';
 
 export type DocPageFramework = 'neutral' | 'react';
 
@@ -25,7 +25,7 @@ export interface DocPageDefinition {
   readonly audience: DocPageAudience;
   readonly sdk: DocPageSdk;
   readonly framework: DocPageFramework;
+  readonly related?: readonly string[];
   readonly toc?: readonly DocTableOfContentsItem[];
   readonly content: ReactNode;
 }
-

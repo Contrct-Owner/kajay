@@ -16,8 +16,20 @@ test('runtime quickstart gives the published installation command', async ({ pag
   await page.goto('/docs/quickstart/runtime');
 
   await expect(page.getByText('Preview', { exact: true })).toBeVisible();
-  await expect(page.getByText('Install Kajay 1.0')).toBeVisible();
+  await expect(page.getByText('Install Kajay 1.x')).toBeVisible();
   await expect(page.getByText('npm install @kajay/core @kajay/react @kajay/themes')).toBeVisible();
+});
+
+test('.NET quickstart and generated API are first-class documentation routes', async ({ page }) => {
+  await page.goto('/docs/quickstart/dotnet');
+
+  await expect(page.getByRole('heading', { name: 'Run Kajay in .NET' })).toBeVisible();
+  await expect(page.getByText('dotnet add package Kajay.Core --version 1.0.0')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Response Snapshots' })).toBeVisible();
+
+  await page.goto('/docs/reference/api/kajay-core/survey-definition');
+  await expect(page.getByRole('heading', { name: 'SurveyDefinition' })).toBeVisible();
+  await expect(page.getByText('Kajay.Core', { exact: true })).toBeVisible();
 });
 
 test('expression and validation guides are reachable as consumer pages', async ({ page }) => {
@@ -95,6 +107,7 @@ test('mobile navigation exposes the complete catalog', async ({ page }) => {
   await disclosure.click();
   const navigation = page.getByRole('navigation', { name: 'Mobile documentation' });
   await expect(navigation.getByRole('link', { name: 'Render your first survey' })).toBeVisible();
+  await expect(navigation.getByRole('link', { name: 'Run Kajay in .NET' })).toBeVisible();
   await expect(navigation.getByRole('link', { name: 'Embed the Creator' })).toBeVisible();
   await expect(navigation.getByRole('link', { name: 'Reference', exact: true })).toBeVisible();
 });
@@ -117,7 +130,7 @@ test('the landing page exposes Docs in primary navigation', async ({ page }) => 
 
 test('inline elements keep word boundaries in consumer prose', async ({ page }) => {
   // **Declared slow, which triples the timeout.** Not a workaround: this scenario loads
-  // twenty-seven documentation pages, and the suite's 30s default is the budget for
+  // the complete documentation catalog, and the suite's 30s default is the budget for
   // scenarios that load one. Measured at 3.3s in Chromium and 13.2s in Firefox inside the
   // full suite — comfortable, but the same measurement on a loaded CI runner has historically
   // come out around twice the local figure, which puts the honest headroom at nothing. The
@@ -133,15 +146,15 @@ test('inline elements keep word boundaries in consumer prose', async ({ page }) 
   // **A fresh page per link, four at a time.** Both halves of that are load-bearing, and
   // each was learned by breaking the other.
   //
-  // Not all twenty-seven at once, which is what this did originally: with two workers both
-  // engines could be doing it together, so one `vite preview` had fifty-four pages waiting
+  // Not the whole catalog at once, which is what this did originally: with two workers both
+  // engines could be doing it together, so one `vite preview` had dozens of pages waiting
   // on it. Alone the scenario took 2.7s; inside the full suite it took 25-40s of its 30s
   // budget and was the suite's only reliable failure.
   //
-  // But not one page walked through the catalogue either, which is what replaced it. That
+  // But not one page walked through the catalog either, which is what replaced it. That
   // fixed the load and broke Firefox: the site is a client-routed application, so a page
   // that has just loaded is still hydrating and settling its router, and navigating it
-  // again mid-flight aborts the pending load — `NS_BINDING_ABORTED`. Twenty-seven fresh
+  // again mid-flight aborts the pending load — `NS_BINDING_ABORTED`. Fresh
   // pages never hit it because a new page has no previous route to interrupt.
   //
   // Four keeps that property and caps the concurrency, which is what the load needed.

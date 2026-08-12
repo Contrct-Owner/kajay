@@ -9,7 +9,7 @@ The package targets .NET 10 and later and has no runtime dependencies outside th
 
 ## Install
 
-After the package is published to NuGet.org:
+Install the published package from NuGet.org:
 
 ```shell
 dotnet add package Kajay.Core --version 1.0.0

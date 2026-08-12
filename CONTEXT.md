@@ -3,15 +3,16 @@
 - Area: Repository orientation and current project state
 - Status: active
 - Owner: Jarod
-- Last updated: 2026-08-08
+- Last updated: 2026-08-12
 
 Kajay is an embedded survey runtime and Creator whose authoritative JSON definition and
 versioned behavior contract support maintained native runtimes.
 
 ## Current state
 
-- **TypeScript 1.0.0 is published.** The runtime, React adapter, Creator, Creator React
-  adapter, and themes ship as the five `@kajay/*` packages.
+- **TypeScript 1.x is published; the workspace train is currently 1.2.0.** The runtime,
+  React adapter, Creator, Creator React adapter, and themes ship as the five
+  `@kajay/*` packages.
 - **Functional parity is delivered.** Checklist sections A–N and the assembled-Creator
   acceptance path are backed by named unit, browser, site E2E, conformance, and pack
   proofs.
@@ -48,7 +49,9 @@ package imports `@kajay/themes`; applications explicitly import its CSS or theme
 | Development and test policy | [Library development guidelines](./docs/library-development-guidelines-details.md) |
 | Functional acceptance | [Feature-parity checklist](./docs/feature-parity-checklist.md) |
 | Published TypeScript interfaces | [Public interface ledger](./docs/public-package-interfaces.md) |
-| Native C# SDK | [ADR-0030](./docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md), [parity §Q](./docs/feature-parity-checklist.md#q--c-headless-sdk) |
+| SDK overview and consumer paths | [SDK summary](./docs/sdk-summary.md) |
+| Native C# SDK | [C# package guide](./dotnet/README.md), [ADR-0030](./docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md), [parity §Q](./docs/feature-parity-checklist.md#q--c-headless-sdk) |
+| Documentation architecture | [Documentation system](./docs/documentation-system-details.md) |
 | Cross-runtime behavior | [Conformance v1](./conformance/v1/README.md), [v2](./conformance/v2/README.md) |
 | Repository scope decision | [ADR-0045](./docs/adr/0045-focus-repository-on-sdks-and-site.md) |
 | Architecture decisions | [ADR index](./docs/adr/README.md) |

@@ -199,7 +199,7 @@ function functionReferences(source) {
 
 function apiSymbolFacts(inputs) {
   const classifications = runtimeClassifications(inputs.publicInterfaceLedger);
-  return Object.entries(inputs.packageIndexSources).flatMap(([packageName, source]) =>
+  const typescript = Object.entries(inputs.packageIndexSources).flatMap(([packageName, source]) =>
     packageExports(source).map((item) => {
       const classification = classifications.get(`${packageName}:${item.name}`) ?? 'unclassified';
       const gaps = ['description', 'signature'];
@@ -215,6 +215,7 @@ function apiSymbolFacts(inputs) {
       };
     }),
   );
+  return [...typescript, ...(inputs.dotnetApiSymbols ?? [])];
 }
 
 function apiSymbolUrl(item, collisions) {

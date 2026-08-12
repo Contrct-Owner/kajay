@@ -30,6 +30,7 @@
   "files": [
     "CHANGELOG.md",
     "LICENSE",
+    "README.md",
     "dist"
   ],
   "scripts": {

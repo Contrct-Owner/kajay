@@ -10,6 +10,15 @@ function liveSurvey(page: Page) {
 }
 
 async function violations(page: Page): Promise<readonly { id: string; nodes: number }[]> {
+  // **Wait for the survey before scanning it.** The playground is deliberately client-only
+  // — the served document is a shell, which `parity/P3-playground` asserts — so the survey
+  // exists only once React has hydrated. `page.goto` resolves on `load`, which is earlier,
+  // and axe does not wait for the selector it is given: handed one that matches nothing it
+  // throws "No elements found for include" rather than retrying. Every other scenario in
+  // this file happens to await a locator first and auto-waits into hydration by accident;
+  // these two went straight to the scan, so they were a race the machine won most days.
+  await expect(liveSurvey(page)).toBeVisible();
+
   const results = await new AxeBuilder({ page })
     .include('[data-testid="live-survey"]')
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

@@ -9,6 +9,18 @@ import type { CreatorText } from './CreatorStringsContext.js';
 export interface ElementActionsProps {
   readonly surface: DesignSurface;
   readonly element: PageElement;
+  /**
+   * Told that the designer asked to see this element's properties.
+   *
+   * **Reported, never performed** — the same rule the toolbox picks by. Where a property
+   * grid *is* belongs to whoever laid the Creator out: a sidebar, a sheet, a separate
+   * route, or nowhere at all. A menu item that tried to open one would be the piece
+   * deciding a layout it cannot see.
+   *
+   * Absent means no such item, because an item that reports to nobody does nothing when
+   * pressed. A host with the grid permanently on screen wants exactly that.
+   */
+  readonly onEditProperties?: ((elementName: string) => void) | undefined;
 }
 
 /**
@@ -26,7 +38,11 @@ export interface ElementActionsProps {
  * land somewhere, and the selected element is the only thing on screen that says where the
  * designer is working.
  */
-export function ElementActions({ surface, element }: ElementActionsProps): ReactElement {
+export function ElementActions({
+  surface,
+  element,
+  onEditProperties,
+}: ElementActionsProps): ReactElement {
   const { Menu } = useCreatorComponents();
   const text = useCreatorText();
   const name = element.name;
@@ -36,8 +52,16 @@ export function ElementActions({ surface, element }: ElementActionsProps): React
       className="kajay-designer__menu"
       label={text('elementActions', name)}
       data-testid={`actions-${name}`}
-      items={actionsFor(text, surface, name)}
+      items={actionsFor(text, surface, name, onEditProperties !== undefined)}
       onSelect={(id) => {
+        // Properties is the one item that is not a surface mutation, so it is answered
+        // here rather than in `run`. The menu only exists on the *selected* element, so
+        // the name handed back is always the current selection and a host has nothing to
+        // reconcile.
+        if (id === `properties-${name}`) {
+          onEditProperties?.(name);
+          return;
+        }
         run(surface, name, id);
       }}
     />
@@ -55,8 +79,15 @@ function actionsFor(
   text: CreatorText,
   surface: DesignSurface,
   name: string,
+  canEditProperties: boolean,
 ): readonly CreatorMenuItem[] {
   return [
+    // First, because it is the one a designer reaches for most and because it is a
+    // different kind of thing from the four below it: those change the survey, this one
+    // changes what you are looking at. Present or absent per *host*, not per interaction —
+    // which is what keeps the paste argument below intact: the menu a designer learns is
+    // the same menu every time they open it.
+    ...(canEditProperties ? [{ id: `properties-${name}`, label: text('properties') }] : []),
     { id: `duplicate-${name}`, label: text('duplicate') },
     { id: `copy-${name}`, label: text('copy') },
     // Still listed while there is nothing to paste, and disabled. Hiding it would make the

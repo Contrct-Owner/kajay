@@ -37,22 +37,52 @@ export function DesignerLayout({
   readonly placement: ReturnType<typeof useDesignerPlacement>;
 }): ReactElement {
   const isWide = useMediaQuery(WIDE_ENOUGH);
-  const canvas = (
+  const [openPanel, setOpenPanel] = useState<CompactPanel>();
+  const canvas = (onEditProperties?: (elementName: string) => void): ReactElement => (
     <div className="flex min-w-0 flex-col gap-2">
       <DesignerToolbar workspace={workspace} placement={placement} />
-      <DesignSurfacePanel surface={workspace.surface} placement={placement} />
+      <DesignSurfacePanel
+        surface={workspace.surface}
+        placement={placement}
+        onEditProperties={onEditProperties}
+      />
     </div>
   );
 
   if (!isWide) {
     return (
       <div className="flex min-w-0 flex-col gap-2">
-        {canvas}
-        <CompactPanels workspace={workspace} placement={placement} />
+        {/* The element's own menu opens the sheet, so a designer reaches a question's
+            properties from the question rather than from a bar somewhere else. Wired only
+            here: the wide layout has the grid permanently beside the canvas, where
+            selecting is already the whole gesture and a menu item would be a second way to
+            do what just happened. */}
+        {canvas(() => {
+          setOpenPanel('properties');
+        })}
+        <CompactPanels
+          workspace={workspace}
+          placement={placement}
+          openPanel={openPanel}
+          onOpenPanel={setOpenPanel}
+        />
       </div>
     );
   }
 
+  return <WideLayout workspace={workspace} placement={placement} canvas={canvas()} />;
+}
+
+/** The canvas with both panels beside it, which is what a designer gets when there is room. */
+function WideLayout({
+  workspace,
+  placement,
+  canvas,
+}: {
+  readonly workspace: CreatorWorkspace;
+  readonly placement: ReturnType<typeof useDesignerPlacement>;
+  readonly canvas: ReactElement;
+}): ReactElement {
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_15rem] items-start gap-3">
       {canvas}
@@ -123,15 +153,20 @@ const WIDE_ENOUGH = '(min-width: 40rem)';
 function CompactPanels({
   workspace,
   placement,
+  openPanel,
+  onOpenPanel,
 }: {
   readonly workspace: CreatorWorkspace;
   readonly placement: ReturnType<typeof useDesignerPlacement>;
+  // Held by the parent rather than here, because this row is no longer the only thing that
+  // opens a sheet: an element's own actions menu opens the property grid, and two owners of
+  // one piece of state is how a panel ends up open according to one of them and shut
+  // according to the other.
+  readonly openPanel: CompactPanel | undefined;
+  readonly onOpenPanel: (panel?: CompactPanel) => void;
 }): ReactElement {
-  // One name rather than two booleans: the two sheets are alternatives, and two booleans
-  // can say "both open", which is a state neither of them would survive.
-  const [openPanel, setOpenPanel] = useState<CompactPanel>();
   const close = (): void => {
-    setOpenPanel(undefined);
+    onOpenPanel();
   };
 
   return (
@@ -148,7 +183,7 @@ function CompactPanels({
         label="Add question"
         icon={<Plus aria-hidden />}
         openPanel={openPanel}
-        onOpenPanel={setOpenPanel}
+        onOpenPanel={onOpenPanel}
       >
         {/* The panel's own `onPick`, not a click listener over its markup: it already
             reports a pick, and reading one back out of the DOM would be a second answer to
@@ -167,7 +202,7 @@ function CompactPanels({
         label="Properties"
         icon={<SlidersHorizontal aria-hidden />}
         openPanel={openPanel}
-        onOpenPanel={setOpenPanel}
+        onOpenPanel={onOpenPanel}
       >
         <PropertyGridPanel surface={workspace.surface} />
       </PanelSheet>
@@ -192,7 +227,7 @@ function PanelSheet({
   readonly label: string;
   readonly icon: ReactNode;
   readonly openPanel: CompactPanel | undefined;
-  readonly onOpenPanel: (panel: CompactPanel | undefined) => void;
+  readonly onOpenPanel: (panel?: CompactPanel) => void;
   readonly children: ReactNode;
 }): ReactElement {
   return (

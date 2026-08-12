@@ -180,6 +180,29 @@ test('parity/P3-playground: on a phone properties open on demand, not on selecti
   await expect(canvas(page).getByText('Your name?')).toBeVisible();
 });
 
+test('parity/P3-playground: on a phone a question opens its own properties', async ({ page }) => {
+  await page.goto(PLAYGROUND);
+
+  // Straight from the question, with no trip to the action bar. This is the affordance the
+  // bar cannot give: the bar is about "the selection", and on a phone the selection is
+  // whatever you last tapped somewhere off screen.
+  await canvas(page).getByTestId('select-rating').click();
+  await canvas(page).getByTestId('actions-rating').click();
+  await page.getByTestId('properties-rating').click();
+
+  const sheet = page.getByTestId('sheet-properties');
+  await expect(sheet).toBeVisible();
+
+  // Showing *that* question, not whatever the sheet last had open — the menu only exists
+  // on the selected element, so the name the panel reports is always the current selection.
+  await expect(sheet.locator('.kajay-properties__row[data-property="name"]')).toContainText(
+    'Name',
+  );
+  await expect(
+    sheet.locator('.kajay-properties__row[data-property="name"]').getByRole('textbox'),
+  ).toHaveValue('rating');
+});
+
 test('parity/P3-playground: the sidebar comes back as soon as there is room for it', async ({
   page,
 }) => {

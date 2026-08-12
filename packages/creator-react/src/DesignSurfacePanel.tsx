@@ -34,6 +34,20 @@ export interface DesignSurfacePanelProps {
    */
   readonly placement?: DesignerPlacement | undefined;
   readonly className?: string;
+  /**
+   * Adds a "Properties" item to every element's actions menu, and reports the presses.
+   *
+   * **For hosts whose property grid is not permanently on screen.** A sidebar layout needs
+   * nothing here: selecting an element is already enough, because the grid is right there.
+   * A layout that keeps the grid behind a sheet or a route has no such affordance, and
+   * without this the only way to reach it is a control somewhere other than the element it
+   * is about — which on a phone means scrolling away from the question to open a panel
+   * describing it.
+   *
+   * The menu only appears on the *selected* element, so the name reported is always the
+   * current selection.
+   */
+  readonly onEditProperties?: ((elementName: string) => void) | undefined;
 }
 
 /**
@@ -74,6 +88,7 @@ export function DesignSurfacePanel({
   renderers = defaultPageElementRenderers,
   placement,
   className,
+  onEditProperties,
 }: DesignSurfacePanelProps): ReactElement {
   useSurfaceVersion(surface);
   // Only a drop aimed at an element list is drawn here. A page being dragged in the
@@ -81,7 +96,7 @@ export function DesignSurfacePanel({
   // which would open a gap on the canvas while somebody reordered pages.
   const slot = placement?.activeSlot;
   const activeSlot = slot?.list.of === 'elements' ? slot : undefined;
-  const decorate = useDesignerDecorator(surface, placement, activeSlot);
+  const decorate = useDesignerDecorator(surface, placement, activeSlot, onEditProperties);
   const decorateSlot = useDesignerSlotDecorator(surface, placement, activeSlot);
   const renderText = useInlineTextRenderer(surface);
 
@@ -271,6 +286,7 @@ function useDesignerDecorator(
   surface: DesignSurface,
   placement: DesignerPlacement | undefined,
   activeSlot: DropSlot | undefined,
+  onEditProperties: ((elementName: string) => void) | undefined,
 ): PageElementDecorator {
   return (element, children) => {
     const at = surface.locate(element.name);
@@ -284,6 +300,7 @@ function useDesignerDecorator(
         index={at.index}
         container={at.list.container}
         placement={placement}
+        onEditProperties={onEditProperties}
         // Only the *empty* container: everywhere else the placeholder is a cell of the
         // container's own layout, drawn beside a slot rather than inside one. A container
         // with no children has no slot to be beside, and is the one case that has to be

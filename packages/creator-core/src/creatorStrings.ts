@@ -49,6 +49,7 @@ export const CREATOR_STRING_DEFINITIONS = [
   { key: 'addPage', en: 'Add page' },
   { key: 'surveySettings', en: 'Survey' },
   { key: 'emptySurvey', en: 'This survey has no pages yet.' },
+  { key: 'properties', en: 'Properties' },
   { key: 'duplicate', en: 'Duplicate' },
   { key: 'copy', en: 'Copy' },
   { key: 'paste', en: 'Paste' },

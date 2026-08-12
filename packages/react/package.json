@@ -1,6 +1,6 @@
 {
   "name": "@kajay/react",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "type": "module",
   "description": "React renderer over @kajay/core.",
   "license": "MIT",

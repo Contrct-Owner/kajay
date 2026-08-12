@@ -65,6 +65,44 @@ public sealed class SurveyLazyChoiceTests
         Assert.Equal([KajayValue.From(2)], question.Choices);
     }
 
+    /// <summary>
+    /// A completed load has finished loading, every time and not merely usually.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The pager used to signal its completion source before clearing the flag, so awaiting
+    /// a load released the caller into a state that had not settled yet. Whether anybody saw
+    /// it came down to which of two thread-pool items ran first: green on a quiet machine,
+    /// and an occasional red on a loaded one — which is how it reached main and then failed
+    /// a release build rather than the pull request that introduced it.
+    /// </para>
+    /// <para>
+    /// **Repeated rather than deterministic, and that is a real limitation.** The window was
+    /// between two statements with nothing to synchronise on, so there is no hook to make
+    /// the bad interleaving happen on demand — the honest options were many cheap attempts
+    /// or nothing at all. Each iteration is in-memory and takes microseconds. Against the
+    /// old ordering this fails within a few hundred; against the new one it cannot fail,
+    /// because the state is settled before the caller is released at all.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public async Task AnAwaitedLoadHasAlwaysFinishedLoading()
+    {
+        for (int attempt = 0; attempt < 500; attempt += 1)
+        {
+            Survey survey = CreateSurvey((request, _) => new ValueTask<SurveyChoicePage>(
+                Task.Run(() => new SurveyChoicePage([Item(request.Skip)], false))));
+            SurveyChoiceQuestion question = GetQuestion(survey);
+
+            await question.SetChoiceFilterAsync($"filter {attempt}");
+
+            // The claim a host relies on: once the returned task completes, the question is
+            // done loading. Reading the flag straight after the await is the whole point —
+            // any wait here would hide exactly the fault being guarded against.
+            Assert.False(question.IsLoadingChoices);
+        }
+    }
+
     [Fact]
     public async Task CancellationClearsLoadingAndThePageCanBeRetried()
     {

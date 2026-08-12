@@ -116,58 +116,99 @@ test('the landing page exposes Docs in primary navigation', async ({ page }) => 
 });
 
 test('inline elements keep word boundaries in consumer prose', async ({ page }) => {
+  // **Declared slow, which triples the timeout.** Not a workaround: this scenario loads
+  // twenty-seven documentation pages, and the suite's 30s default is the budget for
+  // scenarios that load one. Measured at 3.3s in Chromium and 13.2s in Firefox inside the
+  // full suite — comfortable, but the same measurement on a loaded CI runner has historically
+  // come out around twice the local figure, which puts the honest headroom at nothing. The
+  // number of pages is the coverage, so the budget is what should move.
+  test.slow();
+
   await page.goto('/docs');
   const documentationLinks = await page
     .getByRole('navigation', { name: 'Documentation' })
     .getByRole('link')
     .evaluateAll((links) => [...new Set(links.map((link) => link.getAttribute('href')).filter((href): href is string => href !== null))]);
 
-  // **One page, walked through the catalogue**, rather than a page per link opened at once.
-  // Twenty-seven simultaneous pages against a single `vite preview` is what this used to
-  // do, and with two workers both engines could be doing it at the same time — fifty-four
-  // pages waiting on one server. Alone that finished in 2.7s; inside the full suite the
-  // same scenario took 25-40s of its 30s budget and was the suite's only reliable failure.
-  // The pages were not doing anything concurrently that mattered, since each one navigates
-  // and reads static prose, so the fan-out bought nothing and cost the whole suite.
+  // **A fresh page per link, four at a time.** Both halves of that are load-bearing, and
+  // each was learned by breaking the other.
   //
-  // Folded rather than looped because each navigation must wait for the one before it,
-  // which is the entire point — and a `for` loop saying so reads to the linter as
-  // parallelism somebody forgot to write.
-  const failures = await documentationLinks.reduce<Promise<string[]>>(
-    async (soFar, href) => [...(await soFar), ...(await joinedWordsOn(page, href))],
-    Promise.resolve([]),
-  );
+  // Not all twenty-seven at once, which is what this did originally: with two workers both
+  // engines could be doing it together, so one `vite preview` had fifty-four pages waiting
+  // on it. Alone the scenario took 2.7s; inside the full suite it took 25-40s of its 30s
+  // budget and was the suite's only reliable failure.
+  //
+  // But not one page walked through the catalogue either, which is what replaced it. That
+  // fixed the load and broke Firefox: the site is a client-routed application, so a page
+  // that has just loaded is still hydrating and settling its router, and navigating it
+  // again mid-flight aborts the pending load — `NS_BINDING_ABORTED`. Twenty-seven fresh
+  // pages never hit it because a new page has no previous route to interrupt.
+  //
+  // Four keeps that property and caps the concurrency, which is what the load needed.
+  const failures = (await batched(documentationLinks, 4, (href) =>
+    joinedWordsOn(page, href),
+  )).flat();
 
   expect(failures).toEqual([]);
 });
 
 /**
+ * Every item through `work`, at most `size` of them in flight.
+ *
+ * Folded rather than looped because each batch must wait for the one before it, which is
+ * the entire point — and a `for` loop saying so reads to the linter as parallelism somebody
+ * forgot to write.
+ */
+function batched<Item, Result>(
+  items: readonly Item[],
+  size: number,
+  work: (item: Item) => Promise<Result>,
+): Promise<Result[]> {
+  const batches = Array.from({ length: Math.ceil(items.length / size) }, (_, index) =>
+    items.slice(index * size, index * size + size),
+  );
+  return batches.reduce<Promise<Result[]>>(
+    async (soFar, batch) => [
+      ...(await soFar),
+      ...(await Promise.all(batch.map((item) => work(item)))),
+    ],
+    Promise.resolve([]),
+  );
+}
+
+/**
  * Inline elements on one documentation page that have grown into the word beside them.
  *
- * Takes the page it should navigate rather than making its own, which is the whole point of
- * the change above: the caller owns exactly one and hands it round the catalogue.
+ * On a page of its own, closed afterwards. Reusing the caller's is what produced the
+ * Firefox aborts described above: this navigates, and a page that is still settling the
+ * route it was last given does not survive being sent somewhere else.
  */
-async function joinedWordsOn(page: Page, href: string): Promise<string[]> {
-  await page.goto(href);
-  const joinedWords = await page
-    .locator('main p > :is(a, code), main li > :is(a, code)')
-    .evaluateAll((nodes) => nodes.flatMap((node) => {
-      const before = node.previousSibling?.nodeType === Node.TEXT_NODE
-        ? node.previousSibling.textContent ?? ''
-        : '';
-      const after = node.nextSibling?.nodeType === Node.TEXT_NODE
-        ? node.nextSibling.textContent ?? ''
-        : '';
-      const inlineText = node.textContent ?? '';
-      const label = node.nodeName.toLocaleLowerCase('en-US');
-      return [
-        /[\p{L}\p{N}]$/u.test(before) && /^[\p{L}\p{N}]/u.test(inlineText)
-          ? `${before.slice(-18)}<${label}>${inlineText}</${label}>`
-          : undefined,
-        /[\p{L}\p{N}]$/u.test(inlineText) && /^[\p{L}\p{N}]/u.test(after)
-          ? `<${label}>${inlineText}</${label}>${after.slice(0, 18)}`
-          : undefined,
-      ].filter((value): value is string => value !== undefined);
-    }));
-  return joinedWords.map((value) => `${href}: ${value}`);
+async function joinedWordsOn(opener: Page, href: string): Promise<string[]> {
+  const page = await opener.context().newPage();
+  try {
+    await page.goto(href);
+    const joinedWords = await page
+      .locator('main p > :is(a, code), main li > :is(a, code)')
+      .evaluateAll((nodes) => nodes.flatMap((node) => {
+        const before = node.previousSibling?.nodeType === Node.TEXT_NODE
+          ? node.previousSibling.textContent ?? ''
+          : '';
+        const after = node.nextSibling?.nodeType === Node.TEXT_NODE
+          ? node.nextSibling.textContent ?? ''
+          : '';
+        const inlineText = node.textContent ?? '';
+        const label = node.nodeName.toLocaleLowerCase('en-US');
+        return [
+          /[\p{L}\p{N}]$/u.test(before) && /^[\p{L}\p{N}]/u.test(inlineText)
+            ? `${before.slice(-18)}<${label}>${inlineText}</${label}>`
+            : undefined,
+          /[\p{L}\p{N}]$/u.test(inlineText) && /^[\p{L}\p{N}]/u.test(after)
+            ? `<${label}>${inlineText}</${label}>${after.slice(0, 18)}`
+            : undefined,
+        ].filter((value): value is string => value !== undefined);
+      }));
+    return joinedWords.map((value) => `${href}: ${value}`);
+  } finally {
+    await page.close();
+  }
 }

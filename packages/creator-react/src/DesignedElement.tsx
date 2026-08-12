@@ -24,6 +24,8 @@ export interface DesignedElementProps {
   readonly placement?: DesignerPlacement | undefined;
   /** Whether a drop would land inside this element, which holds nothing yet. */
   readonly isEmptyDropTarget: boolean;
+  /** Passed to the actions menu — see {@link ElementActionsProps.onEditProperties}. */
+  readonly onEditProperties?: ((elementName: string) => void) | undefined;
 }
 
 /**
@@ -52,6 +54,7 @@ export function DesignedElement({
   children,
   placement,
   isEmptyDropTarget,
+  onEditProperties,
 }: DesignedElementProps): ReactElement {
   const isSelected = surface.isSelected(element);
   // A container with nothing in it has no child to aim at, so it says so itself —
@@ -77,7 +80,12 @@ export function DesignedElement({
         surface.select(element);
       }}
     >
-      <Adorner surface={surface} element={element} placement={placement} />
+      <Adorner
+        surface={surface}
+        element={element}
+        placement={placement}
+        onEditProperties={onEditProperties}
+      />
       {children}
       {isEmptyDropTarget ? (
         // Inside the container's own element rather than inside its layout, because there
@@ -104,7 +112,11 @@ function Adorner({
   surface,
   element,
   placement,
-}: Pick<DesignedElementProps, 'surface' | 'element' | 'placement'>): ReactElement {
+  onEditProperties,
+}: Pick<
+  DesignedElementProps,
+  'surface' | 'element' | 'placement' | 'onEditProperties'
+>): ReactElement {
   const { Button } = useCreatorComponents();
   const text = useCreatorText();
 
@@ -156,7 +168,7 @@ function Adorner({
           {element.name}
         </Button>
         {surface.isSelected(element) ? (
-          <ElementActions surface={surface} element={element} />
+          <ElementActions surface={surface} element={element} onEditProperties={onEditProperties} />
         ) : null}
       </div>
     </div>

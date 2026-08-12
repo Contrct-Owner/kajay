@@ -2265,10 +2265,96 @@
   align-items: start;
 }
 
+/* One column, and the assembly has already put only the canvas in it — checklist N1.
+   **This threshold is duplicated in `useNarrowViewport.ts`** and the two must agree: below
+   it the assembly renders the canvas plus two buttons instead of three panels, and this
+   rule is what stops asking for columns that are no longer there. See that file for why the
+   number is written twice rather than read from here.
+
+   Stacking is what this used to do, and stacking put the toolbox first: a designer on a
+   phone opened their survey and found thirty question types where it should have been. */
 @media (width < 60rem) {
   .kajay-creator__designer {
     grid-template-columns: 1fr;
   }
+}
+
+/* The compact designer's action bar.
+
+   Sticky rather than fixed: it pins to the bottom of whatever is scrolling and lets go
+   where the designer ends, so a Creator embedded halfway down a host's page does not leave
+   a bar floating over the rest of it. Fixed would have to be told about the host's layout,
+   which is exactly the thing an embedded component cannot know. */
+.kajay-creator__actions {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--kajay-spacing) / 2);
+  padding-block: calc(var(--kajay-spacing) / 2);
+  /* Opaque, or the survey scrolls through it. */
+  background: var(--kajay-color-background, var(--kajay-color-surface));
+  border-block-start: 1px solid var(--kajay-color-border);
+}
+
+/* A panel over the canvas, anchored to the bottom edge.
+
+   A modal `<dialog>` is centred by its `margin: auto`; `margin-block-start: auto` alone
+   pushes it to the bottom, which is where a thumb is. `85dvb` rather than a fixed height
+   because the two panels differ by an order of magnitude in length — a toolbox is thirty
+   buttons and a property grid is however many the selected element has — and leaving the
+   top of the canvas visible is what stops a panel reading as a page you navigated to. */
+.kajay-creator__panel {
+  /* **Not inherited — a `dialog` is not inside anything.** A modal dialog's containing
+     block is the viewport, so it takes the user agent's `content-box` unless told
+     otherwise, and `inline-size: 100%` then means 100% *plus* the padding and border: 390px
+     of viewport held a 424px panel, which put the close button off the right edge and the
+     bottom 34px past the height cap below. */
+  box-sizing: border-box;
+  margin: auto auto 0;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  max-block-size: 85dvb;
+  padding: var(--kajay-spacing);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius) var(--kajay-radius) 0 0;
+  background: var(--kajay-color-surface);
+  color: var(--kajay-color-text);
+  font-family: var(--kajay-font-family);
+  /* The element's own layout, so the body below can scroll while the bar stays put. */
+  flex-direction: column;
+  gap: var(--kajay-spacing);
+  overflow: hidden;
+}
+
+/* `display` is what opens a dialog, so it can only be set while it is open — a
+   `display: flex` on the element itself would show a closed one. */
+.kajay-creator__panel[open] {
+  display: flex;
+}
+
+.kajay-creator__panel::backdrop {
+  background: rgb(0 0 0 / 50%);
+}
+
+.kajay-creator__panel-bar {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--kajay-spacing);
+}
+
+.kajay-creator__panel-title {
+  margin: 0;
+  font-size: 1em;
+}
+
+.kajay-creator__panel-body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
 }
 
 /* Authored text on the canvas, which is also the editor — checklist P10. A dashed

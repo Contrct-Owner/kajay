@@ -32,6 +32,7 @@ export const CREATOR_STRING_DEFINITIONS = [
   { key: 'saveFailed', en: 'Save failed — try again' },
 
   // --- The toolbox ----------------------------------------------------------
+  { key: 'toolbox', en: 'Toolbox' },
   { key: 'toolboxSearch', en: 'Search the toolbox' },
   { key: 'toolboxSearchPlaceholder', en: 'Search' },
   { key: 'toolboxNoMatches', en: 'Nothing matches “{0}”.' },
@@ -49,6 +50,12 @@ export const CREATOR_STRING_DEFINITIONS = [
   { key: 'addPage', en: 'Add page' },
   { key: 'surveySettings', en: 'Survey' },
   { key: 'emptySurvey', en: 'This survey has no pages yet.' },
+  { key: 'properties', en: 'Properties' },
+  // The compact designer's two buttons, and the word that shuts either panel again. "Add
+  // question" rather than "Toolbox" on the button: it names what pressing it is *for*,
+  // which is the thing somebody arriving at a Creator on a phone needs told.
+  { key: 'addQuestion', en: 'Add question' },
+  { key: 'closePanel', en: 'Close' },
   { key: 'duplicate', en: 'Duplicate' },
   { key: 'copy', en: 'Copy' },
   { key: 'paste', en: 'Paste' },

@@ -192,6 +192,44 @@ test('parity/P3-playground: the page says how to start', async ({ page }) => {
   await expect(page.getByText('Click a question type to add it')).toBeVisible();
 });
 
+test('parity/P3-playground: the header puts each control where a reader looks for it', async ({
+  page,
+}) => {
+  await page.goto(PLAYGROUND);
+
+  // **Geometry, not markup**, because the claim is about what a reader sees: the header was
+  // one `flex-wrap` row, so which control ended up beside which was whatever fitted. The
+  // same markup put the mode switch next to "Copy share link" at one width and next to the
+  // theme toggle at another, and nothing could tell the difference from the DOM alone.
+  const title = await page.getByRole('heading', { name: 'Playground' }).boundingBox();
+  const theme = await page.getByTestId('theme-toggle').boundingBox();
+  const design = await page.getByTestId('editor-mode-design').boundingBox();
+  const share = await page.getByTestId('share-link').boundingBox();
+
+  // Appearance is a site-wide preference that happens to be adjustable here, so it sits on
+  // the title's line at the right edge rather than among the document's own controls.
+  expect(sameRow(title, theme)).toBe(true);
+  expect(theme?.x ?? 0).toBeGreaterThan(title?.x ?? 0);
+
+  // The two document controls share their own line, one at each edge.
+  expect(sameRow(design, share)).toBe(true);
+  expect(design?.x ?? 0).toBeLessThan(share?.x ?? 0);
+
+  // And they are two lines, not one: the theme toggle is above the share button rather than
+  // beside it, which is the row the old layout kept collapsing them into.
+  expect(theme?.y ?? 0).toBeLessThan(share?.y ?? 0);
+});
+
+/** Whether two boxes sit on one line — their vertical centres within a few pixels. */
+function sameRow(a: BoundingBox, b: BoundingBox): boolean {
+  if (a === null || b === null) {
+    return false;
+  }
+  return Math.abs(a.y + a.height / 2 - (b.y + b.height / 2)) < 6;
+}
+
+type BoundingBox = { x: number; y: number; width: number; height: number } | null;
+
 test('parity/P3-playground: it says what it did unasked', async ({ page }) => {
   await page.goto(PLAYGROUND);
   await canvas(page).getByTestId('select-name').click();

@@ -11,10 +11,10 @@ export function ApiSymbolContent({ item }: ApiSymbolContentProps): ReactElement 
     <>
       <DocumentationGaps gaps={item.gaps} />
       <section aria-labelledby="api-identity">
-        <h2 id="api-identity">Export identity</h2>
+        <h2 id="api-identity">API identity</h2>
         <dl className="not-prose grid gap-3 sm:grid-cols-3">
           <Fact label="Package" value={item.packageName} />
-          <Fact label="Export kind" value={item.exportKind} />
+          <Fact label="Kind" value={item.exportKind} />
           <Fact label="Audience" value={item.classification} />
         </dl>
       </section>

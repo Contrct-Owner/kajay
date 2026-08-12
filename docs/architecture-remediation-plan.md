@@ -1,7 +1,7 @@
 # Architecture Remediation Plan
 
 - Area: Architecture, verification, documentation, and release readiness
-- Status: complete
+- Status: archived; completed 2026-08-04
 - Owner: Jarod
 - Last updated: 2026-08-04
 

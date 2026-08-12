@@ -1,7 +1,7 @@
 # ADR-0006 — npm scope `@kajay/*`
 
 - Area: Packaging and naming
-- Status: proposed
+- Status: accepted
 - Owner: Jarod
 - Last updated: 2026-08-04
 

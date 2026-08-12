@@ -1,7 +1,7 @@
 # ADR-0005 — Single version train released with changesets
 
 - Area: Release policy
-- Status: deferred
+- Status: superseded by ADR-0029
 - Owner: Jarod
 - Last updated: 2026-08-04
 

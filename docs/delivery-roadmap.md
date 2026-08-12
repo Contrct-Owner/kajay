@@ -1,13 +1,14 @@
 # Delivery Roadmap and Phases
 
 - Area: Phased delivery plan from foundation to full parity
-- Status: active
+- Status: historical delivery record
 - Owner: Jarod
 - Last updated: 2026-08-08
 
-This is the single index that sequences the work into **delivery phases** with explicit
-entry and exit gates, so work has an order and each milestone has a definition of done.
-It does not restate the designs; it points at the docs that specify each phase's work.
+This records the delivery phases that produced the published SDKs. It is retained as
+history rather than used as the current work queue; current product state lives in
+[project context](../CONTEXT.md), and active documentation direction lives in the
+[documentation-system guide](./documentation-system-details.md).
 
 **Overall acceptance target: Phase 3 exit** — full Form Library + Creator parity,
 proven by named package, browser, and application evidence in the parity checklist.
@@ -391,9 +392,9 @@ The C# workstream exits only when:
 the inherited v1 and full v2 conformance corpora, the supported-scale budgets, and the
 installed-package consumer. The warning-free build matrix enforces the package gates on
 Linux, Windows, and macOS. The package ships the stable public API baseline, README,
-changelog, support contract, and first-release migration guidance. Publishing the
-already verified `.nupkg` remains an explicit maintainer release action rather than an
-implementation gap.
+changelog, support contract, and first-release migration guidance. The verified
+`.nupkg` was published on 2026-08-08 after the separate maintainer action recorded by
+[ADR-0046](./adr/0046-nuget-release-walkthrough.md).
 
 The remaining Phase 4 items stay horizon. Each promoted item gets its own ADR and
 checklist section rather than borrowing the C# workstream's active status.

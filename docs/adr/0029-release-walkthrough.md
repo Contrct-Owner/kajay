@@ -44,7 +44,7 @@ types freely for composition, and promising them all would make every incidental
 compatibility obligation.
 
 Runtime floors are stated but **not** promised as majors here: TypeScript 5.5
-([ADR-0014](./0014-typescript-support-window.md)), Node `>=22.12.0`, React `^19` as a peer.
+([ADR-0014](./0014-supported-typescript-range.md)), Node `>=22.12.0`, React `^19` as a peer.
 Raising one is a breaking change for the consumers it excludes; committing to that in
 writing is a separate decision nobody has needed yet.
 

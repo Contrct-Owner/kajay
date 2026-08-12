@@ -31,9 +31,9 @@ Before planning, implementing, or reviewing code or tests, read
 - Cross-language behavior is versioned under `conformance/v*/`. Changes to definition
   canonicalization, expression semantics, diagnostics, or lifecycle ordering must add
   or update adapter-neutral cases and keep `check:conformance` green.
-- Conformance v2 is specified but adapters are pending. Do not describe the TypeScript
-  or C# runtime as v2-compatible until its public-seam adapter passes inherited v1 plus
-  every v2 case.
+- Conformance v2 is implemented by the C# runtime and by the TypeScript 2.x candidate.
+  The published TypeScript 1.x train continues to claim v1 only. A runtime may claim v2
+  only while its public-seam adapter passes inherited v1 plus every v2 case.
 - Keep unit and browser/E2E tests in separate projects. Unit tests are pure logic:
   no DOM, no jsdom (banned repo-wide), no browser, no network, no mocks of our own
   packages. DOM behavior is proven in real Chromium (Vitest browser mode) or

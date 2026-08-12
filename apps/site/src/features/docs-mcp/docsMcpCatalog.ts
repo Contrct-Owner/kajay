@@ -42,7 +42,7 @@ export function createDocsIndexMarkdown(): string {
   return [
     '# Kajay documentation',
     '',
-    'Kajay is a TypeScript-native survey runtime and embeddable Creator.',
+    'Kajay is a multi-runtime survey engine with TypeScript, React, Creator, and native .NET SDK surfaces.',
     '',
     'Use the `search_kajay_docs` tool to search guides and generated reference facts.',
     'Read `kajay://docs/reference-manifest` for the complete machine-readable reference.',

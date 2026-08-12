@@ -3,6 +3,7 @@ import { docsHomePage } from '@/features/docs-shell';
 import { runtimeDocPages, ExpressionEvaluator } from '@/features/runtime-docs';
 import { creatorDocPages } from '@/features/creator-docs';
 import { consumerGuidePages } from '@/features/consumer-guides';
+import { dotnetDocPages } from '@/features/dotnet-docs';
 import { createReferencePageRegistry } from '@/features/reference-docs';
 
 const referencePages = createReferencePageRegistry(undefined, {
@@ -12,6 +13,7 @@ const referencePages = createReferencePageRegistry(undefined, {
 const navigationPages = [
   docsHomePage,
   ...runtimeDocPages,
+  ...dotnetDocPages,
   ...creatorDocPages,
   ...consumerGuidePages,
   ...referencePages.navigationPages,
@@ -42,4 +44,3 @@ export const docsCatalog: DocsCatalog = {
     return authoredBySlug.get(slug) ?? referencePages.resolve(slug);
   },
 };
-

@@ -11,7 +11,7 @@ without overriding a single rule, and a host that wants more writes ordinary CSS
 the class names, which are stable.
 
 Three ways to set them, all the same mechanism
-([ADR-0008](./adr/0008-css-variable-token-system.md)):
+([ADR-0008](./adr/0008-no-surveyjs-theme-import.md)):
 
 1. **A stylesheet.** `import "@kajay/themes/styles.css"` for the defaults, then override
    whichever tokens you like in your own CSS.

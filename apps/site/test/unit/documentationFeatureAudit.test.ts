@@ -3,6 +3,12 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, test } from 'vitest';
 import { GuideContent, GuideNote } from '../../src/features/consumer-guides/components/GuideContent.js';
 import { CreatorCallout } from '../../src/features/creator-docs/components/CreatorCallout.js';
+import { dotnetDocPages } from '../../src/features/dotnet-docs/index.js';
+import {
+  createDocumentationSearchIndex,
+  docsReferenceManifest,
+  queryDocumentationSearch,
+} from '../../src/features/docs-reference/index.js';
 import { DocsNavigation } from '../../src/features/docs-shell/DocsNavigation.js';
 import { docsHomePage } from '../../src/features/docs-shell/docsHomePage.js';
 import { referencePageRegistry } from '../../src/features/reference-docs/index.js';
@@ -14,10 +20,33 @@ function markup(value: Parameters<typeof renderToStaticMarkup>[0]): string {
 }
 
 describe('documentation structure and content UX', () => {
-  test('links both adoption paths from the documentation home', () => {
+  test('links every maintained SDK adoption path from the documentation home', () => {
     const html = markup(docsHomePage.content);
     expect(html).toContain('href="/docs/quickstart/runtime"');
+    expect(html).toContain('href="/docs/quickstart/dotnet"');
     expect(html).toContain('href="/docs/quickstart/creator"');
+  });
+
+  test('publishes the stable .NET guide set through the authored catalog', () => {
+    expect(dotnetDocPages.map(({ slug }) => slug)).toEqual([
+      'quickstart/dotnet',
+      'dotnet/snapshots',
+      'dotnet/hosting',
+      'dotnet/extensibility',
+      'dotnet/compatibility',
+    ]);
+    const quickstart = dotnetDocPages.find((page) => page.slug === 'quickstart/dotnet');
+    expect(markup(quickstart?.content)).toContain('dotnet add package Kajay.Core --version 1.0.0');
+  });
+
+  test('makes native API types discoverable through documentation search', () => {
+    const index = createDocumentationSearchIndex(docsReferenceManifest);
+    const results = queryDocumentationSearch(index, 'Kajay.Core SurveyDefinition');
+    expect(results[0]).toMatchObject({
+      title: 'SurveyDefinition',
+      url: '/docs/reference/api/kajay-core/survey-definition',
+      group: 'Kajay.Core',
+    });
   });
 
   test('keeps navigation labels out of the article heading outline', () => {

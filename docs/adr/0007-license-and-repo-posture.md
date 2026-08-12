@@ -5,7 +5,7 @@
 > job — it was waiting for information that §K–§N and §P produced.
 
 - Area: Licensing and distribution posture
-- Status: accepted
+- Status: superseded by ADR-0028
 - Owner: Jarod
 - Last updated: 2026-08-04
 

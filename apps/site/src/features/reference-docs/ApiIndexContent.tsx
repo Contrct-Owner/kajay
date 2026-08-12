@@ -12,7 +12,7 @@ export function ApiIndexContent({ items, packageName }: ApiIndexContentProps): R
     const packages = [...new Set(items.map((item) => item.packageName))];
     return (
       <>
-        <p>API reference covers every type and runtime value exported from a package root.</p>
+        <p>API reference covers TypeScript package-root exports and public .NET SDK types.</p>
         <ReferenceIndexList
           emptyMessage="No package exports are available."
           items={packages.map((name) => ({
@@ -39,5 +39,5 @@ export function ApiIndexContent({ items, packageName }: ApiIndexContentProps): R
 }
 
 function packageSlug(value: string): string {
-  return value.replace('@kajay/', '');
+  return value.replace('@kajay/', '').replaceAll('.', '-').toLocaleLowerCase('en-US');
 }

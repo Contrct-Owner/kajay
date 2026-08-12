@@ -82,3 +82,21 @@ test('case-sensitive value and type exports receive distinct stable URLs', () =>
     ['PreviewDevice', '/docs/reference/api/core/preview-device-type'],
   ]);
 });
+
+test('includes native public types beside TypeScript package exports', () => {
+  const manifest = buildReferenceManifest({
+    ...inputs,
+    dotnetApiSymbols: [{
+      packageName: 'Kajay.Core',
+      name: 'SurveyDefinition',
+      exportKind: 'type',
+      classification: 'consumer',
+      description: 'An immutable survey definition.',
+      signature: 'public sealed class SurveyDefinition',
+      gaps: [],
+    }],
+  });
+  const native = manifest.apiSymbols.find(({ packageName }) => packageName === 'Kajay.Core');
+  assert.equal(native?.url, '/docs/reference/api/kajay-core/survey-definition');
+  assert.deepEqual(native?.gaps, []);
+});

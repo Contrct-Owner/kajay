@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { DocPageAudience, DocPageDefinition } from '../docs-shell';
+import type { DocPageAudience, DocPageDefinition, DocPageSdk } from '../docs-shell';
 import {
   docsReferenceManifest,
   type ApiSymbolReference,
@@ -32,7 +32,7 @@ interface PageOptions {
   readonly description: string;
   readonly section?: string;
   readonly audience?: DocPageAudience;
-  readonly sdk?: 'neutral' | 'typescript';
+  readonly sdk?: DocPageSdk;
   readonly framework?: 'neutral' | 'react';
   readonly toc: readonly { readonly id: string; readonly label: string; readonly depth: 2 | 3 }[];
   readonly content: ReactNode;
@@ -111,7 +111,7 @@ function diagnosticsPage(manifest: DocsReferenceManifest): DocPageDefinition {
 }
 
 function apiIndexPage(manifest: DocsReferenceManifest): DocPageDefinition {
-  return page({ slug: 'reference/api', title: 'Package API', description: 'Every symbol exported from a supported package root.', sdk: 'typescript', framework: 'neutral', toc: [], content: <ApiIndexContent items={manifest.apiSymbols} /> });
+  return page({ slug: 'reference/api', title: 'SDK API', description: 'Generated public API facts for the maintained TypeScript and .NET SDKs.', sdk: 'neutral', framework: 'neutral', toc: [], content: <ApiIndexContent items={manifest.apiSymbols} /> });
 }
 
 function definitionTypePage(item: DefinitionTypeReference): DocPageDefinition {
@@ -124,11 +124,17 @@ function propertyPage(item: DefinitionPropertyReference): DocPageDefinition {
 
 function apiSymbolPage(item: ApiSymbolReference): DocPageDefinition {
   const framework = item.packageName.includes('react') ? 'react' : 'neutral';
-  return page({ slug: withoutDocs(item.url), title: item.name, description: item.description ?? `${item.exportKind} export from ${item.packageName}.`, audience: audience(item), sdk: 'typescript', framework, toc: [{ id: 'api-identity', label: 'Export identity', depth: 2 }, { id: 'api-signature', label: 'Signature', depth: 2 }], content: <ApiSymbolContent item={item} /> });
+  const sdk = item.packageName === 'Kajay.Core' ? 'dotnet' : 'typescript';
+  return page({ slug: withoutDocs(item.url), title: item.name, description: item.description ?? `${item.exportKind} from ${item.packageName}.`, audience: audience(item), sdk, framework, toc: [{ id: 'api-identity', label: 'API identity', depth: 2 }, { id: 'api-signature', label: 'Signature', depth: 2 }], content: <ApiSymbolContent item={item} /> });
 }
 
 function apiPackagePage(packageName: string, manifest: DocsReferenceManifest): DocPageDefinition {
-  return page({ slug: `reference/api/${packageName.replace('@kajay/', '')}`, title: packageName, description: `Public package-root exports from ${packageName}.`, sdk: 'typescript', framework: packageName.includes('react') ? 'react' : 'neutral', toc: [], content: <ApiIndexContent items={manifest.apiSymbols} packageName={packageName} /> });
+  const sdk = packageName === 'Kajay.Core' ? 'dotnet' : 'typescript';
+  return page({ slug: `reference/api/${apiPackageSlug(packageName)}`, title: packageName, description: `Public API types and values from ${packageName}.`, sdk, framework: packageName.includes('react') ? 'react' : 'neutral', toc: [], content: <ApiIndexContent items={manifest.apiSymbols} packageName={packageName} /> });
+}
+
+function apiPackageSlug(value: string): string {
+  return value.replace(/^@kajay\//u, '').replaceAll('.', '-').toLocaleLowerCase('en-US');
 }
 
 function audience(item: ApiSymbolReference): DocPageAudience {
@@ -154,7 +160,7 @@ export function createReferencePageRegistry(
   const types = itemBySlug(manifest.definitionTypes);
   const properties = itemBySlug(manifest.definitionProperties);
   const api = itemBySlug(manifest.apiSymbols);
-  const packages = new Map([...new Set(manifest.apiSymbols.map((item) => item.packageName))].map((name) => [`reference/api/${name.replace('@kajay/', '')}`, name]));
+  const packages = new Map([...new Set(manifest.apiSymbols.map((item) => item.packageName))].map((name) => [`reference/api/${apiPackageSlug(name)}`, name]));
   return {
     navigationPages: pages,
     resolve(slug) {

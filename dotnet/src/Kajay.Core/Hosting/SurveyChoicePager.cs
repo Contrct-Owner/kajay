@@ -92,12 +92,33 @@ internal sealed class SurveyChoicePager
         return completion.Task;
     }
 
+    /// <summary>
+    /// Loads one page, then settles this request's state <em>before</em> reporting it done.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The outcome is recorded rather than signalled inline, because the order of those two
+    /// things is the whole point. This used to complete inside the <c>try</c> and clear
+    /// <see cref="IsLoading"/> in a <c>finally</c>, which runs afterwards — and the
+    /// completion source hands out its continuations asynchronously, so a caller awaiting
+    /// <see cref="SetFilterAsync"/> was released while the flag was still set and raced the
+    /// <c>finally</c> to read it. `await SetChoiceFilterAsync(…)` followed by a read of
+    /// `IsLoadingChoices` could see the state from before its own request finished.
+    /// </para>
+    /// <para>
+    /// It is not a test-only fault and it does not reproduce on demand: it is whichever of
+    /// two thread-pool items runs first, so it passes on a quiet machine and fails on a busy
+    /// one. Settling first removes the race rather than narrowing it.
+    /// </para>
+    /// </remarks>
     private async Task RunAsync(
         int skip,
         int generation,
         CancellationTokenSource cancellation,
         TaskCompletionSource completion)
     {
+        OperationCanceledException? cancelled = null;
+        Exception? failure = null;
         try
         {
             var request = new SurveyChoicePageRequest(
@@ -109,23 +130,33 @@ internal sealed class SurveyChoicePager
             SurveyChoicePage page = await _loader!(request, cancellation.Token)
                 .ConfigureAwait(false);
             Apply(generation, page);
-            completion.SetResult();
         }
         catch (OperationCanceledException exception)
         {
-            completion.SetCanceled(exception.CancellationToken);
+            cancelled = exception;
         }
         catch (Exception exception)
         {
-            completion.SetException(new SurveyChoiceLoadException(
+            failure = new SurveyChoiceLoadException(
                 _question.Name,
                 string.Empty,
                 $"Loading a choice page for question '{_question.Name}' failed.",
-                exception));
+                exception);
         }
-        finally
+
+        Complete(generation, cancellation);
+
+        if (cancelled is not null)
         {
-            Complete(generation, cancellation);
+            completion.SetCanceled(cancelled.CancellationToken);
+        }
+        else if (failure is not null)
+        {
+            completion.SetException(failure);
+        }
+        else
+        {
+            completion.SetResult();
         }
     }
 

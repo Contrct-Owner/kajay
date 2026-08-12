@@ -100,6 +100,11 @@ export class UrlChoiceLoader {
     }
     const request = this.#request(url, cacheKey);
     if (request === undefined) {
+      // Clears rather than returning silently. There is no fetcher, so there are no
+      // choices and there never will be — and `clear` is what tells the view to look
+      // again, which is how the recorded error reaches a reader instead of sitting in
+      // an array nobody is watching.
+      clear();
       return;
     }
     void request.then(
@@ -111,11 +116,11 @@ export class UrlChoiceLoader {
             apply(choices);
           }
         } catch (error: unknown) {
-          this.#reportCurrentFailure(source.key, generation, url, error);
+          this.#reportCurrentFailure(source, generation, url, error);
         }
       },
       (error: unknown) => {
-        this.#reportCurrentFailure(source.key, generation, url, error);
+        this.#reportCurrentFailure(source, generation, url, error);
       },
     );
   }
@@ -131,9 +136,28 @@ export class UrlChoiceLoader {
     return true;
   }
 
-  #reportCurrentFailure(key: string, generation: number, url: string, error: unknown): void {
-    if (this.#isCurrent(key, generation)) {
+  /**
+   * Records a failed load, and says so.
+   *
+   * **The announcement is the point.** Recording an error into an array changes nothing a
+   * reader can see: a view showing `choiceErrors` has no reason to render again, so a
+   * question whose choices could not load is indistinguishable from one still loading
+   * them. A failure is a state change like any other, and this is where it is admitted.
+   *
+   * The choices themselves are left alone rather than cleared. A refresh that fails after
+   * an earlier one succeeded should not also throw away the list a respondent can see —
+   * the error says the newer attempt failed, which is true, and the stale list is more
+   * use than an empty one.
+   */
+  #reportCurrentFailure(
+    source: UrlChoiceSource,
+    generation: number,
+    url: string,
+    error: unknown,
+  ): void {
+    if (this.#isCurrent(source.key, generation)) {
       this.#errors.push(`Loading "${url}" failed: ${String(error)}`);
+      source.announce();
     }
   }
 

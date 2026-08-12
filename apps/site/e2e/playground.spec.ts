@@ -329,3 +329,48 @@ test('parity/P14-appearance: a remembered choice outranks the system', async ({ 
 
   await context.close();
 });
+
+test('the playground has a way back out of it', async ({ page }) => {
+  // A shared link is how most people arrive here, and until this existed the playground
+  // was the one route on the site with no route off it: no site bar, no crumb, nothing but
+  // the browser's own Back button — which a shared link does not give you a useful one of.
+  await page.goto(`${PLAYGROUND}?d=not-base64-at-all`);
+
+  await page.getByRole('link', { name: 'Kajay' }).click();
+
+  await expect(page).toHaveURL(/\/$/u);
+  // **By name, not by level.** `level: 1` was intermittent here and the intermittency was
+  // the assertion's own: this is a client-side transition, so for a moment the playground's
+  // `h1` and the landing page's are both mounted, and "the level-1 heading" is briefly a
+  // question with two answers. Naming the one being waited for makes the wait mean what it
+  // says.
+  await expect(
+    page.getByRole('heading', { name: /Surveys that look like your application/u }),
+  ).toBeVisible();
+});
+
+test('the playground reaches the documentation when there is room for the link', async ({
+  page,
+}) => {
+  // Hidden below `sm`, where the title, two links and a toggle stop fitting — so the
+  // scenario states the width it is about rather than inheriting one and being a different
+  // test on a different runner. Set before the page loads rather than after, so the link is
+  // never waited for at a width where it is deliberately not there.
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(PLAYGROUND);
+
+  await page.getByRole('link', { name: 'Docs' }).click();
+
+  await expect(page).toHaveURL(/\/docs$/u);
+  await expect(page.getByRole('heading', { name: 'Kajay documentation' })).toBeVisible();
+});
+
+test('the way home survives a phone, where the documentation link does not', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(PLAYGROUND);
+
+  // Two links, a 2xl title and a toggle do not fit a 327px content box. One of them had to
+  // give, and it is not the way out.
+  await expect(page.getByRole('link', { name: 'Kajay' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Docs' })).toBeHidden();
+});

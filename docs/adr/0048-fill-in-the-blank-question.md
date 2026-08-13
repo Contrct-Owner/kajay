@@ -94,6 +94,10 @@ discovered — if ever — long after the responses are collected.
 
 ### 4. The collection declares; the template positions
 
+> **Superseded in part by the [amendment below](#amendment-2026-08-13--a-blank-is-a-question-not-a-bespoke-item):**
+> the collection still declares while the template positions, but what it declares is a
+> **question**, not the bespoke `fillintheblankitem` this section introduced.
+
 Per-blank facts have nowhere to live in prose, so they live in `blanks`, exactly as
 `multipletext` keeps `multipletextitem`. Each blank carries `name`, a localizable `label`,
 `correctAnswer`, `inputType`, `isRequired`, and the matching options in §6.
@@ -114,6 +118,10 @@ should mirror another says so with `valueName`, which is the mechanism that alre
 for sharing an answer key.
 
 ### 6. Matching is trimmed and case-insensitive by default, per blank
+
+> **Superseded in part by the [amendment below](#amendment-2026-08-13--a-blank-is-a-question-not-a-bespoke-item):**
+> marking belongs to each blank's own type, and these two options move onto the question
+> base beside `correctAnswer` — they describe marking by text, not blanks.
 
 An assessment marking `paris` wrong because the respondent did not capitalize it is
 measuring typing, not geography. Both are **per blank**, because the same question may hold
@@ -153,6 +161,78 @@ one runtime cannot run is a one-sided specification
 implements it in the same cycle, and the corpus cases land **after** both runtimes so they
 arrive claimed by both.
 
+## Amendment, 2026-08-13 — a blank is a question, not a bespoke item
+
+**What shipped was too small.** A blank was `fillintheblankitem`, carrying an `inputType`
+passed straight through as the HTML `type` attribute. That serves text, number and date and
+nothing else, and the driver is larger than that: the prose is a *layout*, and what belongs
+in it is any field that fits in a line — a dropdown, a multi-select, a yes/no. Authoring a
+form by writing a sentence is the actual feature; filling in a blank is its simplest case.
+
+A bespoke item cannot grow into that. A dropdown needs choices, `choicesByUrl`,
+carry-forward, lazy paging and an "other" row, and each of those inside a private item type
+would be a second, worse copy of the select family — the thing this project keeps refusing.
+
+### 1. `blanks` holds questions
+
+The collection's element base type becomes `question`, exactly as `matrixcells` columns and
+a dynamic panel's `templateElements` already hold real elements. A dropdown blank *is* a
+`dropdown`, so the registry, the schema, the property grid, validators and marking arrive
+with it rather than being rebuilt inside it.
+
+`fillintheblankitem` is deleted rather than deprecated. The type has landed on a branch and
+has never been released, so this costs an edit now and a migration later — which is the
+whole reason to do it before it ships.
+
+### 2. Only what fits in a line of prose, refused at parse
+
+Not every question means anything inside a sentence. A matrix in the middle of a clause is
+not a layout decision, it is a mistake, and it should be refused where the author can see it
+rather than discovered as broken markup.
+
+**A class descriptor declares whether its type may sit inline**, so the answer comes from
+the registry rather than a list kept somewhere that will be wrong the day a type is added.
+A host's own type can therefore opt in. Core owns the flag — it is the only place both
+runtimes and the definition diagnostics can read it, and none of them may touch a DOM.
+
+A blank naming a type that has not opted in is an **error**: nothing can draw it, so the
+respondent silently loses a field the author placed.
+
+### 3. Marking belongs to the blank's type
+
+Each blank scores by its own rule and the sentence sums them, which the score already
+supports as a pair. A multi-select blank therefore earns partial credit **with no new
+arithmetic**, through the same selection rule a checkbox uses.
+
+`trim` and `caseSensitive` move onto the question base beside `correctAnswer`, because they
+are properties of *marking by text* rather than of blanks. That fixes something older than
+this ADR: an ordinary `text` question with `correctAnswer: "Paris"` has always marked
+`paris` wrong, and has always been measuring typing rather than the subject.
+
+### 4. Inline rendering is its own seam
+
+Every renderer today draws block-level markup — a fieldset, a label above, an error list
+below — and dropping one inside a sentence would produce a paragraph with a form in it.
+
+**A second registration, not a mode flag on the first.** A renderer registry that accepted
+an `inline` prop would oblige every renderer, including a host's, to handle a case most
+would ignore, and the failure would be a fieldset drawn mid-sentence. A separate inline
+registration is absent by default, which makes "this type cannot go inline" the same
+statement in the adapter that §2 makes in the definition.
+
+The accessible-name rule is unchanged and extends: an inline dropdown is named the way an
+inline text field is, because the sentence labels it to a reader and to nobody else.
+
+### What does not change
+
+The `[[name]]` grammar, the template as one translatable string, the rule that a
+translation may move a marker but not rename one, the answer as one object keyed by blank
+name, and the three diagnostics. A multi-select blank simply stores an array under its key,
+which that shape already allows.
+
+The type keeps the name `fillintheblank`: it is what people call this, and it is still
+exactly what the feature does in its simplest form.
+
 ## Alternatives considered
 
 **Reuse `{name}`.** Rejected above: it is the inverse operation behind identical syntax.
@@ -164,6 +244,18 @@ the decision most likely to look over-thought until the first non-English locale
 (`[[capital:Paris]]`). Rejected. It puts correct answers into the string a translator
 edits — so a translation can change the marking — and it grows a second, cramped property
 syntax inside prose the moment anything needs a third attribute.
+
+**Grow the bespoke item instead of holding questions.** Rejected by the amendment above: a
+dropdown blank would need choices, remote choices, carry-forward and paging, each of which
+already exists on the select family and none of which is worth a private second copy.
+
+**Let any question type sit inline, and leave the rest to the renderer.** Rejected: the
+failure arrives as broken markup at render time rather than as a diagnostic an author can
+act on, and "what fits in a sentence" is a fact about the type rather than about the page.
+
+**An `inline` prop on the existing renderer registry**, rather than a second registration.
+Rejected: it obliges every renderer a host has ever written to handle a case it has never
+heard of, and the default behaviour of ignoring it is a fieldset drawn inside a paragraph.
 
 **Reuse `multipletext` with a layout hint.** Rejected: the position of a blank is *inside a
 sentence*, and no layout property expresses that without becoming a template anyway.
@@ -186,6 +278,11 @@ fill-in-the-blank that cannot be marked is the feature's least interesting half.
   editor should surface it rather than leaving it to a later parse.
 - A literal `[[name]]` in prose cannot be authored, per §1.
 - Accent folding, alternative answers and numeric tolerance are not available, per §6.
+- **The amendment's rework**: `fillintheblankitem` is deleted, `blanks` re-typed, a class
+  descriptor flag added — so the schema, metadata and diagnostic contracts all move again —
+  an inline renderer registration appears in the React adapter, `Kajay.Core` follows, the
+  conformance cases grow a multi-select blank, and the Creator's blanks editor becomes a
+  type picker. All of it is cheap only while the type is unreleased.
 
 ## Parent and related links
 

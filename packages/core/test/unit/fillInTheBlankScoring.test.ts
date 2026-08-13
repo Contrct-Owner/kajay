@@ -14,7 +14,7 @@ function build(blanks: readonly Record<string, unknown>[]): Survey {
             name: 'geography',
             template:
               'The capital of France is [[capital]], its currency is the [[currency]], '
-              + 'and its cities include [[cities]].',
+              + 'its cities include [[cities]], and it has [[seats]] seats worth [[annual]].',
             blanks,
           },
         ],
@@ -173,5 +173,46 @@ describe('parity/C13-scoring', () => {
     // One mark for the text blank, one of two for the multi-select: three marks in one
     // sentence, which is what a natural-language form is for.
     expect(scoreQuiz(survey)).toMatchObject({ correct: 2, total: 3 });
+  });
+
+  test('a computed gap computes, and recomputes when the gap it reads changes', () => {
+    const survey = build([
+      { type: 'text', name: 'seats' },
+      { type: 'expression', name: 'annual', expression: '{geography.seats} * 12' },
+    ]);
+
+    survey.setValue('geography', { seats: 5 });
+    expect(survey.data['geography']).toEqual({ seats: 5, annual: 60 });
+
+    survey.setValue('geography', { seats: 10 });
+
+    // A blank is a question, so its rule belongs to the graph like any other. Without the
+    // registration it parsed, drew and stayed empty for ever, reporting nothing.
+    expect(survey.data['geography']).toEqual({ seats: 10, annual: 120 });
+  });
+
+  test('a computed gap names the whole path, not a bare sibling', () => {
+    const survey = build([
+      { type: 'text', name: 'seats' },
+      { type: 'expression', name: 'annual', expression: '{seats} * 12' },
+    ]);
+
+    survey.setValue('geography', { seats: 5 });
+
+    // `{seats}` is a top-level answer nobody supplied, so the gap stays empty rather than
+    // quietly reading its neighbour — the answer really does live at `{geography.seats}`,
+    // which is how a multiple-text field is read from anywhere else.
+    expect(survey.data['geography']).toEqual({ seats: 5 });
+  });
+
+  test('a malformed computed gap writes nothing rather than a wrong number', () => {
+    const survey = build([
+      { type: 'text', name: 'seats' },
+      { type: 'expression', name: 'annual', expression: '{geography.seats} *' },
+    ]);
+
+    survey.setValue('geography', { seats: 5 });
+
+    expect(survey.data['geography']).toEqual({ seats: 5 });
   });
 });

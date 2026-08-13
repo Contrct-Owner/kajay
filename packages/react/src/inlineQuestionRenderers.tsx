@@ -1,5 +1,5 @@
 import { MultiSelectQuestion, RatingQuestion, SelectQuestion, TextQuestion } from '@kajay/core';
-import type { Question } from '@kajay/core';
+import type { ExpressionQuestion, Question } from '@kajay/core';
 import type { ReactElement } from 'react';
 import type { PageElementRendererRegistry } from './PageElementRendererRegistry.js';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
@@ -12,12 +12,6 @@ import { useSurveyComponents } from './SurveyComponents.js';
  * lazy paging (§C5, §C6) and a checkbox group is a vertical list; neither belongs in the
  * run of a clause. Inline gets one compact control, which is the honest reading of "fits
  * in a line of prose" — a host that wants the fuller thing registers its own.
- *
- * **No computed gap yet.** An `expression` would read well mid-clause — "that is [[annual]]
- * a year" — but a blank's rules are not registered with the logic graph, so it would draw
- * an empty span for ever. Matrix cells solve the same problem with a registration of their
- * own; until blanks have one, core refuses the type rather than letting it silently do
- * nothing.
  *
  * None of them draws a label. The prose is the label, so each control takes its accessible
  * name from the question's title through `aria-label`: rendering the title would print it
@@ -137,6 +131,18 @@ function InlineBoolean({ question }: QuestionRendererProps): ReactElement {
 }
 
 /**
+ * A computed value, drawn as text.
+ *
+ * Read-only by its nature, so a sentence can state a total mid-clause without offering the
+ * respondent a control they cannot use. Its rule is registered with the graph like any
+ * other blank's, which is what makes it recompute when the gap it reads changes.
+ */
+function InlineExpression({ question }: QuestionRendererProps): ReactElement {
+  const computed = question as ExpressionQuestion;
+  return <span className="kajay-fillintheblank__computed">{computed.displayValue}</span>;
+}
+
+/**
  * A rating, drawn as a compact list of its own scale.
  *
  * Not a row of stars: a rating's block renderer spreads across a line of its own, and a
@@ -176,4 +182,5 @@ export function registerInlineQuestionRenderers(registry: PageElementRendererReg
   registry.registerInlineQuestion('tagbox', InlineMultiSelect);
   registry.registerInlineQuestion('boolean', InlineBoolean);
   registry.registerInlineQuestion('rating', InlineRating);
+  registry.registerInlineQuestion('expression', InlineExpression);
 }

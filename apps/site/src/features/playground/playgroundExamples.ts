@@ -22,7 +22,8 @@ const FILL_IN_THE_BLANK_EXAMPLE: SurveyDefinition = {
           template:
             'My name is [[name]] and I work in [[department]]. '
             + 'Day to day my team uses [[tools]], and I would rate our tooling [[rating]]. '
-            + 'It is [[remote]] that we work remotely.',
+            + 'It is [[remote]] that we work remotely, across [[seats]] seats — '
+            + 'which is [[annual]] seat-months a year.',
           blanks: [
             { type: 'text', name: 'name', title: 'Your name' },
             {
@@ -39,6 +40,13 @@ const FILL_IN_THE_BLANK_EXAMPLE: SurveyDefinition = {
             },
             { type: 'rating', name: 'rating', title: 'Tooling rating', rateMax: 5 },
             { type: 'boolean', name: 'remote', title: 'Works remotely' },
+            { type: 'text', name: 'seats', title: 'Seats', inputType: 'number' },
+            {
+              type: 'expression',
+              name: 'annual',
+              title: 'Seat-months a year',
+              expression: '{team.seats} * 12',
+            },
           ],
         },
       ],
@@ -59,7 +67,7 @@ export const PLAYGROUND_EXAMPLES: readonly PlaygroundExample[] = [
   {
     id: 'fill-in-the-blank',
     title: 'A sentence that is a form',
-    summary: 'Every gap is a different kind of field: text, dropdown, multi-select, rating, yes/no.',
+    summary: 'Every gap is a different field: text, dropdown, multi-select, rating, yes/no and a computed total.',
     definition: FILL_IN_THE_BLANK_EXAMPLE,
   },
   {

@@ -206,6 +206,9 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
   expression: {
     name: 'expression',
     parent: 'question',
+    // Read-only and computed, so a sentence can state a total mid-clause. Its rule is
+    // registered with the graph like any other blank's — see `registerBlankRules`.
+    allowsInline: true,
     properties: [
       {
         name: 'expression',

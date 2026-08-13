@@ -286,7 +286,7 @@
       "name": "expression",
       "parent": "question",
       "isAbstract": false,
-      "allowsInline": false,
+      "allowsInline": true,
       "declaredProperties": [
         {
           "name": "expression",

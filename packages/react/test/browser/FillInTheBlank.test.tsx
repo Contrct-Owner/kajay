@@ -184,3 +184,20 @@ test('parity/C13-axe: an inline control is named without printing its title', as
   await expect.element(screen.getByLabelText('Capital city')).toBeInTheDocument();
 });
 
+test('parity/C13-render: a computed gap states its value in the sentence', async () => {
+  const survey = build({
+    template: 'We have [[seats]] seats, which is [[annual]] a year.',
+    blanks: [
+      { type: 'text', name: 'seats', title: 'Seats' },
+      { type: 'expression', name: 'annual', title: 'Yearly', expression: '{geography.seats} * 12' },
+    ],
+  });
+  const screen = await render(<Survey model={survey} />);
+
+  await screen.getByLabelText('Seats').fill('5');
+
+  // Read-only and computed, so the sentence states a total mid-clause without offering a
+  // control nobody can use — and it recomputes because a blank's rule is in the graph.
+  await expect.element(screen.getByText('60')).toBeInTheDocument();
+});
+

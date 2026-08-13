@@ -342,6 +342,19 @@ export class SurveyLogicHost {
    * would write a response nobody had altered. What the respondent can actually see
    * change, element state, is drained on release like any other settle's.
    */
+  /**
+   * Forgets what asynchronous functions returned, then runs every rule again.
+   *
+   * A full re-evaluation rather than a targeted one, on the same reasoning `#reevaluate`
+   * already follows: no path was written, so the dependency graph has nothing to trace
+   * from. The rules that call the discarded function ask again as they run, and the
+   * answers land the way any asynchronous answer does.
+   */
+  invalidateAsyncResults(name?: string): void {
+    this.#engine.invalidateAsyncResults(name);
+    this.#reevaluate();
+  }
+
   setHostValue(key: string, value: unknown): void {
     if (!this.#hostValues.set(key, value).changed) {
       return;

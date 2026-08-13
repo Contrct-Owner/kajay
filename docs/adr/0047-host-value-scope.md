@@ -180,13 +180,29 @@ nobody could later explain. It wants its own change.
 
 ### Companion: asynchronous results become invalidatable
 
-`survey.invalidateHostValues()` — or a name-scoped form — clears `AsyncFunctionCache`'s
-results *and* its failure map, then re-evaluates. This is a small change and it is
-required by the same use case: a host whose quote service was down has no way to ask
-again, and one whose rate table changed has no way to say so. It is recorded here rather
-than separately because "the host's computed value changed" is one problem with a pull
-half and a push half, and shipping only the push half leaves the pull half permanently
-stale.
+`survey.invalidateAsyncResults(name?)` clears `AsyncFunctionCache`'s results *and* its
+failure map, then re-evaluates. This is a small change and it is required by the same use
+case: a host whose quote service was down has no way to ask again, and one whose rate
+table changed has no way to say so. It is recorded here rather than separately because
+"the host's computed value changed" is one problem with a pull half and a push half, and
+shipping only the push half leaves the pull half permanently stale.
+
+**Renamed 2026-08-12, on building it.** This was written as `invalidateHostValues()`,
+which is wrong in the way that matters: by then `{$name}` had made "host value" a
+precise term, and the method discards none of them. What it discards is what
+*asynchronous expression functions* returned. A host reading the old name would
+reasonably expect their tier and quote to be thrown away.
+
+Two details the implementation settled:
+
+- **A reply already in flight is discarded, not installed.** Invalidation advances a
+  generation and a late reply checks it, the same guard `ChoicePager` already uses for
+  a superseded page. Without it the request outstanding *at* the moment of invalidation
+  lands afterwards and writes the stale answer over the fresh one, leaving the survey
+  showing exactly what the host invalidated with nothing left to correct it. A mutation
+  removing the guard is killed by one test and only that test.
+- **Pending keys are cleared as well as superseded.** `request` starts work only for a
+  key nothing is already waiting on, so a key left pending would never be asked again.
 
 ### Markup is not a value
 

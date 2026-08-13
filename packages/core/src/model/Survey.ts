@@ -401,6 +401,19 @@ export class Survey extends SurveyProperties implements ValueHost {
    */
   setHostValue(name: string, value: unknown): void { this.#logic.setHostValue(name, value); }
 
+  /**
+   * Asks every asynchronous expression function again — checklist B12, ADR-0047.
+   *
+   * Their results are cached for the life of the survey, which is what stops each
+   * re-evaluation restarting the call that caused it. That is right until the world
+   * those answers describe moves: a rate table changes, or a service that was down comes
+   * back. **A rejection is never retried on its own**, so a lookup that failed once
+   * stays failed without this.
+   *
+   * Naming one function discards only its results. Naming none discards them all.
+   */
+  invalidateAsyncResults(name?: string): void { this.#logic.invalidateAsyncResults(name); }
+
   /** Writes model state without starting a nested settle. Rule execution reports the path. */
   #writeValue(name: string, value: unknown): boolean {
     const { changed, previousValue } = this.#answers.write(name, value);

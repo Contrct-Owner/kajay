@@ -1,5 +1,7 @@
 import { isEmptyValue } from '../expressions/expressionValues.js';
 import { FillInTheBlankItem } from './FillInTheBlankItem.js';
+import type { AnswerScore } from './answerScore.js';
+import { matchesAuthoredText } from './answerScore.js';
 import { asAnswerRecord, withAnswerEntry } from './objectAnswers.js';
 import { parseBlankTemplate } from './parseBlankTemplate.js';
 import type { TemplateSegment } from './parseBlankTemplate.js';
@@ -96,6 +98,39 @@ export class FillInTheBlankQuestion extends Question {
   override checkValue(context: ValidationContext): readonly SurveyError[] {
     const record = asAnswerRecord(context.value);
     return this.#blanks.flatMap((blank) => checkBlank(blank, record[blank.name], context));
+  }
+
+  /**
+   * Whether this sentence is graded at all — checklist E8's rule, asked of the blanks.
+   *
+   * A fill-in-the-blank inherits `correctAnswer` from `Question` and never uses it: the
+   * answers are per blank, so membership is too. Reading the inherited property would
+   * leave a fully marked sentence out of the quiz because nobody wrote an answer at a
+   * level that means nothing here.
+   */
+  override get isQuizQuestion(): boolean {
+    return this.#blanks.some((blank) => blank.hasPropertyValue('correctAnswer'));
+  }
+
+  /**
+   * A mark per marked blank — checklist C13.
+   *
+   * Partial credit falls straight out of `AnswerScore` being a pair: a sentence with four
+   * gaps is four decisions wearing one question, exactly as a multi-select is, so nothing
+   * new was needed to score it. **Only blanks with a `correctAnswer` count toward the
+   * total**, so an author can mark two gaps in a sentence and leave a third for prose the
+   * respondent is simply asked to supply.
+   */
+  override scoreAnswer(): AnswerScore {
+    const record = asAnswerRecord(this.value);
+    const marked = this.#blanks.filter((blank) => blank.hasPropertyValue('correctAnswer'));
+    const correct = marked.filter((blank) =>
+      matchesAuthoredText(record[blank.name], blank.correctAnswer, {
+        trim: blank.trim,
+        caseSensitive: blank.caseSensitive,
+      }),
+    ).length;
+    return { correct, total: marked.length };
   }
 
   /** Default blank width in characters. A blank's own `size` wins. */

@@ -1,7 +1,7 @@
 # ADR-0047 — A host-value scope, `{$name}`
 
 - Area: Core / expressions and logic
-- Status: accepted
+- Status: accepted, amended
 - Owner: Jarod
 - Last updated: 2026-08-12
 
@@ -141,6 +141,42 @@ The rules, in force together:
 9. **The template round-trips; the value never serializes.** `{$tier}` survives a
    round-trip as written, and what it resolved to appears in no document
    ([ADR-0002](./0002-round-trip-fixed-point.md)).
+
+### The scope reaches templates, not only expressions
+
+**Amended 2026-08-12, after the read path shipped.** The rules above say "readable by
+every expression" and stop there, which left `{$tier}` resolving in a `visibleIf` and
+rendering as an empty string in `completedHtml` — the templates are interpolated by
+`interpolateHtml` against the answers, a different mechanism the wording never reached.
+
+That is the empty-string failure ADR-0017 named as the worst defect in the endpoint
+scope, reappearing one layer up, and a scope that works in conditions but blanks in
+prose is the harder half of the feature to trust. So the status templates —
+`completedHtml`, `loadingHtml`, `emptyHtml` and a conditional ending's `html` — resolve
+the host scope too, sigil first, exactly as expressions do.
+
+Two details fixed with it:
+
+- **A host reference is resolved whole.** `{$profile.plan.tier}` descends in a template
+  because it is parsed by the same `parseReferencePath` an expression goes through. A
+  template splitting on dots itself would be a second reader of one syntax, free to
+  disagree with the first.
+- **Answers keep flat-name lookup**, deliberately asymmetric. An answer written by
+  `setValue` under a key containing a dot resolves in a template today, and would start
+  resolving to nothing the day templates began splitting them. The host scope has no
+  such shipped behaviour to protect, so it starts consistent with expressions instead of
+  starting bug-compatible.
+
+Values are still **escaped** on the way in. The template is the author's markup and the
+value is not, whoever supplied it — a host value is frequently derived from respondent
+data, and `interpolateHtml`'s trust boundary is unchanged by where the value came from.
+
+**Not fixed here, and named so it is not mistaken for part of this:** a template
+placeholder naming something nobody supplied is silently empty *for every scope*. A
+typo'd `{plantypo}` has always rendered blank with no diagnostic, and so does a typo'd
+`{$tier}`. Diagnosing template references is a real gap, it is pre-existing and
+scope-wide, and half-fixing it for the host scope alone would bake in an asymmetry
+nobody could later explain. It wants its own change.
 
 ### Companion: asynchronous results become invalidatable
 

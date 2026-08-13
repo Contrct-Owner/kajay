@@ -187,6 +187,100 @@ describe('parity/B12-host-value-scope', () => {
     expect(JSON.stringify(serialized)).not.toContain('gold"}');
   });
 
+  test('a completed page reads the host scope, not just the answers', () => {
+    const { survey } = parseSurvey(
+      {
+        completedHtml: 'Thank you, {$tier} customer on the {plan} plan.',
+        pages: [{ name: 'p1', elements: [{ type: 'text', name: 'plan' }] }],
+      },
+      createTestRegistry(),
+      { values: { tier: 'gold' } },
+    );
+    survey.setValue('plan', 'pro');
+    survey.complete();
+
+    // A scope that worked in conditions and rendered blank in prose would be the harder
+    // half of the feature to trust.
+    expect(survey.status.completedHtml).toBe('Thank you, gold customer on the pro plan.');
+  });
+
+  test('a host reference in a template descends, like it does in an expression', () => {
+    const { survey } = parseSurvey(
+      { completedHtml: 'Plan: {$profile.plan.tier}', pages: [{ name: 'p1', elements: [] }] },
+      createTestRegistry(),
+      { values: { profile: { plan: { tier: 'gold' } } } },
+    );
+    survey.complete();
+
+    // Parsed by `parseReferencePath`, the same reader an expression goes through, so the
+    // syntax cannot come to mean two things.
+    expect(survey.status.completedHtml).toBe('Plan: gold');
+  });
+
+  test('and what it resolves to is escaped, because the value is not the author’s', () => {
+    const { survey } = parseSurvey(
+      { completedHtml: '<p>{$note}</p>', pages: [{ name: 'p1', elements: [] }] },
+      createTestRegistry(),
+      { values: { note: '<img src=x onerror=alert(1)>' } },
+    );
+    survey.complete();
+
+    // The template is the author's markup; a value dropped into it is not, whoever
+    // supplied it — a host value is often derived from respondent data.
+    expect(survey.status.completedHtml).toBe(
+      '<p>&lt;img src=x onerror=alert(1)&gt;</p>',
+    );
+  });
+
+  test('the loading and empty pages read it too', () => {
+    const { survey } = parseSurvey(
+      {
+        loadingHtml: 'Loading for {$tier}',
+        emptyHtml: 'Nothing for {$tier}',
+        pages: [],
+      },
+      createTestRegistry(),
+      { values: { tier: 'gold' } },
+    );
+
+    // One resolver behind all three, so none of them can drift from the others.
+    expect(survey.status.emptyHtml).toBe('Nothing for gold');
+    survey.status.setLoading(true);
+    expect(survey.status.loadingHtml).toBe('Loading for gold');
+  });
+
+  test('a conditional ending reads it as well as the default one', () => {
+    const { survey } = parseSurvey(
+      {
+        completedHtml: 'Default for {$tier}',
+        completedHtmlOnCondition: [{ expression: '{$tier} = "gold"', html: 'Premium: {$tier}' }],
+        pages: [{ name: 'p1', elements: [] }],
+      },
+      createTestRegistry(),
+      { values: { tier: 'gold' } },
+    );
+    survey.complete();
+
+    // The ending is chosen by an expression reading the scope and then filled from it,
+    // so both halves of a conditional ending see the same values.
+    expect(survey.status.completedHtml).toBe('Premium: gold');
+  });
+
+  test('an answer placeholder is still looked up by flat name', () => {
+    const { survey } = parseSurvey(
+      { completedHtml: 'Value: {a.b}', pages: [{ name: 'p1', elements: [] }] },
+      createTestRegistry(),
+      {},
+    );
+    survey.setValue('a.b', 'kept');
+    survey.complete();
+
+    // Deliberately untouched: an answer written under a key containing a dot would
+    // start resolving to nothing the day templates began splitting them, and the answer
+    // scope has that history to protect where the host scope does not.
+    expect(survey.status.completedHtml).toBe('Value: kept');
+  });
+
   test('every expression property is covered, because the registry says which they are', () => {
     const { survey, diagnostics } = parseSurvey(
       {

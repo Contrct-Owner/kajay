@@ -1,5 +1,6 @@
 import type { ElementStateChangedEvent, ValueChangedEvent } from '../events/SurveyEvents.js';
 import type { PathSegment } from '../expressions/ExpressionNode.js';
+import { parseReferencePath } from '../expressions/parseReferencePath.js';
 import { LogicEngine } from '../logic/LogicEngine.js';
 import type { LogicDiagnostics } from '../logic/LogicEngine.js';
 import type { CalculatedValue } from './CalculatedValue.js';
@@ -231,6 +232,24 @@ export class SurveyLogicHost {
 
   resolveValue(name: string): unknown {
     return this.#resolvePath([{ kind: 'name', name }]);
+  }
+
+  /**
+   * Resolves a whole written reference — `$profile.plan.tier`, not just `$profile`.
+   *
+   * For templates, which hand over the text between the braces rather than a parsed
+   * path. Parsed with the same `parseReferencePath` an expression goes through, so
+   * `{$profile.plan.tier}` means one thing wherever it is written; a template that split
+   * on dots itself would be a second, quietly divergent reader of the same syntax.
+   *
+   * Malformed references are not reported here. A template is prose with holes in it,
+   * and the caller renders what it can — an unreadable hole resolves to nothing, which
+   * is what an unknown name in a template has always done.
+   */
+  resolveReference(reference: string): unknown {
+    return this.#resolvePath(
+      parseReferencePath(reference, { start: 0, end: reference.length }, []),
+    );
   }
 
   announcePanelCollapsed(panel: Panel): void {

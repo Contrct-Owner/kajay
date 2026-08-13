@@ -6,7 +6,14 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import type { EditorMode } from './EditorMode';
 import { ModeSwitch } from './ModeSwitch';
+import type { SwitchMode } from './ModeSwitch';
 import { shareLink } from './playgroundDocument';
+
+/** The document, and the JSON behind it. */
+const EDITOR_MODES: readonly SwitchMode<EditorMode>[] = [
+  { value: 'design', label: 'Design', testId: 'editor-mode-design' },
+  { value: 'json', label: 'JSON', testId: 'editor-mode-json' },
+];
 
 /**
  * Where you are, instructions, view switch and session controls — three rows with fixed
@@ -47,7 +54,12 @@ export function PlaygroundHeader({
           It wraps, because two controls plus a phone's ~327px content box is close enough
           that a longer label in another language would otherwise overflow. */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <ModeSwitch mode={mode} onModeChange={onModeChange} />
+        <ModeSwitch
+          label="Definition view"
+          modes={EDITOR_MODES}
+          mode={mode}
+          onModeChange={onModeChange}
+        />
         <Button
           size="sm"
           variant="outline"

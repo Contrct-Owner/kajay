@@ -40,6 +40,7 @@ export function DefinitionTypeContent({ item }: DefinitionTypeContentProps): Rea
               { key: 'property', label: 'Property', render: (row) => <code>{row.property}</code> },
               { key: 'type', label: 'Element base type', render: (row) => <code>{row.elementBaseType}</code> },
               { key: 'shorthand', label: 'Scalar shorthand', render: (row) => row.shorthandProperty === null ? 'None' : <code>{row.shorthandProperty}</code> },
+              { key: 'marker', label: 'Positioned by', render: (row) => row.markerProperty === null ? 'Order' : <code>{row.markerProperty}</code> },
             ]}
             rows={item.childCollections}
             rowKey={(row) => row.property}

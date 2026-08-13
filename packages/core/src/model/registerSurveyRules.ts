@@ -8,6 +8,8 @@ import { ExpressionQuestion } from './ExpressionQuestion.js';
 import { getPageElementChildren } from './pageElements.js';
 import type { PageElement } from './PageElement.js';
 import { Panel } from './Panel.js';
+import { FillInTheBlankQuestion } from './FillInTheBlankQuestion.js';
+import { registerBlankRules } from './registerBlankRules.js';
 import { RepeatingQuestion } from './RepeatingQuestion.js';
 import { Question } from './Question.js';
 import { registerCellRules } from './registerCellRules.js';
@@ -213,6 +215,12 @@ function registerElements(elements: readonly PageElement[], host: SurveyLogicHos
       registerExpressionValue(element, owner, host);
       registerItemConditions(element, owner, host);
       registerChoiceSource(element, owner, host);
+      if (element instanceof FillInTheBlankQuestion) {
+        // A blank is a question with everything that implies, so it brings its own value
+        // and expression rules — declared against the path inside this answer where they
+        // actually land.
+        registerBlankRules(element, owner, host);
+      }
       if (element instanceof RepeatingQuestion) {
         // A cell is a question with everything that implies, so it brings its own value
         // rules. Its conditions came through `conditionalItems` with every other kind

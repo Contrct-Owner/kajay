@@ -32,6 +32,8 @@ export class MetadataRegistry {
       ),
       childCollections: definition.childCollections ?? [],
       isAbstract: definition.isAbstract ?? false,
+      allowsInline: definition.allowsInline ?? false,
+      ...(definition.recordScope === undefined ? {} : { recordScope: definition.recordScope }),
       create: definition.create,
     });
   }

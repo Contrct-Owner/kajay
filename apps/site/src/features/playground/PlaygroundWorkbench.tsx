@@ -8,8 +8,8 @@ import { EditorPane } from './EditorPane';
 import type { EditorMode } from './EditorMode';
 import { LivePane } from './LivePane';
 import { PlaygroundHeader } from './PlaygroundHeader';
+import { ExamplesPanel } from './ExamplesPanel';
 import { HostContextPanel } from './HostContextPanel';
-import { HOST_CONTEXT_EXAMPLE } from './hostContextExample';
 import { decodeDefinition } from './playgroundDocument';
 import { PLAYGROUND_HOST_VALUES, type PlaygroundHostValues } from './playgroundHostValues';
 import { STARTER_SURVEY } from './starterSurvey';
@@ -37,16 +37,15 @@ function RespondentColumn({
           workspace.preview.restart();
         }}
       />
-      <HostContextPanel
-        values={hostValues}
-        onChange={onHostValuesChange}
-        onLoadExample={() => {
-          // Through the same chokepoint every structural edit uses, so loading the example
+      <ExamplesPanel
+        onLoad={(example) => {
+          // Through the same chokepoint every structural edit uses, so loading an example
           // is undoable and the JSON view follows it like any other edit.
-          workspace.surface.applyEdit(HOST_CONTEXT_EXAMPLE);
+          workspace.surface.applyEdit(example.definition);
           workspace.preview.restart();
         }}
       />
+      <HostContextPanel values={hostValues} onChange={onHostValuesChange} />
     </div>
   );
 }

@@ -22,6 +22,11 @@
     "vitest.config.ts"
   ],
   "references": [
+    // The application itself, on the same terms the unit-test project already has it: a
+    // browser test may prove the site's own components, and reaching one through the
+    // project reference is what keeps it compiled by its own `bundler` resolution rather
+    // than pulled raw into this project's `nodenext`.
+    { "path": "./apps/site" },
     { "path": "./packages/core" },
     { "path": "./packages/react" },
     { "path": "./packages/creator-core" },

@@ -46,7 +46,11 @@ function elementOf(designed: DesignSurface, name: string): SurveyDefinition {
 
 describe('parity/K5-freshen', () => {
   test('a name already free is kept', () => {
-    const { fragment, renames } = freshenFragment({ type: 'text', name: 'who' }, new Set(['other']));
+    const { fragment, renames } = freshenFragment(
+      { type: 'text', name: 'who' },
+      new Set(['other']),
+      registry(),
+    );
 
     // A fragment pasted into a different survey should read exactly as it was written.
     expect(fragment['name']).toBe('who');
@@ -58,6 +62,7 @@ describe('parity/K5-freshen', () => {
     const { fragment, renames } = freshenFragment(
       { type: 'text', name: 'who2' },
       new Set(['who2', 'who3']),
+      registry(),
     );
 
     // `who4`, not `who21` — the second reads as a typo and sorts nowhere sensible.
@@ -76,6 +81,7 @@ describe('parity/K5-freshen', () => {
         ],
       },
       new Set(['group', 'first', 'second']),
+      registry(),
     );
     const elements = fresh['elements'] as readonly SurveyDefinition[];
 
@@ -89,6 +95,7 @@ describe('parity/K5-freshen', () => {
     const { fragment: fresh } = freshenFragment(
       { type: 'text', name: 'who', visibleIf: '{consent} = true' },
       new Set(['who']),
+      registry(),
     );
 
     // `consent` was not copied, so there is nothing else the reference could mean.
@@ -106,6 +113,7 @@ describe('parity/K5-freshen', () => {
         ],
       },
       new Set(['group', 'city', 'note']),
+      registry(),
     );
     const elements = fresh['elements'] as readonly SurveyDefinition[];
 
@@ -126,6 +134,7 @@ describe('parity/K5-freshen', () => {
         ],
       },
       new Set(['group', 'who']),
+      registry(),
     );
     const elements = fresh['elements'] as readonly SurveyDefinition[];
 

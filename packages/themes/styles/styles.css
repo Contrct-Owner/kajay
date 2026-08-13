@@ -39,7 +39,22 @@
 }
 
 /* Positioned so the backdrop below has something to be absolute against. */
+/* What the browser draws for itself follows the theme.
+
+   The list a `<select>` opens, the tick in a checkbox, the scrollbars and the date picker
+   are painted by the browser, and no rule in this file can reach inside them. `color-scheme`
+   is the one thing that can, and a dark survey that never declared one got a white popup
+   full of pale text — light-on-white, unreadable, and read as a bug in the stylesheet when
+   it was the browser being told nothing at all.
+
+   `light` when a theme says nothing, because that is what these colours default to. */
 .kajay-survey {
+  color-scheme: var(--kajay-color-scheme, light);
+  /* The other half of the same idea: `color-scheme` says which way round the browser's own
+     surfaces are drawn, and `accent-color` says what colour the marks on them are — the
+     tick in a checkbox, the dot in a radio, the fill of a range. Both are the theme
+     reaching parts of a control that no rule in this file can select. */
+  accent-color: var(--kajay-color-accent);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1418,6 +1433,126 @@
 .kajay-multipletext__label {
   color: var(--kajay-color-muted);
   font-size: 0.875em;
+}
+
+/* --- fill in the blank --------------------------------------------------- */
+
+.kajay-fillintheblank {
+  /* The gaps sit in the run of the text, so the line box has to give them room:
+     without this the inputs are clipped where the prose wraps around them. */
+  line-height: 2.2;
+  margin: 0;
+}
+
+.kajay-fillintheblank__gap {
+  display: inline;
+  white-space: nowrap;
+}
+
+/* Two classes deep on purpose, and the only place in this file that is.
+
+   A host's design system styles its own input — `h-9 w-full` in the reference
+   application — which is right for a question that owns its line and wrong for one
+   standing between two words. Matching a single class would tie with theirs and lose on
+   source order, leaving one control in the sentence a different height from the three
+   beside it. This is the theme saying "in prose, these are prose-sized", which is the
+   whole of what it is for. */
+.kajay-fillintheblank .kajay-fillintheblank__input:not(.kajay-boolean__switch) {
+  box-sizing: border-box;
+  /* One height for the text field, the dropdown and the multi-select. They arrive as
+     three native controls whose default heights differ by a few pixels, which reads as
+     a wobble in the line rather than as a mistake anybody can name. */
+  height: 1.9em;
+  min-height: 0;
+  padding-block: 0;
+  padding-inline: 0.4em;
+  line-height: normal;
+  /* Middle, not baseline: a `<select>` and an `<input>` put their baselines in
+     different places, so aligning on them is what made the dropdown sit low. */
+  vertical-align: middle;
+  /* As wide as what is in it, with the author's `size` — published by the renderer as a
+     width, furniture included — winning when there is one. Every gap used to be twenty
+     characters wide, the browser's default for an input with nothing said about it, so a
+     two-digit seat count claimed as much of the sentence as a full name and the prose
+     broke around both.
+
+     `field-sizing` is a progressive enhancement: where it is not supported the gap keeps
+     the browser's width, which is what every gap had before. */
+  field-sizing: content;
+  width: var(--kajay-blank-width, auto);
+  min-width: 4ch;
+  max-width: 100%;
+}
+
+/* Several-of-these, in the run of a sentence: a button saying what was chosen, and the
+   choices themselves in a menu over the words rather than pushing them apart.
+
+   The menu is *ours* — real checkboxes — because the browser's own multiple-select list is
+   the one thing here a theme cannot reach: its glyphs follow neither `color-scheme` nor any
+   rule that can be written, so a dark survey showed white boxes down a dark list. */
+.kajay-fillintheblank__multi {
+  position: relative;
+  display: inline;
+  white-space: nowrap;
+}
+
+.kajay-fillintheblank__menu:popover-open {
+  /* Placed by the renderer, in the top layer: a survey lives inside somebody else's
+     layout, and an absolutely positioned menu is cut off by the first ancestor that
+     hides its overflow — which the reference application's own card does. */
+  position: fixed;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 4);
+  min-width: max-content;
+  padding: calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 25%);
+  line-height: 1.5;
+  white-space: normal;
+}
+
+/* A yes/no gap is not a field, it is the switch the block renderer draws — same primitive,
+   same `.kajay-boolean__switch`, so a design system's toggle appears in a sentence exactly
+   as it does on a line of its own. Excluded from the rules above rather than resized here,
+   because a switch has no content to size to and nothing to be as tall as. */
+.kajay-fillintheblank .kajay-boolean__switch {
+  vertical-align: middle;
+}
+
+/* A multiple select is a list box by default, which would push the sentence apart. One
+   row tall and scrolling keeps the words where the author put them. */
+.kajay-fillintheblank .kajay-fillintheblank__input[multiple] {
+  overflow-y: auto;
+}
+
+/* A computed gap is prose, not a control: it states a value mid-clause. */
+.kajay-fillintheblank__computed {
+  font-weight: 600;
+}
+
+/* Nothing computed yet still has a place in the sentence. Empty, it used to collapse to
+   nothing at all — "which is  seat-months a year", a hole a reader takes for a typo. A
+   rule with no text in it says "a number goes here" and says nothing to a screen reader,
+   which is right: the value is absent, not blank. */
+.kajay-fillintheblank__computed:empty::before {
+  content: '';
+  display: inline-block;
+  width: 3ch;
+  border-bottom: 1px dotted currentColor;
+  vertical-align: baseline;
+}
+
+/* An error belongs to the gap it is about, so it is read as part of the sentence rather
+   than laid out as a column: `.kajay-question__errors` is a flex block, and one dropped
+   between two words tore the line in half and stretched the gap to the width of the
+   message. */
+.kajay-fillintheblank__gap .kajay-question__errors {
+  display: inline;
+  white-space: normal;
 }
 
 /* --- imagepicker --------------------------------------------------------- */

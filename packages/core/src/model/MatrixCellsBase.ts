@@ -1,5 +1,5 @@
 import { MatrixTotal } from './MatrixTotal.js';
-import { summarise, toMatrixLayout } from './matrixCells.js';
+import { ROW_SCOPE, summarise, toMatrixLayout } from './matrixCells.js';
 import type { MatrixLayout } from './matrixCells.js';
 import type { PageElement } from './PageElement.js';
 import { collectQuestions } from './pageElements.js';
@@ -8,7 +8,6 @@ import { RepeatingQuestion } from './RepeatingQuestion.js';
 import type { SurveyElement } from './SurveyElement.js';
 
 /** The scope word a column's expressions use for the row they are in. */
-const ROW = 'row';
 
 /**
  * A matrix whose cells are questions.
@@ -37,7 +36,7 @@ export abstract class MatrixCellsBase extends RepeatingQuestion {
   readonly #expanded: Set<string> = new Set();
 
   protected override get scopeName(): string {
-    return ROW;
+    return ROW_SCOPE;
   }
 
   /** The column templates, exactly as authored. Serialization reads these. */

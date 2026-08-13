@@ -1,5 +1,6 @@
-import type { SurveyDefinition } from '@kajay/core';
+import type { MetadataRegistry, SurveyDefinition } from '@kajay/core';
 import { collectNames, nameOf } from './definitionTree.js';
+import { rewriteRenames } from './referenceRewrite.js';
 
 /**
  * Making a copy of part of a survey fit to live beside the original — checklist K5.
@@ -16,8 +17,7 @@ import { collectNames, nameOf } from './definitionTree.js';
  * a copy that fails loudly, because nobody notices until a respondent does.
  */
 
-/** A rename that has been applied to a fragment, old name to new. */
-export type RenameMap = ReadonlyMap<string, string>;
+export type { RenameMap } from './referenceRewrite.js';
 
 /**
  * A copy of `fragment` whose names are free, with its own references rewritten.
@@ -29,6 +29,7 @@ export type RenameMap = ReadonlyMap<string, string>;
 export function freshenFragment(
   fragment: SurveyDefinition,
   taken: ReadonlySet<string>,
+  registry: MetadataRegistry,
 ): { readonly fragment: SurveyDefinition; readonly renames: ReadonlyMap<string, string> } {
   const claimed = new Set(taken);
   const renames = new Map<string, string>();
@@ -46,7 +47,7 @@ export function freshenFragment(
   // The renames come back rather than being thrown away. They are the whole of what a
   // designer needs to hear — their `who` is now `who1`, and they will go looking for
   // `who` — and this is the only moment anything knows it (ADR-0023).
-  return { fragment: rewrite(fragment, renames) as SurveyDefinition, renames };
+  return { fragment: rewriteRenames(fragment, renames, registry), renames };
 }
 
 /**
@@ -91,60 +92,11 @@ export function renameThroughout(
   definition: SurveyDefinition,
   from: string,
   to: string,
+  registry: MetadataRegistry,
 ): SurveyDefinition {
-  return rewrite(definition, new Map([[from, to]])) as SurveyDefinition;
+  return rewriteRenames(definition, new Map([[from, to]]), registry);
 }
 
-function rewrite(value: unknown, renames: RenameMap): unknown {
-  if (typeof value === 'string') {
-    return rewriteReferences(value, renames);
-  }
-  if (Array.isArray(value)) {
-    return value.map((item) => rewrite(item, renames));
-  }
-  if (typeof value !== 'object' || value === null) {
-    return value;
-  }
-  const output: Record<string, unknown> = {};
-  for (const [key, child] of Object.entries(value)) {
-    output[key] = key === 'name' && typeof child === 'string' ? rename(child, renames) : rewrite(child, renames);
-  }
-  return output;
-}
-
-function rename(name: string, renames: RenameMap): string {
-  return renames.get(name) ?? name;
-}
-
-/**
- * Rewrites `{who}` to `{who2}` inside any string.
- *
- * **Every string, not only the ones the registry calls expressions.** `{who}` in a
- * title, in HTML content or in a validator's message is the same reference by the same
- * syntax (B6's text piping), and a rewrite that covered `visibleIf` but not the heading
- * above it would leave a copy that behaved correctly and read wrongly. Braces are the
- * piping syntax, so a `{name}` in a string *is* a reference — there is no literal use of
- * it to protect.
- *
- * The boundary matters: `{who}` must not match inside `{whoever}`, and `{who.city}` and
- * `{who[0]}` must both be rewritten, because a reference can be into a value.
- */
-function rewriteReferences(text: string, renames: RenameMap): string {
-  if (renames.size === 0 || !text.includes('{')) {
-    return text;
-  }
-  let output = text;
-  for (const [from, to] of renames) {
-    output = output.replaceAll(new RegExp(String.raw`\{${escape(from)}(?=[}.[])`, 'gu'), `{${to}`);
-  }
-  return output;
-}
-
-function escape(name: string): string {
-  return name.replaceAll(/[$()*+.?[\\\]^{|}]/gu, String.raw`\$&`);
-}
-
-/** Every name a survey has already spoken for. */
 export function takenNames(definition: SurveyDefinition): ReadonlySet<string> {
   return collectNames(definition);
 }

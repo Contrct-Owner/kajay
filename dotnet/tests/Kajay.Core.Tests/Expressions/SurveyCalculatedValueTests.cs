@@ -33,7 +33,10 @@ public sealed class SurveyCalculatedValueTests
         Assert.True(survey.TryGetValue("total", out KajayValue initialTotal));
         Assert.Equal(KajayValue.Absent, initialTotal);
         Assert.False(survey.Data.ContainsKey("subtotal"));
-        Assert.Equal(KajayValue.Absent, survey.Data["total"]);
+        // A value with no result is in no response — it is recorded and readable, as the
+        // assertion above shows, but nothing has been calculated for a response to carry.
+        // This used to be `{ "total": absent }`, an entry TypeScript has never had.
+        Assert.False(survey.Data.ContainsKey("total"));
 
         survey.SetValue("price", KajayValue.From(20));
 

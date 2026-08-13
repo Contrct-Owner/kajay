@@ -37,12 +37,18 @@ export interface RuntimeMetadataChildCollection {
   readonly property: string;
   readonly elementBaseType: string;
   readonly shorthandProperty: string | null;
+  /** The owner's property whose `[[name]]` markers position these children, or null. */
+  readonly markerProperty: string | null;
 }
 
 export interface RuntimeMetadataClass {
   readonly name: string;
   readonly parent: string | null;
   readonly isAbstract: boolean;
+  /** Whether this type may sit inside a line of prose — checklist C13, ADR-0048. */
+  readonly allowsInline: boolean;
+  /** The word a template's expressions use for the record they are in, or null. */
+  readonly recordScope: string | null;
   /** Properties declared by this class. Inherited properties come from `parent`. */
   readonly declaredProperties: readonly RuntimeMetadataProperty[];
   /** Child collections declared by this class. Inherited collections come from `parent`. */
@@ -100,11 +106,14 @@ export function generateMetadataContract(
         name,
         parent: descriptor.parent ?? null,
         isAbstract: descriptor.isAbstract,
+        allowsInline: descriptor.allowsInline,
+        recordScope: descriptor.recordScope ?? null,
         declaredProperties: descriptor.properties.map(metadataProperty),
         declaredChildCollections: descriptor.childCollections.map((collection) => ({
           property: collection.property,
           elementBaseType: collection.elementBaseType,
           shorthandProperty: collection.shorthandProperty ?? null,
+          markerProperty: collection.markerProperty ?? null,
         })),
       };
     }),

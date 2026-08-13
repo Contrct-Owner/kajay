@@ -222,6 +222,7 @@ internal sealed class DefinitionRegistry
             name,
             parent,
             element.GetProperty("isAbstract").GetBoolean(),
+            element.GetProperty("allowsInline").GetBoolean(),
             properties,
             collections);
     }

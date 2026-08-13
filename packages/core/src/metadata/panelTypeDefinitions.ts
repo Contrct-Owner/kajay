@@ -1,3 +1,4 @@
+import { PANEL_SCOPE } from '../expressions/recordScopes.js';
 import type { ClassMetadataDefinition } from './ClassDescriptor.js';
 
 interface PanelTypeDefinitions {
@@ -17,6 +18,7 @@ interface PanelTypeDefinitions {
 export const PANEL_TYPE_DEFINITIONS: PanelTypeDefinitions = {
   panelDynamic: {
     name: 'paneldynamic',
+    recordScope: PANEL_SCOPE,
     parent: 'question',
     properties: [
       {

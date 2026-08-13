@@ -1,7 +1,7 @@
 import { MultiSelectQuestion, SelectQuestion } from '@kajay/core';
-import type { ItemValue } from '@kajay/core';
 import type { ReactElement } from 'react';
 import { ChoiceFilterField } from './ChoiceFilterField.js';
+import { applySelection, ChoiceOptions, currentSelection } from './choiceOptions.js';
 import { MoreChoices } from './MoreChoices.js';
 import { readOnlyControl } from './readOnly.js';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
@@ -11,12 +11,6 @@ import { useSurveyValue } from './useSurveyState.js';
 import { questionId } from './questionId.js';
 import { useIdScope } from './idScope.js';
 
-function currentSelection(question: SelectQuestion): string | string[] {
-  return question instanceof MultiSelectQuestion
-    ? question.selectedValues.map(String)
-    : String(question.value ?? '');
-}
-
 interface ChoiceOptionsProps {
   readonly question: SelectQuestion;
   readonly inputId: string;
@@ -24,7 +18,7 @@ interface ChoiceOptionsProps {
 }
 
 /** The list itself. Its own component so the renderer around it stays readable. */
-function ChoiceOptions({ question, inputId, errorId }: ChoiceOptionsProps): ReactElement {
+function ChoiceSelect({ question, inputId, errorId }: ChoiceOptionsProps): ReactElement {
   const isMultiple = question instanceof MultiSelectQuestion;
   return (
     <select
@@ -42,38 +36,13 @@ function ChoiceOptions({ question, inputId, errorId }: ChoiceOptionsProps): Reac
       }}
       {...readOnlyControl(question.isReadOnly)}
     >
-      {isMultiple || question.isReadOnly ? null : (
-        <option value="">{question.placeholder}</option>
-      )}
       {/* Read-only offers only what was chosen. A native `<select>` has no readonly
           state to set, and a list with one entry is genuinely unchangeable rather than
           merely refusing — while staying focusable and announced, which `disabled`
           would not. */}
-      {optionsFor(question).map((choice) => (
-        <option key={String(choice.value)} value={String(choice.value)}>
-          {choice.text}
-        </option>
-      ))}
+      <ChoiceOptions question={question} />
     </select>
   );
-}
-
-/** Every choice while answering; only the chosen ones while reading. */
-function optionsFor(question: SelectQuestion): readonly ItemValue[] {
-  if (!question.isReadOnly) {
-    return question.visibleChoices;
-  }
-  return question.visibleChoices.filter((choice) => question.isSelected(choice.value));
-}
-
-function applySelection(question: SelectQuestion, target: HTMLSelectElement): void {
-  const selected = [...target.selectedOptions].flatMap((option) => {
-    const choice = question.visibleChoices.find(
-      (candidate) => String(candidate.value) === option.value,
-    );
-    return choice === undefined ? [] : [choice.value];
-  });
-  question.applySelection(selected);
 }
 
 /**
@@ -111,7 +80,7 @@ export function CollapsedSelectRenderer({
       </label>
       <QuestionErrors survey={survey} question={question} at="top" id={errorId} />
       {question.isPaged ? <ChoiceFilterField question={question} id={`${inputId}-filter`} /> : null}
-      <ChoiceOptions question={question} inputId={inputId} errorId={errorId} />
+      <ChoiceSelect question={question} inputId={inputId} errorId={errorId} />
       <MoreChoices question={question} />
       <QuestionErrors survey={survey} question={question} at="bottom" id={errorId} />
     </div>

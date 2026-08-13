@@ -25,6 +25,21 @@ export interface ChildCollectionDescriptor {
    * the round-trip bar is a fixed point rather than byte stability.
    */
   readonly shorthandProperty?: string;
+  /**
+   * The owner's property whose `[[name]]` markers position these children — ADR-0048.
+   *
+   * `template` for a sentence's blanks, and nothing at all for every other collection: a
+   * choice list has an order, a blanks list has *places in prose*. One fact, because a
+   * collection positioned this way says four things at once — the children have to be
+   * drawable in a line, a new one has to be given a place or nobody sees it, a removed
+   * one's marker has to go with it, and a renamed one's marker has to follow. All four
+   * used to be nobody's, so ordinary editing produced definitions the parser rejects.
+   *
+   * Declared rather than derived from the type name, so the Creator asks the registry the
+   * question instead of asking "is this the blanks of a fill-in-the-blank" — which is the
+   * per-type knowledge the collection editor exists not to hold.
+   */
+  readonly markerProperty?: string;
 }
 
 /** Input form of a class registration. */
@@ -43,6 +58,32 @@ export interface ClassDefinition {
   readonly childCollections?: readonly ChildCollectionDescriptor[];
   /** Abstract classes contribute inherited properties but cannot be instantiated. */
   readonly isAbstract?: boolean;
+  /**
+   * Whether this type may sit *inside* a line of prose — checklist C13, ADR-0048.
+   *
+   * Declared here rather than kept in a list somewhere, so a host's own type can opt in
+   * and so the answer comes from the registry the day a type is added rather than from
+   * whoever remembered to update the list. Core owns it because the definition
+   * diagnostics and both runtimes read it, and none of them may touch a DOM.
+   *
+   * Off by default, deliberately: a type that has never considered the question cannot
+   * be drawn in a sentence, and refusing it is the safe answer.
+   */
+  readonly allowsInline?: boolean;
+  /**
+   * The word a template's expressions use for the record they are in — `row`, `panel`.
+   *
+   * Only a repeating type has one, and it is the author's word for "this one": a matrix
+   * column's `visibleIf` says `{row.size}`, meaning the row being drawn rather than the
+   * column of that name. Declared from the model's own constant, so there is one `row` in
+   * the codebase rather than one per reader of it.
+   *
+   * Here because an authoring tool cannot infer it and must not guess: renaming a column
+   * has to carry `{row.size}` with it, and rewriting every `.size` in every expression
+   * instead would corrupt `{$profile.size}` — a host value that has nothing to do with
+   * the rename.
+   */
+  readonly recordScope?: string;
   readonly create?: () => SurveyElement;
 }
 
@@ -59,5 +100,9 @@ export interface ClassDescriptor {
   readonly properties: readonly PropertyDescriptor[];
   readonly childCollections: readonly ChildCollectionDescriptor[];
   readonly isAbstract: boolean;
+  /** Whether this type may sit inside a line of prose. See {@link ClassDefinition}. */
+  readonly allowsInline: boolean;
+  /** The word a template's expressions use for the record they are in, if it repeats. */
+  readonly recordScope?: string;
   readonly create: (() => SurveyElement) | undefined;
 }

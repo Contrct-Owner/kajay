@@ -78,12 +78,32 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
         description:
           'The answer that scores. A question without one is not part of the quiz. Never shown.',
       },
+      {
+        name: 'trim',
+        type: 'boolean',
+        defaultValue: true,
+        // Marking options, so they are offered only once there is marking to configure —
+        // L3's rule. Shown always, they would be two questions about grading on every
+        // question that is not graded.
+        visibleIf: '{correctAnswer} notempty',
+        description: 'Ignore surrounding whitespace when marking by text.',
+      },
+      {
+        name: 'caseSensitive',
+        type: 'boolean',
+        visibleIf: '{correctAnswer} notempty',
+        description:
+          'Require matching case when marking by text. Off by default: an assessment '
+          + 'marking "paris" wrong is measuring typing rather than the subject.',
+      },
     ],
     childCollections: [{ property: 'validators', elementBaseType: 'validator' }],
   },
   text: {
     name: 'text',
     parent: 'question',
+    // One control on one line: the case the whole feature is named after.
+    allowsInline: true,
     properties: [
       {
         name: 'inputType',
@@ -135,6 +155,7 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
   boolean: {
     name: 'boolean',
     parent: 'question',
+    allowsInline: true,
     properties: [
       { name: 'labelTrue', type: 'string',
         isLocalizable: true, defaultValue: 'Yes' },
@@ -158,6 +179,7 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
   rating: {
     name: 'rating',
     parent: 'question',
+    allowsInline: true,
     properties: [
       { name: 'rateMin', type: 'number', defaultValue: 1 },
       { name: 'rateMax', type: 'number', defaultValue: 5 },
@@ -184,6 +206,9 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
   expression: {
     name: 'expression',
     parent: 'question',
+    // Read-only and computed, so a sentence can state a total mid-clause. Its rule is
+    // registered with the graph like any other blank's — see `registerBlankRules`.
+    allowsInline: true,
     properties: [
       {
         name: 'expression',

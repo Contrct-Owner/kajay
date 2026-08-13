@@ -30,6 +30,18 @@ public sealed partial class Survey
         return _conditions.IsPageVisible(pageIndex);
     }
 
+    /// <summary>Builds a blank, bound inside the sentence that positions it.</summary>
+    internal SurveyQuestion CreateBlankQuestion(
+        SurveyFillInTheBlankQuestion owner,
+        SurveyRuntimeQuestion definition)
+    {
+        SurveyQuestion blank = CreateQuestion(definition);
+        blank.AttachValueScope(
+            name => owner.GetBlankValue(name),
+            (name, value) => owner.SetBlankValue(name, value));
+        return blank;
+    }
+
     private SurveyQuestion CreateQuestion(SurveyRuntimeQuestion definition)
     {
         if (_definition.Registry.TryGetQuestionFactory(
@@ -58,9 +70,18 @@ public sealed partial class Survey
                 or "tagbox" => new SurveyChoiceQuestion(this, definition),
             "matrix" or "matrixcells" => new SurveyMatrixQuestion(this, definition),
             "matrixdynamic" or "paneldynamic" => new SurveyRecordQuestion(this, definition),
+            "fillintheblank" => new SurveyFillInTheBlankQuestion(this, definition),
             "file" => new SurveyFileQuestion(this, definition),
             "signaturepad" => new SurveySignatureQuestion(this, definition),
             _ => new SurveyScalarQuestion(this, definition),
         };
+    }
+
+    /// <summary>Scores one question through the type that knows what right means.</summary>
+    /// <param name="name">The exact question name.</param>
+    /// <returns>Earned and possible marks, or nothing when no such question exists.</returns>
+    internal AnswerScore ScoreQuestion(string name)
+    {
+        return GetQuestion(name)?.ScoreAnswer() ?? default;
     }
 }

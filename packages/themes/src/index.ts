@@ -19,6 +19,17 @@ export type PanelMode = 'panels' | 'panelless';
 /** Overall scale. Three named sizes rather than a number, because they are a decision. */
 export type ThemeSize = 'compact' | 'regular' | 'roomy';
 
+/**
+ * Which way round a theme's colours run — checklist I2.
+ *
+ * Declared rather than guessed from the palette, and it buys the parts of a control **no
+ * stylesheet can reach**: the list a `<select>` opens, the tick inside a checkbox, the
+ * scrollbars, the date picker. A dark survey that never said so got a white popup full of
+ * pale text, which reads as a bug in the theme and is in fact the browser being told
+ * nothing at all.
+ */
+export type ThemeColorScheme = 'light' | 'dark';
+
 /** The colours a theme names. Everything else is derived or left to CSS. */
 export interface ThemePalette {
   readonly surface?: string;
@@ -52,6 +63,8 @@ export interface Theme {
   readonly palette?: ThemePalette;
   readonly panelMode?: PanelMode;
   readonly size?: ThemeSize;
+  /** Which way round the colours run, for the parts of a control the browser draws. */
+  readonly colorScheme?: ThemeColorScheme;
   /** Corner radius, as a CSS length. */
   readonly cornerRadius?: string;
   readonly fontFamily?: string;
@@ -103,6 +116,12 @@ export function themeVariables(theme: Theme): Readonly<Record<string, string>> {
   if (theme.size !== undefined) {
     variables['--kajay-spacing'] = SPACING[theme.size];
   }
+  if (theme.colorScheme !== undefined) {
+    // A variable rather than a rule, because a theme *is* a variable map: the stylesheet
+    // spends it as `color-scheme`, and a host writing CSS instead of JSON sets the same
+    // name. Nothing else in the format needed a new mechanism for this.
+    variables['--kajay-color-scheme'] = theme.colorScheme;
+  }
   if (theme.cornerRadius !== undefined) {
     variables['--kajay-radius'] = theme.cornerRadius;
   }
@@ -140,6 +159,7 @@ export const lightTheme: Theme = {
   panelMode: 'panels',
   size: 'regular',
   cornerRadius: '8px',
+  colorScheme: 'light',
 };
 
 export const darkTheme: Theme = {
@@ -157,6 +177,7 @@ export const darkTheme: Theme = {
   panelMode: 'panels',
   size: 'regular',
   cornerRadius: '8px',
+  colorScheme: 'dark',
 };
 
 /**

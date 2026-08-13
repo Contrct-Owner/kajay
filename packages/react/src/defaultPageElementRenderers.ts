@@ -9,6 +9,8 @@ import { ImagePickerRenderer } from './ImagePickerRenderer.js';
 import { MatrixCellsRenderer } from './MatrixCellsRenderer.js';
 import { MatrixDynamicRenderer } from './MatrixDynamicRenderer.js';
 import { MatrixQuestionRenderer } from './MatrixQuestionRenderer.js';
+import { FillInTheBlankQuestionRenderer } from './FillInTheBlankQuestionRenderer.js';
+import { registerInlineQuestionRenderers } from './inlineQuestionRenderers.js';
 import { MultipleTextQuestionRenderer } from './MultipleTextQuestionRenderer.js';
 import { PageElementRendererRegistry } from './PageElementRendererRegistry.js';
 import type { ReadonlyPageElementRendererRegistry } from './PageElementRendererRegistry.js';
@@ -27,6 +29,10 @@ function createDefaultRenderers(): ReadonlyPageElementRendererRegistry {
   registry.registerQuestion('boolean', BooleanQuestionRenderer);
   registry.registerQuestion('rating', RatingQuestionRenderer);
   registry.registerQuestion('expression', ExpressionQuestionRenderer);
+  // Registered as a page element rather than through `registerQuestion`, because it is the
+  // one renderer that draws *other* questions and so needs the resolver.
+  registry.register('fillintheblank', FillInTheBlankQuestionRenderer);
+  registerInlineQuestionRenderers(registry);
   registry.registerQuestion('multipletext', MultipleTextQuestionRenderer);
   registry.registerQuestion('radiogroup', SelectQuestionRenderer);
   registry.registerQuestion('checkbox', SelectQuestionRenderer);

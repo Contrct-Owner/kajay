@@ -37,6 +37,40 @@ public sealed class SurveyChoiceQuestion : SurveyQuestion
     /// <summary>Gets whether the response is an ordered array rather than one scalar.</summary>
     public bool AllowsMultiple => Type is "checkbox" or "tagbox" or "ranking";
 
+    /// <summary>Gets the marks this answer earns, choice by choice where it is a set.</summary>
+    /// <returns>Earned and possible marks for this question.</returns>
+    /// <remarks>
+    /// <para>
+    /// Checkbox and tagbox only, deliberately — not every question <see cref="AllowsMultiple"/>
+    /// is true for. A ranking's answer is an ordered array whose *order* is the response, so
+    /// a mark per member would score a respondent who listed the right items backwards as
+    /// entirely correct. It keeps the whole-answer comparison, which is also what the
+    /// TypeScript runtime does: `RankingQuestion` extends the select base rather than the
+    /// multi-select one.
+    /// </para>
+    /// <para>
+    /// A lone expected value is read as a list of one rather than falling through to the
+    /// base comparison, which would measure an array against a scalar and mark every
+    /// respondent wrong.
+    /// </para>
+    /// </remarks>
+    internal override AnswerScore ScoreAnswer()
+    {
+        if (Type is not ("checkbox" or "tagbox"))
+        {
+            return base.ScoreAnswer();
+        }
+
+        KajayValue expected = Definition.CorrectAnswer;
+        IReadOnlyList<KajayValue> wanted = expected.Kind == KajayValueKind.Array
+            ? expected.GetArray()
+            : [expected];
+        IReadOnlyList<KajayValue> selected = Value.Kind == KajayValueKind.Array
+            ? Value.GetArray()
+            : [];
+        return AnswerScore.Selection(selected, wanted);
+    }
+
     /// <summary>Reports whether the current response contains an authored choice.</summary>
     /// <param name="choice">A value matched with Kajay equality.</param>
     /// <returns>True when selected.</returns>

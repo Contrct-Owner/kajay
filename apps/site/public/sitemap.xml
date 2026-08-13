@@ -206,6 +206,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://kajay.io/docs/reference/definition-types/fillintheblank</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://kajay.io/docs/reference/definition-types/html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -447,6 +452,16 @@
   </url>
   <url>
     <loc>https://kajay.io/docs/reference/properties/background-color</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/properties/blank-size</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/properties/case-sensitive</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -1081,6 +1096,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://kajay.io/docs/reference/properties/template</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://kajay.io/docs/reference/properties/text</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -1097,6 +1117,11 @@
   </url>
   <url>
     <loc>https://kajay.io/docs/reference/properties/title-location</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/properties/trim</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -1172,6 +1197,26 @@
   </url>
   <url>
     <loc>https://kajay.io/docs/reference/diagnostics#definition-undeclared-host-value</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/diagnostics#definition-undeclared-blank</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/diagnostics#definition-unpositioned-blank</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/diagnostics#definition-non-inline-blank</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/diagnostics#definition-locale-blank-mismatch</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -1891,6 +1936,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://kajay.io/docs/reference/api/core/fill-in-the-blank-question</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://kajay.io/docs/reference/api/core/function-registry</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -2072,6 +2122,11 @@
   </url>
   <url>
     <loc>https://kajay.io/docs/reference/api/core/panel-state</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/api/core/parse-blank-template</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -2407,6 +2462,11 @@
   </url>
   <url>
     <loc>https://kajay.io/docs/reference/api/core/tagbox-question</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/api/core/template-segment</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -3666,6 +3726,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://kajay.io/docs/reference/api/themes/theme-color-scheme</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://kajay.io/docs/reference/api/themes/theme-palette</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -3692,6 +3757,21 @@
   </url>
   <url>
     <loc>https://kajay.io/docs/reference/api/kajay-core/async-survey-question-validator</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/api/kajay-core/blank-segment</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/api/kajay-core/blank-segment-kind</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/api/kajay-core/blank-template</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -3917,6 +3997,11 @@
   </url>
   <url>
     <loc>https://kajay.io/docs/reference/api/kajay-core/survey-file-uploader</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/api/kajay-core/survey-fill-in-the-blank-question</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

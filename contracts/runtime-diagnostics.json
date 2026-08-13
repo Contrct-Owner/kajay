@@ -42,6 +42,26 @@
       "description": "An expression reads a host value the host did not supply."
     },
     {
+      "code": "undeclared-blank",
+      "severity": "error",
+      "description": "A fill-in-the-blank template positions a blank its question does not declare."
+    },
+    {
+      "code": "unpositioned-blank",
+      "severity": "warning",
+      "description": "A fill-in-the-blank question declares a blank its template never positions."
+    },
+    {
+      "code": "non-inline-blank",
+      "severity": "error",
+      "description": "A fill-in-the-blank positions a blank whose type cannot sit inline."
+    },
+    {
+      "code": "locale-blank-mismatch",
+      "severity": "error",
+      "description": "A translated fill-in-the-blank template names a different set of blanks."
+    },
+    {
       "code": "reserved-name-sigil",
       "severity": "error",
       "description": "An element name starts with the sigil reserved for the host-value scope."

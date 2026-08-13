@@ -1,6 +1,7 @@
 import type { ClassMetadataDefinition } from './ClassDescriptor.js';
 import { CORE_TYPE_DEFINITIONS } from './coreTypeDefinitions.js';
 import { DISPLAY_TYPE_DEFINITIONS } from './displayTypeDefinitions.js';
+import { FILL_IN_THE_BLANK_TYPE_DEFINITIONS } from './fillInTheBlankTypeDefinitions.js';
 import { MATRIX_TYPE_DEFINITIONS } from './matrixTypeDefinitions.js';
 import { MEDIA_TYPE_DEFINITIONS } from './mediaTypeDefinitions.js';
 import { PANEL_TYPE_DEFINITIONS } from './panelTypeDefinitions.js';
@@ -23,6 +24,7 @@ export const BUILT_IN_TYPE_DEFINITIONS: readonly ClassMetadataDefinition[] = [
   ...Object.values(QUESTION_TYPE_DEFINITIONS),
   ...Object.values(SELECT_TYPE_DEFINITIONS),
   ...Object.values(MATRIX_TYPE_DEFINITIONS),
+  ...Object.values(FILL_IN_THE_BLANK_TYPE_DEFINITIONS),
   ...Object.values(PANEL_TYPE_DEFINITIONS),
   ...Object.values(MEDIA_TYPE_DEFINITIONS),
   ...Object.values(DISPLAY_TYPE_DEFINITIONS),

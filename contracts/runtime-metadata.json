@@ -14,6 +14,8 @@
       "name": "answercountvalidator",
       "parent": "validator",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "minCount",
@@ -44,6 +46,8 @@
       "name": "boolean",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": true,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "labelTrue",
@@ -107,6 +111,8 @@
       "name": "calculatedvalue",
       "parent": null,
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "name",
@@ -148,6 +154,8 @@
       "name": "checkbox",
       "parent": "multiselectbase",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -155,6 +163,8 @@
       "name": "comment",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "placeholder",
@@ -218,6 +228,8 @@
       "name": "complete",
       "parent": "trigger",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -225,6 +237,8 @@
       "name": "copyvalue",
       "parent": "trigger",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "setToName",
@@ -255,6 +269,8 @@
       "name": "displayelement",
       "parent": "pageelement",
       "isAbstract": true,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -262,6 +278,8 @@
       "name": "dropdown",
       "parent": "selectbase",
       "isAbstract": false,
+      "allowsInline": true,
+      "recordScope": null,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -269,6 +287,8 @@
       "name": "emailvalidator",
       "parent": "validator",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -276,6 +296,8 @@
       "name": "expression",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": true,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "expression",
@@ -339,6 +361,8 @@
       "name": "expressionvalidator",
       "parent": "validator",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "expression",
@@ -358,6 +382,8 @@
       "name": "file",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "allowMultiple",
@@ -440,9 +466,50 @@
       "declaredChildCollections": []
     },
     {
+      "name": "fillintheblank",
+      "parent": "question",
+      "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
+      "declaredProperties": [
+        {
+          "name": "template",
+          "type": "string",
+          "defaultValue": "",
+          "isRequired": true,
+          "isExpression": false,
+          "isLocalizable": true,
+          "visibleIf": null,
+          "readOnlyIf": null,
+          "description": "Prose with [[name]] marking each blank. Translators may move a marker."
+        },
+        {
+          "name": "blankSize",
+          "type": "number",
+          "defaultValue": 0,
+          "isRequired": false,
+          "isExpression": false,
+          "isLocalizable": false,
+          "visibleIf": null,
+          "readOnlyIf": null,
+          "description": "Default blank width in characters. A blank size wins."
+        }
+      ],
+      "declaredChildCollections": [
+        {
+          "property": "blanks",
+          "elementBaseType": "question",
+          "shorthandProperty": null,
+          "markerProperty": "template"
+        }
+      ]
+    },
+    {
       "name": "html",
       "parent": "displayelement",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "html",
@@ -462,6 +529,8 @@
       "name": "htmlcondition",
       "parent": null,
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "expression",
@@ -492,6 +561,8 @@
       "name": "image",
       "parent": "displayelement",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "imageLink",
@@ -566,6 +637,8 @@
       "name": "imagepicker",
       "parent": "multiselectbase",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "multiSelect",
@@ -640,6 +713,8 @@
       "name": "itemvalue",
       "parent": null,
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "value",
@@ -692,6 +767,8 @@
       "name": "matrix",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "isAllRowRequired",
@@ -742,12 +819,14 @@
         {
           "property": "columns",
           "elementBaseType": "itemvalue",
-          "shorthandProperty": "value"
+          "shorthandProperty": "value",
+          "markerProperty": null
         },
         {
           "property": "rows",
           "elementBaseType": "itemvalue",
-          "shorthandProperty": "value"
+          "shorthandProperty": "value",
+          "markerProperty": null
         }
       ]
     },
@@ -755,6 +834,8 @@
       "name": "matrixcells",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": "row",
       "declaredProperties": [
         {
           "name": "detailPanelMode",
@@ -783,22 +864,26 @@
         {
           "property": "columns",
           "elementBaseType": "question",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         },
         {
           "property": "rows",
           "elementBaseType": "itemvalue",
-          "shorthandProperty": "value"
+          "shorthandProperty": "value",
+          "markerProperty": null
         },
         {
           "property": "detailElements",
           "elementBaseType": "question",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         },
         {
           "property": "totals",
           "elementBaseType": "matrixtotal",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -806,6 +891,8 @@
       "name": "matrixdynamic",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": "row",
       "declaredProperties": [
         {
           "name": "minRowCount",
@@ -955,17 +1042,20 @@
         {
           "property": "columns",
           "elementBaseType": "question",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         },
         {
           "property": "detailElements",
           "elementBaseType": "question",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         },
         {
           "property": "totals",
           "elementBaseType": "matrixtotal",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -973,6 +1063,8 @@
       "name": "matrixtotal",
       "parent": null,
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "column",
@@ -1036,6 +1128,8 @@
       "name": "multipletext",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "itemSize",
@@ -1064,7 +1158,8 @@
         {
           "property": "items",
           "elementBaseType": "multipletextitem",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -1072,6 +1167,8 @@
       "name": "multipletextitem",
       "parent": null,
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "name",
@@ -1177,7 +1274,8 @@
         {
           "property": "validators",
           "elementBaseType": "validator",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -1185,6 +1283,8 @@
       "name": "multiselectbase",
       "parent": "selectbase",
       "isAbstract": true,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "showSelectAllItem",
@@ -1226,6 +1326,8 @@
       "name": "numericvalidator",
       "parent": "validator",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "minValue",
@@ -1256,6 +1358,8 @@
       "name": "page",
       "parent": null,
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "name",
@@ -1317,7 +1421,8 @@
         {
           "property": "elements",
           "elementBaseType": "pageelement",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -1325,6 +1430,8 @@
       "name": "pageelement",
       "parent": null,
       "isAbstract": true,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "name",
@@ -1421,6 +1528,8 @@
       "name": "panel",
       "parent": "pageelement",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "description",
@@ -1460,7 +1569,8 @@
         {
           "property": "elements",
           "elementBaseType": "pageelement",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -1468,6 +1578,8 @@
       "name": "paneldynamic",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": "panel",
       "declaredProperties": [
         {
           "name": "minPanelCount",
@@ -1595,7 +1707,8 @@
         {
           "property": "templateElements",
           "elementBaseType": "pageelement",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -1603,6 +1716,8 @@
       "name": "question",
       "parent": "pageelement",
       "isAbstract": true,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "isRequired",
@@ -1713,13 +1828,36 @@
           "visibleIf": null,
           "readOnlyIf": null,
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
+        {
+          "name": "trim",
+          "type": "boolean",
+          "defaultValue": true,
+          "isRequired": false,
+          "isExpression": false,
+          "isLocalizable": false,
+          "visibleIf": "{correctAnswer} notempty",
+          "readOnlyIf": null,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        {
+          "name": "caseSensitive",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "isExpression": false,
+          "isLocalizable": false,
+          "visibleIf": "{correctAnswer} notempty",
+          "readOnlyIf": null,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
         }
       ],
       "declaredChildCollections": [
         {
           "property": "validators",
           "elementBaseType": "validator",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -1727,6 +1865,8 @@
       "name": "radiogroup",
       "parent": "selectbase",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "showClearButton",
@@ -1746,6 +1886,8 @@
       "name": "ranking",
       "parent": "selectbase",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "selectToRankEnabled",
@@ -1787,6 +1929,8 @@
       "name": "rating",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": true,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "rateMin",
@@ -1870,7 +2014,8 @@
         {
           "property": "rateValues",
           "elementBaseType": "itemvalue",
-          "shorthandProperty": "value"
+          "shorthandProperty": "value",
+          "markerProperty": null
         }
       ]
     },
@@ -1878,6 +2023,8 @@
       "name": "regexvalidator",
       "parent": "validator",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "regex",
@@ -1897,6 +2044,8 @@
       "name": "runexpression",
       "parent": "trigger",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "setToName",
@@ -1927,6 +2076,8 @@
       "name": "selectbase",
       "parent": "question",
       "isAbstract": true,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "choicesOrder",
@@ -2109,7 +2260,8 @@
         {
           "property": "choices",
           "elementBaseType": "itemvalue",
-          "shorthandProperty": "value"
+          "shorthandProperty": "value",
+          "markerProperty": null
         }
       ]
     },
@@ -2117,6 +2269,8 @@
       "name": "setvalue",
       "parent": "trigger",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "setToName",
@@ -2147,6 +2301,8 @@
       "name": "signaturepad",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "penColor",
@@ -2210,6 +2366,8 @@
       "name": "skip",
       "parent": "trigger",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "gotoName",
@@ -2229,6 +2387,8 @@
       "name": "survey",
       "parent": null,
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "title",
@@ -2488,22 +2648,26 @@
         {
           "property": "pages",
           "elementBaseType": "page",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         },
         {
           "property": "calculatedValues",
           "elementBaseType": "calculatedvalue",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         },
         {
           "property": "triggers",
           "elementBaseType": "trigger",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         },
         {
           "property": "completedHtmlOnCondition",
           "elementBaseType": "htmlcondition",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -2511,6 +2675,8 @@
       "name": "tagbox",
       "parent": "multiselectbase",
       "isAbstract": false,
+      "allowsInline": true,
+      "recordScope": null,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -2518,6 +2684,8 @@
       "name": "text",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": true,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "inputType",
@@ -2581,6 +2749,8 @@
       "name": "textvalidator",
       "parent": "validator",
       "isAbstract": false,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "minLength",
@@ -2622,6 +2792,8 @@
       "name": "trigger",
       "parent": null,
       "isAbstract": true,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "expression",
@@ -2641,6 +2813,8 @@
       "name": "validator",
       "parent": null,
       "isAbstract": true,
+      "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "text",

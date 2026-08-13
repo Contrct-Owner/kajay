@@ -22,7 +22,7 @@ export function toMatrixLayout(value: string): MatrixLayout {
 }
 
 /** The scope name a column's own conditions use to talk about the row they are in. */
-export const ROW_SCOPE = 'row';
+export { ROW_SCOPE } from '../expressions/recordScopes.js';
 
 /** What a matrix needs from outside itself to build cells. */
 export interface CellAttachment {

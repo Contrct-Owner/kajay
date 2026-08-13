@@ -2,6 +2,90 @@
   "contractVersion": 2,
   "cases": [
     {
+      "id": "a-fill-in-the-blank-template-round-trips-with-its-markers",
+      "input": {
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "fillintheblank",
+                "name": "geography",
+                "template": "The capital of France is [[capital]].",
+                "blanks": [
+                  { "type": "text", "name": "capital", "title": "Capital city", "correctAnswer": "Paris" }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": {
+        "schemaVersion": 1,
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "fillintheblank",
+                "name": "geography",
+                "template": "The capital of France is [[capital]].",
+                "blanks": [
+                  { "type": "text", "name": "capital", "title": "Capital city", "correctAnswer": "Paris" }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "diagnostics": []
+    },
+    {
+      "id": "a-translation-may-move-a-blank-but-not-rename-one",
+      "input": {
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "fillintheblank",
+                "name": "geography",
+                "template": {
+                  "default": "The capital is [[capital]]",
+                  "de": "[[capital]] ist die Hauptstadt",
+                  "fr": "La capitale est [[capitale]]"
+                },
+                "blanks": [{ "type": "text", "name": "capital" }]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": {
+        "schemaVersion": 1,
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "fillintheblank",
+                "name": "geography",
+                "template": {
+                  "default": "The capital is [[capital]]",
+                  "de": "[[capital]] ist die Hauptstadt",
+                  "fr": "La capitale est [[capitale]]"
+                },
+                "blanks": [{ "type": "text", "name": "capital" }]
+              }
+            ]
+          }
+        ]
+      },
+      "diagnostics": [
+        { "code": "locale-blank-mismatch", "path": "/geography", "severity": "error" }
+      ]
+    },
+    {
       "id": "element-named-into-the-host-scope-is-reported-and-kept",
       "input": {
         "pages": [

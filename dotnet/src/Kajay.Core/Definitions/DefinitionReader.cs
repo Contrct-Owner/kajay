@@ -57,6 +57,7 @@ internal static class DefinitionReader
             output[propertyName] = value?.DeepClone();
         }
 
+        BlankDiagnostics.Validate(className, output, registry, diagnostics);
         return output;
     }
 

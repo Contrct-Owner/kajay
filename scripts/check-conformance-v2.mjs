@@ -34,6 +34,8 @@ const implementedExpressionIds = [
 ];
 
 const implementedDefinitionIds = [
+  'a-fill-in-the-blank-template-round-trips-with-its-markers',
+  'a-translation-may-move-a-blank-but-not-rename-one',
   'element-named-into-the-host-scope-is-reported-and-kept',
   'unsupported-pattern-is-preserved-and-reported',
   'malformed-pattern-is-preserved-and-reported',
@@ -46,7 +48,10 @@ const implementedScenarioIds = [
   'pattern-searches-unless-anchored',
   'pattern-classes-and-dot-use-defined-scalars',
   'invalid-pattern-is-an-author-error-not-a-respondent-rule',
+  'a-multi-select-is-scored-choice-by-choice',
   'survey-scenario-observes-quiz-score',
+  'an-expression-question-is-a-value-in-the-response',
+  'a-computed-gap-fills-in-inside-its-sentence-and-feeds-a-total',
 ];
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));

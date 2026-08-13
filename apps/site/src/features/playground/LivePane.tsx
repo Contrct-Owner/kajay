@@ -1,10 +1,20 @@
 import type { Survey as SurveyModel } from '@kajay/core';
 import type { CreatorWorkspace } from '@kajay/creator-core';
 import { Survey } from '@kajay/react';
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useState, useSyncExternalStore } from 'react';
 import type { ReactElement } from 'react';
 import { Button } from '@/components/ui/button';
 import { KAJAY_SURVEY_COMPONENTS } from '@/kajay/surveyComponents';
+import { ModeSwitch } from './ModeSwitch';
+import type { SwitchMode } from './ModeSwitch';
+
+/** The form a respondent fills in, and the response it produces. */
+type LiveView = 'answer' | 'json';
+
+const LIVE_VIEWS: readonly SwitchMode<LiveView>[] = [
+  { value: 'answer', label: 'Answer', testId: 'live-mode-answer' },
+  { value: 'json', label: 'JSON', testId: 'live-mode-json' },
+];
 
 /**
  * A real Survey over the Creator preview session. The preview owns an independent model,
@@ -19,6 +29,7 @@ export function LivePane({
   readonly onRestart: () => void;
 }): ReactElement {
   const session = workspace.preview;
+  const [view, setView] = useState<LiveView>('answer');
 
   return (
     <section className="flex min-w-0 flex-col gap-3" aria-label="Live survey">
@@ -28,23 +39,73 @@ export function LivePane({
           <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
             Live — answer it as a respondent would
           </p>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="ml-auto"
-            data-testid="live-restart"
-            onClick={onRestart}
-          >
-            Restart
-          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            <ModeSwitch
+              label="Response view"
+              modes={LIVE_VIEWS}
+              mode={view}
+              onModeChange={setView}
+            />
+            <Button size="sm" variant="ghost" data-testid="live-restart" onClick={onRestart}>
+              Restart
+            </Button>
+          </div>
         </div>
         <ChoiceProblems survey={session.survey} />
-        <div className="min-w-0 p-5" data-testid="live-survey">
+        {/* Both are mounted, and only one is shown. The answers live in the model rather
+            than in the DOM, so unmounting would not lose them — but a half-typed field
+            would lose its caret, its selection and its scroll position, which is exactly
+            what somebody switching over to check the JSON is in the middle of. */}
+        <div className={view === 'answer' ? 'min-w-0 p-5' : 'hidden'} data-testid="live-survey">
           <Survey key={session.run} model={session.survey} components={KAJAY_SURVEY_COMPONENTS} />
         </div>
+        {view === 'json' ? <ResponseJson survey={session.survey} /> : null}
       </div>
     </section>
   );
+}
+
+/**
+ * The response as a host would receive it — checklist P3.
+ *
+ * The definition has had a JSON view since the playground existed; the *answer* had none,
+ * so the one thing a visitor is actually building towards — what my application gets when
+ * somebody fills this in — was the one thing they could not see.
+ *
+ * `data` rather than the durable snapshot: this is the shape a host posts to its own
+ * backend, and a nested blank or a matrix row reads here exactly as it would there. It is
+ * read-only, because an answer is something a respondent gives rather than something a
+ * visitor writes — the survey beside it is the way to change it.
+ */
+function ResponseJson({ survey }: { readonly survey: SurveyModel }): ReactElement {
+  const json = useResponseJson(survey);
+  return (
+    <div className="min-w-0 p-5">
+      <pre
+        className="border-border bg-muted/35 min-w-0 overflow-x-auto rounded-lg border p-4 text-sm leading-6"
+        data-testid="live-response-json"
+      >
+        <code>{json}</code>
+      </pre>
+    </div>
+  );
+}
+
+/**
+ * The response, re-read whenever an answer moves.
+ *
+ * **The snapshot is the JSON text**, not `survey.data`: that getter builds a fresh object
+ * every call, so `useSyncExternalStore` would see a new snapshot on every render and loop.
+ * A string compares by value, which is the same reason `useChoiceErrorCount` snapshots a
+ * count rather than the array it counts.
+ */
+function useResponseJson(survey: SurveyModel): string {
+  const subscribe = useCallback(
+    (onStoreChange: () => void): (() => void) => survey.onValueChanged.add(onStoreChange),
+    [survey],
+  );
+  const getSnapshot = useCallback((): string => JSON.stringify(survey.data, null, 2), [survey]);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 /**

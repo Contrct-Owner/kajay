@@ -53,6 +53,7 @@ export const ANSWERS: Readonly<Record<string, unknown>> = {
   checkbox: ['Item 1', 'Item 3'],
   comment: 'Rather more to say, over several lines.',
   dropdown: 'Item 2',
+  fillintheblank: { blank1: 'capital', blank2: 'answered' },
   file: [{ name: 'note.txt', type: 'text/plain', size: 11, content: 'data:text/plain;base64,aGk=' }],
   imagepicker: 'Item 1',
   matrix: { 'Row 1': 'Column 1', 'Row 2': 'Column 3' },

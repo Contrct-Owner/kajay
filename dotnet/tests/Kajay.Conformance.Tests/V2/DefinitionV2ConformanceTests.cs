@@ -5,6 +5,18 @@ namespace Kajay.Conformance.Tests;
 public sealed class DefinitionV2ConformanceTests
 {
     [Fact]
+    public void AFillInTheBlankTemplateRoundTripsWithItsMarkers()
+    {
+        AssertDefinitionCase("a-fill-in-the-blank-template-round-trips-with-its-markers");
+    }
+
+    [Fact]
+    public void ATranslationMayMoveABlankButNotRenameOne()
+    {
+        AssertDefinitionCase("a-translation-may-move-a-blank-but-not-rename-one");
+    }
+
+    [Fact]
     public void ElementNamedIntoTheHostScopeIsReportedAndKept()
     {
         AssertDefinitionCase("element-named-into-the-host-scope-is-reported-and-kept");

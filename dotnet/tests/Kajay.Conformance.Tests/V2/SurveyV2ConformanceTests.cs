@@ -48,9 +48,27 @@ public sealed class SurveyV2ConformanceTests
     }
 
     [Fact]
+    public void AMultiSelectIsScoredChoiceByChoice()
+    {
+        AssertScenario("a-multi-select-is-scored-choice-by-choice");
+    }
+
+    [Fact]
     public void SurveyScenarioObservesQuizScore()
     {
         AssertScenario("survey-scenario-observes-quiz-score");
+    }
+
+    [Fact]
+    public void AnExpressionQuestionIsAValueInTheResponse()
+    {
+        AssertScenario("an-expression-question-is-a-value-in-the-response");
+    }
+
+    [Fact]
+    public void AComputedGapFillsInInsideItsSentenceAndFeedsATotal()
+    {
+        AssertScenario("a-computed-gap-fills-in-inside-its-sentence-and-feeds-a-total");
     }
 
     private static void AssertScenario(string scenarioId)

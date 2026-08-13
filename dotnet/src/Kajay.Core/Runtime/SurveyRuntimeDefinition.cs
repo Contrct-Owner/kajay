@@ -37,6 +37,15 @@ internal sealed record SurveyRuntimeDefinition(
                 .OfType<JsonObject>()
                 .Select(SurveyRuntimeCalculatedValue.From)
                 .ToArray();
+        // An expression question *is* a calculated value that always reaches the response:
+        // it holds no respondent input, it is named, and its value belongs in `data`. Giving
+        // it the same rule rather than a parallel mechanism is what makes it ordered against
+        // everything else the graph knows about.
+        SurveyRuntimeCalculatedValue[] computedQuestions = runtimePages
+            .SelectMany(page => page.Questions)
+            .SelectMany(question => SurveyRuntimeCalculatedValue.ForComputedQuestions(question))
+            .ToArray();
+        runtimeCalculatedValues = [.. runtimeCalculatedValues, .. computedQuestions];
         JsonArray? triggers = definition["triggers"] as JsonArray;
         SurveyRuntimeTrigger[] runtimeTriggers = triggers is null
             ? []

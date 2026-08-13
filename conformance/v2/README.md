@@ -129,10 +129,37 @@ respondent rule. The author can fix it; the respondent is never blocked by it.
 
 ## Current claim
 
-The TypeScript 2.x candidate and C# adapters pass the inherited v1 cases and all 36 new
-v2 cases through their public runtime seams: 25 expression evaluations, 3 definitions,
-and 8 survey scenarios. TypeScript 1.x continues to claim conformance v1 only; these
+The TypeScript 2.x candidate and C# adapters pass the inherited v1 cases and all 39 new
+v2 cases through their public runtime seams: 25 expression evaluations, 5 definitions,
+and 9 survey scenarios. TypeScript 1.x continues to claim conformance v1 only; these
 breaking semantic corrections ship in its next major version.
+
+## Fill-in-the-blank templates
+
+Prose carries `[[name]]` markers; a `blanks` collection declares what each one means. A
+translation may **move** a marker within the sentence — word order differs between
+languages, and that is why the template is one translatable string rather than an array of
+segments — but renaming, dropping or inventing one is an error, because the answer keys
+would otherwise depend on the language the respondent happened to read.
+
+Diagnostics name the question rather than the property, in both runtimes, so a case can
+carry one path.
+
+## Partial credit
+
+A question worth several marks is scored **choice by choice**: a mark per expected choice,
+less one for every choice that should not be there, floored at zero. Counting matches alone
+would make ticking every box worth full marks.
+
+Specified here because it was where the two runtimes silently disagreed. The only quiz case
+this corpus had was a single text question with one correct answer, which scores 1-of-1
+under either model — so a C# runtime awarding one mark per *question* passed every case
+while marking a half-right multi-select as zero. A corpus that cannot tell two runtimes
+apart is not yet specifying the thing they differ on.
+
+Order-sensitive answers keep the whole-answer comparison. A ranking's response *is* its
+order, so a mark per member would score a respondent who listed the right items backwards
+as entirely correct.
 
 ## The host-value scope
 

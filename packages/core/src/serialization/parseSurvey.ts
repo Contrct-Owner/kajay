@@ -1,4 +1,7 @@
 import { collectEndpointDiagnostics } from '../model/endpoints.js';
+import { FillInTheBlankQuestion } from '../model/FillInTheBlankQuestion.js';
+import { collectBlankDiagnostics } from './blankDiagnostics.js';
+import type { BlankTemplateQuestion } from './blankDiagnostics.js';
 import { FileQuestion } from '../model/FileQuestion.js';
 import { RepeatingQuestion } from '../model/RepeatingQuestion.js';
 import { StringDictionary } from '../strings/StringDictionary.js';
@@ -106,6 +109,7 @@ export function parseSurvey(
   // about any one property as it is read.
   context.diagnostics.push(
     ...collectEndpointDiagnostics(urlQuestions(root), options.endpoints ?? {}),
+    ...collectBlankDiagnostics(blankQuestions(root, registry)),
   );
   const definitionDigest = digestAndBindDefinition(root, registry);
   return { survey: root, definitionDigest, diagnostics: context.diagnostics };
@@ -163,6 +167,26 @@ function urlQuestions(survey: Survey): readonly { name: string; choicesByUrl: st
     .filter((question) => question instanceof SelectQuestion)
     .map((question) => ({ name: question.name, choicesByUrl: question.choicesByUrl }))
     .filter((question) => question.choicesByUrl.length > 0);
+}
+
+/** Every fill-in-the-blank question, as the blank diagnostics want to see one. */
+function blankQuestions(
+  survey: Survey,
+  registry: MetadataRegistry,
+): readonly BlankTemplateQuestion[] {
+  return survey.questions
+    .filter((question) => question instanceof FillInTheBlankQuestion)
+    .map((question) => ({
+      name: question.name,
+      // The *authored* property, not the resolved string: every locale has to be compared,
+      // and `template` has already collapsed to the one being read.
+      template: question.getPropertyValue('template'),
+      blanks: question.blanks.map((blank) => ({
+        name: blank.name,
+        type: blank.type,
+        allowsInline: registry.getClass(blank.type)?.allowsInline ?? false,
+      })),
+    }));
 }
 
 function readElement(

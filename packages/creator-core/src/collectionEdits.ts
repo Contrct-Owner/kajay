@@ -9,6 +9,8 @@ import type { DesignSurface } from './DesignSurface.js';
 import { uniqueName } from './definitionTree.js';
 import { fastEntryItems } from './fastEntry.js';
 import { takenNames } from './fragments.js';
+import { findNamed, isDefinition, rewriteNamed } from './definitionWalk.js';
+import { positionMarker, unpositionMarker } from './markerEdits.js';
 import { refuse } from './EditRefusal.js';
 import type { EditRefusal } from './EditRefusal.js';
 
@@ -76,7 +78,24 @@ export function addChildTo(
     registry,
     takenNames(before),
   );
-  return apply(surface, before, nameOf(owner), property, [...children, child]);
+  const markerProperty = collection.markerProperty;
+  const added = String(child['name'] ?? '');
+  // Declared *and positioned*, in one edit and one undo. A blank the prose never names is
+  // drawn nowhere, so adding one without a marker adds a field the designer cannot see and
+  // the respondent never gets — K1's "arrives answerable", one level down.
+  return apply(
+    surface,
+    before,
+    nameOf(owner),
+    property,
+    [...children, child],
+    markerProperty === undefined
+      ? {}
+      : {
+          markers: (definition) =>
+            positionMarker(definition, nameOf(owner), markerProperty, added),
+        },
+  );
 }
 
 export function removeChildFrom(
@@ -86,9 +105,10 @@ export function removeChildFrom(
   index: number,
   registry: MetadataRegistry,
 ): EditRefusal | undefined {
+  const collection = declared(owner, property, registry);
   const before = surface.definition;
   const children = childrenIn(before, nameOf(owner), property);
-  if (declared(owner, property, registry) === undefined) {
+  if (collection === undefined) {
     return refuse('unknown-property', property);
   }
   // An index outside the collection is the same fact as an owner that is not there: the
@@ -97,12 +117,22 @@ export function removeChildFrom(
   if (children === undefined || index < 0 || index >= children.length) {
     return refuse('not-found', nameOf(owner));
   }
+  const markerProperty = collection.markerProperty;
+  const removed = String(children[index]?.['name'] ?? '');
   return apply(
     surface,
     before,
     nameOf(owner),
     property,
     children.filter((_unused, at) => at !== index),
+    // The marker goes with it. Left behind it names a blank nobody declares, which is an
+    // *error* — deleting a blank used to produce a definition the parser refuses.
+    markerProperty === undefined
+      ? {}
+      : {
+          markers: (definition) =>
+            unpositionMarker(definition, nameOf(owner), markerProperty, removed),
+        },
   );
 }
 
@@ -162,7 +192,15 @@ export function setFastEntryIn(
   }
   const items = fastEntryItems(text, shorthand, children, surface.survey.locale);
   const name = nameOf(owner);
-  return apply(surface, before, name, property, items, `collection:${name}:${property}`);
+  return apply(surface, before, name, property, items, {
+    undoKey: `collection:${name}:${property}`,
+  });
+}
+
+interface ApplyOptions {
+  readonly undoKey?: string;
+  /** A second change riding on the same edit, so the pair is one press of undo. */
+  readonly markers?: (definition: SurveyDefinition) => SurveyDefinition;
 }
 
 function apply(
@@ -171,9 +209,10 @@ function apply(
   owner: string,
   property: string,
   items: readonly SurveyDefinition[],
-  undoKey?: string,
+  options: ApplyOptions = {},
 ): EditRefusal | undefined {
-  const after = withChildren(before, owner, property, items);
+  const written = withChildren(before, owner, property, items);
+  const after = options.markers?.(written) ?? written;
   // The selection is left where it was on purpose: editing a question's choices is
   // working on that question, and moving the grid off it under the designer would take
   // away the panel they are typing in.
@@ -182,7 +221,7 @@ function apply(
   return surface.applyEdit(after, {
     select: surface.selection.name,
     from: before,
-    ...(undoKey === undefined ? {} : { undoKey }),
+    ...(options.undoKey === undefined ? {} : { undoKey: options.undoKey }),
   });
 }
 
@@ -278,85 +317,3 @@ function isRoot(owner: string): boolean {
   return owner.length === 0;
 }
 
-/**
- * The first object in the tree answering to a name.
- *
- * A deep walk rather than pages-then-elements, because the thing being edited may be a
- * matrix column, a multiple-text item, or a question inside a detail panel. Names are
- * unique across a survey — `collectNames` and `uniqueName` are what make that true — so
- * "the first" is "the only".
- */
-function findNamed(value: unknown, owner: string): SurveyDefinition | undefined {
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      const found = findNamed(item, owner);
-      if (found !== undefined) {
-        return found;
-      }
-    }
-    return undefined;
-  }
-  if (!isDefinition(value)) {
-    return undefined;
-  }
-  if (value['name'] === owner) {
-    return value;
-  }
-  for (const child of Object.values(value)) {
-    const found = findNamed(child, owner);
-    if (found !== undefined) {
-      return found;
-    }
-  }
-  return undefined;
-}
-
-/**
- * The same tree with one named object replaced.
- *
- * Returns the **same reference** wherever nothing underneath changed, so editing a choice
- * list does not rebuild the questions around it — the sharing `withList` established for
- * the canvas, generalized to any element with a name.
- */
-function rewriteNamed(
-  value: unknown,
-  owner: string,
-  change: (found: SurveyDefinition) => SurveyDefinition,
-): SurveyDefinition {
-  return rewrite(value, owner, change) as SurveyDefinition;
-}
-
-function rewrite(
-  value: unknown,
-  owner: string,
-  change: (found: SurveyDefinition) => SurveyDefinition,
-): unknown {
-  if (Array.isArray(value)) {
-    let touched = false;
-    const items = value.map((item) => {
-      const next = rewrite(item, owner, change);
-      touched ||= next !== item;
-      return next;
-    });
-    return touched ? items : value;
-  }
-  if (!isDefinition(value)) {
-    return value;
-  }
-  if (value['name'] === owner) {
-    return change(value);
-  }
-  let output: SurveyDefinition | undefined;
-  for (const [key, child] of Object.entries(value)) {
-    const next = rewrite(child, owner, change);
-    if (next !== child) {
-      output ??= { ...value };
-      output[key] = next;
-    }
-  }
-  return output ?? value;
-}
-
-function isDefinition(value: unknown): value is SurveyDefinition {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}

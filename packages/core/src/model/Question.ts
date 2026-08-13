@@ -1,4 +1,4 @@
-import { scoreSingleAnswer } from './answerScore.js';
+import { matchesAuthoredText } from './answerScore.js';
 import type { AnswerScore } from './answerScore.js';
 import { PageElement } from './PageElement.js';
 import type { SurveyElement } from './SurveyElement.js';
@@ -110,6 +110,19 @@ export abstract class Question extends PageElement {
 
   set requiredErrorText(value: string) {
     this.setPropertyValue('requiredErrorText', value);
+  }
+
+  /**
+   * Field width in characters, or zero when the author has not said.
+   *
+   * Registered on `question` since before this getter existed, which meant it round-tripped
+   * and did nothing: no renderer could read it, so a blank in a sentence was as wide as the
+   * browser's guess whatever it was for. Zero rather than a default here, because "unset"
+   * and "as wide as one character" are different answers and only the reader knows what to
+   * fall back to — a sentence falls back to its own `blankSize`.
+   */
+  get size(): number {
+    return this.getNumberProperty('size');
   }
 
   /** Extra rules the answer has to satisfy, in the order they are checked. */
@@ -240,7 +253,31 @@ export abstract class Question extends PageElement {
    * exactly the shape this project keeps refusing.
    */
   scoreAnswer(): AnswerScore {
-    return scoreSingleAnswer(this.value, this.correctAnswer);
+    return {
+      correct: matchesAuthoredText(this.value, this.correctAnswer, {
+        trim: this.trim,
+        caseSensitive: this.caseSensitive,
+      })
+        ? 1
+        : 0,
+      total: 1,
+    };
+  }
+
+  /**
+   * Whether surrounding whitespace is ignored when marking by text — ADR-0048.
+   *
+   * On the base rather than on one type because it describes *marking*, not blanks: an
+   * ordinary text question with `correctAnswer: "Paris"` had the same problem long before
+   * a sentence could hold one.
+   */
+  get trim(): boolean {
+    return this.getBooleanProperty('trim');
+  }
+
+  /** Whether case matters when marking by text. Off by default; a code sets it. */
+  get caseSensitive(): boolean {
+    return this.getBooleanProperty('caseSensitive');
   }
 
   get value(): unknown {

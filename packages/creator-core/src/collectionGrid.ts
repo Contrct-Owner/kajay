@@ -1,4 +1,4 @@
-import type { MetadataRegistry, SurveyElement } from '@kajay/core';
+import type { ChildCollectionDescriptor, MetadataRegistry, SurveyElement } from '@kajay/core';
 import { humanizePropertyName } from './propertyGrid.js';
 import { isHidden, NO_GRID_OPTIONS, titleOverride } from './propertyGridOptions.js';
 import type { PropertyGridOptions } from './propertyGridOptions.js';
@@ -84,12 +84,34 @@ export function collectionRowsFor(
       property: collection.property,
       title:
         titleOverride(collection.property, options) ?? humanizePropertyName(collection.property),
-      types: registry.getConcreteSubclasses(collection.elementBaseType),
+      types: offerable(collection, registry),
       children: element.getChildren(collection.property),
       shorthand: collection.shorthandProperty,
     });
   }
   return rows;
+}
+
+/**
+ * The types a designer may actually add here.
+ *
+ * The concrete subclasses of the base, less the ones the collection's own placement rules
+ * out: children positioned by a marker sit *in a line of prose*, so only a type that says
+ * it can be drawn there may be offered. The picker used to offer all nineteen question
+ * types for a sentence's blanks — a matrix, a file upload, another sentence — each of
+ * which the parser rejects with `non-inline-blank` the moment it is added.
+ *
+ * Read from the registry rather than a list here, so a host's own inline type is offered
+ * the day it registers and nothing has to remember it exists.
+ */
+function offerable(
+  collection: ChildCollectionDescriptor,
+  registry: MetadataRegistry,
+): readonly string[] {
+  const types = registry.getConcreteSubclasses(collection.elementBaseType);
+  return collection.markerProperty === undefined
+    ? types
+    : types.filter((type) => registry.getClass(type)?.allowsInline === true);
 }
 
 /** The bases whose collections the canvas and the page navigator own rather than the grid. */

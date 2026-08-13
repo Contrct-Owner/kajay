@@ -3,7 +3,7 @@
 - Area: Phased delivery plan from foundation to full parity
 - Status: historical delivery record
 - Owner: Jarod
-- Last updated: 2026-08-12
+- Last updated: 2026-08-13
 
 This records the delivery phases that produced the published SDKs. It is retained as
 history rather than used as the current work queue; current product state lives in
@@ -427,6 +427,28 @@ and the diagnostic contract regenerated with two codes. Three limits are recorde
 than implied: `undeclared-host-value` is TypeScript-only by the rule `undeclared-endpoint`
 already follows, the corpus cannot yet observe that a host value stays out of the
 response, and the Creator cannot offer host-value names without being told them.
+
+The third promoted workstream is the **fill-in-the-blank question**, fixed by
+[ADR-0048](./adr/0048-fill-in-the-blank-question.md) and tracked as checklist C13. It is
+the **first promotion out of §O**, on the rule that list has always carried: promote only
+with evidence a real consumer needs it, and assessment is a stated need rather than a
+guess.
+
+It takes a row in §C beside the other question types, and a §Q counterpart, for the reason
+B12 took a row in §B: the ledger's sections are capability-shaped, and this is a question
+type.
+
+The workstream exits only when:
+
+- C13 is green through its named proofs, including the accessibility sweep — prose labels a
+  blank visually and not programmatically, which is the part a naive implementation gets
+  wrong;
+- the locale-mismatch diagnostic is proven, since it is what makes a translatable template
+  safe to translate;
+- `Kajay.Core` carries the type under §Q, and conformance v2 cases are claimed by **both**
+  adapters rather than specified for one; and
+- the schema, metadata and diagnostic contracts are regenerated and committed — unlike
+  ADR-0047, this touches all three.
 
 The remaining Phase 4 items stay horizon. Each promoted item gets its own ADR and
 checklist section rather than borrowing the C# workstream's active status.

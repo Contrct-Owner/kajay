@@ -1,4 +1,19 @@
 #nullable enable
+Kajay.Expressions.BlankSegment
+Kajay.Expressions.BlankSegment.BlankSegment() -> void
+Kajay.Expressions.BlankSegment.BlankSegment(Kajay.Expressions.BlankSegmentKind Kind, string! Value) -> void
+Kajay.Expressions.BlankSegment.Deconstruct(out Kajay.Expressions.BlankSegmentKind Kind, out string! Value) -> void
+Kajay.Expressions.BlankSegment.Equals(Kajay.Expressions.BlankSegment other) -> bool
+Kajay.Expressions.BlankSegment.Kind.get -> Kajay.Expressions.BlankSegmentKind
+Kajay.Expressions.BlankSegment.Kind.init -> void
+Kajay.Expressions.BlankSegment.Value.get -> string!
+Kajay.Expressions.BlankSegment.Value.init -> void
+Kajay.Expressions.BlankSegmentKind
+Kajay.Expressions.BlankSegmentKind.Blank = 1 -> Kajay.Expressions.BlankSegmentKind
+Kajay.Expressions.BlankSegmentKind.Text = 0 -> Kajay.Expressions.BlankSegmentKind
+Kajay.Expressions.BlankTemplate
+Kajay.Extensibility.SurveyDefinitionClassRegistration.AllowsInline.get -> bool
+Kajay.Extensibility.SurveyDefinitionClassRegistration.AllowsInline.init -> void
 Kajay.Snapshots.SurveySnapshot
 Kajay.Snapshots.SurveySnapshot.ConformanceVersion.get -> int
 Kajay.Snapshots.SurveySnapshot.Data.get -> System.Collections.Generic.IReadOnlyDictionary<string!, Kajay.KajayValue>!
@@ -22,6 +37,20 @@ Kajay.Survey.InvalidateAsyncResultsAsync(string? name = null, System.Threading.C
 Kajay.Survey.RestoreSnapshot(Kajay.Snapshots.SurveySnapshot! snapshot) -> void
 Kajay.Survey.SetHostValue(string! name, Kajay.KajayValue value) -> void
 Kajay.SurveyDefinition.DefinitionDigest.get -> string!
+Kajay.SurveyFillInTheBlankQuestion
+Kajay.SurveyFillInTheBlankQuestion.Blanks.get -> System.Collections.Generic.IReadOnlyList<Kajay.SurveyQuestion!>!
+Kajay.SurveyFillInTheBlankQuestion.GetBlank(string! name) -> Kajay.SurveyQuestion?
+Kajay.SurveyFillInTheBlankQuestion.GetBlankValue(string! name) -> Kajay.KajayValue
+Kajay.SurveyFillInTheBlankQuestion.Segments.get -> System.Collections.Generic.IReadOnlyList<Kajay.Expressions.BlankSegment>!
+Kajay.SurveyFillInTheBlankQuestion.SetBlankValue(string! name, Kajay.KajayValue value) -> void
+Kajay.SurveyFillInTheBlankQuestion.Template.get -> string!
 Kajay.SurveyOptions.HostValues.get -> System.Collections.Generic.IReadOnlyDictionary<string!, Kajay.KajayValue>!
 Kajay.SurveyOptions.HostValues.init -> void
+override Kajay.Expressions.BlankSegment.GetHashCode() -> int
+static Kajay.Expressions.BlankSegment.operator !=(Kajay.Expressions.BlankSegment left, Kajay.Expressions.BlankSegment right) -> bool
+static Kajay.Expressions.BlankSegment.operator ==(Kajay.Expressions.BlankSegment left, Kajay.Expressions.BlankSegment right) -> bool
+static Kajay.Expressions.BlankTemplate.NamesIn(string! template) -> System.Collections.Generic.IReadOnlyList<string!>!
+static Kajay.Expressions.BlankTemplate.Parse(string! template) -> System.Collections.Generic.IReadOnlyList<Kajay.Expressions.BlankSegment>!
 static Kajay.Snapshots.SurveySnapshot.Parse(string! json) -> Kajay.Snapshots.SurveySnapshot!
+~override Kajay.Expressions.BlankSegment.Equals(object obj) -> bool
+~override Kajay.Expressions.BlankSegment.ToString() -> string

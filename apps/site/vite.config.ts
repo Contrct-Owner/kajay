@@ -26,6 +26,10 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
-  server: { port: 5174 },
+  // `PORT` first, so a second agent or terminal working in this repo gets its own dev
+  // server instead of colliding on 5174 and silently landing on whatever port Vite picks
+  // next — which leaves any tooling that was told the assigned port pointing at nothing.
+  // The literal stays the default, so a plain `vite dev` is unchanged.
+  server: { port: Number(process.env['PORT']) || 5174 },
   preview: { port: 4174 },
 });

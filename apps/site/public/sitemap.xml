@@ -1211,6 +1211,21 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://kajay.io/docs/reference/diagnostics#definition-undeclared-blank</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/diagnostics#definition-unpositioned-blank</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/diagnostics#definition-locale-blank-mismatch</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://kajay.io/docs/reference/diagnostics#definition-reserved-name-sigil</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

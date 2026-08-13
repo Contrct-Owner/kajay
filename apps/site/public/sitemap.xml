@@ -211,11 +211,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://kajay.io/docs/reference/definition-types/fillintheblankitem</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://kajay.io/docs/reference/definition-types/html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -697,11 +692,6 @@
   </url>
   <url>
     <loc>https://kajay.io/docs/reference/properties/kind</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://kajay.io/docs/reference/properties/label</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -1217,6 +1207,11 @@
   </url>
   <url>
     <loc>https://kajay.io/docs/reference/diagnostics#definition-unpositioned-blank</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/diagnostics#definition-non-inline-blank</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -1937,11 +1932,6 @@
   </url>
   <url>
     <loc>https://kajay.io/docs/reference/api/core/file-upload-request</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://kajay.io/docs/reference/api/core/fill-in-the-blank-item</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

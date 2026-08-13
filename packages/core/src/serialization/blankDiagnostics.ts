@@ -7,7 +7,14 @@ export interface BlankTemplateQuestion {
   readonly name: string;
   /** The authored `template`, which may be one string or one per locale. */
   readonly template: unknown;
-  readonly blankNames: readonly string[];
+  readonly blanks: readonly DeclaredBlank[];
+}
+
+/** One declared blank, and whether its type may sit in a line of prose. */
+export interface DeclaredBlank {
+  readonly name: string;
+  readonly type: string;
+  readonly allowsInline: boolean;
 }
 
 /**
@@ -24,6 +31,7 @@ export function collectBlankDiagnostics(
   return questions.flatMap((question) => [
     ...undeclared(question),
     ...unpositioned(question),
+    ...notInline(question),
     ...localeMismatch(question),
   ]);
 }
@@ -36,7 +44,7 @@ export function collectBlankDiagnostics(
  * skips it and the respondent silently loses a question the author thought they asked.
  */
 function undeclared(question: BlankTemplateQuestion): readonly Diagnostic[] {
-  const declared = new Set(question.blankNames);
+  const declared = new Set(question.blanks.map((blank) => blank.name));
   return namesIn(defaultTemplate(question.template))
     .filter((name) => !declared.has(name))
     .map((name) => ({
@@ -58,7 +66,8 @@ function undeclared(question: BlankTemplateQuestion): readonly Diagnostic[] {
  */
 function unpositioned(question: BlankTemplateQuestion): readonly Diagnostic[] {
   const positioned = new Set(namesIn(defaultTemplate(question.template)));
-  return question.blankNames
+  return question.blanks
+    .map((blank) => blank.name)
     .filter((name) => !positioned.has(name))
     .map((name) => ({
       severity: 'warning' as const,
@@ -66,6 +75,27 @@ function unpositioned(question: BlankTemplateQuestion): readonly Diagnostic[] {
       message:
         `"${question.name}" declares a blank named ${JSON.stringify(name)} that its `
         + 'template never positions. It will not be shown.',
+      path: `/${question.name}`,
+    }));
+}
+
+/**
+ * A blank whose type cannot sit in a line of prose.
+ *
+ * **Error**, because nothing can draw it: a matrix in the middle of a clause is not a
+ * layout decision but a mistake, and the respondent would silently lose a field the author
+ * placed. Whether a type may go inline is the registry's answer rather than a list kept
+ * here, so a host's own type can opt in.
+ */
+function notInline(question: BlankTemplateQuestion): readonly Diagnostic[] {
+  return question.blanks
+    .filter((blank) => !blank.allowsInline)
+    .map((blank) => ({
+      severity: 'error' as const,
+      code: 'non-inline-blank' as const,
+      message:
+        `"${question.name}" positions a blank of type ${JSON.stringify(blank.type)}, which `
+        + 'cannot sit inside a sentence. Use a type that can, or ask a separate question.',
       path: `/${question.name}`,
     }));
 }

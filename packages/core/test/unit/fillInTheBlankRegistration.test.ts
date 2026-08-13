@@ -13,8 +13,8 @@ const DEFINITION: SurveyDefinition = {
           name: 'geography',
           template: 'The capital of France is [[capital]] and its currency is the [[currency]].',
           blanks: [
-            { name: 'capital', label: 'Capital city', correctAnswer: 'Paris' },
-            { name: 'currency', label: 'Currency', correctAnswer: 'Euro', caseSensitive: true },
+            { type: 'text', name: 'capital', title: 'Capital city', correctAnswer: 'Paris' },
+            { type: 'text', name: 'currency', title: 'Currency', correctAnswer: 'Euro', caseSensitive: true },
           ],
         },
       ],
@@ -39,7 +39,7 @@ describe('parity/C13-registration', () => {
       'The capital of France is [[capital]] and its currency is the [[currency]].',
     );
     expect(parsed.blanks.map((blank) => blank.name)).toEqual(['capital', 'currency']);
-    expect(parsed.blanks[0]?.type).toBe('fillintheblankitem');
+    expect(parsed.blanks[0]?.type).toBe('text');
   });
 
   test('a blank declares what the prose cannot carry', () => {
@@ -49,7 +49,7 @@ describe('parity/C13-registration', () => {
     // template is a string a translator edits — a correct answer inside it would mean a
     // translation could change the marking.
     expect(capital?.correctAnswer).toBe('Paris');
-    expect(capital?.label).toBe('Capital city');
+    expect(capital?.title).toBe('Capital city');
     expect(currency?.caseSensitive).toBe(true);
   });
 
@@ -63,7 +63,7 @@ describe('parity/C13-registration', () => {
     expect(capital?.caseSensitive).toBe(false);
   });
 
-  test('a label falls back to the name, so no blank is ever unnamed to a reader', () => {
+  test('a blank is a real question, so it brings its own type with it', () => {
     const parsed = question({
       pages: [
         {
@@ -73,14 +73,16 @@ describe('parity/C13-registration', () => {
               type: 'fillintheblank',
               name: 'geography',
               template: 'The capital of France is [[capital]].',
-              blanks: [{ name: 'capital' }],
+              blanks: [{ type: 'dropdown', name: 'capital', choices: ['Paris', 'Lyon'] }],
             },
           ],
         },
       ],
     });
 
-    expect(parsed.blanks[0]?.label).toBe('capital');
+    // A dropdown blank *is* a dropdown: its choices come from the select family rather
+    // than from anything reimplemented inside a private item type.
+    expect(parsed.blanks[0]?.type).toBe('dropdown');
   });
 
   test('the definition round-trips as authored', () => {

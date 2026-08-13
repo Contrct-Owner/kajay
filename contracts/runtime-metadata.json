@@ -470,142 +470,7 @@
       "declaredChildCollections": [
         {
           "property": "blanks",
-          "elementBaseType": "fillintheblankitem",
-          "shorthandProperty": null
-        }
-      ]
-    },
-    {
-      "name": "fillintheblankitem",
-      "parent": null,
-      "isAbstract": false,
-      "declaredProperties": [
-        {
-          "name": "name",
-          "type": "string",
-          "defaultValue": "",
-          "isRequired": true,
-          "isExpression": false,
-          "isLocalizable": false,
-          "visibleIf": null,
-          "readOnlyIf": null,
-          "description": "Key this blank is stored under inside the question answer."
-        },
-        {
-          "name": "label",
-          "type": "string",
-          "defaultValue": "",
-          "isRequired": false,
-          "isExpression": false,
-          "isLocalizable": true,
-          "visibleIf": null,
-          "readOnlyIf": null,
-          "description": "What a screen reader calls this blank; falls back to name. The sentence labels it visually and not programmatically."
-        },
-        {
-          "name": "inputType",
-          "type": "string",
-          "defaultValue": "text",
-          "isRequired": false,
-          "isExpression": false,
-          "isLocalizable": false,
-          "visibleIf": null,
-          "readOnlyIf": null,
-          "description": null
-        },
-        {
-          "name": "placeholder",
-          "type": "string",
-          "defaultValue": "",
-          "isRequired": false,
-          "isExpression": false,
-          "isLocalizable": true,
-          "visibleIf": null,
-          "readOnlyIf": null,
-          "description": null
-        },
-        {
-          "name": "isRequired",
-          "type": "boolean",
-          "defaultValue": false,
-          "isRequired": false,
-          "isExpression": false,
-          "isLocalizable": false,
-          "visibleIf": null,
-          "readOnlyIf": null,
-          "description": null
-        },
-        {
-          "name": "valueName",
-          "type": "string",
-          "defaultValue": "",
-          "isRequired": false,
-          "isExpression": false,
-          "isLocalizable": false,
-          "visibleIf": null,
-          "readOnlyIf": null,
-          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
-        },
-        {
-          "name": "requiredErrorText",
-          "type": "string",
-          "defaultValue": "",
-          "isRequired": false,
-          "isExpression": false,
-          "isLocalizable": true,
-          "visibleIf": null,
-          "readOnlyIf": null,
-          "description": null
-        },
-        {
-          "name": "size",
-          "type": "number",
-          "defaultValue": 0,
-          "isRequired": false,
-          "isExpression": false,
-          "isLocalizable": false,
-          "visibleIf": null,
-          "readOnlyIf": null,
-          "description": "Width in characters. 0 uses blankSize."
-        },
-        {
-          "name": "correctAnswer",
-          "type": "json",
-          "defaultValue": "",
-          "isRequired": false,
-          "isExpression": false,
-          "isLocalizable": false,
-          "visibleIf": null,
-          "readOnlyIf": null,
-          "description": "The answer that scores this blank. A blank without one is not marked."
-        },
-        {
-          "name": "trim",
-          "type": "boolean",
-          "defaultValue": true,
-          "isRequired": false,
-          "isExpression": false,
-          "isLocalizable": false,
-          "visibleIf": null,
-          "readOnlyIf": null,
-          "description": "Ignore surrounding whitespace when marking."
-        },
-        {
-          "name": "caseSensitive",
-          "type": "boolean",
-          "defaultValue": false,
-          "isRequired": false,
-          "isExpression": false,
-          "isLocalizable": false,
-          "visibleIf": null,
-          "readOnlyIf": null,
-          "description": "Require matching case when marking. Off by default."
-        }
-      ],
-      "declaredChildCollections": [
-        {
-          "property": "validators",
-          "elementBaseType": "validator",
+          "elementBaseType": "question",
           "shorthandProperty": null
         }
       ]
@@ -1884,6 +1749,28 @@
           "visibleIf": null,
           "readOnlyIf": null,
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
+        {
+          "name": "trim",
+          "type": "boolean",
+          "defaultValue": true,
+          "isRequired": false,
+          "isExpression": false,
+          "isLocalizable": false,
+          "visibleIf": "{correctAnswer} notempty",
+          "readOnlyIf": null,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        {
+          "name": "caseSensitive",
+          "type": "boolean",
+          "defaultValue": false,
+          "isRequired": false,
+          "isExpression": false,
+          "isLocalizable": false,
+          "visibleIf": "{correctAnswer} notempty",
+          "readOnlyIf": null,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
         }
       ],
       "declaredChildCollections": [

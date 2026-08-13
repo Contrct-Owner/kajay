@@ -115,9 +115,11 @@ export const SELECT_TYPE_DEFINITIONS: SelectTypeDefinitions = {
     parent: 'selectbase',
     properties: [{ name: 'showClearButton', type: 'boolean' }],
   },
-  dropdown: { name: 'dropdown', parent: 'selectbase' },
+  // A dropdown and a tagbox are one control each; a radiogroup or checkbox is a
+  // vertical list of them, which is a paragraph rather than a word.
+  dropdown: { name: 'dropdown', parent: 'selectbase', allowsInline: true },
   checkbox: { name: 'checkbox', parent: 'multiselectbase' },
-  tagbox: { name: 'tagbox', parent: 'multiselectbase' },
+  tagbox: { name: 'tagbox', parent: 'multiselectbase', allowsInline: true },
   imagePicker: {
     name: 'imagepicker',
     parent: 'multiselectbase',

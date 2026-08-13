@@ -50,6 +50,11 @@ export const DEFINITION_DIAGNOSTIC_DEFINITIONS = [
     description: 'A fill-in-the-blank question declares a blank its template never positions.',
   },
   {
+    code: 'non-inline-blank',
+    severity: 'error',
+    description: 'A fill-in-the-blank positions a blank whose type cannot sit inline.',
+  },
+  {
     code: 'locale-blank-mismatch',
     severity: 'error',
     description: 'A translated fill-in-the-blank template names a different set of blanks.',

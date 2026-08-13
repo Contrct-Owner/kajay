@@ -67,7 +67,7 @@ describe('parity/C13-template', () => {
   });
 
   test('an answer is one object keyed by blank name', () => {
-    const { question } = build('The capital is [[capital]].', [{ name: 'capital' }]);
+    const { question } = build('The capital is [[capital]].', [{ type: 'text', name: 'capital' }]);
 
     question.setBlankValue('capital', 'Paris');
 
@@ -78,7 +78,7 @@ describe('parity/C13-template', () => {
   });
 
   test('emptying the last blank leaves no answer rather than an empty object', () => {
-    const { question } = build('[[capital]]', [{ name: 'capital' }]);
+    const { question } = build('[[capital]]', [{ type: 'text', name: 'capital' }]);
     question.setBlankValue('capital', 'Paris');
 
     question.setBlankValue('capital', '');
@@ -101,7 +101,7 @@ describe('parity/C13-template', () => {
               // Word order moves: the blank opens the German sentence and closes the
               // English one. This is why the template is a string a translator can edit.
               template: { default: 'The capital is [[capital]]', de: '[[capital]] ist die Hauptstadt' },
-              blanks: [{ name: 'capital' }],
+              blanks: [{ type: 'text', name: 'capital' }],
             },
           ],
         },
@@ -118,8 +118,8 @@ describe('parity/C13-template', () => {
 
   test('a required blank objects on its own, against its own name', () => {
     const { survey, question } = build('[[capital]] and [[currency]]', [
-      { name: 'capital', isRequired: true },
-      { name: 'currency' },
+      { type: 'text', name: 'capital', isRequired: true },
+      { type: 'text', name: 'currency' },
     ]);
 
     survey.validation.validateCurrentPage();

@@ -13,7 +13,7 @@
                 "name": "geography",
                 "template": "The capital of France is [[capital]].",
                 "blanks": [
-                  { "name": "capital", "label": "Capital city", "correctAnswer": "Paris" }
+                  { "type": "text", "name": "capital", "title": "Capital city", "correctAnswer": "Paris" }
                 ]
               }
             ]
@@ -31,7 +31,7 @@
                 "name": "geography",
                 "template": "The capital of France is [[capital]].",
                 "blanks": [
-                  { "name": "capital", "label": "Capital city", "correctAnswer": "Paris" }
+                  { "type": "text", "name": "capital", "title": "Capital city", "correctAnswer": "Paris" }
                 ]
               }
             ]
@@ -55,7 +55,7 @@
                   "de": "[[capital]] ist die Hauptstadt",
                   "fr": "La capitale est [[capitale]]"
                 },
-                "blanks": [{ "name": "capital" }]
+                "blanks": [{ "type": "text", "name": "capital" }]
               }
             ]
           }
@@ -75,7 +75,7 @@
                   "de": "[[capital]] ist die Hauptstadt",
                   "fr": "La capitale est [[capitale]]"
                 },
-                "blanks": [{ "name": "capital" }]
+                "blanks": [{ "type": "text", "name": "capital" }]
               }
             ]
           }

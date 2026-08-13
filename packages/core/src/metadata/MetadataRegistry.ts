@@ -32,6 +32,7 @@ export class MetadataRegistry {
       ),
       childCollections: definition.childCollections ?? [],
       isAbstract: definition.isAbstract ?? false,
+      allowsInline: definition.allowsInline ?? false,
       create: definition.create,
     });
   }

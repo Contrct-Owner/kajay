@@ -20,7 +20,7 @@ const CODES = (diagnostics: readonly Diagnostic[]): readonly string[] =>
 
 describe('parity/C13-diagnostics', () => {
   test('a well-formed sentence reports nothing', () => {
-    expect(diagnose('The capital is [[capital]].', [{ name: 'capital' }])).toEqual([]);
+    expect(diagnose('The capital is [[capital]].', [{ type: 'text', name: 'capital' }])).toEqual([]);
   });
 
   test('a blank nobody declared is an error', () => {
@@ -39,7 +39,7 @@ describe('parity/C13-diagnostics', () => {
   });
 
   test('a declared blank the sentence never positions is a warning', () => {
-    const [reported] = diagnose('Only [[capital]].', [{ name: 'capital' }, { name: 'currency' }]);
+    const [reported] = diagnose('Only [[capital]].', [{ type: 'text', name: 'capital' }, { type: 'text', name: 'currency' }]);
 
     // A respondent never sees it, so nothing they do is affected — but it is almost
     // always a renamed marker, and saying so costs an author nothing.
@@ -53,7 +53,7 @@ describe('parity/C13-diagnostics', () => {
         default: 'The capital is [[capital]]',
         de: '[[capital]] ist die Hauptstadt',
       },
-      [{ name: 'capital' }],
+      [{ type: 'text', name: 'capital' }],
     );
 
     // Word order moves between languages. Set equality, not sequence equality.
@@ -63,7 +63,7 @@ describe('parity/C13-diagnostics', () => {
   test('a translation that renames a blank is an error', () => {
     const [reported] = diagnose(
       { default: 'The capital is [[capital]]', fr: 'La capitale est [[capitale]]' },
-      [{ name: 'capital' }],
+      [{ type: 'text', name: 'capital' }],
     );
 
     // The answer keys would depend on the language the respondent happened to read, and
@@ -80,7 +80,7 @@ describe('parity/C13-diagnostics', () => {
 
   test('a translation that drops a blank is an error', () => {
     const codes = CODES(
-      diagnose({ default: '[[a]] and [[b]]', de: 'nur [[a]]' }, [{ name: 'a' }, { name: 'b' }]),
+      diagnose({ default: '[[a]] and [[b]]', de: 'nur [[a]]' }, [{ type: 'text', name: 'a' }, { type: 'text', name: 'b' }]),
     );
 
     expect(codes).toContain('locale-blank-mismatch');
@@ -88,7 +88,7 @@ describe('parity/C13-diagnostics', () => {
 
   test('a translation that invents a blank is an error', () => {
     const codes = CODES(
-      diagnose({ default: 'just [[a]]', de: '[[a]] und [[b]]' }, [{ name: 'a' }, { name: 'b' }]),
+      diagnose({ default: 'just [[a]]', de: '[[a]] und [[b]]' }, [{ type: 'text', name: 'a' }, { type: 'text', name: 'b' }]),
     );
 
     // Reported even though `b` is declared: the default sentence never asks for it, so a
@@ -98,7 +98,7 @@ describe('parity/C13-diagnostics', () => {
 
   test('the default wording is what the declarations are measured against', () => {
     const codes = CODES(
-      diagnose({ default: 'just [[a]]', de: '[[a]] und [[b]]' }, [{ name: 'a' }, { name: 'b' }]),
+      diagnose({ default: 'just [[a]]', de: '[[a]] und [[b]]' }, [{ type: 'text', name: 'a' }, { type: 'text', name: 'b' }]),
     );
 
     // `b` is declared and the default never positions it, so the unpositioned warning

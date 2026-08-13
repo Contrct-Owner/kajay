@@ -43,6 +43,18 @@ export interface ClassDefinition {
   readonly childCollections?: readonly ChildCollectionDescriptor[];
   /** Abstract classes contribute inherited properties but cannot be instantiated. */
   readonly isAbstract?: boolean;
+  /**
+   * Whether this type may sit *inside* a line of prose — checklist C13, ADR-0048.
+   *
+   * Declared here rather than kept in a list somewhere, so a host's own type can opt in
+   * and so the answer comes from the registry the day a type is added rather than from
+   * whoever remembered to update the list. Core owns it because the definition
+   * diagnostics and both runtimes read it, and none of them may touch a DOM.
+   *
+   * Off by default, deliberately: a type that has never considered the question cannot
+   * be drawn in a sentence, and refusing it is the safe answer.
+   */
+  readonly allowsInline?: boolean;
   readonly create?: () => SurveyElement;
 }
 
@@ -59,5 +71,7 @@ export interface ClassDescriptor {
   readonly properties: readonly PropertyDescriptor[];
   readonly childCollections: readonly ChildCollectionDescriptor[];
   readonly isAbstract: boolean;
+  /** Whether this type may sit inside a line of prose. See {@link ClassDefinition}. */
+  readonly allowsInline: boolean;
   readonly create: (() => SurveyElement) | undefined;
 }

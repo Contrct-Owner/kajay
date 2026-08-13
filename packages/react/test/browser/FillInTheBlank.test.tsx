@@ -26,8 +26,8 @@ function build(overrides: Readonly<Record<string, unknown>> = {}): SurveyModel {
             title: 'Complete the sentence',
             template: 'The capital of France is [[capital]] and its currency is the [[currency]].',
             blanks: [
-              { name: 'capital', label: 'Capital city' },
-              { name: 'currency', label: 'Currency' },
+              { type: 'text', name: 'capital', title: 'Capital city' },
+              { type: 'text', name: 'currency', title: 'Currency' },
             ],
             ...overrides,
           },
@@ -89,7 +89,7 @@ test('parity/C13-render: typing into a gap records that gap', async () => {
 test('parity/C13-render: a blank the template never names is not drawn', async () => {
   const survey = build({
     template: 'Only [[capital]] appears.',
-    blanks: [{ name: 'capital', label: 'Capital city' }, { name: 'unused', label: 'Unused' }],
+    blanks: [{ type: 'text', name: 'capital', title: 'Capital city' }, { name: 'unused', label: 'Unused' }],
   });
   const screen = await render(<Survey model={survey} />);
 

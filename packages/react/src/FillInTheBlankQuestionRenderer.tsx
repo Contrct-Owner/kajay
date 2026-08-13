@@ -1,5 +1,6 @@
 import { FillInTheBlankQuestion } from '@kajay/core';
-import type { FillInTheBlankItem, SurveyError } from '@kajay/core';
+import { TextQuestion } from '@kajay/core';
+import type { Question, SurveyError } from '@kajay/core';
 import type { ReactElement } from 'react';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
 import { QuestionErrors } from './QuestionErrors.js';
@@ -11,12 +12,17 @@ import { useIdScope } from './idScope.js';
 
 interface BlankFieldProps {
   readonly question: FillInTheBlankQuestion;
-  readonly blank: FillInTheBlankItem;
+  readonly blank: Question;
   readonly errors: readonly SurveyError[];
 }
 
 /**
  * One gap, sitting in the run of the sentence.
+ *
+ * **Text blanks only, for now.** A blank is a question as of ADR-0048's amendment, so a
+ * dropdown or a multi-select belongs here too — through the inline renderer registration
+ * that decision calls for, which is the next piece. Until it exists this draws the case it
+ * has always drawn, and core refuses any blank whose type cannot go inline at all.
  *
  * **The name comes from `aria-label`, not a hidden `<label>`.** The prose names this blank
  * to anyone reading it and to nobody using a screen reader, which would otherwise hear
@@ -34,17 +40,16 @@ function BlankField({ question, blank, errors }: BlankFieldProps): ReactElement 
   const { Input } = useSurveyComponents();
   const inputId = `${questionId(question, scope)}-${blank.name}`;
   const errorId = `${inputId}-errors`;
-  const size = blank.size > 0 ? blank.size : question.blankSize;
+  const size = question.blankSize;
 
   return (
     <span className="kajay-fillintheblank__gap">
       <Input
         id={inputId}
         className="kajay-question__input kajay-fillintheblank__input"
-        type={blank.inputType}
-        aria-label={blank.label}
+        type={blank instanceof TextQuestion ? blank.inputType : 'text'}
+        aria-label={blank.title}
         readOnly={question.isReadOnly}
-        placeholder={blank.placeholder}
         disabled={!question.isEnabled}
         required={blank.isRequired}
         aria-required={blank.isRequired}

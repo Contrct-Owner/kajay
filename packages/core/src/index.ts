@@ -104,7 +104,6 @@ export type { DisplayStyle } from './model/ExpressionQuestion.js';
 export { HtmlElement } from './model/HtmlElement.js';
 export { ImageElement } from './model/ImageElement.js';
 export { ImagePickerQuestion } from './model/ImagePickerQuestion.js';
-export type { FillInTheBlankItem } from './model/FillInTheBlankItem.js';
 export { parseBlankTemplate } from './model/parseBlankTemplate.js';
 export type { TemplateSegment } from './model/parseBlankTemplate.js';
 export { FillInTheBlankQuestion } from './model/FillInTheBlankQuestion.js';

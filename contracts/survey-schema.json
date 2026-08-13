@@ -131,6 +131,16 @@
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
+        },
         "labelTrue": {
           "type": "string",
           "default": "Yes"
@@ -301,6 +311,16 @@
           ],
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
         },
         "choicesOrder": {
           "type": "string",
@@ -507,6 +527,16 @@
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
+        },
         "placeholder": {
           "type": "string",
           "default": ""
@@ -701,6 +731,16 @@
           ],
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
         },
         "choicesOrder": {
           "type": "string",
@@ -911,6 +951,16 @@
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
+        },
         "expression": {
           "type": "string",
           "default": "",
@@ -1073,6 +1123,16 @@
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
+        },
         "allowMultiple": {
           "type": "boolean",
           "default": false
@@ -1220,6 +1280,16 @@
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
+        },
         "template": {
           "type": "string",
           "default": "",
@@ -1239,7 +1309,7 @@
         "blanks": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/fillintheblankitem"
+            "$ref": "#/$defs/question"
           }
         }
       },
@@ -1247,82 +1317,6 @@
         "type",
         "name",
         "template"
-      ],
-      "additionalProperties": true
-    },
-    "fillintheblankitem": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "const": "fillintheblankitem"
-        },
-        "name": {
-          "type": "string",
-          "default": "",
-          "description": "Key this blank is stored under inside the question answer."
-        },
-        "label": {
-          "type": "string",
-          "default": "",
-          "description": "What a screen reader calls this blank; falls back to name. The sentence labels it visually and not programmatically."
-        },
-        "inputType": {
-          "type": "string",
-          "default": "text"
-        },
-        "placeholder": {
-          "type": "string",
-          "default": ""
-        },
-        "isRequired": {
-          "type": "boolean",
-          "default": false
-        },
-        "valueName": {
-          "type": "string",
-          "default": "",
-          "description": "Answer key, when it should differ from the name. Shared keys share an answer."
-        },
-        "requiredErrorText": {
-          "type": "string",
-          "default": ""
-        },
-        "size": {
-          "type": "number",
-          "default": 0,
-          "description": "Width in characters. 0 uses blankSize."
-        },
-        "correctAnswer": {
-          "type": [
-            "string",
-            "number",
-            "boolean",
-            "object",
-            "array",
-            "null"
-          ],
-          "default": "",
-          "description": "The answer that scores this blank. A blank without one is not marked."
-        },
-        "trim": {
-          "type": "boolean",
-          "default": true,
-          "description": "Ignore surrounding whitespace when marking."
-        },
-        "caseSensitive": {
-          "type": "boolean",
-          "default": false,
-          "description": "Require matching case when marking. Off by default."
-        },
-        "validators": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/validator"
-          }
-        }
-      },
-      "required": [
-        "name"
       ],
       "additionalProperties": true
     },
@@ -1586,6 +1580,16 @@
           ],
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
         },
         "choicesOrder": {
           "type": "string",
@@ -1855,6 +1859,16 @@
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
+        },
         "isAllRowRequired": {
           "type": "boolean",
           "default": false,
@@ -2000,6 +2014,16 @@
           ],
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
         },
         "detailPanelMode": {
           "type": "string",
@@ -2148,6 +2172,16 @@
           ],
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
         },
         "minRowCount": {
           "type": "number",
@@ -2384,6 +2418,16 @@
           ],
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
         },
         "itemSize": {
           "type": "number",
@@ -2800,6 +2844,16 @@
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
+        },
         "minPanelCount": {
           "type": "number",
           "default": 1,
@@ -3039,6 +3093,16 @@
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
+        },
         "choicesOrder": {
           "type": "string",
           "default": "",
@@ -3234,6 +3298,16 @@
           ],
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
         },
         "choicesOrder": {
           "type": "string",
@@ -3441,6 +3515,16 @@
           ],
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
         },
         "rateMin": {
           "type": "number",
@@ -3696,6 +3780,16 @@
           ],
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
         },
         "penColor": {
           "type": "string",
@@ -4008,6 +4102,16 @@
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
         },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
+        },
         "choicesOrder": {
           "type": "string",
           "default": "",
@@ -4212,6 +4316,16 @@
           ],
           "default": "",
           "description": "The answer that scores. A question without one is not part of the quiz. Never shown."
+        },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore surrounding whitespace when marking by text."
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require matching case when marking by text. Off by default: an assessment marking \"paris\" wrong is measuring typing rather than the subject."
         },
         "inputType": {
           "type": "string",

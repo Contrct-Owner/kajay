@@ -60,7 +60,7 @@ const STARTER: Readonly<Record<Starters, Readonly<Record<string, PropertyValue>>
   // because either alone is a question nobody can answer.
   blanks: {
     template: 'The [[blank1]] is [[blank2]].',
-    blanks: [{ name: 'blank1' }, { name: 'blank2' }],
+    blanks: [{ type: 'text', name: 'blank1' }, { type: 'text', name: 'blank2' }],
   },
   grid: { columns: ['Column 1', 'Column 2', 'Column 3'], rows: ['Row 1', 'Row 2'] },
   cells: {

@@ -30,6 +30,18 @@ public sealed partial class Survey
         return _conditions.IsPageVisible(pageIndex);
     }
 
+    /// <summary>Builds a blank, bound inside the sentence that positions it.</summary>
+    internal SurveyQuestion CreateBlankQuestion(
+        SurveyFillInTheBlankQuestion owner,
+        SurveyRuntimeQuestion definition)
+    {
+        SurveyQuestion blank = CreateQuestion(definition);
+        blank.AttachValueScope(
+            name => owner.GetBlankValue(name),
+            (name, value) => owner.SetBlankValue(name, value));
+        return blank;
+    }
+
     private SurveyQuestion CreateQuestion(SurveyRuntimeQuestion definition)
     {
         if (_definition.Registry.TryGetQuestionFactory(

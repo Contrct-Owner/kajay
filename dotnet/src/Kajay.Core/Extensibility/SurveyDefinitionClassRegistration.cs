@@ -49,6 +49,20 @@ public sealed class SurveyDefinitionClassRegistration
     /// <summary>Gets whether the class contributes metadata but cannot appear in JSON.</summary>
     public bool IsAbstract { get; }
 
+    /// <summary>Gets whether this type may sit inside a line of prose.</summary>
+    /// <remarks>
+    /// <para>
+    /// Off by default: a type that has never considered the question cannot be drawn in a
+    /// sentence, and refusing it is the safe answer. A host's own type opts in here.
+    /// </para>
+    /// <para>
+    /// An init-only property rather than a constructor parameter, because that constructor
+    /// shipped in 1.0.0 — adding a parameter to it is source-compatible and binary
+    /// breaking, which the API baseline exists to catch.
+    /// </para>
+    /// </remarks>
+    public bool AllowsInline { get; init; }
+
     /// <summary>Gets properties declared directly by this class.</summary>
     public IReadOnlyList<SurveyDefinitionPropertyRegistration> Properties { get; }
 

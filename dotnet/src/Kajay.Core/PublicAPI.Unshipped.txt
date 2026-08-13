@@ -12,6 +12,8 @@ Kajay.Expressions.BlankSegmentKind
 Kajay.Expressions.BlankSegmentKind.Blank = 1 -> Kajay.Expressions.BlankSegmentKind
 Kajay.Expressions.BlankSegmentKind.Text = 0 -> Kajay.Expressions.BlankSegmentKind
 Kajay.Expressions.BlankTemplate
+Kajay.Extensibility.SurveyDefinitionClassRegistration.AllowsInline.get -> bool
+Kajay.Extensibility.SurveyDefinitionClassRegistration.AllowsInline.init -> void
 Kajay.Snapshots.SurveySnapshot
 Kajay.Snapshots.SurveySnapshot.ConformanceVersion.get -> int
 Kajay.Snapshots.SurveySnapshot.Data.get -> System.Collections.Generic.IReadOnlyDictionary<string!, Kajay.KajayValue>!
@@ -36,8 +38,8 @@ Kajay.Survey.RestoreSnapshot(Kajay.Snapshots.SurveySnapshot! snapshot) -> void
 Kajay.Survey.SetHostValue(string! name, Kajay.KajayValue value) -> void
 Kajay.SurveyDefinition.DefinitionDigest.get -> string!
 Kajay.SurveyFillInTheBlankQuestion
-Kajay.SurveyFillInTheBlankQuestion.BlankNames.get -> System.Collections.Generic.IReadOnlyList<string!>!
-Kajay.SurveyFillInTheBlankQuestion.GetBlankLabel(string! name) -> string!
+Kajay.SurveyFillInTheBlankQuestion.Blanks.get -> System.Collections.Generic.IReadOnlyList<Kajay.SurveyQuestion!>!
+Kajay.SurveyFillInTheBlankQuestion.GetBlank(string! name) -> Kajay.SurveyQuestion?
 Kajay.SurveyFillInTheBlankQuestion.GetBlankValue(string! name) -> Kajay.KajayValue
 Kajay.SurveyFillInTheBlankQuestion.Segments.get -> System.Collections.Generic.IReadOnlyList<Kajay.Expressions.BlankSegment>!
 Kajay.SurveyFillInTheBlankQuestion.SetBlankValue(string! name, Kajay.KajayValue value) -> void

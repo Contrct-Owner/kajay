@@ -4,6 +4,8 @@ namespace Kajay;
 public abstract class SurveyQuestion
 {
     private readonly Survey _survey;
+    private Func<string, KajayValue>? _readScoped;
+    private Action<string, KajayValue>? _writeScoped;
 
     internal SurveyQuestion(Survey survey, SurveyRuntimeQuestion definition)
     {
@@ -50,7 +52,9 @@ public abstract class SurveyQuestion
     public string RequiredMessage => _survey.ResolveText(Definition.RequiredMessage);
 
     /// <summary>Gets the current answer, or <see cref="KajayValue.Absent"/>.</summary>
-    public KajayValue Value => _survey.GetValue(ValueName);
+    public KajayValue Value => _readScoped is null
+        ? _survey.GetValue(ValueName)
+        : _readScoped(ValueName);
 
     /// <summary>Gets the marks this answer earns, out of the marks it could.</summary>
     /// <returns>Earned and possible marks for this question.</returns>
@@ -69,7 +73,11 @@ public abstract class SurveyQuestion
 
     internal virtual AnswerScore ScoreAnswer()
     {
-        return AnswerScore.Single(Value, Definition.CorrectAnswer);
+        return AnswerScore.Single(
+            Value,
+            Definition.CorrectAnswer,
+            Definition.Trim,
+            Definition.CaseSensitive);
     }
 
     /// <summary>Gets the current condition-derived state.</summary>
@@ -81,7 +89,28 @@ public abstract class SurveyQuestion
     /// <param name="value">The closed-algebra value to store.</param>
     public void SetValue(KajayValue value)
     {
-        _survey.SetValue(ValueName, value);
+        if (_writeScoped is null)
+        {
+            _survey.SetValue(ValueName, value);
+            return;
+        }
+
+        _writeScoped(ValueName, value);
+    }
+
+    /// <summary>Binds this question's answer inside another question's, rather than beside it.</summary>
+    /// <param name="read">Reads this question's answer from its owner.</param>
+    /// <param name="write">Writes this question's answer into its owner.</param>
+    /// <remarks>
+    /// What a fill-in-the-blank's blanks need: they are real questions, and without this a
+    /// blank would quietly own a top-level answer of its own name. Every read and every
+    /// write already funnels through this class, so scoping is these two hooks and nothing
+    /// else — the same seam the TypeScript runtime calls a value host.
+    /// </remarks>
+    internal void AttachValueScope(Func<string, KajayValue> read, Action<string, KajayValue> write)
+    {
+        _readScoped = read;
+        _writeScoped = write;
     }
 
     /// <summary>Removes this question's response value.</summary>

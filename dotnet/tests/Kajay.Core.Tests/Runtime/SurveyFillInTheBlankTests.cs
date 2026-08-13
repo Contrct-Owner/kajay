@@ -104,7 +104,7 @@ public sealed class SurveyFillInTheBlankTests
             """
             {"pages":[{"name":"p1","elements":[{"type":"fillintheblank","name":"geography",
               "template":"[[code]]","blanks":[
-                {"name":"code","correctAnswer":"KJ","caseSensitive":true}]}]}]}
+                {"type":"text","name":"code","correctAnswer":"KJ","caseSensitive":true}]}]}]}
             """).Definition.CreateSurvey();
         Question(survey).SetBlankValue("code", KajayValue.From("kj"));
 
@@ -118,7 +118,7 @@ public sealed class SurveyFillInTheBlankTests
         Survey survey = SurveyDefinition.Parse(
             """
             {"pages":[{"name":"p1","elements":[{"type":"fillintheblank","name":"geography",
-              "template":"[[n]]","blanks":[{"name":"n","correctAnswer":42}]}]}]}
+              "template":"[[n]]","blanks":[{"type":"text","name":"n","correctAnswer":42}]}]}]}
             """).Definition.CreateSurvey();
         Question(survey).SetBlankValue("n", KajayValue.From("42"));
 
@@ -133,7 +133,7 @@ public sealed class SurveyFillInTheBlankTests
         Survey survey = SurveyDefinition.Parse(
             """
             {"pages":[{"name":"p1","elements":[{"type":"fillintheblank","name":"geography",
-              "template":"[[a]]","blanks":[{"name":"a"}]}]}]}
+              "template":"[[a]]","blanks":[{"type":"text","name":"a"}]}]}]}
             """).Definition.CreateSurvey();
 
         // Membership is asked of the blanks; the question-level correct answer this type
@@ -141,14 +141,34 @@ public sealed class SurveyFillInTheBlankTests
         Assert.Equal(0, survey.GetQuizScore().QuestionCount);
     }
 
-    [Fact(DisplayName = "parity/Q12-fill-in-the-blank: a blank is named for a screen reader")]
-    public void ABlankIsNamedForAScreenReader()
+    [Fact(DisplayName = "parity/Q12-fill-in-the-blank: a blank is a question, so it brings its own title")]
+    public void ABlankIsAQuestionSoItBringsItsOwnTitle()
     {
         SurveyFillInTheBlankQuestion question = Question(Build());
 
-        Assert.Equal("Capital city", question.GetBlankLabel("capital"));
-        // Falls back to the name, so no gap is ever unnamed to a reader.
-        Assert.Equal("unknown", question.GetBlankLabel("unknown"));
+        // What an adapter names the gap to a screen reader — and it comes from the question
+        // rather than from anything a private item type had to declare for itself.
+        Assert.Equal("Capital city", question.GetBlank("capital")?.Title);
+        Assert.Null(question.GetBlank("unknown"));
+    }
+
+    [Fact(DisplayName = "parity/Q12-fill-in-the-blank: a multi-select blank earns partial credit")]
+    public void AMultiSelectBlankEarnsPartialCredit()
+    {
+        Survey survey = SurveyDefinition.Parse(
+            """
+            {"pages":[{"name":"p1","elements":[{"type":"fillintheblank","name":"geography",
+              "template":"cities include [[cities]]","blanks":[
+                {"type":"tagbox","name":"cities","choices":["Paris","Lyon","Nice"],
+                 "correctAnswer":["Paris","Lyon"]}]}]}]}
+            """).Definition.CreateSurvey();
+        Question(survey).SetBlankValue("cities", KajayValue.FromArray([KajayValue.From("Paris")]));
+
+        // Scored by the rule a checkbox uses, because it *is* one. This could not be
+        // expressed until scoring became a pair.
+        QuizScore score = survey.GetQuizScore();
+        Assert.Equal(1, score.Earned);
+        Assert.Equal(2, score.Possible);
     }
 
     private static Survey Build()
@@ -158,8 +178,8 @@ public sealed class SurveyFillInTheBlankTests
             {"pages":[{"name":"p1","elements":[{"type":"fillintheblank","name":"geography",
               "template":"The capital of France is [[capital]] and its currency is the [[currency]].",
               "blanks":[
-                {"name":"capital","label":"Capital city","correctAnswer":"Paris"},
-                {"name":"currency","label":"Currency","correctAnswer":"Euro"}]}]}]}
+                {"type":"text","name":"capital","title":"Capital city","correctAnswer":"Paris"},
+                {"type":"text","name":"currency","title":"Currency","correctAnswer":"Euro"}]}]}]}
             """).Definition.CreateSurvey();
     }
 

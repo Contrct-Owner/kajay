@@ -78,6 +78,7 @@ public sealed class SurveyDefinitionRegistry
             registration.Name,
             registration.Parent,
             registration.IsAbstract,
+            registration.AllowsInline,
             Array.AsReadOnly(properties),
             Array.AsReadOnly(collections));
     }

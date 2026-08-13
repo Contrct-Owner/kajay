@@ -43,6 +43,8 @@ export interface RuntimeMetadataClass {
   readonly name: string;
   readonly parent: string | null;
   readonly isAbstract: boolean;
+  /** Whether this type may sit inside a line of prose — checklist C13, ADR-0048. */
+  readonly allowsInline: boolean;
   /** Properties declared by this class. Inherited properties come from `parent`. */
   readonly declaredProperties: readonly RuntimeMetadataProperty[];
   /** Child collections declared by this class. Inherited collections come from `parent`. */
@@ -100,6 +102,7 @@ export function generateMetadataContract(
         name,
         parent: descriptor.parent ?? null,
         isAbstract: descriptor.isAbstract,
+        allowsInline: descriptor.allowsInline,
         declaredProperties: descriptor.properties.map(metadataProperty),
         declaredChildCollections: descriptor.childCollections.map((collection) => ({
           property: collection.property,

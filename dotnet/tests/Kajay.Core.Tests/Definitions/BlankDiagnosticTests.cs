@@ -7,7 +7,7 @@ public sealed class BlankDiagnosticTests
     {
         Assert.Empty(Diagnose("""
             {"type":"fillintheblank","name":"q","template":"The capital is [[capital]].",
-             "blanks":[{"name":"capital"}]}
+             "blanks":[{"type":"text","name":"capital"}]}
             """));
     }
 
@@ -28,7 +28,7 @@ public sealed class BlankDiagnosticTests
             new DefinitionDiagnostic("unpositioned-blank", "/q", DiagnosticSeverity.Warning),
             Diagnose("""
                 {"type":"fillintheblank","name":"q","template":"[[a]]",
-                 "blanks":[{"name":"a"},{"name":"b"}]}
+                 "blanks":[{"type":"text","name":"a"},{"type":"text","name":"b"}]}
                 """));
     }
 
@@ -40,7 +40,7 @@ public sealed class BlankDiagnosticTests
         Assert.Empty(Diagnose("""
             {"type":"fillintheblank","name":"q",
              "template":{"default":"The capital is [[capital]]","de":"[[capital]] ist die Hauptstadt"},
-             "blanks":[{"name":"capital"}]}
+             "blanks":[{"type":"text","name":"capital"}]}
             """));
     }
 
@@ -53,8 +53,32 @@ public sealed class BlankDiagnosticTests
             Diagnose("""
                 {"type":"fillintheblank","name":"q",
                  "template":{"default":"is [[capital]]","fr":"est [[capitale]]"},
-                 "blanks":[{"name":"capital"}]}
+                 "blanks":[{"type":"text","name":"capital"}]}
                 """));
+    }
+
+    [Fact(DisplayName = "parity/Q12-blank-diagnostics: a type that cannot go inline is refused")]
+    public void ATypeThatCannotGoInlineIsRefused()
+    {
+        // A matrix in the middle of a clause is not a layout decision but a mistake, and
+        // nothing can draw it — so it is refused where the author can see it rather than
+        // discovered as broken markup.
+        Assert.Contains(
+            new DefinitionDiagnostic("non-inline-blank", "/q", DiagnosticSeverity.Error),
+            Diagnose("""
+                {"type":"fillintheblank","name":"q","template":"[[grid]]",
+                 "blanks":[{"type":"matrix","name":"grid"}]}
+                """));
+    }
+
+    [Fact(DisplayName = "parity/Q12-blank-diagnostics: a dropdown blank is allowed inline")]
+    public void ADropdownBlankIsAllowedInline()
+    {
+        // The point of the reframe: a gap can be a real select, and the registry says so.
+        Assert.Empty(Diagnose("""
+            {"type":"fillintheblank","name":"q","template":"the capital is [[capital]]",
+             "blanks":[{"type":"dropdown","name":"capital","choices":["Paris","Lyon"]}]}
+            """));
     }
 
     private static IReadOnlyList<DefinitionDiagnostic> Diagnose(string element)

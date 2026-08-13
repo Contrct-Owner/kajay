@@ -14,6 +14,7 @@
       "name": "answercountvalidator",
       "parent": "validator",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "minCount",
@@ -44,6 +45,7 @@
       "name": "boolean",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": true,
       "declaredProperties": [
         {
           "name": "labelTrue",
@@ -107,6 +109,7 @@
       "name": "calculatedvalue",
       "parent": null,
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "name",
@@ -148,6 +151,7 @@
       "name": "checkbox",
       "parent": "multiselectbase",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -155,6 +159,7 @@
       "name": "comment",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "placeholder",
@@ -218,6 +223,7 @@
       "name": "complete",
       "parent": "trigger",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -225,6 +231,7 @@
       "name": "copyvalue",
       "parent": "trigger",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "setToName",
@@ -255,6 +262,7 @@
       "name": "displayelement",
       "parent": "pageelement",
       "isAbstract": true,
+      "allowsInline": false,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -262,6 +270,7 @@
       "name": "dropdown",
       "parent": "selectbase",
       "isAbstract": false,
+      "allowsInline": true,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -269,6 +278,7 @@
       "name": "emailvalidator",
       "parent": "validator",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -276,6 +286,7 @@
       "name": "expression",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": true,
       "declaredProperties": [
         {
           "name": "expression",
@@ -339,6 +350,7 @@
       "name": "expressionvalidator",
       "parent": "validator",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "expression",
@@ -358,6 +370,7 @@
       "name": "file",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "allowMultiple",
@@ -443,6 +456,7 @@
       "name": "fillintheblank",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "template",
@@ -479,6 +493,7 @@
       "name": "html",
       "parent": "displayelement",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "html",
@@ -498,6 +513,7 @@
       "name": "htmlcondition",
       "parent": null,
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "expression",
@@ -528,6 +544,7 @@
       "name": "image",
       "parent": "displayelement",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "imageLink",
@@ -602,6 +619,7 @@
       "name": "imagepicker",
       "parent": "multiselectbase",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "multiSelect",
@@ -676,6 +694,7 @@
       "name": "itemvalue",
       "parent": null,
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "value",
@@ -728,6 +747,7 @@
       "name": "matrix",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "isAllRowRequired",
@@ -791,6 +811,7 @@
       "name": "matrixcells",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "detailPanelMode",
@@ -842,6 +863,7 @@
       "name": "matrixdynamic",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "minRowCount",
@@ -1009,6 +1031,7 @@
       "name": "matrixtotal",
       "parent": null,
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "column",
@@ -1072,6 +1095,7 @@
       "name": "multipletext",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "itemSize",
@@ -1108,6 +1132,7 @@
       "name": "multipletextitem",
       "parent": null,
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "name",
@@ -1221,6 +1246,7 @@
       "name": "multiselectbase",
       "parent": "selectbase",
       "isAbstract": true,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "showSelectAllItem",
@@ -1262,6 +1288,7 @@
       "name": "numericvalidator",
       "parent": "validator",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "minValue",
@@ -1292,6 +1319,7 @@
       "name": "page",
       "parent": null,
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "name",
@@ -1361,6 +1389,7 @@
       "name": "pageelement",
       "parent": null,
       "isAbstract": true,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "name",
@@ -1457,6 +1486,7 @@
       "name": "panel",
       "parent": "pageelement",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "description",
@@ -1504,6 +1534,7 @@
       "name": "paneldynamic",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "minPanelCount",
@@ -1639,6 +1670,7 @@
       "name": "question",
       "parent": "pageelement",
       "isAbstract": true,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "isRequired",
@@ -1785,6 +1817,7 @@
       "name": "radiogroup",
       "parent": "selectbase",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "showClearButton",
@@ -1804,6 +1837,7 @@
       "name": "ranking",
       "parent": "selectbase",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "selectToRankEnabled",
@@ -1845,6 +1879,7 @@
       "name": "rating",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": true,
       "declaredProperties": [
         {
           "name": "rateMin",
@@ -1936,6 +1971,7 @@
       "name": "regexvalidator",
       "parent": "validator",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "regex",
@@ -1955,6 +1991,7 @@
       "name": "runexpression",
       "parent": "trigger",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "setToName",
@@ -1985,6 +2022,7 @@
       "name": "selectbase",
       "parent": "question",
       "isAbstract": true,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "choicesOrder",
@@ -2175,6 +2213,7 @@
       "name": "setvalue",
       "parent": "trigger",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "setToName",
@@ -2205,6 +2244,7 @@
       "name": "signaturepad",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "penColor",
@@ -2268,6 +2308,7 @@
       "name": "skip",
       "parent": "trigger",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "gotoName",
@@ -2287,6 +2328,7 @@
       "name": "survey",
       "parent": null,
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "title",
@@ -2569,6 +2611,7 @@
       "name": "tagbox",
       "parent": "multiselectbase",
       "isAbstract": false,
+      "allowsInline": true,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -2576,6 +2619,7 @@
       "name": "text",
       "parent": "question",
       "isAbstract": false,
+      "allowsInline": true,
       "declaredProperties": [
         {
           "name": "inputType",
@@ -2639,6 +2683,7 @@
       "name": "textvalidator",
       "parent": "validator",
       "isAbstract": false,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "minLength",
@@ -2680,6 +2725,7 @@
       "name": "trigger",
       "parent": null,
       "isAbstract": true,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "expression",
@@ -2699,6 +2745,7 @@
       "name": "validator",
       "parent": null,
       "isAbstract": true,
+      "allowsInline": false,
       "declaredProperties": [
         {
           "name": "text",

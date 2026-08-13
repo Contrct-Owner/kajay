@@ -1,19 +1,29 @@
-using System.Collections.ObjectModel;
-
 namespace Kajay;
 
-/// <summary>A sentence with gaps the respondent types into.</summary>
+/// <summary>A sentence with fields in it.</summary>
 /// <remarks>
-/// The prose is what makes this a type rather than a composition: several named fields
-/// under one name already exist, and so does arbitrary markup. Neither can put an input
-/// <em>inside</em> a sentence, and being inside the sentence is the whole question — the
-/// surrounding words are what is being asked.
+/// The prose is a <em>layout</em>. What sits in it is any question that fits in a line — a
+/// text field, a dropdown, a multi-select, a yes/no — so authoring a form here is writing a
+/// sentence, and filling in a blank is the simplest case rather than the whole of it.
+/// <para>
+/// The blanks are real questions, as a matrix's cell columns and a dynamic panel's template
+/// elements already are. A dropdown blank <em>is</em> a dropdown, which is what makes its
+/// choices, its remote choices and its marking arrive with it.
+/// </para>
 /// </remarks>
 public sealed class SurveyFillInTheBlankQuestion : SurveyQuestion
 {
+    private readonly IReadOnlyList<SurveyQuestion> _blanks;
+
     internal SurveyFillInTheBlankQuestion(Survey survey, SurveyRuntimeQuestion definition)
         : base(survey, definition)
     {
+        // Bound through this question rather than beside it: a blank reads and writes inside
+        // *this* answer, and one pointed at the survey would quietly own a top-level answer
+        // of its own name.
+        _blanks = Array.AsReadOnly(definition.BlankSettings!.Blanks
+            .Select(blank => survey.CreateBlankQuestion(this, blank))
+            .ToArray());
     }
 
     private SurveyRuntimeBlankSettings Settings => Definition.BlankSettings!;
@@ -21,36 +31,25 @@ public sealed class SurveyFillInTheBlankQuestion : SurveyQuestion
     /// <summary>Gets the prose for the current locale, with its markers intact.</summary>
     public string Template => Settings.Template.Resolve(Owner.Locale);
 
-    /// <summary>Gets the prose split into what is drawn: text, then a gap, then more text.</summary>
+    /// <summary>Gets the prose split into what is drawn: text, then a field, then more text.</summary>
     /// <remarks>
-    /// Computed on read rather than cached, because the template is localizable — switching
-    /// locale replaces the sentence, and a cached split would draw the previous language's
-    /// gaps in the new language's words.
+    /// Computed on read, because the template is localizable — switching locale replaces the
+    /// sentence, and a cached split would draw the previous language's gaps in the new
+    /// language's words.
     /// </remarks>
     public IReadOnlyList<BlankSegment> Segments => BlankTemplate.Parse(Template);
 
-    /// <summary>Gets the names this question declares, in authored order.</summary>
-    public IReadOnlyList<string> BlankNames =>
-        Array.AsReadOnly(Settings.Blanks.Select(blank => blank.Name).ToArray());
+    /// <summary>Gets the questions this sentence positions, in authored order.</summary>
+    public IReadOnlyList<SurveyQuestion> Blanks => _blanks;
 
-    /// <summary>Gets what a screen reader calls one blank, falling back to its name.</summary>
+    /// <summary>Gets the question a marker refers to, or null when nobody declared it.</summary>
     /// <param name="name">The exact ordinal blank name.</param>
-    /// <returns>The label, or the name when none was authored.</returns>
-    /// <remarks>
-    /// Load-bearing rather than decorative: the sentence labels a blank visually and not
-    /// programmatically, so without this a reader announces "edit text, blank".
-    /// </remarks>
-    public string GetBlankLabel(string name)
+    /// <returns>The bound blank, or null.</returns>
+    public SurveyQuestion? GetBlank(string name)
     {
         ArgumentNullException.ThrowIfNull(name);
-        SurveyRuntimeBlank? blank = Find(name);
-        if (blank is null)
-        {
-            return name;
-        }
-
-        string label = blank.Label.Resolve(Owner.Locale);
-        return label.Length > 0 ? label : blank.Name;
+        return _blanks.FirstOrDefault(blank =>
+            string.Equals(blank.Name, name, StringComparison.Ordinal));
     }
 
     /// <summary>Gets one blank's answer.</summary>
@@ -89,61 +88,28 @@ public sealed class SurveyFillInTheBlankQuestion : SurveyQuestion
             filled.Count > 0 ? KajayValue.FromObject(filled) : KajayValue.Absent);
     }
 
-    /// <summary>Gets whether this sentence is graded at all.</summary>
+    /// <summary>Gets whether this sentence is graded at all — asked of the blanks.</summary>
     /// <remarks>
-    /// Asked of the blanks. This type inherits a question-level correct answer it never
-    /// uses, so reading that would leave a fully marked sentence out of the quiz because
-    /// nobody wrote an answer at a level that means nothing here.
+    /// This type inherits a question-level correct answer it never uses, so reading that
+    /// would leave a fully marked sentence out of the quiz.
     /// </remarks>
-    internal override bool IsMarked => Settings.Blanks.Any(blank => blank.HasCorrectAnswer);
+    internal override bool IsMarked => _blanks.Any(blank => blank.IsMarked);
 
-    /// <summary>Gets a mark per marked blank.</summary>
+    /// <summary>Gets a mark per marked blank, each scored by its own type.</summary>
     /// <returns>Earned and possible marks for this sentence.</returns>
     /// <remarks>
-    /// Partial credit falls out of the score being a pair: a sentence with four gaps is four
-    /// decisions wearing one question. Only blanks carrying a correct answer count toward
-    /// the total, so an author may mark two gaps and leave a third for prose.
+    /// Partial credit costs nothing of its own: a multi-select blank is scored by the rule a
+    /// checkbox uses, because it is one.
     /// </remarks>
     internal override AnswerScore ScoreAnswer()
     {
-        SurveyRuntimeBlank[] marked = Settings.Blanks.Where(blank => blank.HasCorrectAnswer).ToArray();
-        int earned = marked.Count(blank => Matches(GetBlankValue(blank.Name), blank));
-        return new AnswerScore(earned, marked.Length);
-    }
-
-    /// <summary>
-    /// Compares as text whenever either side is text, so an authored number marks a typed one.
-    /// </summary>
-    private static bool Matches(KajayValue value, SurveyRuntimeBlank blank)
-    {
-        if (blank.CorrectAnswer.Kind != KajayValueKind.Text && value.Kind != KajayValueKind.Text)
-        {
-            return KajayExpressionEquality.Equals(value, blank.CorrectAnswer);
-        }
-
-        return string.Equals(
-            Normalize(value, blank),
-            Normalize(blank.CorrectAnswer, blank),
-            blank.CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static string Normalize(KajayValue value, SurveyRuntimeBlank blank)
-    {
-        // The runtime's own conversion, not `ToString`: a `KajayValue` is a struct whose
-        // default rendering is its type name, and the contract already fixes how a number
-        // becomes text — an assessment must not invent a second answer to that.
-        string text = value.Kind switch
-        {
-            KajayValueKind.Absent or KajayValueKind.Null => string.Empty,
-            KajayValueKind.Text => value.GetString(),
-            _ => KajayText.TryConvert(value, out string converted) ? converted : string.Empty,
-        };
-        return blank.Trim ? text.Trim() : text;
-    }
-
-    private SurveyRuntimeBlank? Find(string name)
-    {
-        return Settings.Blanks.FirstOrDefault(blank =>
-            string.Equals(blank.Name, name, StringComparison.Ordinal));
+        return _blanks
+            .Where(blank => blank.IsMarked)
+            .Select(blank => blank.ScoreAnswer())
+            .Aggregate(
+                new AnswerScore(0, 0),
+                (running, score) => new AnswerScore(
+                    running.Earned + score.Earned,
+                    running.Possible + score.Possible));
     }
 }

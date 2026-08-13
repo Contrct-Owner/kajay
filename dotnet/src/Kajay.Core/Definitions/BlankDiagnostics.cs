@@ -21,6 +21,7 @@ internal static class BlankDiagnostics
     internal static void Validate(
         string className,
         JsonObject element,
+        DefinitionRegistry registry,
         ICollection<DefinitionDiagnostic> diagnostics)
     {
         if (!string.Equals(className, "fillintheblank", StringComparison.Ordinal))
@@ -46,6 +47,20 @@ internal static class BlankDiagnostics
         foreach (string unused in declared.Where(candidate => !positioned.Contains(candidate)))
         {
             diagnostics.Add(new DefinitionDiagnostic("unpositioned-blank", path, DiagnosticSeverity.Warning));
+        }
+
+        // Whether a type may go inline is the registry's answer rather than a list kept
+        // here, so a host's own type can opt in. Nothing can draw one that has not.
+        foreach (JsonObject blank in (element["blanks"] as JsonArray ?? []).OfType<JsonObject>())
+        {
+            string type = blank["type"]?.GetValue<string>() ?? string.Empty;
+            if (!(registry.GetClass(type)?.AllowsInline ?? false))
+            {
+                diagnostics.Add(new DefinitionDiagnostic(
+                    "non-inline-blank",
+                    path,
+                    DiagnosticSeverity.Error));
+            }
         }
 
         ValidateTranslations(template, positioned, path, diagnostics);

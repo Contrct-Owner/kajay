@@ -16,9 +16,54 @@ internal readonly record struct AnswerScore(double Earned, double Possible)
     /// <param name="value">The response.</param>
     /// <param name="correctAnswer">The authored answer that scores.</param>
     /// <returns>One mark when the two are equal.</returns>
-    internal static AnswerScore Single(KajayValue value, KajayValue correctAnswer)
+    /// <param name="trim">Whether surrounding whitespace is ignored when marking by text.</param>
+    /// <param name="caseSensitive">Whether case matters when marking by text.</param>
+    internal static AnswerScore Single(
+        KajayValue value,
+        KajayValue correctAnswer,
+        bool trim = true,
+        bool caseSensitive = false)
     {
-        return new AnswerScore(KajayExpressionEquality.Equals(value, correctAnswer) ? 1 : 0, 1);
+        return new AnswerScore(Matches(value, correctAnswer, trim, caseSensitive) ? 1 : 0, 1);
+    }
+
+    /// <summary>
+    /// Compares as text whenever either side is text, so an authored number marks a typed one.
+    /// </summary>
+    /// <remarks>
+    /// A respondent types into an input and gets text back, so an authored <c>42</c> and a
+    /// typed <c>"42"</c> are the same answer. Trimming and case are the author's call and
+    /// both default toward forgiving: an assessment marking <c>paris</c> wrong is measuring
+    /// typing rather than the subject.
+    /// </remarks>
+    private static bool Matches(
+        KajayValue value,
+        KajayValue correctAnswer,
+        bool trim,
+        bool caseSensitive)
+    {
+        if (correctAnswer.Kind != KajayValueKind.Text && value.Kind != KajayValueKind.Text)
+        {
+            return KajayExpressionEquality.Equals(value, correctAnswer);
+        }
+
+        return string.Equals(
+            Normalize(value, trim),
+            Normalize(correctAnswer, trim),
+            caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string Normalize(KajayValue value, bool trim)
+    {
+        // The runtime's own conversion, not `ToString`: a `KajayValue` is a struct whose
+        // default rendering is its type name.
+        string text = value.Kind switch
+        {
+            KajayValueKind.Absent or KajayValueKind.Null => string.Empty,
+            KajayValueKind.Text => value.GetString(),
+            _ => KajayText.TryConvert(value, out string converted) ? converted : string.Empty,
+        };
+        return trim ? text.Trim() : text;
     }
 
     /// <summary>

@@ -2,6 +2,7 @@ import type { LogicEngineOptions } from '../logic/LogicEngine.js';
 import type { ChoicePageLoader } from './ChoicePageLoader.js';
 import type { Endpoints } from './endpoints.js';
 import type { ChoiceFetcher } from './ChoiceFetcher.js';
+import type { HostValues } from './hostValues.js';
 import type { FileCleaner, FileDownloader, FileUploader } from './FileEntry.js';
 
 /**
@@ -25,6 +26,15 @@ export interface SurveyOptions extends LogicEngineOptions {
    * fetches from.
    */
   readonly endpoints?: Endpoints;
+  /**
+   * Values a definition addresses as `{$name}` — checklist B12, ADR-0047.
+   *
+   * The host's context, readable by every expression and belonging to none of the
+   * response: a tier, a balance, an entitlement, a quote. Supplied here rather than
+   * written with `setValue` because `setValue` records an *answer*, which puts host
+   * configuration into `data` and the snapshot and lets the respondent overwrite it.
+   */
+  readonly values?: HostValues;
   /**
    * Where attached files go — checklist H1 and H3.
    *

@@ -1,4 +1,5 @@
 import { clearAnswersOnComplete } from './clearInvisibleAnswers.js';
+import { isHostValueName } from './hostValues.js';
 import { interpolateHtml } from './interpolate.js';
 import { quizPlaceholder } from './quizScore.js';
 import type { Survey } from './Survey.js';
@@ -184,15 +185,26 @@ export class SurveyStatus {
   }
 
   /**
-   * An answer, or — failing that — the quiz result.
+   * A host value, an answer, or — failing that — the quiz result.
    *
-   * **Answers first**, so a survey that happens to contain a question named
-   * `correctAnswers` keeps reading its own data. The alternative silently replaces a
-   * respondent's answer with a number on a completed page the author has already
-   * proof-read, and a placeholder resolving to something other than the answer of that
-   * name is the surprise that is hardest to diagnose.
+   * **The sigil first**, as everywhere else the scope is read: a completed page saying
+   * "Thank you, {$tier} customer" must mean the host's value here for the same reason
+   * `{$tier}` means it in a `visibleIf`, and a scope that worked in conditions but
+   * rendered blank in prose would be the harder half of the feature to trust.
+   *
+   * A host reference is resolved **whole**, so `{$profile.plan.tier}` descends the way
+   * it does in an expression. Answers are still looked up by flat name, deliberately:
+   * that is what they have always done here, and an answer written with `setValue` under
+   * a key containing a dot would start resolving to nothing the day this began splitting
+   * them. The new scope has no such history to protect.
+   *
+   * **Answers before the quiz**, unchanged, so a survey that happens to contain a
+   * question named `correctAnswers` keeps reading its own data.
    */
   #resolve(name: string): unknown {
+    if (isHostValueName(name)) {
+      return this.#logic().resolveReference(name);
+    }
     const answer = this.#answers.resolve(name);
     return answer === undefined ? quizPlaceholder(this.#survey, name) : answer;
   }

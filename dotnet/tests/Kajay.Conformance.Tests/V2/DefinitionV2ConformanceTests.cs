@@ -5,6 +5,12 @@ namespace Kajay.Conformance.Tests;
 public sealed class DefinitionV2ConformanceTests
 {
     [Fact]
+    public void ElementNamedIntoTheHostScopeIsReportedAndKept()
+    {
+        AssertDefinitionCase("element-named-into-the-host-scope-is-reported-and-kept");
+    }
+
+    [Fact]
     public void UnsupportedPatternIsPreservedAndReported()
     {
         AssertDefinitionCase("unsupported-pattern-is-preserved-and-reported");

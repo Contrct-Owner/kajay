@@ -202,6 +202,17 @@ export class LogicEngine {
     this.#onAsyncSettled = onSettled;
   }
 
+  /**
+   * Discards cached asynchronous results, so the next evaluation asks again.
+   *
+   * Only the forgetting happens here. Re-evaluating is the settle owner's call, for the
+   * same reason the arrival of an asynchronous answer is announced rather than acted on:
+   * this engine owns neither the resolver nor the transaction.
+   */
+  invalidateAsyncResults(name?: string): void {
+    this.#asyncValues.invalidate(name);
+  }
+
   evaluate(expression: string, resolve: ValueResolver): RuleEvaluation {
     const parsed = this.#cache.parse(expression);
     const evaluation = evaluateExpression(parsed.node, {

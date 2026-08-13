@@ -1,11 +1,14 @@
 import type { ElementStateChangedEvent, ValueChangedEvent } from '../events/SurveyEvents.js';
 import type { PathSegment } from '../expressions/ExpressionNode.js';
+import { parseReferencePath } from '../expressions/parseReferencePath.js';
 import { LogicEngine } from '../logic/LogicEngine.js';
 import type { LogicDiagnostics } from '../logic/LogicEngine.js';
 import type { CalculatedValue } from './CalculatedValue.js';
 import { ChoiceSourceController } from './ChoiceSourceController.js';
 import { createPathResolver } from './createPathResolver.js';
 import { ElementStateController } from './ElementStateController.js';
+import { HostValueStore } from './HostValueStore.js';
+import { hostValueKey, hostValueReference, isHostValueName } from './hostValues.js';
 import { SettleCoordinator } from './SettleCoordinator.js';
 import type { SurveyAnswers } from './SurveyAnswers.js';
 import type { SurveyChildren } from './SurveyChildren.js';
@@ -63,6 +66,7 @@ export class SurveyLogicHost {
   readonly #survey: Survey;
   readonly #writeValue: (name: string, value: unknown) => boolean;
   readonly #resolvePath: (path: readonly PathSegment[]) => unknown;
+  readonly #hostValues: HostValueStore = new HostValueStore();
   #afterSettle: (() => void) | undefined;
   #inAfterSettle = false;
 
@@ -90,7 +94,7 @@ export class SurveyLogicHost {
         announcer.elementState(event);
       }
     });
-    this.#resolvePath = createPathResolver((name) => answers.resolve(name));
+    this.#resolvePath = createPathResolver((name) => this.#lookup(name));
   }
 
   /** Advances whenever an element's computed state changes. The renderer's snapshot. */
@@ -125,6 +129,9 @@ export class SurveyLogicHost {
     }
     if (options.now !== undefined) {
       this.#engine.setClock(options.now);
+    }
+    if (options.values !== undefined) {
+      this.#hostValues.replaceAll(options.values);
     }
     this.#choiceSources.setFetcher(options.fetchJson);
     this.#choiceSources.setEndpoints(options.endpoints ?? {});
@@ -227,6 +234,24 @@ export class SurveyLogicHost {
     return this.#resolvePath([{ kind: 'name', name }]);
   }
 
+  /**
+   * Resolves a whole written reference — `$profile.plan.tier`, not just `$profile`.
+   *
+   * For templates, which hand over the text between the braces rather than a parsed
+   * path. Parsed with the same `parseReferencePath` an expression goes through, so
+   * `{$profile.plan.tier}` means one thing wherever it is written; a template that split
+   * on dots itself would be a second, quietly divergent reader of the same syntax.
+   *
+   * Malformed references are not reported here. A template is prose with holes in it,
+   * and the caller renders what it can — an unreadable hole resolves to nothing, which
+   * is what an unknown name in a template has always done.
+   */
+  resolveReference(reference: string): unknown {
+    return this.#resolvePath(
+      parseReferencePath(reference, { start: 0, end: reference.length }, []),
+    );
+  }
+
   announcePanelCollapsed(panel: Panel): void {
     panel.setCollapseAnnouncer((isCollapsed) => {
       this.#states.notifyCollapsedChanged(panel, isCollapsed);
@@ -277,6 +302,64 @@ export class SurveyLogicHost {
     const resolve = scope === undefined ? this.#resolvePath : this.#scopedResolver(scope);
     const evaluation = this.#engine.evaluate(expression, resolve);
     return { value: evaluation.value, failed: evaluation.errors.length > 0 };
+  }
+
+  /**
+   * The first segment of every reference: a host value, or an answer.
+   *
+   * **The sigil is tested first**, so a host value can never be shadowed by a question
+   * and a question can never be reached through the host scope. That ordering is what
+   * makes the two namespaces genuinely separate rather than merely conventionally so —
+   * and it is why `$` is reserved in `name`, since a question called `$tier` would
+   * otherwise be silently unreachable from every expression.
+   *
+   * Descent is not handled here. `{$profile.plan.tier}` resolves because
+   * `createPathResolver` walks the remaining segments into whatever this returns, which
+   * is the same treatment an answer holding an object already gets.
+   */
+  #lookup(name: string): unknown {
+    return isHostValueName(name)
+      ? this.#hostValues.get(hostValueKey(name))
+      : this.#answers.resolve(name);
+  }
+
+  /**
+   * Records a host value and recomputes everything that reads it.
+   *
+   * **Through the same settle an answer goes through**, deliberately: this is a new kind
+   * of graph root, and ADR-0004's guarantee — that no observer sees the model part-way
+   * through a cascade — is a property of the settle rather than of answers. A write that
+   * recomputed outside it would announce a visibility change while a later rule had yet
+   * to run, which is the one state the transaction exists to make unobservable.
+   *
+   * The path is the reference an author writes, `$tier` rather than `tier`, because that
+   * is the name every rule declared its dependency under. A write announcing the bare
+   * key would recompute the rules that read the *answer* of that name and none of the
+   * ones that read the host value.
+   *
+   * No `ValueChangedEvent` is queued. That event means "an answer changed", and a host
+   * value is not in `data` for a listener to go and read — a partial save woken by one
+   * would write a response nobody had altered. What the respondent can actually see
+   * change, element state, is drained on release like any other settle's.
+   */
+  /**
+   * Forgets what asynchronous functions returned, then runs every rule again.
+   *
+   * A full re-evaluation rather than a targeted one, on the same reasoning `#reevaluate`
+   * already follows: no path was written, so the dependency graph has nothing to trace
+   * from. The rules that call the discarded function ask again as they run, and the
+   * answers land the way any asynchronous answer does.
+   */
+  invalidateAsyncResults(name?: string): void {
+    this.#engine.invalidateAsyncResults(name);
+    this.#reevaluate();
+  }
+
+  setHostValue(key: string, value: unknown): void {
+    if (!this.#hostValues.set(key, value).changed) {
+      return;
+    }
+    this.applyValueChange(hostValueReference(key));
   }
 
   /**

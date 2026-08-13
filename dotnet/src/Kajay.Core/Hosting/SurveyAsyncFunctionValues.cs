@@ -32,6 +32,25 @@ internal sealed class SurveyAsyncFunctionValues(ExpressionFunctionRegistry funct
         return AsyncFunctionValue.Pending;
     }
 
+    /// <summary>Forgets recorded calls, so the next settle asks again.</summary>
+    /// <param name="name">One function's calls, or every call when null.</param>
+    /// <remarks>
+    /// Recorded results are permanent by design — it is what stops each re-evaluation restarting
+    /// the call that triggered it — and permanence is right until the world those answers
+    /// describe moves. Failures go with them: a rejected call is recorded and never retried, so
+    /// this is the only way back from a lookup that failed once.
+    /// <para>
+    /// A call already in flight needs no generation guard here, unlike the TypeScript cache: each
+    /// call owns the object its result is written to, so a discarded call's reply lands on an
+    /// object nothing reads any more while the fresh request records its own.
+    /// </para>
+    /// </remarks>
+    internal void Invalidate(string? name)
+    {
+        _calls.RemoveAll(call => name is null
+            || string.Equals(call.Name, name, StringComparison.OrdinalIgnoreCase));
+    }
+
     public void Begin(DateTimeOffset clock, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();

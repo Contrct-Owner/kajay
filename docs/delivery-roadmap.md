@@ -3,7 +3,7 @@
 - Area: Phased delivery plan from foundation to full parity
 - Status: historical delivery record
 - Owner: Jarod
-- Last updated: 2026-08-08
+- Last updated: 2026-08-12
 
 This records the delivery phases that produced the published SDKs. It is retained as
 history rather than used as the current work queue; current product state lives in
@@ -395,6 +395,38 @@ Linux, Windows, and macOS. The package ships the stable public API baseline, REA
 changelog, support contract, and first-release migration guidance. The verified
 `.nupkg` was published on 2026-08-08 after the separate maintainer action recorded by
 [ADR-0046](./adr/0046-nuget-release-walkthrough.md).
+
+The second promoted workstream is the **host-value scope**, fixed by
+[ADR-0047](./adr/0047-host-value-scope.md) and tracked as checklist B12. It is promoted
+on evidence rather than opportunity: a host supplying computed context has no route
+today that does not turn that context into respondent data.
+
+It takes a **row in §B rather than a section of its own**, which is the one place it
+departs from the convention below. §Q earned a section because it is a second runtime's
+entire ledger; this is one more scope in the expression language, sitting beside the
+`{@name}` row it deliberately diverges from, and a one-row section would split the place
+a reader looks for expression behaviour. Reopening §B is not the drift the checklist
+guards against: the ledger's sections are **capability-shaped, not phase-shaped**, and it
+is the phase that closed, not the capability.
+
+The host-value workstream exits only when:
+
+- B12 is green through its named proofs, including the settlement proof — a new kind of
+  graph root is the row's actual risk;
+- conformance v2 carries adapter-neutral cases for resolution, settlement ordering, and
+  canonicalization of `{$name}`, and every maintained adapter passes them;
+- `Kajay.Core` carries the same seam under §Q, since a scope one runtime has and the
+  other does not is what the corpus exists to prevent; and
+- the regenerated contracts — two new definition diagnostic codes — are committed and
+  `check:contract` is green.
+
+**Exit gate met on 2026-08-12.** B12 and its native counterpart Q11 are green through
+named unit, C# and conformance proofs; the corpus carries four host-value cases claimed
+by both adapters; `Kajay.Core` carries the seam behind a declared public-API baseline;
+and the diagnostic contract regenerated with two codes. Three limits are recorded rather
+than implied: `undeclared-host-value` is TypeScript-only by the rule `undeclared-endpoint`
+already follows, the corpus cannot yet observe that a host value stays out of the
+response, and the Creator cannot offer host-value names without being told them.
 
 The remaining Phase 4 items stay horizon. Each promoted item gets its own ADR and
 checklist section rather than borrowing the C# workstream's active status.

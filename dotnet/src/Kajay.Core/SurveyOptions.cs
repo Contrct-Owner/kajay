@@ -25,6 +25,16 @@ public sealed class SurveyOptions
     /// <summary>Gets or initializes the adapter that cleans up detached files.</summary>
     public SurveyFileCleaner? FileCleaner { get; init; }
 
+    /// <summary>Gets or initializes host-owned values addressed by <c>{$name}</c>.</summary>
+    /// <remarks>
+    /// The host's context, readable by every expression and belonging to none of the response.
+    /// Supplied here rather than written with <see cref="Survey.SetValue"/> because that records
+    /// an answer, which puts host configuration into the response data and the snapshot and lets
+    /// the respondent overwrite it.
+    /// </remarks>
+    public IReadOnlyDictionary<string, KajayValue> HostValues { get; init; } =
+        new Dictionary<string, KajayValue>(StringComparer.Ordinal);
+
     /// <summary>Gets or initializes host-owned origins addressed by <c>{@name}</c>.</summary>
     public IReadOnlyDictionary<string, string> Endpoints { get; init; } =
         new Dictionary<string, string>(StringComparer.Ordinal);

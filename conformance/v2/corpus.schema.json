@@ -100,6 +100,16 @@
         },
         {
           "type": "object",
+          "properties": {
+            "kind": { "const": "set-host-value" },
+            "name": { "type": "string", "minLength": 1 },
+            "value": { "$ref": "#/$defs/jsonValue" }
+          },
+          "required": ["kind", "name", "value"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
           "properties": { "kind": { "const": "validate-current-page" } },
           "required": ["kind"],
           "additionalProperties": false
@@ -283,6 +293,10 @@
               "id": { "type": "string", "minLength": 1 },
               "clock": { "type": "string" },
               "definition": { "type": "object" },
+              "hostValues": {
+                "type": "object",
+                "additionalProperties": { "$ref": "#/$defs/jsonValue" }
+              },
               "expectInitial": {
                 "type": "object",
                 "properties": {

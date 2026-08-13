@@ -86,7 +86,10 @@ export class CoreConformanceAdapter {
   }
 
   runSurveyScenario(scenario) {
-    const parsed = this.#core.parseSurvey(scenario.definition);
+    const options = scenario.hostValues === undefined
+      ? {}
+      : { values: scenario.hostValues };
+    const parsed = this.#core.parseSurvey(scenario.definition, options);
     const survey = parsed.survey;
     const events = [];
     survey.onValueChanged.add(({ name, previousValue, value }) => {
@@ -178,6 +181,9 @@ function applySurveyAction(core, survey, action) {
   switch (action.kind) {
     case 'set-value':
       survey.setValue(action.name, action.value);
+      return;
+    case 'set-host-value':
+      survey.setHostValue(action.name, action.value);
       return;
     case 'validate-current-page': {
       const isValid = survey.validation.validateCurrentPage();

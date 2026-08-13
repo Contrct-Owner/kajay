@@ -27,6 +27,8 @@ export class AsyncFunctionCache {
   readonly #results: Map<string, unknown> = new Map();
   readonly #failures: Map<string, string> = new Map();
   readonly #pending: Set<string> = new Set();
+  /** Advances on every invalidation, so a reply in flight can be told it is stale. */
+  #generation = 0;
 
   constructor(options: AsyncFunctionCacheOptions) {
     this.#options = options;
@@ -62,13 +64,54 @@ export class AsyncFunctionCache {
     return undefined;
   }
 
+  /**
+   * Forgets what has been asked, so the next evaluation asks again.
+   *
+   * The cache is permanent by design — it is what stops each re-evaluation restarting
+   * the call that triggered it — and permanence is exactly right until the world the
+   * answers describe moves. A rate table changes, a service that was down comes back,
+   * and without this there is no way to say so: a host would have to build a whole new
+   * survey, losing the answers, the page and the timers to refresh a price.
+   *
+   * **Failures are cleared too, and that is half the point.** A rejection is recorded
+   * and never retried, so a lookup that failed once stays failed for the life of the
+   * survey. This is the only way back.
+   *
+   * Without a name, everything. With one, only that function's results — a host that
+   * knows its quote service moved should not have to discard an eligibility check that
+   * did not.
+   */
+  invalidate(name?: string): void {
+    // A request already in flight answers a question nobody is asking any more, so the
+    // generation moves and whatever it returns is discarded rather than installed over
+    // the fresher request this invalidation is about to cause.
+    this.#generation += 1;
+    for (const key of [...this.#results.keys(), ...this.#failures.keys()]) {
+      if (name === undefined || keyNames(key, name)) {
+        this.#results.delete(key);
+        this.#failures.delete(key);
+      }
+    }
+    // Cleared as well as discarded: a key left pending would never be asked again,
+    // because `request` starts work only for a key nothing is already waiting on.
+    for (const key of this.#pending) {
+      if (name === undefined || keyNames(key, name)) {
+        this.#pending.delete(key);
+      }
+    }
+  }
+
   #start(name: string, args: readonly unknown[], key: string): void {
     const implementation = this.#options.functions().getAsync(name);
     if (implementation === undefined) {
       return;
     }
+    const generation = this.#generation;
     this.#pending.add(key);
     void run(implementation, args, this.#options.now()).then((outcome) => {
+      if (generation !== this.#generation) {
+        return;
+      }
       this.#pending.delete(key);
       if (outcome.failure === undefined) {
         this.#results.set(key, outcome.value);
@@ -78,6 +121,12 @@ export class AsyncFunctionCache {
       this.#options.onSettled();
     });
   }
+}
+
+/** Whether a cache key belongs to the named function. Keys carry the name first. */
+function keyNames(key: string, name: string): boolean {
+  const [keyName] = JSON.parse(key) as [string, readonly unknown[]];
+  return keyName === name.toLowerCase();
 }
 
 /**

@@ -2,6 +2,36 @@ namespace Kajay;
 
 public sealed partial class Survey
 {
+    /// <summary>Discards recorded asynchronous results so the next settle asks again.</summary>
+    /// <param name="name">One function's results, or every recorded result when null.</param>
+    /// <exception cref="InvalidOperationException">Settlement is already in progress.</exception>
+    /// <remarks>
+    /// Discarding only. Awaiting the answers is <see cref="SettleAsync"/>'s job, exactly as it is
+    /// after <see cref="SetValue"/>; <see cref="InvalidateAsyncResultsAsync"/> is the pair that
+    /// does both.
+    /// </remarks>
+    public void InvalidateAsyncResults(string? name = null)
+    {
+        if (IsSettling)
+        {
+            throw new InvalidOperationException("Survey expression settlement is already in progress.");
+        }
+
+        _asyncFunctionValues.Invalidate(name);
+    }
+
+    /// <summary>Discards recorded asynchronous results, then settles them again.</summary>
+    /// <param name="name">One function's results, or every recorded result when null.</param>
+    /// <param name="cancellationToken">Cancels the settle.</param>
+    /// <returns>A task that completes once the fresh answers have landed.</returns>
+    public async Task InvalidateAsyncResultsAsync(
+        string? name = null,
+        CancellationToken cancellationToken = default)
+    {
+        InvalidateAsyncResults(name);
+        await SettleAsync(cancellationToken).ConfigureAwait(false);
+    }
+
     /// <summary>Runs asynchronous expression functions to a deterministic fixed point.</summary>
     public async Task SettleAsync(CancellationToken cancellationToken = default)
     {

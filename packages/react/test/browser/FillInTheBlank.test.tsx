@@ -201,3 +201,78 @@ test('parity/C13-render: a computed gap states its value in the sentence', async
   await expect.element(screen.getByText('60')).toBeInTheDocument();
 });
 
+test('parity/C13-render: a gap is drawn from the same parts as the control on its own line', async () => {
+  const survey = build({
+    template: 'I work in [[dept]] and it is [[remote]] that I am remote.',
+    blanks: [
+      {
+        type: 'dropdown',
+        name: 'dept',
+        title: 'Department',
+        placeholder: 'a department',
+        choices: ['Engineering', 'Design'],
+      },
+      { type: 'boolean', name: 'remote', title: 'Remote' },
+    ],
+  });
+  const screen = await render(<Survey model={survey} />);
+
+  // The same class the block dropdown wears, because it is the same control. Wearing a
+  // text input's class instead, it took a text input's styling from every host that had
+  // styled one — the sentence's dropdown looked like a box that could be typed into.
+  const select = screen.container.querySelector('select');
+  expect(select?.className).toContain('kajay-question__select');
+
+  // A yes/no gap is the switch, not a bare checkbox: the same primitive and the same
+  // class as the block renderer, so a design system's toggle reaches a sentence too.
+  const toggle = screen.container.querySelector('.kajay-boolean__switch');
+  expect(toggle).not.toBeNull();
+});
+
+test('parity/C13-render: a prompt is not one of the choices', async () => {
+  const survey = build({
+    template: 'I work in [[dept]].',
+    blanks: [
+      {
+        type: 'dropdown',
+        name: 'dept',
+        title: 'Department',
+        placeholder: 'a department',
+        choices: ['Engineering', 'Design'],
+      },
+    ],
+  });
+  const screen = await render(<Survey model={survey} />);
+
+  // Visible in the list, "a department" sat between Engineering and Design and read as a
+  // department of that name. Hidden, it is still what the closed control says — which is
+  // the whole of the role a placeholder plays.
+  const select = screen.container.querySelector('select');
+  const prompt = select?.querySelector('option[value=""][hidden]');
+  expect(prompt?.textContent).toBe('a department');
+
+  // And the way back to no answer survives, because this blank is not required: a native
+  // select has no undo, so a respondent who picks by mistake needs a row to pick.
+  const rows = [...(select?.options ?? [])].filter((option) => !option.hidden);
+  expect(rows.map((option) => option.textContent)).toEqual(['', 'Engineering', 'Design']);
+});
+
+test('parity/C13-render: a chosen value keeps the type the author gave it', async () => {
+  const survey = build({
+    template: 'I rate it [[score]].',
+    blanks: [
+      { type: 'dropdown', name: 'score', title: 'Score', choices: [1, 2, 3] },
+    ],
+  });
+  const screen = await render(<Survey model={survey} />);
+
+  const select = screen.container.querySelector('select');
+  select!.value = '2';
+  select!.dispatchEvent(new Event('change', { bubbles: true }));
+
+  // A native option carries a string. Read straight off the element — which is what the
+  // inline renderer used to do — a choice authored as `2` came back as `"2"`, and the
+  // response differed from the same question asked on a line of its own.
+  expect(survey.data).toEqual({ geography: { score: 2 } });
+});
+

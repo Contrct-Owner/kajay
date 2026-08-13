@@ -48,7 +48,10 @@ function BlankField({
   // so this is the only place that can answer "how wide, and who said". A host's own
   // inline renderer inherits it without being told the property exists.
   const size = blank.size > 0 ? blank.size : defaultSize;
-  const width = { '--kajay-blank-size': `${String(size)}ch` } as CSSProperties;
+  // Characters plus the furniture the control draws inside itself — its padding, a
+  // dropdown's chevron, a number field's spinner. Without the allowance a gap authored
+  // as four characters wide has room for the spinner and nothing else.
+  const width = { '--kajay-blank-width': `calc(${String(size)}ch + 1.6em)` } as CSSProperties;
 
   return (
     <span

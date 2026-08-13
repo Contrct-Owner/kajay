@@ -1,8 +1,10 @@
-import { MultiSelectQuestion, RatingQuestion, SelectQuestion, TextQuestion } from '@kajay/core';
+import { BooleanQuestion, RatingQuestion, SelectQuestion, TextQuestion } from '@kajay/core';
 import type { ExpressionQuestion, Question } from '@kajay/core';
 import type { ReactElement } from 'react';
+import { applySelection, ChoiceOptions, currentSelection } from './choiceOptions.js';
 import type { PageElementRendererRegistry } from './PageElementRendererRegistry.js';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
+import { readOnlyControl, whenEditable } from './readOnly.js';
 import { useSurveyComponents } from './SurveyComponents.js';
 
 /**
@@ -46,92 +48,89 @@ function InlineText({ question }: QuestionRendererProps): ReactElement {
 }
 
 /**
- * A single-select, drawn as a native `<select>`.
+ * A choice gap, drawn as a native `<select>` — the same control the block renderer draws.
  *
  * Native because it is one control on one line, it is keyboard-operable and named without
  * any interaction of its own, and a portalled listbox in the middle of a paragraph is a
  * layout problem before it is an accessibility one.
+ *
+ * **Its rows, its selection and its read-only behaviour are the block dropdown's**, not a
+ * second copy: the first version of this file wrote `question.value = event.target.value`,
+ * which turned a choice authored as `1` into `"1"` in the response, and marked a read-only
+ * gap `disabled`, which drops it out of the tab order rather than leaving it readable.
  */
-function InlineDropdown({ question }: QuestionRendererProps): ReactElement {
-  if (!(question instanceof SelectQuestion)) {
-    return <span className="kajay-fillintheblank__gap" />;
-  }
+function InlineSelect({ question, multiple }: {
+  readonly question: SelectQuestion;
+  readonly multiple: boolean;
+}): ReactElement {
   return (
     <select
-      className="kajay-question__input kajay-fillintheblank__input"
+      {...(multiple
+        ? {
+            multiple: true,
+            // One row tall, deliberately. A native multiple select otherwise opens out
+            // into a list box that pushes the sentence apart — the layout failure this
+            // type exists to avoid — so it scrolls in place instead.
+            size: 1,
+          }
+        : {})}
+      className="kajay-question__select kajay-fillintheblank__input"
       aria-label={accessibleName(question)}
-      disabled={!question.isEnabled || question.isReadOnly}
+      disabled={!question.isEnabled}
       required={question.isRequired}
       aria-required={question.isRequired}
-      value={String(question.value ?? '')}
+      value={currentSelection(question)}
       onChange={(event) => {
-        question.value = event.target.value;
+        applySelection(question, event.target);
       }}
+      {...readOnlyControl(question.isReadOnly)}
     >
-      {/* An empty option, or a respondent cannot take back a first choice — and the field
-          would report a value nobody picked the moment it was drawn. It carries the
-          authored placeholder, as the block dropdown's does: a gap showing nothing at all
-          is a box a respondent has to click to find out about. */}
-      <option value="">{question.placeholder}</option>
-      {question.visibleChoices.map((choice) => (
-        <option key={String(choice.value)} value={String(choice.value)}>
-          {choice.text}
-        </option>
-      ))}
+      <ChoiceOptions question={question} />
     </select>
+  );
+}
+
+function InlineDropdown({ question }: QuestionRendererProps): ReactElement {
+  return question instanceof SelectQuestion ? (
+    <InlineSelect question={question} multiple={false} />
+  ) : (
+    <span className="kajay-fillintheblank__gap" />
+  );
+}
+
+function InlineMultiSelect({ question }: QuestionRendererProps): ReactElement {
+  return question instanceof SelectQuestion ? (
+    <InlineSelect question={question} multiple />
+  ) : (
+    <span className="kajay-fillintheblank__gap" />
   );
 }
 
 /**
- * A multi-select, drawn as a native multiple `<select>`.
+ * A yes/no, drawn as the switch the block renderer draws: one control, one word's width.
  *
- * The one control that says "several of these" without becoming a list of its own, which
- * is what a tagbox would be if it were opened out inside a sentence.
+ * Through the host's `Checkbox` primitive and wearing `kajay-boolean__switch`, so a design
+ * system's toggle appears in a sentence exactly as it does on a line of its own. Written
+ * as a bare `<input type="checkbox">` it was the only control in the sentence a host's
+ * styling never reached — a browser-default 13-pixel square beside four themed fields.
  */
-function InlineMultiSelect({ question }: QuestionRendererProps): ReactElement {
-  if (!(question instanceof MultiSelectQuestion)) {
+function InlineBoolean({ question }: QuestionRendererProps): ReactElement {
+  const { Checkbox } = useSurveyComponents();
+  if (!(question instanceof BooleanQuestion)) {
     return <span className="kajay-fillintheblank__gap" />;
   }
   return (
-    <select
-      multiple
-      // One row tall, deliberately. A native multiple select otherwise opens out into a
-      // list box that pushes the sentence apart — the layout failure this type exists to
-      // avoid — so it scrolls in place instead.
-      size={1}
-      className="kajay-question__input kajay-fillintheblank__input"
+    <Checkbox
+      className="kajay-boolean__switch kajay-fillintheblank__input"
       aria-label={accessibleName(question)}
-      disabled={!question.isEnabled || question.isReadOnly}
-      required={question.isRequired}
-      aria-required={question.isRequired}
-      value={question.selectedValues.map(String)}
-      onChange={(event) => {
-        question.applySelection(
-          [...event.target.selectedOptions].map((option) => option.value),
-        );
-      }}
-    >
-      {question.visibleChoices.map((choice) => (
-        <option key={String(choice.value)} value={String(choice.value)}>
-          {choice.text}
-        </option>
-      ))}
-    </select>
-  );
-}
-
-/** A yes/no, drawn as a checkbox: one control, one word's width. */
-function InlineBoolean({ question }: QuestionRendererProps): ReactElement {
-  return (
-    <input
-      type="checkbox"
-      className="kajay-fillintheblank__input"
-      aria-label={accessibleName(question)}
-      disabled={!question.isEnabled || question.isReadOnly}
-      checked={question.value === true}
-      onChange={(event) => {
-        question.value = event.target.checked;
-      }}
+      checked={question.checkedValue === true}
+      disabled={!question.isEnabled}
+      {...readOnlyControl(question.isReadOnly)}
+      onCheckedChange={whenEditable(question.isReadOnly, () => {
+        // The model knows which way it is set; a design system's Checkbox has no
+        // `event.target` to ask.
+        question.setChecked(question.checkedValue !== true);
+      })}
     />
   );
 }
@@ -159,20 +158,25 @@ function InlineRating({ question }: QuestionRendererProps): ReactElement {
   if (!(question instanceof RatingQuestion)) {
     return <span className="kajay-fillintheblank__gap" />;
   }
+  const rates = question.rateValues;
   return (
     <select
-      className="kajay-question__input kajay-fillintheblank__input"
+      className="kajay-question__select kajay-fillintheblank__input"
       aria-label={accessibleName(question)}
-      disabled={!question.isEnabled || question.isReadOnly}
+      disabled={!question.isEnabled}
       required={question.isRequired}
       aria-required={question.isRequired}
       value={String(question.value ?? '')}
       onChange={(event) => {
-        question.value = event.target.value;
+        // Back through the scale's own entries, so a rating of 4 is the number 4 in the
+        // response rather than the string the option carried.
+        const chosen = rates.find((rate) => String(rate.value) === event.target.value);
+        question.value = chosen?.value;
       }}
+      {...readOnlyControl(question.isReadOnly)}
     >
       <option value="">{''}</option>
-      {question.rateValues.map((rate) => (
+      {rates.map((rate) => (
         <option key={String(rate.value)} value={String(rate.value)}>
           {rate.text}
         </option>

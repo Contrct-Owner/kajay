@@ -2,6 +2,9 @@
  * wildcard subpath export in ADR-0010 resolves from an installed tarball. */
 
 [data-kajay-theme="dark"] {
+  /* The parts of a control the browser draws for itself, told which way round to draw
+     them. Without it the list a dropdown opens is white behind this theme's pale text. */
+  --kajay-color-scheme: dark;
   --kajay-color-surface: #12161f;
   --kajay-color-text: #e7ecf3;
   --kajay-color-muted: #98a2b3;

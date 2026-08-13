@@ -45,7 +45,10 @@ test('parity/C13-inline-styling: the gaps sit in the line rather than breaking i
   // claims are true or false: the component suite deliberately loads no stylesheet, so
   // every one of these defects was invisible to it.
   const sentence = live(page).locator('.kajay-fillintheblank');
-  const boxes = await sentence.locator('input, select').evaluateAll((nodes) =>
+  // The fields, which is what the rule is about: a yes/no gap is the block renderer's
+  // switch and is sized by the switch, not stretched to the height of the fields.
+  const fields = sentence.locator('.kajay-fillintheblank__input:not(.kajay-boolean__switch)');
+  const boxes = await fields.evaluateAll((nodes) =>
     nodes.map((node) => {
       const rect = node.getBoundingClientRect();
       return { label: node.getAttribute('aria-label'), height: Math.round(rect.height), width: Math.round(rect.width) };
@@ -54,9 +57,12 @@ test('parity/C13-inline-styling: the gaps sit in the line rather than breaking i
 
   // One height for the text field, the dropdown and the multi-select. They are three
   // native controls whose defaults differ by a few pixels, which reads as a wobble.
-  const controls = boxes.filter((box) => box.label !== 'Works remotely');
-  const heights = [...new Set(controls.map((box) => box.height))];
-  expect(heights).toHaveLength(1);
+  expect([...new Set(boxes.map((box) => box.height))]).toHaveLength(1);
+
+  // And the yes/no gap is the same switch the block renderer draws, at the size the theme
+  // gives that switch — it was a browser-default 13-pixel square beside four themed fields.
+  const toggle = sentence.locator('.kajay-boolean__switch');
+  await expect(toggle).toBeVisible();
 
   // A gap is as wide as what it is for. Every one used to be twenty characters — the
   // browser's default — so a two-digit seat count claimed as much room as a full name.

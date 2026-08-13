@@ -3726,6 +3726,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://kajay.io/docs/reference/api/themes/theme-color-scheme</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://kajay.io/docs/reference/api/themes/theme-palette</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

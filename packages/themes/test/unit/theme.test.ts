@@ -18,11 +18,20 @@ describe('parity/I2-theme-format', () => {
       '--kajay-color-border': '#d0d5dd',
       '--kajay-color-danger': '#b42318',
       '--kajay-color-background': '#f6f8fb',
+      '--kajay-color-scheme': 'light',
       '--kajay-spacing': '16px',
       '--kajay-radius': '8px',
       '--kajay-panel-border-width': '1px',
       '--kajay-panel-padding': 'var(--kajay-spacing)',
     });
+  });
+
+  test('a theme says which way round its colours run, for the browser to draw', () => {
+    // The one thing that reaches the parts of a control no stylesheet can: the list a
+    // `<select>` opens, the tick in a checkbox, the scrollbars. Without it the dark
+    // preset's dropdown opened a white list behind its own pale text.
+    expect(themeVariables(darkTheme)['--kajay-color-scheme']).toBe('dark');
+    expect(themeVariables({ name: 'unsaid' })['--kajay-color-scheme']).toBeUndefined();
   });
 
   test('what a theme does not name, it does not set', () => {

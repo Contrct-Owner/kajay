@@ -1,30 +1,46 @@
 import type { ReactElement } from 'react';
 import { Button } from '@/components/ui/button';
-import type { EditorMode } from './EditorMode';
 
-/** Design and JSON are two views of one document, expressed as one segmented control. */
-export function ModeSwitch({
+/** One view a pane can show: what it is called, and how a test asks for it. */
+export interface SwitchMode<TMode extends string> {
+  readonly value: TMode;
+  readonly label: string;
+  readonly testId: string;
+}
+
+/**
+ * Two views of one thing, expressed as one segmented control.
+ *
+ * Generic over the views because the playground now has two of these and they are the
+ * same control: a definition is a design or the JSON behind it, and a response is a form
+ * or the JSON behind it. A second copy would be the place the two quietly stop matching.
+ */
+export function ModeSwitch<TMode extends string>({
+  label,
+  modes,
   mode,
   onModeChange,
 }: {
-  readonly mode: EditorMode;
-  readonly onModeChange: (mode: EditorMode) => void;
+  readonly label: string;
+  readonly modes: readonly SwitchMode<TMode>[];
+  readonly mode: TMode;
+  readonly onModeChange: (mode: TMode) => void;
 }): ReactElement {
   return (
-    <div className="bg-muted inline-flex items-center rounded-md p-0.5">
-      {(['design', 'json'] as const).map((name) => (
+    <div className="bg-muted inline-flex items-center rounded-md p-0.5" role="group" aria-label={label}>
+      {modes.map((candidate) => (
         <Button
-          key={name}
+          key={candidate.value}
           size="sm"
-          variant={mode === name ? 'default' : 'ghost'}
-          className={mode === name ? '' : 'text-muted-foreground'}
-          data-testid={`editor-mode-${name}`}
-          aria-current={mode === name ? 'page' : undefined}
+          variant={mode === candidate.value ? 'default' : 'ghost'}
+          className={mode === candidate.value ? '' : 'text-muted-foreground'}
+          data-testid={candidate.testId}
+          aria-current={mode === candidate.value ? 'page' : undefined}
           onClick={() => {
-            onModeChange(name);
+            onModeChange(candidate.value);
           }}
         >
-          {name === 'design' ? 'Design' : 'JSON'}
+          {candidate.label}
         </Button>
       ))}
     </div>

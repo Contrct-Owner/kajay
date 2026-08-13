@@ -15,6 +15,5 @@ A blank's expression names the whole path, `{plan.seats}` rather than `{seats}`,
 that is where the answer lives and how a multiple-text field is already read from anywhere
 else.
 
-Known limit: the .NET runtime does not compute `expression` questions at all — on a page or
-in a sentence — so a computed gap is empty there. That is an older gap of its own rather
-than part of this change.
+The .NET runtime did not compute `expression` questions at all when this landed, so a
+computed gap was empty there; that older gap is fixed in the same release.

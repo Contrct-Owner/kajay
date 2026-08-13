@@ -5,24 +5,51 @@
       "id": "host-values-resolve-including-descent-into-structured-values",
       "definition": {
         "calculatedValues": [
-          { "name": "tierEcho", "expression": "{$tier}", "includeIntoResult": true },
-          { "name": "planTier", "expression": "{$profile.plan.tier}", "includeIntoResult": true }
+          {
+            "name": "tierEcho",
+            "expression": "{$tier}",
+            "includeIntoResult": true
+          },
+          {
+            "name": "planTier",
+            "expression": "{$profile.plan.tier}",
+            "includeIntoResult": true
+          }
         ],
         "pages": [
-          { "name": "p1", "elements": [{ "type": "text", "name": "plan" }] }
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "text",
+                "name": "plan"
+              }
+            ]
+          }
         ]
       },
       "hostValues": {
         "tier": "gold",
-        "profile": { "plan": { "tier": "silver" } }
+        "profile": {
+          "plan": {
+            "tier": "silver"
+          }
+        }
       },
-      "expectInitial": { "state": "running", "diagnostics": [] },
+      "expectInitial": {
+        "state": "running",
+        "diagnostics": []
+      },
       "steps": [
         {
           "action": {
             "kind": "set-host-value",
             "name": "profile",
-            "value": { "plan": { "tier": "platinum" } }
+            "value": {
+              "plan": {
+                "tier": "platinum"
+              }
+            }
           },
           "expect": {
             "state": "running",
@@ -30,15 +57,28 @@
               {
                 "type": "value-changed",
                 "name": "planTier",
-                "previousValue": { "kind": "json", "value": "silver" },
-                "value": { "kind": "json", "value": "platinum" }
+                "previousValue": {
+                  "kind": "json",
+                  "value": "silver"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": "platinum"
+                }
               }
             ]
           }
         },
         {
-          "action": { "kind": "set-host-value", "name": "tier", "value": "gold" },
-          "expect": { "state": "running", "events": [] }
+          "action": {
+            "kind": "set-host-value",
+            "name": "tier",
+            "value": "gold"
+          },
+          "expect": {
+            "state": "running",
+            "events": []
+          }
         }
       ]
     },
@@ -46,32 +86,66 @@
       "id": "a-host-value-write-recomputes-without-being-an-answer-change",
       "definition": {
         "calculatedValues": [
-          { "name": "tierEcho", "expression": "{$tier}", "includeIntoResult": true }
+          {
+            "name": "tierEcho",
+            "expression": "{$tier}",
+            "includeIntoResult": true
+          }
         ],
         "pages": [
-          { "name": "p1", "elements": [{ "type": "text", "name": "plan" }] }
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "text",
+                "name": "plan"
+              }
+            ]
+          }
         ]
       },
-      "hostValues": { "tier": "bronze" },
-      "expectInitial": { "state": "running", "diagnostics": [] },
+      "hostValues": {
+        "tier": "bronze"
+      },
+      "expectInitial": {
+        "state": "running",
+        "diagnostics": []
+      },
       "steps": [
         {
-          "action": { "kind": "set-host-value", "name": "tier", "value": "gold" },
+          "action": {
+            "kind": "set-host-value",
+            "name": "tier",
+            "value": "gold"
+          },
           "expect": {
             "state": "running",
             "events": [
               {
                 "type": "value-changed",
                 "name": "tierEcho",
-                "previousValue": { "kind": "json", "value": "bronze" },
-                "value": { "kind": "json", "value": "gold" }
+                "previousValue": {
+                  "kind": "json",
+                  "value": "bronze"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": "gold"
+                }
               }
             ]
           }
         },
         {
-          "action": { "kind": "set-host-value", "name": "tier", "value": "gold" },
-          "expect": { "state": "running", "events": [] }
+          "action": {
+            "kind": "set-host-value",
+            "name": "tier",
+            "value": "gold"
+          },
+          "expect": {
+            "state": "running",
+            "events": []
+          }
         }
       ]
     },
@@ -79,46 +153,91 @@
       "id": "the-host-scope-and-the-answer-scope-are-independent",
       "definition": {
         "calculatedValues": [
-          { "name": "answerEcho", "expression": "{tier}", "includeIntoResult": true },
-          { "name": "hostEcho", "expression": "{$tier}", "includeIntoResult": true }
+          {
+            "name": "answerEcho",
+            "expression": "{tier}",
+            "includeIntoResult": true
+          },
+          {
+            "name": "hostEcho",
+            "expression": "{$tier}",
+            "includeIntoResult": true
+          }
         ],
         "pages": [
-          { "name": "p1", "elements": [{ "type": "text", "name": "tier" }] }
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "text",
+                "name": "tier"
+              }
+            ]
+          }
         ]
       },
-      "hostValues": { "tier": "gold" },
-      "expectInitial": { "state": "running", "diagnostics": [] },
+      "hostValues": {
+        "tier": "gold"
+      },
+      "expectInitial": {
+        "state": "running",
+        "diagnostics": []
+      },
       "steps": [
         {
-          "action": { "kind": "set-value", "name": "tier", "value": "bronze" },
+          "action": {
+            "kind": "set-value",
+            "name": "tier",
+            "value": "bronze"
+          },
           "expect": {
             "state": "running",
             "events": [
               {
                 "type": "value-changed",
                 "name": "tier",
-                "previousValue": { "kind": "undefined" },
-                "value": { "kind": "json", "value": "bronze" }
+                "previousValue": {
+                  "kind": "undefined"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": "bronze"
+                }
               },
               {
                 "type": "value-changed",
                 "name": "answerEcho",
-                "previousValue": { "kind": "undefined" },
-                "value": { "kind": "json", "value": "bronze" }
+                "previousValue": {
+                  "kind": "undefined"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": "bronze"
+                }
               }
             ]
           }
         },
         {
-          "action": { "kind": "set-host-value", "name": "tier", "value": "platinum" },
+          "action": {
+            "kind": "set-host-value",
+            "name": "tier",
+            "value": "platinum"
+          },
           "expect": {
             "state": "running",
             "events": [
               {
                 "type": "value-changed",
                 "name": "hostEcho",
-                "previousValue": { "kind": "json", "value": "gold" },
-                "value": { "kind": "json", "value": "platinum" }
+                "previousValue": {
+                  "kind": "json",
+                  "value": "gold"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": "platinum"
+                }
               }
             ]
           }
@@ -136,60 +255,98 @@
                 "type": "text",
                 "name": "code",
                 "validators": [
-                  { "type": "regexvalidator", "regex": "^(KJ|QZ)-[A-Z]{2}\\d{4}$" }
+                  {
+                    "type": "regexvalidator",
+                    "regex": "^(KJ|QZ)-[A-Z]{2}\\d{4}$"
+                  }
                 ]
               }
             ]
           }
         ]
       },
-      "expectInitial": { "state": "running", "diagnostics": [] },
+      "expectInitial": {
+        "state": "running",
+        "diagnostics": []
+      },
       "steps": [
         {
-          "action": { "kind": "set-value", "name": "code", "value": "KJ-AB0042" },
+          "action": {
+            "kind": "set-value",
+            "name": "code",
+            "value": "KJ-AB0042"
+          },
           "expect": {
             "state": "running",
             "events": [
               {
                 "type": "value-changed",
                 "name": "code",
-                "previousValue": { "kind": "undefined" },
-                "value": { "kind": "json", "value": "KJ-AB0042" }
+                "previousValue": {
+                  "kind": "undefined"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": "KJ-AB0042"
+                }
               }
             ]
           }
         },
         {
-          "action": { "kind": "validate-current-page" },
+          "action": {
+            "kind": "validate-current-page"
+          },
           "expect": {
             "state": "running",
             "events": [],
-            "observation": { "kind": "validation", "isValid": true, "errors": [] }
+            "observation": {
+              "kind": "validation",
+              "isValid": true,
+              "errors": []
+            }
           }
         },
         {
-          "action": { "kind": "set-value", "name": "code", "value": "KJ-ab0042" },
+          "action": {
+            "kind": "set-value",
+            "name": "code",
+            "value": "KJ-ab0042"
+          },
           "expect": {
             "state": "running",
             "events": [
               {
                 "type": "value-changed",
                 "name": "code",
-                "previousValue": { "kind": "json", "value": "KJ-AB0042" },
-                "value": { "kind": "json", "value": "KJ-ab0042" }
+                "previousValue": {
+                  "kind": "json",
+                  "value": "KJ-AB0042"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": "KJ-ab0042"
+                }
               }
             ]
           }
         },
         {
-          "action": { "kind": "validate-current-page" },
+          "action": {
+            "kind": "validate-current-page"
+          },
           "expect": {
             "state": "running",
             "events": [],
             "observation": {
               "kind": "validation",
               "isValid": false,
-              "errors": [{ "name": "code", "kind": "regexvalidator" }]
+              "errors": [
+                {
+                  "name": "code",
+                  "kind": "regexvalidator"
+                }
+              ]
             }
           }
         }
@@ -205,34 +362,57 @@
               {
                 "type": "text",
                 "name": "code",
-                "validators": [{ "type": "regexvalidator", "regex": "KJ-\\d+" }]
+                "validators": [
+                  {
+                    "type": "regexvalidator",
+                    "regex": "KJ-\\d+"
+                  }
+                ]
               }
             ]
           }
         ]
       },
-      "expectInitial": { "state": "running", "diagnostics": [] },
+      "expectInitial": {
+        "state": "running",
+        "diagnostics": []
+      },
       "steps": [
         {
-          "action": { "kind": "set-value", "name": "code", "value": "prefix KJ-42 suffix" },
+          "action": {
+            "kind": "set-value",
+            "name": "code",
+            "value": "prefix KJ-42 suffix"
+          },
           "expect": {
             "state": "running",
             "events": [
               {
                 "type": "value-changed",
                 "name": "code",
-                "previousValue": { "kind": "undefined" },
-                "value": { "kind": "json", "value": "prefix KJ-42 suffix" }
+                "previousValue": {
+                  "kind": "undefined"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": "prefix KJ-42 suffix"
+                }
               }
             ]
           }
         },
         {
-          "action": { "kind": "validate-current-page" },
+          "action": {
+            "kind": "validate-current-page"
+          },
           "expect": {
             "state": "running",
             "events": [],
-            "observation": { "kind": "validation", "isValid": true, "errors": [] }
+            "observation": {
+              "kind": "validation",
+              "isValid": true,
+              "errors": []
+            }
           }
         }
       ]
@@ -247,56 +427,94 @@
               {
                 "type": "text",
                 "name": "asciiDigit",
-                "validators": [{ "type": "regexvalidator", "regex": "^\\d$" }]
+                "validators": [
+                  {
+                    "type": "regexvalidator",
+                    "regex": "^\\d$"
+                  }
+                ]
               },
               {
                 "type": "text",
                 "name": "oneScalar",
-                "validators": [{ "type": "regexvalidator", "regex": "^.$" }]
+                "validators": [
+                  {
+                    "type": "regexvalidator",
+                    "regex": "^.$"
+                  }
+                ]
               }
             ]
           }
         ]
       },
-      "expectInitial": { "state": "running", "diagnostics": [] },
+      "expectInitial": {
+        "state": "running",
+        "diagnostics": []
+      },
       "steps": [
         {
-          "action": { "kind": "set-value", "name": "asciiDigit", "value": "٤" },
+          "action": {
+            "kind": "set-value",
+            "name": "asciiDigit",
+            "value": "\u0664"
+          },
           "expect": {
             "state": "running",
             "events": [
               {
                 "type": "value-changed",
                 "name": "asciiDigit",
-                "previousValue": { "kind": "undefined" },
-                "value": { "kind": "json", "value": "٤" }
+                "previousValue": {
+                  "kind": "undefined"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": "\u0664"
+                }
               }
             ]
           }
         },
         {
-          "action": { "kind": "set-value", "name": "oneScalar", "value": "😀" },
+          "action": {
+            "kind": "set-value",
+            "name": "oneScalar",
+            "value": "\ud83d\ude00"
+          },
           "expect": {
             "state": "running",
             "events": [
               {
                 "type": "value-changed",
                 "name": "oneScalar",
-                "previousValue": { "kind": "undefined" },
-                "value": { "kind": "json", "value": "😀" }
+                "previousValue": {
+                  "kind": "undefined"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": "\ud83d\ude00"
+                }
               }
             ]
           }
         },
         {
-          "action": { "kind": "validate-current-page" },
+          "action": {
+            "kind": "validate-current-page"
+          },
           "expect": {
             "state": "running",
             "events": [],
             "observation": {
               "kind": "validation",
               "isValid": false,
-              "errors": [{ "name": "asciiDigit", "kind": "regexvalidator" }]
+              "errors": [
+                {
+                  "name": "asciiDigit",
+                  "kind": "regexvalidator"
+                }
+              ]
             }
           }
         }
@@ -312,7 +530,12 @@
               {
                 "type": "text",
                 "name": "code",
-                "validators": [{ "type": "regexvalidator", "regex": "(?=KJ-)KJ-\\d+" }]
+                "validators": [
+                  {
+                    "type": "regexvalidator",
+                    "regex": "(?=KJ-)KJ-\\d+"
+                  }
+                ]
               }
             ]
           }
@@ -330,25 +553,40 @@
       },
       "steps": [
         {
-          "action": { "kind": "set-value", "name": "code", "value": "anything" },
+          "action": {
+            "kind": "set-value",
+            "name": "code",
+            "value": "anything"
+          },
           "expect": {
             "state": "running",
             "events": [
               {
                 "type": "value-changed",
                 "name": "code",
-                "previousValue": { "kind": "undefined" },
-                "value": { "kind": "json", "value": "anything" }
+                "previousValue": {
+                  "kind": "undefined"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": "anything"
+                }
               }
             ]
           }
         },
         {
-          "action": { "kind": "validate-current-page" },
+          "action": {
+            "kind": "validate-current-page"
+          },
           "expect": {
             "state": "running",
             "events": [],
-            "observation": { "kind": "validation", "isValid": true, "errors": [] }
+            "observation": {
+              "kind": "validation",
+              "isValid": true,
+              "errors": []
+            }
           }
         }
       ]
@@ -363,31 +601,56 @@
               {
                 "type": "checkbox",
                 "name": "picks",
-                "choices": ["a", "b", "c"],
-                "correctAnswer": ["a", "b"]
+                "choices": [
+                  "a",
+                  "b",
+                  "c"
+                ],
+                "correctAnswer": [
+                  "a",
+                  "b"
+                ]
               }
             ]
           }
         ]
       },
-      "expectInitial": { "state": "running", "diagnostics": [] },
+      "expectInitial": {
+        "state": "running",
+        "diagnostics": []
+      },
       "steps": [
         {
-          "action": { "kind": "set-value", "name": "picks", "value": ["a"] },
+          "action": {
+            "kind": "set-value",
+            "name": "picks",
+            "value": [
+              "a"
+            ]
+          },
           "expect": {
             "state": "running",
             "events": [
               {
                 "type": "value-changed",
                 "name": "picks",
-                "previousValue": { "kind": "undefined" },
-                "value": { "kind": "json", "value": ["a"] }
+                "previousValue": {
+                  "kind": "undefined"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": [
+                    "a"
+                  ]
+                }
               }
             ]
           }
         },
         {
-          "action": { "kind": "measure-score" },
+          "action": {
+            "kind": "measure-score"
+          },
           "expect": {
             "state": "running",
             "events": [],
@@ -401,21 +664,43 @@
           }
         },
         {
-          "action": { "kind": "set-value", "name": "picks", "value": ["a", "b", "c"] },
+          "action": {
+            "kind": "set-value",
+            "name": "picks",
+            "value": [
+              "a",
+              "b",
+              "c"
+            ]
+          },
           "expect": {
             "state": "running",
             "events": [
               {
                 "type": "value-changed",
                 "name": "picks",
-                "previousValue": { "kind": "json", "value": ["a"] },
-                "value": { "kind": "json", "value": ["a", "b", "c"] }
+                "previousValue": {
+                  "kind": "json",
+                  "value": [
+                    "a"
+                  ]
+                },
+                "value": {
+                  "kind": "json",
+                  "value": [
+                    "a",
+                    "b",
+                    "c"
+                  ]
+                }
               }
             ]
           }
         },
         {
-          "action": { "kind": "measure-score" },
+          "action": {
+            "kind": "measure-score"
+          },
           "expect": {
             "state": "running",
             "events": [],
@@ -437,15 +722,24 @@
           {
             "name": "p1",
             "elements": [
-              { "type": "text", "name": "answer", "correctAnswer": "42" }
+              {
+                "type": "text",
+                "name": "answer",
+                "correctAnswer": "42"
+              }
             ]
           }
         ]
       },
-      "expectInitial": { "state": "running", "diagnostics": [] },
+      "expectInitial": {
+        "state": "running",
+        "diagnostics": []
+      },
       "steps": [
         {
-          "action": { "kind": "measure-score" },
+          "action": {
+            "kind": "measure-score"
+          },
           "expect": {
             "state": "running",
             "events": [],
@@ -459,21 +753,32 @@
           }
         },
         {
-          "action": { "kind": "set-value", "name": "answer", "value": "42" },
+          "action": {
+            "kind": "set-value",
+            "name": "answer",
+            "value": "42"
+          },
           "expect": {
             "state": "running",
             "events": [
               {
                 "type": "value-changed",
                 "name": "answer",
-                "previousValue": { "kind": "undefined" },
-                "value": { "kind": "json", "value": "42" }
+                "previousValue": {
+                  "kind": "undefined"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": "42"
+                }
               }
             ]
           }
         },
         {
-          "action": { "kind": "measure-score" },
+          "action": {
+            "kind": "measure-score"
+          },
           "expect": {
             "state": "running",
             "events": [],
@@ -484,6 +789,199 @@
               "questionCount": 1,
               "ratio": 1
             }
+          }
+        }
+      ]
+    },
+    {
+      "id": "an-expression-question-is-a-value-in-the-response",
+      "definition": {
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "text",
+                "name": "n",
+                "inputType": "number"
+              },
+              {
+                "type": "expression",
+                "name": "total",
+                "expression": "{n} * 2"
+              }
+            ]
+          }
+        ]
+      },
+      "expectInitial": {
+        "state": "running",
+        "diagnostics": []
+      },
+      "steps": [
+        {
+          "action": {
+            "kind": "set-value",
+            "name": "n",
+            "value": 3
+          },
+          "expect": {
+            "state": "running",
+            "events": [
+              {
+                "type": "value-changed",
+                "name": "n",
+                "previousValue": {
+                  "kind": "undefined"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": 3
+                }
+              },
+              {
+                "type": "value-changed",
+                "name": "total",
+                "previousValue": {
+                  "kind": "undefined"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": 6
+                }
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "kind": "set-value",
+            "name": "n",
+            "value": 4
+          },
+          "expect": {
+            "state": "running",
+            "events": [
+              {
+                "type": "value-changed",
+                "name": "n",
+                "previousValue": {
+                  "kind": "json",
+                  "value": 3
+                },
+                "value": {
+                  "kind": "json",
+                  "value": 4
+                }
+              },
+              {
+                "type": "value-changed",
+                "name": "total",
+                "previousValue": {
+                  "kind": "json",
+                  "value": 6
+                },
+                "value": {
+                  "kind": "json",
+                  "value": 8
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "a-computed-gap-fills-in-inside-its-sentence-and-feeds-a-total",
+      "definition": {
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "fillintheblank",
+                "name": "plan",
+                "template": "We need [[seats]] seats, costing [[annual]] a year.",
+                "blanks": [
+                  {
+                    "type": "text",
+                    "name": "seats",
+                    "inputType": "number"
+                  },
+                  {
+                    "type": "expression",
+                    "name": "annual",
+                    "expression": "{plan.seats} * 120"
+                  }
+                ]
+              },
+              {
+                "type": "expression",
+                "name": "total",
+                "expression": "{plan.annual} + 5"
+              }
+            ]
+          }
+        ]
+      },
+      "expectInitial": {
+        "state": "running",
+        "diagnostics": []
+      },
+      "steps": [
+        {
+          "action": {
+            "kind": "set-value",
+            "name": "plan",
+            "value": {
+              "seats": 3
+            }
+          },
+          "expect": {
+            "state": "running",
+            "events": [
+              {
+                "type": "value-changed",
+                "name": "plan",
+                "previousValue": {
+                  "kind": "undefined"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": {
+                    "seats": 3
+                  }
+                }
+              },
+              {
+                "type": "value-changed",
+                "name": "plan",
+                "previousValue": {
+                  "kind": "json",
+                  "value": {
+                    "seats": 3
+                  }
+                },
+                "value": {
+                  "kind": "json",
+                  "value": {
+                    "seats": 3,
+                    "annual": 360
+                  }
+                }
+              },
+              {
+                "type": "value-changed",
+                "name": "total",
+                "previousValue": {
+                  "kind": "undefined"
+                },
+                "value": {
+                  "kind": "json",
+                  "value": 365
+                }
+              }
+            ]
           }
         }
       ]

@@ -50,6 +50,8 @@ const implementedScenarioIds = [
   'invalid-pattern-is-an-author-error-not-a-respondent-rule',
   'a-multi-select-is-scored-choice-by-choice',
   'survey-scenario-observes-quiz-score',
+  'an-expression-question-is-a-value-in-the-response',
+  'a-computed-gap-fills-in-inside-its-sentence-and-feeds-a-total',
 ];
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));

@@ -343,9 +343,7 @@ export class Survey extends SurveyProperties implements ValueHost {
     return this.#answers.toResult(this.#children.calculatedValues);
   }
 
-  setData(next: Readonly<Record<string, unknown>>): void {
-    applyData(this, next);
-  }
+  setData(next: Readonly<Record<string, unknown>>): void { applyData(this, next); }
 
   /** A snapshot to store, so a respondent can pick the survey up where they left it. */
   get progress(): SurveyProgress {
@@ -353,9 +351,7 @@ export class Survey extends SurveyProperties implements ValueHost {
   }
 
   /** Applies a stored snapshot: the answers, then the page they were on. */
-  restore(progress: SurveyProgress): void {
-    restoreProgress(this, progress);
-  }
+  restore(progress: SurveyProgress): void { restoreProgress(this, progress); }
 
   /** Captures durable, definition-bound state in Response Snapshot Format v1. */
   createSnapshot(): SurveySnapshot { return captureSnapshot(this); }
@@ -388,6 +384,22 @@ export class Survey extends SurveyProperties implements ValueHost {
       this.nextPageOrComplete();
     }
   }
+
+  /**
+   * Supplies a host value, or replaces the one in force — checklist B12, ADR-0047.
+   *
+   * The host's context, not the respondent's: it is readable by every expression and by
+   * the status templates, and it is in no response. Nothing a respondent does can reach
+   * it, which is the whole reason it is not `setValue`.
+   *
+   * Everything reading it recomputes before this returns, inside one settle, so a
+   * listener woken by the change sees a model that has finished reacting to it.
+   *
+   * Writing the value already in force does nothing at all, so a host free to refresh
+   * its context whenever it likes — on a timer, on every render — cannot make the survey
+   * recompute for a value that did not move.
+   */
+  setHostValue(name: string, value: unknown): void { this.#logic.setHostValue(name, value); }
 
   /** Writes model state without starting a nested settle. Rule execution reports the path. */
   #writeValue(name: string, value: unknown): boolean {

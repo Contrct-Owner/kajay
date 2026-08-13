@@ -29,19 +29,14 @@ export function hostValueKey(name: string): string {
 }
 
 /**
- * The value a reference names, or `undefined` if the host supplied none.
+ * The reference an author writes for a key the host supplies.
  *
- * `undefined` rather than the empty string, which was the defect
- * [ADR-0017](../../../../docs/adr/0017-choices-url-environment-portability.md) found in
- * the endpoint scope. Here it is not merely safer but *correct*: every operator already
- * treats `undefined` as an unanswered question, so an absent host value behaves like
- * every other absent value and no operator needs a third state.
- *
- * Only the first segment of a path is resolved here. Descending `{$profile.plan.tier}`
- * is `createPathResolver`'s job and already works for any structured value.
+ * The inverse of {@link hostValueKey}, and here beside it so the sigil appears in one
+ * file: a write announces itself to the dependency graph under the name expressions
+ * use, and a second place spelling `$` would be a second place to get it wrong.
  */
-export function resolveHostValue(name: string, values: HostValues): unknown {
-  return isHostValueName(name) ? values[hostValueKey(name)] : undefined;
+export function hostValueReference(key: string): string {
+  return `${SIGIL}${key}`;
 }
 
 /**

@@ -7,8 +7,8 @@ import type { CalculatedValue } from './CalculatedValue.js';
 import { ChoiceSourceController } from './ChoiceSourceController.js';
 import { createPathResolver } from './createPathResolver.js';
 import { ElementStateController } from './ElementStateController.js';
-import { isHostValueName, resolveHostValue } from './hostValues.js';
-import type { HostValues } from './hostValues.js';
+import { HostValueStore } from './HostValueStore.js';
+import { hostValueKey, hostValueReference, isHostValueName } from './hostValues.js';
 import { SettleCoordinator } from './SettleCoordinator.js';
 import type { SurveyAnswers } from './SurveyAnswers.js';
 import type { SurveyChildren } from './SurveyChildren.js';
@@ -66,7 +66,7 @@ export class SurveyLogicHost {
   readonly #survey: Survey;
   readonly #writeValue: (name: string, value: unknown) => boolean;
   readonly #resolvePath: (path: readonly PathSegment[]) => unknown;
-  #hostValues: HostValues = {};
+  readonly #hostValues: HostValueStore = new HostValueStore();
   #afterSettle: (() => void) | undefined;
   #inAfterSettle = false;
 
@@ -131,7 +131,7 @@ export class SurveyLogicHost {
       this.#engine.setClock(options.now);
     }
     if (options.values !== undefined) {
-      this.#hostValues = options.values;
+      this.#hostValues.replaceAll(options.values);
     }
     this.#choiceSources.setFetcher(options.fetchJson);
     this.#choiceSources.setEndpoints(options.endpoints ?? {});
@@ -319,8 +319,34 @@ export class SurveyLogicHost {
    */
   #lookup(name: string): unknown {
     return isHostValueName(name)
-      ? resolveHostValue(name, this.#hostValues)
+      ? this.#hostValues.get(hostValueKey(name))
       : this.#answers.resolve(name);
+  }
+
+  /**
+   * Records a host value and recomputes everything that reads it.
+   *
+   * **Through the same settle an answer goes through**, deliberately: this is a new kind
+   * of graph root, and ADR-0004's guarantee — that no observer sees the model part-way
+   * through a cascade — is a property of the settle rather than of answers. A write that
+   * recomputed outside it would announce a visibility change while a later rule had yet
+   * to run, which is the one state the transaction exists to make unobservable.
+   *
+   * The path is the reference an author writes, `$tier` rather than `tier`, because that
+   * is the name every rule declared its dependency under. A write announcing the bare
+   * key would recompute the rules that read the *answer* of that name and none of the
+   * ones that read the host value.
+   *
+   * No `ValueChangedEvent` is queued. That event means "an answer changed", and a host
+   * value is not in `data` for a listener to go and read — a partial save woken by one
+   * would write a response nobody had altered. What the respondent can actually see
+   * change, element state, is drained on release like any other settle's.
+   */
+  setHostValue(key: string, value: unknown): void {
+    if (!this.#hostValues.set(key, value).changed) {
+      return;
+    }
+    this.applyValueChange(hostValueReference(key));
   }
 
   /**

@@ -196,7 +196,7 @@ export function renameIn(
   // The markers follow too. A blank's name appears twice — in the collection and in the
   // prose that positions it — and a rename that moved only the first left `[[old]]`
   // naming a blank nobody declares, which is an error rather than a cosmetic drift.
-  const renamed = renameThroughout(before, from, trimmed);
+  const renamed = renameThroughout(before, from, trimmed, surface.registry);
   surface.applyEdit(renameMarkers(renamed, surface.registry, from, trimmed), {
     // The renamed thing keeps the selection when it *was* the selection. Renaming a
     // matrix column from the collection editor is not a request to select the column —

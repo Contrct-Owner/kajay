@@ -1,3 +1,4 @@
+import { ROW_SCOPE } from '../expressions/recordScopes.js';
 import type { ClassMetadataDefinition } from './ClassDescriptor.js';
 import type { PropertyDefinition } from './PropertyDescriptor.js';
 
@@ -82,6 +83,7 @@ export const MATRIX_TYPE_DEFINITIONS: MatrixTypeDefinitions = {
   },
   matrixCells: {
     name: 'matrixcells',
+    recordScope: ROW_SCOPE,
     parent: 'question',
     properties: [
       {
@@ -104,6 +106,7 @@ export const MATRIX_TYPE_DEFINITIONS: MatrixTypeDefinitions = {
   },
   matrixDynamic: {
     name: 'matrixdynamic',
+    recordScope: ROW_SCOPE,
     parent: 'question',
     properties: [
       {

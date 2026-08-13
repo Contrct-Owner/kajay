@@ -1,11 +1,9 @@
 import type { PathSegment } from '../expressions/ExpressionNode.js';
+import { PANEL_SCOPE } from '../expressions/recordScopes.js';
 import { asAnswerRecord } from './objectAnswers.js';
 import { PageElement } from './PageElement.js';
 import { RepeatingQuestion } from './RepeatingQuestion.js';
 import type { SurveyElement } from './SurveyElement.js';
-
-/** The scope word a template's expressions use for the panel they are in. */
-const PANEL = 'panel';
 
 /** Instances the respondent creates are numbered, so their keys are their positions. */
 function panelIndex(key: string): number {
@@ -47,7 +45,7 @@ export class PanelDynamicQuestion extends RepeatingQuestion {
   }
 
   protected override get scopeName(): string {
-    return PANEL;
+    return PANEL_SCOPE;
   }
 
   /** The elements repeated for each instance, exactly as authored. */

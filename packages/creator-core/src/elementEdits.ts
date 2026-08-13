@@ -62,7 +62,7 @@ export function pasteInto(
   if (items === undefined || slot.index < 0 || slot.index > items.length) {
     return refuse('not-found', 'container' in slot.list ? slot.list.container : '');
   }
-  const { fragment: fresh, renames } = freshenFragment(fragment, takenNames(before));
+  const { fragment: fresh, renames } = freshenFragment(fragment, takenNames(before), surface.registry);
   const after = withList(before, slot.list, [
     ...items.slice(0, slot.index),
     fresh,

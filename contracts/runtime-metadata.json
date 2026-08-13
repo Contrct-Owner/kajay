@@ -15,6 +15,7 @@
       "parent": "validator",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "minCount",
@@ -46,6 +47,7 @@
       "parent": "question",
       "isAbstract": false,
       "allowsInline": true,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "labelTrue",
@@ -110,6 +112,7 @@
       "parent": null,
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "name",
@@ -152,6 +155,7 @@
       "parent": "multiselectbase",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -160,6 +164,7 @@
       "parent": "question",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "placeholder",
@@ -224,6 +229,7 @@
       "parent": "trigger",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -232,6 +238,7 @@
       "parent": "trigger",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "setToName",
@@ -263,6 +270,7 @@
       "parent": "pageelement",
       "isAbstract": true,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -271,6 +279,7 @@
       "parent": "selectbase",
       "isAbstract": false,
       "allowsInline": true,
+      "recordScope": null,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -279,6 +288,7 @@
       "parent": "validator",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -287,6 +297,7 @@
       "parent": "question",
       "isAbstract": false,
       "allowsInline": true,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "expression",
@@ -351,6 +362,7 @@
       "parent": "validator",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "expression",
@@ -371,6 +383,7 @@
       "parent": "question",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "allowMultiple",
@@ -457,6 +470,7 @@
       "parent": "question",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "template",
@@ -495,6 +509,7 @@
       "parent": "displayelement",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "html",
@@ -515,6 +530,7 @@
       "parent": null,
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "expression",
@@ -546,6 +562,7 @@
       "parent": "displayelement",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "imageLink",
@@ -621,6 +638,7 @@
       "parent": "multiselectbase",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "multiSelect",
@@ -696,6 +714,7 @@
       "parent": null,
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "value",
@@ -749,6 +768,7 @@
       "parent": "question",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "isAllRowRequired",
@@ -815,6 +835,7 @@
       "parent": "question",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": "row",
       "declaredProperties": [
         {
           "name": "detailPanelMode",
@@ -871,6 +892,7 @@
       "parent": "question",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": "row",
       "declaredProperties": [
         {
           "name": "minRowCount",
@@ -1042,6 +1064,7 @@
       "parent": null,
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "column",
@@ -1106,6 +1129,7 @@
       "parent": "question",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "itemSize",
@@ -1144,6 +1168,7 @@
       "parent": null,
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "name",
@@ -1259,6 +1284,7 @@
       "parent": "selectbase",
       "isAbstract": true,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "showSelectAllItem",
@@ -1301,6 +1327,7 @@
       "parent": "validator",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "minValue",
@@ -1332,6 +1359,7 @@
       "parent": null,
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "name",
@@ -1403,6 +1431,7 @@
       "parent": null,
       "isAbstract": true,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "name",
@@ -1500,6 +1529,7 @@
       "parent": "pageelement",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "description",
@@ -1549,6 +1579,7 @@
       "parent": "question",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": "panel",
       "declaredProperties": [
         {
           "name": "minPanelCount",
@@ -1686,6 +1717,7 @@
       "parent": "pageelement",
       "isAbstract": true,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "isRequired",
@@ -1834,6 +1866,7 @@
       "parent": "selectbase",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "showClearButton",
@@ -1854,6 +1887,7 @@
       "parent": "selectbase",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "selectToRankEnabled",
@@ -1896,6 +1930,7 @@
       "parent": "question",
       "isAbstract": false,
       "allowsInline": true,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "rateMin",
@@ -1989,6 +2024,7 @@
       "parent": "validator",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "regex",
@@ -2009,6 +2045,7 @@
       "parent": "trigger",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "setToName",
@@ -2040,6 +2077,7 @@
       "parent": "question",
       "isAbstract": true,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "choicesOrder",
@@ -2232,6 +2270,7 @@
       "parent": "trigger",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "setToName",
@@ -2263,6 +2302,7 @@
       "parent": "question",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "penColor",
@@ -2327,6 +2367,7 @@
       "parent": "trigger",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "gotoName",
@@ -2347,6 +2388,7 @@
       "parent": null,
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "title",
@@ -2634,6 +2676,7 @@
       "parent": "multiselectbase",
       "isAbstract": false,
       "allowsInline": true,
+      "recordScope": null,
       "declaredProperties": [],
       "declaredChildCollections": []
     },
@@ -2642,6 +2685,7 @@
       "parent": "question",
       "isAbstract": false,
       "allowsInline": true,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "inputType",
@@ -2706,6 +2750,7 @@
       "parent": "validator",
       "isAbstract": false,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "minLength",
@@ -2748,6 +2793,7 @@
       "parent": null,
       "isAbstract": true,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "expression",
@@ -2768,6 +2814,7 @@
       "parent": null,
       "isAbstract": true,
       "allowsInline": false,
+      "recordScope": null,
       "declaredProperties": [
         {
           "name": "text",

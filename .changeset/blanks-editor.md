@@ -18,6 +18,7 @@ definition that does not parse. A marker is written into every language, because
 name rather than words and a translation naming a different set of blanks is its own error.
 
 A child collection can now declare `markerProperty` — the owner's property whose `[[name]]`
-markers position its children — which is the one registry fact all of that reads. Known
-limit: renaming a blank still does not rewrite `{q1.capital}` in expressions, which is an
-older hole in nested renames rather than a new one.
+markers position its children — which is the one registry fact all of that reads.
+
+Renaming a blank did not rewrite `{q1.capital}` in expressions when this landed — an older
+hole in every nested rename, fixed in the same release.

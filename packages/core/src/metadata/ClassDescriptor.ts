@@ -70,6 +70,20 @@ export interface ClassDefinition {
    * be drawn in a sentence, and refusing it is the safe answer.
    */
   readonly allowsInline?: boolean;
+  /**
+   * The word a template's expressions use for the record they are in — `row`, `panel`.
+   *
+   * Only a repeating type has one, and it is the author's word for "this one": a matrix
+   * column's `visibleIf` says `{row.size}`, meaning the row being drawn rather than the
+   * column of that name. Declared from the model's own constant, so there is one `row` in
+   * the codebase rather than one per reader of it.
+   *
+   * Here because an authoring tool cannot infer it and must not guess: renaming a column
+   * has to carry `{row.size}` with it, and rewriting every `.size` in every expression
+   * instead would corrupt `{$profile.size}` — a host value that has nothing to do with
+   * the rename.
+   */
+  readonly recordScope?: string;
   readonly create?: () => SurveyElement;
 }
 
@@ -88,5 +102,7 @@ export interface ClassDescriptor {
   readonly isAbstract: boolean;
   /** Whether this type may sit inside a line of prose. See {@link ClassDefinition}. */
   readonly allowsInline: boolean;
+  /** The word a template's expressions use for the record they are in, if it repeats. */
+  readonly recordScope?: string;
   readonly create: (() => SurveyElement) | undefined;
 }

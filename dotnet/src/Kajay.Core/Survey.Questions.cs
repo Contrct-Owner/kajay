@@ -58,6 +58,7 @@ public sealed partial class Survey
                 or "tagbox" => new SurveyChoiceQuestion(this, definition),
             "matrix" or "matrixcells" => new SurveyMatrixQuestion(this, definition),
             "matrixdynamic" or "paneldynamic" => new SurveyRecordQuestion(this, definition),
+            "fillintheblank" => new SurveyFillInTheBlankQuestion(this, definition),
             "file" => new SurveyFileQuestion(this, definition),
             "signaturepad" => new SurveySignatureQuestion(this, definition),
             _ => new SurveyScalarQuestion(this, definition),

@@ -12,7 +12,8 @@ internal static class QuizScorer
             .Where(question => survey.TryGetQuestionState(
                 question.Name,
                 out SurveyQuestionState state) && state.IsReachable)
-            .Where(question => question.HasCorrectAnswer)
+            // Asked of the bound question, because membership can belong to its parts.
+            .Where(question => survey.GetQuestion(question.Name)?.IsMarked ?? false)
             .ToArray();
         // Asked of the question rather than compared here, so partial credit is the
         // question type's business: a multi-select is worth a mark per expected choice,

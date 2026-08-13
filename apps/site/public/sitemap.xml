@@ -3766,6 +3766,21 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://kajay.io/docs/reference/api/kajay-core/blank-segment</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/api/kajay-core/blank-segment-kind</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/api/kajay-core/blank-template</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://kajay.io/docs/reference/api/kajay-core/definition-diagnostic</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -3987,6 +4002,11 @@
   </url>
   <url>
     <loc>https://kajay.io/docs/reference/api/kajay-core/survey-file-uploader</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/api/kajay-core/survey-fill-in-the-blank-question</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

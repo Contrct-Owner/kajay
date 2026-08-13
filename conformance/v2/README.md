@@ -129,10 +129,21 @@ respondent rule. The author can fix it; the respondent is never blocked by it.
 
 ## Current claim
 
-The TypeScript 2.x candidate and C# adapters pass the inherited v1 cases and all 37 new
-v2 cases through their public runtime seams: 25 expression evaluations, 3 definitions,
+The TypeScript 2.x candidate and C# adapters pass the inherited v1 cases and all 39 new
+v2 cases through their public runtime seams: 25 expression evaluations, 5 definitions,
 and 9 survey scenarios. TypeScript 1.x continues to claim conformance v1 only; these
 breaking semantic corrections ship in its next major version.
+
+## Fill-in-the-blank templates
+
+Prose carries `[[name]]` markers; a `blanks` collection declares what each one means. A
+translation may **move** a marker within the sentence — word order differs between
+languages, and that is why the template is one translatable string rather than an array of
+segments — but renaming, dropping or inventing one is an error, because the answer keys
+would otherwise depend on the language the respondent happened to read.
+
+Diagnostics name the question rather than the property, in both runtimes, so a case can
+carry one path.
 
 ## Partial credit
 

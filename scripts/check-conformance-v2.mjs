@@ -34,6 +34,8 @@ const implementedExpressionIds = [
 ];
 
 const implementedDefinitionIds = [
+  'a-fill-in-the-blank-template-round-trips-with-its-markers',
+  'a-translation-may-move-a-blank-but-not-rename-one',
   'element-named-into-the-host-scope-is-reported-and-kept',
   'unsupported-pattern-is-preserved-and-reported',
   'malformed-pattern-is-preserved-and-reported',

@@ -59,6 +59,14 @@ public abstract class SurveyQuestion
     /// with one value here, and a choice-by-choice reckoning where an answer is a set. A
     /// scorer that lived outside the model would grow a case per type instead.
     /// </remarks>
+    /// <summary>Gets whether this question is graded at all.</summary>
+    /// <remarks>
+    /// Virtual because membership can belong to the parts rather than the whole: a
+    /// fill-in-the-blank is marked when any of its blanks is, and the question-level answer
+    /// it inherits means nothing there.
+    /// </remarks>
+    internal virtual bool IsMarked => Definition.HasCorrectAnswer;
+
     internal virtual AnswerScore ScoreAnswer()
     {
         return AnswerScore.Single(Value, Definition.CorrectAnswer);

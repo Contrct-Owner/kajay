@@ -1,7 +1,7 @@
 # ADR-0047 — A host-value scope, `{$name}`
 
 - Area: Core / expressions and logic
-- Status: accepted, amended
+- Status: accepted, amended; delivered 2026-08-12 (checklist B12, Q11)
 - Owner: Jarod
 - Last updated: 2026-08-12
 

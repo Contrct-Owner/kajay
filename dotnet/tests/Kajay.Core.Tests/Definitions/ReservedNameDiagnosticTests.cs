@@ -2,7 +2,7 @@ namespace Kajay.Core.Tests;
 
 public sealed class ReservedNameDiagnosticTests
 {
-    [Fact]
+    [Fact(DisplayName = "parity/Q11-reserved-name: AnElementNamedIntoTheHostScopeIsAnError")]
     public void AnElementNamedIntoTheHostScopeIsAnError()
     {
         SurveyDefinitionParseResult parsed = SurveyDefinition.Parse(
@@ -20,7 +20,7 @@ public sealed class ReservedNameDiagnosticTests
             parsed.Diagnostics);
     }
 
-    [Fact]
+    [Fact(DisplayName = "parity/Q11-reserved-name: TheAuthoredNameIsKeptRatherThanRewritten")]
     public void TheAuthoredNameIsKeptRatherThanRewritten()
     {
         SurveyDefinitionParseResult parsed = SurveyDefinition.Parse(
@@ -33,7 +33,7 @@ public sealed class ReservedNameDiagnosticTests
         Assert.Contains("$tier", parsed.Definition.ToCanonicalJson());
     }
 
-    [Fact]
+    [Fact(DisplayName = "parity/Q11-reserved-name: AnOrdinaryNameIsNotReported")]
     public void AnOrdinaryNameIsNotReported()
     {
         SurveyDefinitionParseResult parsed = SurveyDefinition.Parse(
@@ -46,7 +46,7 @@ public sealed class ReservedNameDiagnosticTests
             diagnostic => diagnostic.Code == "reserved-name-sigil");
     }
 
-    [Fact]
+    [Fact(DisplayName = "parity/Q11-reserved-name: AReferenceToTheScopeIsNotItselfAReservedName")]
     public void AReferenceToTheScopeIsNotItselfAReservedName()
     {
         SurveyDefinitionParseResult parsed = SurveyDefinition.Parse(

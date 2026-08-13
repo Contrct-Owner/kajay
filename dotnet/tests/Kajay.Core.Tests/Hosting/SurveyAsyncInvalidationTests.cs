@@ -2,7 +2,7 @@ namespace Kajay.Core.Tests;
 
 public sealed class SurveyAsyncInvalidationTests
 {
-    [Fact]
+    [Fact(DisplayName = "parity/Q11-async-invalidation: ARecordedResultIsAskedForAgainAfterInvalidation")]
     public async Task ARecordedResultIsAskedForAgainAfterInvalidation()
     {
         List<string> asked = [];
@@ -22,7 +22,7 @@ public sealed class SurveyAsyncInvalidationTests
         Assert.True(QuestionState(survey, "offer").IsVisible);
     }
 
-    [Fact]
+    [Fact(DisplayName = "parity/Q11-async-invalidation: AFailureIsRetried")]
     public async Task AFailureIsRetried()
     {
         List<string> asked = [];
@@ -47,7 +47,7 @@ public sealed class SurveyAsyncInvalidationTests
         Assert.True(QuestionState(survey, "offer").IsVisible);
     }
 
-    [Fact]
+    [Fact(DisplayName = "parity/Q11-async-invalidation: NothingIsAskedAgainWhileTheAnswerHasNotMoved")]
     public async Task NothingIsAskedAgainWhileTheAnswerHasNotMoved()
     {
         List<string> asked = [];
@@ -61,7 +61,7 @@ public sealed class SurveyAsyncInvalidationTests
         Assert.Equal(["widget"], asked);
     }
 
-    [Fact]
+    [Fact(DisplayName = "parity/Q11-async-invalidation: NamingAFunctionDiscardsOnlyThatFunction")]
     public async Task NamingAFunctionDiscardsOnlyThatFunction()
     {
         List<string> asked = [];

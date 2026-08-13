@@ -420,6 +420,14 @@ The host-value workstream exits only when:
 - the regenerated contracts — two new definition diagnostic codes — are committed and
   `check:contract` is green.
 
+**Exit gate met on 2026-08-12.** B12 and its native counterpart Q11 are green through
+named unit, C# and conformance proofs; the corpus carries four host-value cases claimed
+by both adapters; `Kajay.Core` carries the seam behind a declared public-API baseline;
+and the diagnostic contract regenerated with two codes. Three limits are recorded rather
+than implied: `undeclared-host-value` is TypeScript-only by the rule `undeclared-endpoint`
+already follows, the corpus cannot yet observe that a host value stays out of the
+response, and the Creator cannot offer host-value names without being told them.
+
 The remaining Phase 4 items stay horizon. Each promoted item gets its own ADR and
 checklist section rather than borrowing the C# workstream's active status.
 

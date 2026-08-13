@@ -2,7 +2,7 @@ namespace Kajay.Core.Tests;
 
 public sealed class SurveyHostValueTests
 {
-    [Fact]
+    [Fact(DisplayName = "parity/Q11-host-values: ExpressionsReadTheHostScopeAndTheResponseNeverCarriesIt")]
     public void ExpressionsReadTheHostScopeAndTheResponseNeverCarriesIt()
     {
         Survey survey = CreateSurvey(new Dictionary<string, KajayValue>(StringComparer.Ordinal)
@@ -19,7 +19,7 @@ public sealed class SurveyHostValueTests
         Assert.Equal(["plan"], survey.Data.Keys.Order(StringComparer.Ordinal));
     }
 
-    [Fact]
+    [Fact(DisplayName = "parity/Q11-host-values: TheSigilIsTestedBeforeTheAnswerSpaceInBothDirections")]
     public void TheSigilIsTestedBeforeTheAnswerSpaceInBothDirections()
     {
         Survey survey = CreateSurvey(new Dictionary<string, KajayValue>(StringComparer.Ordinal)
@@ -35,7 +35,7 @@ public sealed class SurveyHostValueTests
         Assert.False(QuestionState(survey, "answerTier").IsVisible);
     }
 
-    [Fact]
+    [Fact(DisplayName = "parity/Q11-host-values: StructuredHostValuesAreDescendedInto")]
     public void StructuredHostValuesAreDescendedInto()
     {
         Survey survey = CreateSurvey(new Dictionary<string, KajayValue>(StringComparer.Ordinal)
@@ -54,7 +54,7 @@ public sealed class SurveyHostValueTests
         Assert.True(QuestionState(survey, "descended").IsVisible);
     }
 
-    [Fact]
+    [Fact(DisplayName = "parity/Q11-host-values: AWriteRecomputesEverythingThatReadsIt")]
     public void AWriteRecomputesEverythingThatReadsIt()
     {
         Survey survey = CreateSurvey(new Dictionary<string, KajayValue>(StringComparer.Ordinal)
@@ -73,7 +73,7 @@ public sealed class SurveyHostValueTests
         Assert.Contains("upgrade", states);
     }
 
-    [Fact]
+    [Fact(DisplayName = "parity/Q11-host-values: WritingTheValueAlreadyInForceAnnouncesNothing")]
     public void WritingTheValueAlreadyInForceAnnouncesNothing()
     {
         Survey survey = CreateSurvey(new Dictionary<string, KajayValue>(StringComparer.Ordinal)
@@ -90,7 +90,7 @@ public sealed class SurveyHostValueTests
         Assert.Empty(states);
     }
 
-    [Fact]
+    [Fact(DisplayName = "parity/Q11-host-values: AHostValueChangeIsNotAnnouncedAsAnAnswerChange")]
     public void AHostValueChangeIsNotAnnouncedAsAnAnswerChange()
     {
         Survey survey = CreateSurvey(new Dictionary<string, KajayValue>(StringComparer.Ordinal)

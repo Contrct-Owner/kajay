@@ -146,7 +146,12 @@ test('parity/C13-render: a multi-select blank stores an array under its key', as
   });
   const screen = await render(<Survey model={survey} />);
 
-  await screen.getByLabelText('Cities').selectOptions(['Paris', 'Nice']);
+  // A disclosure and real checkboxes, not a `<select multiple>`: the browser draws that
+  // one's list itself, with glyphs no theme can reach — the only gap in a sentence whose
+  // contents were nobody's to style.
+  await screen.getByLabelText('Cities').click();
+  await screen.getByLabelText('Paris').click();
+  await screen.getByLabelText('Nice').click();
 
   // The answer shape already allowed this: one object keyed by blank name, and a
   // multi-select blank simply stores an array under its key.
@@ -274,5 +279,55 @@ test('parity/C13-render: a chosen value keeps the type the author gave it', asyn
   // inline renderer used to do — a choice authored as `2` came back as `"2"`, and the
   // response differed from the same question asked on a line of its own.
   expect(survey.data).toEqual({ geography: { score: 2 } });
+});
+
+test('parity/C13-axe: a multi-select gap says what it is and whether it is open', async () => {
+  const survey = build({
+    template: 'Its cities include [[cities]].',
+    blanks: [
+      { type: 'tagbox', name: 'cities', title: 'Cities', choices: ['Paris', 'Lyon'] },
+    ],
+  });
+  const screen = await render(<Survey model={survey} />);
+
+  // A disclosure, which is the whole of the contract: a button that names the gap and
+  // says whether its choices are showing. Not a listbox — that is a roving-focus widget
+  // and ADR-0022 keeps that kind of interaction out of this adapter.
+  const button = screen.container.querySelector('.kajay-fillintheblank__multi button');
+  expect(button?.getAttribute('aria-expanded')).toBe('false');
+  expect(button?.getAttribute('aria-label')).toBe('Cities');
+
+  await screen.getByLabelText('Cities').click();
+
+  expect(button?.getAttribute('aria-expanded')).toBe('true');
+  const menu = screen.container.querySelector('.kajay-fillintheblank__menu');
+  expect(menu?.getAttribute('role')).toBe('group');
+  expect(menu?.getAttribute('aria-label')).toBe('Cities');
+});
+
+test('parity/C13-render: what a multi-select gap says is what was chosen', async () => {
+  const survey = build({
+    template: 'Its cities include [[cities]].',
+    blanks: [
+      {
+        type: 'tagbox',
+        name: 'cities',
+        title: 'Cities',
+        placeholder: 'some cities',
+        choices: ['Paris', 'Lyon'],
+      },
+    ],
+  });
+  const screen = await render(<Survey model={survey} />);
+  const button = screen.container.querySelector('.kajay-fillintheblank__multi button');
+
+  // Empty, it prompts. Answered, it reads back in the author's own words, because the
+  // sentence now says something and "2 selected" would make a reader open it to find out.
+  expect(button?.textContent).toBe('some cities');
+
+  await screen.getByLabelText('Cities').click();
+  await screen.getByLabelText('Lyon').click();
+
+  expect(button?.textContent).toBe('Lyon');
 });
 

@@ -50,6 +50,11 @@
    `light` when a theme says nothing, because that is what these colours default to. */
 .kajay-survey {
   color-scheme: var(--kajay-color-scheme, light);
+  /* The other half of the same idea: `color-scheme` says which way round the browser's own
+     surfaces are drawn, and `accent-color` says what colour the marks on them are — the
+     tick in a checkbox, the dot in a radio, the fill of a range. Both are the theme
+     reaching parts of a control that no rule in this file can select. */
+  accent-color: var(--kajay-color-accent);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1477,6 +1482,37 @@
   width: var(--kajay-blank-width, auto);
   min-width: 4ch;
   max-width: 100%;
+}
+
+/* Several-of-these, in the run of a sentence: a button saying what was chosen, and the
+   choices themselves in a menu over the words rather than pushing them apart.
+
+   The menu is *ours* — real checkboxes — because the browser's own multiple-select list is
+   the one thing here a theme cannot reach: its glyphs follow neither `color-scheme` nor any
+   rule that can be written, so a dark survey showed white boxes down a dark list. */
+.kajay-fillintheblank__multi {
+  position: relative;
+  display: inline;
+  white-space: nowrap;
+}
+
+.kajay-fillintheblank__menu:popover-open {
+  /* Placed by the renderer, in the top layer: a survey lives inside somebody else's
+     layout, and an absolutely positioned menu is cut off by the first ancestor that
+     hides its overflow — which the reference application's own card does. */
+  position: fixed;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--kajay-spacing) / 4);
+  min-width: max-content;
+  padding: calc(var(--kajay-spacing) / 2);
+  border: 1px solid var(--kajay-color-border);
+  border-radius: var(--kajay-radius);
+  background: var(--kajay-color-surface);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 25%);
+  line-height: 1.5;
+  white-space: normal;
 }
 
 /* A yes/no gap is not a field, it is the switch the block renderer draws — same primitive,

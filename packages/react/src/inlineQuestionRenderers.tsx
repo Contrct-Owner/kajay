@@ -4,6 +4,7 @@ import type { ReactElement } from 'react';
 import { applySelection, ChoiceOptions, currentSelection } from './choiceOptions.js';
 import type { PageElementRendererRegistry } from './PageElementRendererRegistry.js';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
+import { InlineMultiSelect } from './InlineMultiSelect.js';
 import { readOnlyControl, whenEditable } from './readOnly.js';
 import { useSurveyComponents } from './SurveyComponents.js';
 
@@ -93,14 +94,6 @@ function InlineSelect({ question, multiple }: {
 function InlineDropdown({ question }: QuestionRendererProps): ReactElement {
   return question instanceof SelectQuestion ? (
     <InlineSelect question={question} multiple={false} />
-  ) : (
-    <span className="kajay-fillintheblank__gap" />
-  );
-}
-
-function InlineMultiSelect({ question }: QuestionRendererProps): ReactElement {
-  return question instanceof SelectQuestion ? (
-    <InlineSelect question={question} multiple />
   ) : (
     <span className="kajay-fillintheblank__gap" />
   );

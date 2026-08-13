@@ -24,7 +24,12 @@ test('parity/C13-render: a sentence is a form, with a different field in every g
   // The prose is the layout and the gaps are real fields — a dropdown, a multi-select and
   // a yes/no in one sentence, which is what a natural-language builder is for.
   await live(page).getByLabel('Department').selectOption('Design');
-  await live(page).getByLabel('Tools your team uses').selectOption(['Kajay', 'Linear']);
+  // The multi-select gap is a disclosure of real checkboxes rather than a native
+  // `<select multiple>`, whose list the browser draws with glyphs no theme can reach.
+  await live(page).getByLabel('Tools your team uses').click();
+  await page.getByRole('checkbox', { name: 'Kajay' }).click();
+  await page.getByRole('checkbox', { name: 'Linear' }).click();
+  await page.keyboard.press('Escape');
   await live(page).getByLabel('Works remotely').check();
   await live(page).getByLabel('Your name').fill('Ada');
 

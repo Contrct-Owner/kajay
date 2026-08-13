@@ -1440,6 +1440,13 @@
   vertical-align: baseline;
 }
 
+/* A multiple select is a list box by default, which would push the sentence apart. One
+   row tall and scrolling keeps the words where the author put them. */
+.kajay-fillintheblank__input[multiple] {
+  height: 2.2em;
+  overflow-y: auto;
+}
+
 /* A computed gap is prose, not a control: it states a value mid-clause. */
 .kajay-fillintheblank__computed {
   font-weight: 600;

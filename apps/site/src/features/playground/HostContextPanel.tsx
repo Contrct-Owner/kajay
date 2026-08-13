@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { PLAYGROUND_TIERS, type PlaygroundHostValues } from './playgroundHostValues';
 
@@ -93,11 +92,7 @@ function SeatsField({ values, onChange }: HostValueControl): ReactElement {
  * not survey furniture, and a plain labelled control is the accessible default without any
  * of the interaction a portalled listbox brings with it.
  */
-export function HostContextPanel({
-  values,
-  onChange,
-  onLoadExample,
-}: HostValueControl & { readonly onLoadExample: () => void }): ReactElement {
+export function HostContextPanel({ values, onChange }: HostValueControl): ReactElement {
   return (
     <section
       className="bg-card ring-border min-w-0 overflow-hidden rounded-xl shadow-sm ring-1"
@@ -118,15 +113,6 @@ export function HostContextPanel({
           <TierField values={values} onChange={onChange} />
           <SeatsField values={values} onChange={onChange} />
         </div>
-        <Button
-          size="sm"
-          variant="secondary"
-          className="self-start"
-          data-testid="host-load-example"
-          onClick={onLoadExample}
-        >
-          Load a survey that reads them
-        </Button>
       </div>
     </section>
   );

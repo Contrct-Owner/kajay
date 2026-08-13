@@ -1,5 +1,5 @@
 import { MultiSelectQuestion, RatingQuestion, SelectQuestion, TextQuestion } from '@kajay/core';
-import type { ExpressionQuestion, Question } from '@kajay/core';
+import type { Question } from '@kajay/core';
 import type { ReactElement } from 'react';
 import type { PageElementRendererRegistry } from './PageElementRendererRegistry.js';
 import type { QuestionRendererProps } from './QuestionRendererProps.js';
@@ -12,6 +12,12 @@ import { useSurveyComponents } from './SurveyComponents.js';
  * lazy paging (§C5, §C6) and a checkbox group is a vertical list; neither belongs in the
  * run of a clause. Inline gets one compact control, which is the honest reading of "fits
  * in a line of prose" — a host that wants the fuller thing registers its own.
+ *
+ * **No computed gap yet.** An `expression` would read well mid-clause — "that is [[annual]]
+ * a year" — but a blank's rules are not registered with the logic graph, so it would draw
+ * an empty span for ever. Matrix cells solve the same problem with a registration of their
+ * own; until blanks have one, core refuses the type rather than letting it silently do
+ * nothing.
  *
  * None of them draws a label. The prose is the label, so each control takes its accessible
  * name from the question's title through `aria-label`: rendering the title would print it
@@ -89,6 +95,10 @@ function InlineMultiSelect({ question }: QuestionRendererProps): ReactElement {
   return (
     <select
       multiple
+      // One row tall, deliberately. A native multiple select otherwise opens out into a
+      // list box that pushes the sentence apart — the layout failure this type exists to
+      // avoid — so it scrolls in place instead.
+      size={1}
       className="kajay-question__input kajay-fillintheblank__input"
       aria-label={accessibleName(question)}
       disabled={!question.isEnabled || question.isReadOnly}
@@ -124,17 +134,6 @@ function InlineBoolean({ question }: QuestionRendererProps): ReactElement {
       }}
     />
   );
-}
-
-/**
- * A computed value, drawn as text.
- *
- * Read-only by its nature, so a sentence can state a total mid-clause without the
- * respondent being offered a control they cannot use.
- */
-function InlineExpression({ question }: QuestionRendererProps): ReactElement {
-  const computed = question as ExpressionQuestion;
-  return <span className="kajay-fillintheblank__computed">{computed.displayValue}</span>;
 }
 
 /**
@@ -177,5 +176,4 @@ export function registerInlineQuestionRenderers(registry: PageElementRendererReg
   registry.registerInlineQuestion('tagbox', InlineMultiSelect);
   registry.registerInlineQuestion('boolean', InlineBoolean);
   registry.registerInlineQuestion('rating', InlineRating);
-  registry.registerInlineQuestion('expression', InlineExpression);
 }

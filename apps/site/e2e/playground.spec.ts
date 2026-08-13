@@ -76,7 +76,8 @@ test('parity/P3-playground: the host scope drives the live survey without a rest
   await page.goto(PLAYGROUND);
   // The example is opt-in: the starter document is what every visitor lands on and what
   // the placement scenarios measure, so a feature that needs an example brings its own.
-  await page.getByTestId('host-load-example').click();
+  await page.getByText('Examples', { exact: false }).first().click();
+  await page.getByTestId('load-example-host-context').click();
   const accountNotes = live(page).getByLabel('Anything for your account team?');
 
   // Seeded at `bronze`, so the gated question is not there to begin with. A share link
@@ -102,7 +103,8 @@ test('parity/P3-playground: the host scope drives the live survey without a rest
 
 test('parity/P3-playground: host context survives a restart', async ({ page }) => {
   await page.goto(PLAYGROUND);
-  await page.getByTestId('host-load-example').click();
+  await page.getByText('Examples', { exact: false }).first().click();
+  await page.getByTestId('load-example-host-context').click();
   await page.getByTestId('host-tier').selectOption('gold');
   await expect(live(page).getByLabel('Anything for your account team?')).toBeVisible();
 

@@ -206,8 +206,6 @@ export const QUESTION_TYPE_DEFINITIONS: QuestionTypeDefinitions = {
   expression: {
     name: 'expression',
     parent: 'question',
-    // Read-only and computed, so a sentence can state a total mid-clause.
-    allowsInline: true,
     properties: [
       {
         name: 'expression',

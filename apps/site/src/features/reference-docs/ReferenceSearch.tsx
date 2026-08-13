@@ -26,6 +26,7 @@ export function ReferenceSearch({ pages = EMPTY_PAGES, resultLimit = 20 }: Refer
         onFocus={model.onFocus}
         onKeyDown={model.onKeyDown}
         placeholder="Search docs"
+        ref={model.inputRef}
         role="combobox"
         type="search"
         value={model.query}

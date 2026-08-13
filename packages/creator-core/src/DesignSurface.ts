@@ -96,7 +96,11 @@ export class DesignSurface {
   }
 
   constructor(options: DesignSurfaceOptions) {
-    this.#document = new SurveyDocument(options.definition, options.registry);
+    this.#document = new SurveyDocument(
+      options.definition,
+      options.registry,
+      options.hostValueNames,
+    );
     this.#configuration = options.configuration;
     this.#placementSession = new PlacementSessionModel({
       definition: () => this.definition,

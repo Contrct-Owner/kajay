@@ -20,13 +20,30 @@ import type {
  * drawing of one: the thing on screen *is* the model, so a question type the Creator has
  * never heard of renders correctly and its logic runs.
  */
+/**
+ * Declared names as a values map, so the parser treats them as supplied.
+ *
+ * `undefined` for every one, deliberately: the runtime tells "declared and absent" from
+ * "never mentioned" by whether the key exists, so a name a host has promised reads as
+ * unanswered rather than as a mistake — and no invented value can leak onto a canvas.
+ */
+function declaredHostValues(names: readonly string[] | undefined): Readonly<Record<string, unknown>> {
+  return Object.fromEntries((names ?? []).map((name) => [name, undefined]));
+}
+
 export class SurveyDocument {
   readonly #registry: MetadataRegistry | undefined;
+  readonly #hostValues: Readonly<Record<string, unknown>>;
   #survey: Survey;
   #diagnostics: readonly Diagnostic[];
 
-  constructor(definition: SurveyDefinition, registry?: MetadataRegistry) {
+  constructor(
+    definition: SurveyDefinition,
+    registry?: MetadataRegistry,
+    hostValueNames?: readonly string[],
+  ) {
     this.#registry = registry;
+    this.#hostValues = declaredHostValues(hostValueNames);
     const parsed = this.#parse(definition);
     this.#survey = parsed.survey;
     this.#diagnostics = parsed.diagnostics;
@@ -83,7 +100,7 @@ export class SurveyDocument {
   }
 
   #parse(definition: SurveyDefinition): { survey: Survey; diagnostics: readonly Diagnostic[] } {
-    const parsed = parseSurvey(definition, this.#registry);
+    const parsed = parseSurvey(definition, this.#registry, { values: this.#hostValues });
     // A survey on a canvas is being built, not answered. Design mode is runtime state
     // rather than the `readOnly` property, so opening a definition in the Creator does
     // not stamp it with a flag the author never wrote — and it has to be set on *every*

@@ -33,4 +33,17 @@ export interface DesignSurfaceOptions {
   readonly registry?: MetadataRegistry | undefined;
   /** What this deployment has turned off — checklist N2. Absent means nothing. */
   readonly configuration?: CreatorConfiguration | undefined;
+  /**
+   * The `{$name}` values this definition will be given at runtime — checklist B12.
+   *
+   * **Names, not values.** A designer has no host: there is no session, no CRM and no
+   * entitlement service behind a canvas, so there is nothing true to show and a value here
+   * would be a fiction the designer might come to rely on. What the Creator does need is
+   * the *vocabulary*, so a definition that reads host context is not reported as broken
+   * for depending on something no canvas can supply.
+   *
+   * Absent means none declared, and then a `{$name}` reference is diagnosed exactly as it
+   * is anywhere else — which is right for a host that has not said otherwise.
+   */
+  readonly hostValueNames?: readonly string[] | undefined;
 }

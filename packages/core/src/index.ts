@@ -152,6 +152,7 @@ export type { ConditionalItemGroup } from './model/Question.js';
 export type { Survey } from './model/Survey.js';
 export type { HtmlCondition } from './model/HtmlCondition.js';
 export type { Endpoints } from './model/endpoints.js';
+export type { HostValues } from './model/hostValues.js';
 export { measureProgress } from './model/progressBar.js';
 export type {
   ProgressBarLocation,

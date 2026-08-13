@@ -6,6 +6,8 @@ import type { CalculatedValue } from './CalculatedValue.js';
 import { ChoiceSourceController } from './ChoiceSourceController.js';
 import { createPathResolver } from './createPathResolver.js';
 import { ElementStateController } from './ElementStateController.js';
+import { isHostValueName, resolveHostValue } from './hostValues.js';
+import type { HostValues } from './hostValues.js';
 import { SettleCoordinator } from './SettleCoordinator.js';
 import type { SurveyAnswers } from './SurveyAnswers.js';
 import type { SurveyChildren } from './SurveyChildren.js';
@@ -63,6 +65,7 @@ export class SurveyLogicHost {
   readonly #survey: Survey;
   readonly #writeValue: (name: string, value: unknown) => boolean;
   readonly #resolvePath: (path: readonly PathSegment[]) => unknown;
+  #hostValues: HostValues = {};
   #afterSettle: (() => void) | undefined;
   #inAfterSettle = false;
 
@@ -90,7 +93,7 @@ export class SurveyLogicHost {
         announcer.elementState(event);
       }
     });
-    this.#resolvePath = createPathResolver((name) => answers.resolve(name));
+    this.#resolvePath = createPathResolver((name) => this.#lookup(name));
   }
 
   /** Advances whenever an element's computed state changes. The renderer's snapshot. */
@@ -125,6 +128,9 @@ export class SurveyLogicHost {
     }
     if (options.now !== undefined) {
       this.#engine.setClock(options.now);
+    }
+    if (options.values !== undefined) {
+      this.#hostValues = options.values;
     }
     this.#choiceSources.setFetcher(options.fetchJson);
     this.#choiceSources.setEndpoints(options.endpoints ?? {});
@@ -277,6 +283,25 @@ export class SurveyLogicHost {
     const resolve = scope === undefined ? this.#resolvePath : this.#scopedResolver(scope);
     const evaluation = this.#engine.evaluate(expression, resolve);
     return { value: evaluation.value, failed: evaluation.errors.length > 0 };
+  }
+
+  /**
+   * The first segment of every reference: a host value, or an answer.
+   *
+   * **The sigil is tested first**, so a host value can never be shadowed by a question
+   * and a question can never be reached through the host scope. That ordering is what
+   * makes the two namespaces genuinely separate rather than merely conventionally so —
+   * and it is why `$` is reserved in `name`, since a question called `$tier` would
+   * otherwise be silently unreachable from every expression.
+   *
+   * Descent is not handled here. `{$profile.plan.tier}` resolves because
+   * `createPathResolver` walks the remaining segments into whatever this returns, which
+   * is the same treatment an answer holding an object already gets.
+   */
+  #lookup(name: string): unknown {
+    return isHostValueName(name)
+      ? resolveHostValue(name, this.#hostValues)
+      : this.#answers.resolve(name);
   }
 
   /**

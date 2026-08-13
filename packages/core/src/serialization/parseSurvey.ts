@@ -2,19 +2,18 @@ import { collectEndpointDiagnostics } from '../model/endpoints.js';
 import { FileQuestion } from '../model/FileQuestion.js';
 import { RepeatingQuestion } from '../model/RepeatingQuestion.js';
 import { StringDictionary } from '../strings/StringDictionary.js';
-import { isLocalizedText } from '../model/localizedText.js';
-import type { LocaleScope } from '../model/localizedText.js';
 import { ROW_SCOPE } from '../model/matrixCells.js';
 import { SelectQuestion } from '../model/SelectQuestion.js';
 import type { ChildCollectionDescriptor } from '../metadata/ClassDescriptor.js';
 import { globalRegistry } from '../metadata/globalRegistry.js';
 import { MetadataRegistry } from '../metadata/MetadataRegistry.js';
-import { matchesPropertyType, type PropertyDescriptor } from '../metadata/PropertyDescriptor.js';
 import { Survey } from '../model/Survey.js';
 import type { SurveyOptions } from '../model/SurveyOptions.js';
 import type { SurveyElement } from '../model/SurveyElement.js';
 import type { Diagnostic } from './Diagnostic.js';
-import { collectPatternDiagnostics } from './patternDiagnostics.js';
+import { describeType, isJsonObject } from './describeType.js';
+import type { ReadContext } from './ReadContext.js';
+import { readProperty } from './readProperty.js';
 import { CURRENT_SCHEMA_VERSION, UnsupportedSchemaVersionError } from './schemaVersion.js';
 import { digestAndBindDefinition } from './definitionDigest.js';
 
@@ -28,31 +27,6 @@ export interface ParseResult {
 
 const SCHEMA_VERSION_PROPERTY = 'schemaVersion';
 const TYPE_PROPERTY = 'type';
-
-interface ReadContext {
-  readonly registry: MetadataRegistry;
-  readonly diagnostics: Diagnostic[];
-  /**
-   * The one locale holder every element in this survey shares — checklist J1.
-   *
-   * Handed out here rather than walked in afterwards because this is the only place
-   * that sees *every* element: choices, validators, matrix columns and multiple-text
-   * items are all created down this path, and a walk would have to know about each
-   * collection separately and be wrong about the next one.
-   */
-  readonly locale: LocaleScope;
-}
-
-function isJsonObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function describeType(value: unknown): string {
-  if (value === null) {
-    return 'null';
-  }
-  return Array.isArray(value) ? 'array' : typeof value;
-}
 
 function assertSupportedSchemaVersion(definition: Record<string, unknown>): void {
   const declared = definition[SCHEMA_VERSION_PROPERTY];
@@ -103,7 +77,12 @@ export function parseSurvey(
   }
   assertSupportedSchemaVersion(definition);
 
-  const context: ReadContext = { registry, diagnostics: [], locale: { locale: '', strings: new StringDictionary() } };
+  const context: ReadContext = {
+    registry,
+    diagnostics: [],
+    locale: { locale: '', strings: new StringDictionary() },
+    values: options.values ?? {},
+  };
   const root = readElement(definition, 'survey', '', context, [SCHEMA_VERSION_PROPERTY]);
   if (!(root instanceof Survey)) {
     throw new TypeError('The root of a definition must deserialize to a survey.');
@@ -214,59 +193,6 @@ function readElement(
     readChildren(json, element, collection, className, path, context);
   }
   return element;
-}
-
-interface PropertyReadRequest {
-  readonly key: string;
-  readonly value: unknown;
-  readonly className: string;
-  readonly path: string;
-  readonly properties: readonly PropertyDescriptor[];
-}
-
-function readProperty(
-  element: SurveyElement,
-  request: PropertyReadRequest,
-  context: ReadContext,
-): void {
-  const { key, value, className, path, properties } = request;
-  const descriptor = properties.find((candidate) => candidate.name === key);
-
-  if (descriptor === undefined) {
-    element.setUnknownProperty(key, value);
-    context.diagnostics.push({
-      severity: 'warning',
-      code: 'unknown-property',
-      message:
-        `Property "${key}" is not declared on "${className}". It is preserved ` +
-        'verbatim and will round-trip unchanged.',
-      path: `${path}/${key}`,
-    });
-    return;
-  }
-
-  if (descriptor.isLocalizable && isLocalizedText(value)) {
-    // Stored as authored. Resolving it here would flatten the survey to one language
-    // the first time it was read, and the round trip would come back monolingual.
-    element.setPropertyValue(key, value);
-    return;
-  }
-
-  if (!matchesPropertyType(value, descriptor.type)) {
-    context.diagnostics.push({
-      severity: 'error',
-      code: 'property-type-mismatch',
-      message:
-        `Property "${key}" on "${className}" expects ${descriptor.type}, ` +
-        `received ${describeType(value)}. The value was ignored.`,
-      path: `${path}/${key}`,
-    });
-    return;
-  }
-
-  context.diagnostics.push(...collectPatternDiagnostics(className, key, value, path));
-
-  element.setPropertyValue(key, value);
 }
 
 function readChildren(

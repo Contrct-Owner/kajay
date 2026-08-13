@@ -1171,6 +1171,16 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://kajay.io/docs/reference/diagnostics#definition-undeclared-host-value</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/diagnostics#definition-reserved-name-sigil</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://kajay.io/docs/reference/diagnostics#expression-unterminated-string</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -1887,6 +1897,11 @@
   </url>
   <url>
     <loc>https://kajay.io/docs/reference/api/core/global-registry</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/api/core/host-values</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

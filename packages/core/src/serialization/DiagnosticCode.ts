@@ -34,6 +34,16 @@ export const DEFINITION_DIAGNOSTIC_DEFINITIONS = [
     severity: 'error',
     description: 'A validation pattern is outside Kajay Pattern Profile v1.',
   },
+  {
+    code: 'undeclared-host-value',
+    severity: 'warning',
+    description: 'An expression reads a host value the host did not supply.',
+  },
+  {
+    code: 'reserved-name-sigil',
+    severity: 'error',
+    description: 'An element name starts with the sigil reserved for the host-value scope.',
+  },
 ] as const;
 
 export type DefinitionDiagnosticCode =

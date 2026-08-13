@@ -16,7 +16,7 @@ import { HeroSurvey } from './components/HeroSurvey';
  */
 export function LandingPage(): ReactElement {
   return (
-    <main className="mx-auto max-w-5xl px-6 pb-24">
+    <main className="mx-auto max-w-[80rem] px-6 pb-24">
       <TopBar />
       <Hero />
       <Thesis />
@@ -41,14 +41,25 @@ function TopBar(): ReactElement {
   );
 }
 
+/**
+ * The headline, and a real survey beside it.
+ *
+ * **Two columns from `lg`, not from `md`, and the words get the larger share.** Split at
+ * 768 the two halves were about 350px each, which is narrower than the headline wants: it
+ * broke into three lines, "No signup. Nothing saved." dropped under the button, and the
+ * survey's own option labels wrapped — all of it while the window had hundreds of pixels
+ * to spare, because this page had capped itself at `max-w-5xl` while the documentation
+ * uses `96rem` and the playground uses the whole width. Below `lg` the two stack, which
+ * gives the headline the full measure rather than half of a narrow one.
+ */
 function Hero(): ReactElement {
   return (
-    <section className="grid gap-10 py-12 md:grid-cols-2 md:items-center">
+    <section className="grid gap-10 py-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-center">
       <div className="flex flex-col gap-6">
-        <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+        <h1 className="max-w-[18ch] text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
           Surveys that look like your application.
         </h1>
-        <p className="text-muted-foreground text-lg text-pretty">
+        <p className="text-muted-foreground max-w-prose text-lg text-pretty">
           Bring your own components. Kajay lets your design system supply the common controls
           it already owns — buttons, inputs, textareas, checkboxes and radios — while
           specialized survey controls keep Kajay&rsquo;s accessible defaults.

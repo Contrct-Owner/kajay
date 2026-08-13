@@ -161,3 +161,36 @@ test('parity/P13-sharing: the page says what it is to something that never runs 
   const urls = (await sitemap.text()).match(/<loc>/gu)?.length ?? 0;
   expect(urls).toBeGreaterThan(100);
 });
+
+test('parity/P8-landing: the hero uses the room the window gives it', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/');
+
+  // This page used to cap itself at `max-w-5xl` while the documentation uses 96rem and the
+  // playground uses the whole width, so on any ordinary monitor it was a narrow column
+  // with the screen empty on both sides.
+  const main = await page.locator('main').evaluate((el) => el.getBoundingClientRect().width);
+  expect(main).toBeGreaterThan(1100);
+
+  // And the caption sits beside the button. Split into halves from 768px, the hero's left
+  // column was around 350px: the headline broke into three lines, this line dropped under
+  // the button and the survey's own labels wrapped — every one of them with room to spare
+  // on screen, which is the report this test exists for.
+  const sameLine = (): Promise<boolean> =>
+    page.locator('main section >> nth=0').locator('a', { hasText: 'Open the playground' })
+      .evaluate((button, caption: string) => {
+        const row = button.closest('div');
+        const words = [...(row?.children ?? [])].find((child) => child.textContent?.includes(caption));
+        const first = button.getBoundingClientRect();
+        const second = words?.getBoundingClientRect();
+        return second !== undefined && second.top < first.bottom - 1 && first.top < second.bottom - 1;
+      }, 'No signup');
+
+  expect(await sameLine()).toBe(true);
+
+  // Below `lg` the two stack, which gives the words the whole measure rather than half of
+  // a narrow one — so the caption still sits where it was written.
+  await page.setViewportSize({ width: 820, height: 900 });
+  expect(await sameLine()).toBe(true);
+});
+

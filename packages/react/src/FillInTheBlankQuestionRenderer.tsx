@@ -1,7 +1,7 @@
 import { FillInTheBlankQuestion } from '@kajay/core';
 import type { Question, Survey, SurveyError } from '@kajay/core';
 import { createElement } from 'react';
-import type { ReactElement } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
 import type {
   PageElementRendererProps,
   PageElementRendererResolver,
@@ -15,6 +15,8 @@ import { useIdScope } from './idScope.js';
 interface BlankFieldProps {
   readonly survey: Survey;
   readonly blank: Question;
+  /** The sentence's default width in characters, which a blank's own `size` beats. */
+  readonly defaultSize: number;
   readonly errors: readonly SurveyError[];
   readonly renderers: PageElementRendererResolver;
 }
@@ -31,13 +33,29 @@ interface BlankFieldProps {
  * Errors sit immediately after their own control. In a sentence that is the only place
  * they can go and still say which word they mean.
  */
-function BlankField({ survey, blank, errors, renderers }: BlankFieldProps): ReactElement {
+function BlankField({
+  survey,
+  blank,
+  defaultSize,
+  errors,
+  renderers,
+}: BlankFieldProps): ReactElement {
   const scope = useIdScope();
   const errorId = `${questionId(blank, scope)}-errors`;
   const inline = renderers.inline?.(blank.type);
+  // Resolved here and published as a custom property rather than passed to the control:
+  // an inline renderer is handed one question and a question does not know its sentence,
+  // so this is the only place that can answer "how wide, and who said". A host's own
+  // inline renderer inherits it without being told the property exists.
+  const size = blank.size > 0 ? blank.size : defaultSize;
+  const width = { '--kajay-blank-size': `${String(size)}ch` } as CSSProperties;
 
   return (
-    <span className="kajay-fillintheblank__gap" data-blank-name={blank.name}>
+    <span
+      className="kajay-fillintheblank__gap"
+      data-blank-name={blank.name}
+      {...(size > 0 ? { style: width } : {})}
+    >
       {inline === undefined ? null : createElement(inline, { survey, question: blank })}
       {errors.length > 0 ? (
         <span className="kajay-question__errors" id={errorId} role="alert">
@@ -102,6 +120,7 @@ export function FillInTheBlankQuestionRenderer({
               key={`blank-${segment.name}`}
               survey={survey}
               blank={blank}
+              defaultSize={question.blankSize}
               errors={question.errors.filter((error) => error.path === blank.name)}
               renderers={renderers}
             />

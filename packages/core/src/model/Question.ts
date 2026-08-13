@@ -112,6 +112,19 @@ export abstract class Question extends PageElement {
     this.setPropertyValue('requiredErrorText', value);
   }
 
+  /**
+   * Field width in characters, or zero when the author has not said.
+   *
+   * Registered on `question` since before this getter existed, which meant it round-tripped
+   * and did nothing: no renderer could read it, so a blank in a sentence was as wide as the
+   * browser's guess whatever it was for. Zero rather than a default here, because "unset"
+   * and "as wide as one character" are different answers and only the reader knows what to
+   * fall back to — a sentence falls back to its own `blankSize`.
+   */
+  get size(): number {
+    return this.getNumberProperty('size');
+  }
+
   /** Extra rules the answer has to satisfy, in the order they are checked. */
   get validators(): readonly Validator[] {
     return this.#validators;

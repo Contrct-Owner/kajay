@@ -28,6 +28,10 @@ function InlineText({ question }: QuestionRendererProps): ReactElement {
     <Input
       className="kajay-question__input kajay-fillintheblank__input"
       type={question instanceof TextQuestion ? question.inputType : 'text'}
+      // An empty gap says nothing about itself: the prose around it is the label, and a
+      // reader who wants a hint inside the box has the same property the block renderer
+      // reads. Ignoring it here made `placeholder` mean two different things.
+      placeholder={question instanceof TextQuestion ? question.placeholder : ''}
       aria-label={accessibleName(question)}
       readOnly={question.isReadOnly}
       disabled={!question.isEnabled}
@@ -65,8 +69,10 @@ function InlineDropdown({ question }: QuestionRendererProps): ReactElement {
       }}
     >
       {/* An empty option, or a respondent cannot take back a first choice — and the field
-          would report a value nobody picked the moment it was drawn. */}
-      <option value="">{''}</option>
+          would report a value nobody picked the moment it was drawn. It carries the
+          authored placeholder, as the block dropdown's does: a gap showing nothing at all
+          is a box a respondent has to click to find out about. */}
+      <option value="">{question.placeholder}</option>
       {question.visibleChoices.map((choice) => (
         <option key={String(choice.value)} value={String(choice.value)}>
           {choice.text}

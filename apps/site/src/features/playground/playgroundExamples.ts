@@ -25,11 +25,14 @@ const FILL_IN_THE_BLANK_EXAMPLE: SurveyDefinition = {
             + 'It is [[remote]] that we work remotely, across [[seats]] seats — '
             + 'which is [[annual]] seat-months a year.',
           blanks: [
-            { type: 'text', name: 'name', title: 'Your name' },
+            // `placeholder` and `size` are what an author says about a gap before anybody
+            // fills it in: what goes here, and how much room it deserves in the sentence.
+            { type: 'text', name: 'name', title: 'Your name', placeholder: 'your name' },
             {
               type: 'dropdown',
               name: 'department',
               title: 'Department',
+              placeholder: 'a department',
               choices: ['Engineering', 'Design', 'Support', 'Sales'],
             },
             {
@@ -40,7 +43,7 @@ const FILL_IN_THE_BLANK_EXAMPLE: SurveyDefinition = {
             },
             { type: 'rating', name: 'rating', title: 'Tooling rating', rateMax: 5 },
             { type: 'boolean', name: 'remote', title: 'Works remotely' },
-            { type: 'text', name: 'seats', title: 'Seats', inputType: 'number' },
+            { type: 'text', name: 'seats', title: 'Seats', inputType: 'number', size: 4 },
             {
               type: 'expression',
               name: 'annual',

@@ -99,6 +99,7 @@ internal static class DefinitionReader
             }
 
             ValidatePattern(className, propertyName, value, path, diagnostics);
+            ValidateReservedName(propertyName, value, path, diagnostics);
             values[propertyName] = value?.DeepClone();
         }
     }
@@ -151,6 +152,32 @@ internal static class DefinitionReader
         {
             diagnostics.Add(new DefinitionDiagnostic(
                 "invalid-pattern",
+                $"{path}/{propertyName}",
+                DiagnosticSeverity.Error));
+        }
+    }
+
+    /// <summary>Reports an element named into the host-value scope.</summary>
+    /// <remarks>
+    /// At error severity, because the name does not merely collide: resolution tests the sigil
+    /// before it consults the answers, so an element named <c>$tier</c> is unreachable from every
+    /// expression in the survey. The authored name is kept rather than rewritten, because a
+    /// definition round-trips as authored and renaming an element would break every response
+    /// already recorded against it.
+    /// </remarks>
+    private static void ValidateReservedName(
+        string propertyName,
+        JsonNode? value,
+        string path,
+        ICollection<DefinitionDiagnostic> diagnostics)
+    {
+        if (string.Equals(propertyName, "name", StringComparison.Ordinal)
+            && value is JsonValue nameValue
+            && nameValue.TryGetValue(out string? name)
+            && HostValueScope.IsHostValueName(name))
+        {
+            diagnostics.Add(new DefinitionDiagnostic(
+                "reserved-name-sigil",
                 $"{path}/{propertyName}",
                 DiagnosticSeverity.Error));
         }

@@ -204,6 +204,30 @@ Two details the implementation settled:
 - **Pending keys are cleared as well as superseded.** `request` starts work only for a
   key nothing is already waiting on, so a key left pending would never be asked again.
 
+### What the C# runtime does and does not carry
+
+**Added 2026-08-12, on building the native side.** Three things came out of it that the
+decision above did not anticipate, and none of them is a gap:
+
+- **`undeclared-host-value` is TypeScript-only, by the same rule that already governs
+  `undeclared-endpoint`.** A diagnostic that depends on what the *host* supplied is not a
+  fact about the definition, and C# deliberately parses a definition without runtime
+  options — `Parse(json)` then `CreateSurvey(options)`. The corpus agrees: a
+  `canonicalize-definition` case carries `input`, `canonical` and `diagnostics` and has
+  nowhere to put host inputs, and neither C# nor the corpus has ever emitted or tested
+  `undeclared-endpoint` either. **It must therefore stay out of the conformance cases.**
+  `reserved-name-sigil` is the opposite — a pure fact about the definition, like
+  `invalid-pattern` — so it is implemented in both runtimes and belongs in the corpus.
+- **The status templates are not part of the native SDK at all.** `completedHtml` appears
+  nowhere in `Kajay.Core` and nowhere in the corpus: markup is presentation and belongs
+  to an adapter. The template amendment above is therefore a TypeScript-side decision
+  with nothing to mirror, not a piece of C# work left undone.
+- **No generation guard is needed in C#.** Its asynchronous results are per-call objects
+  rather than entries in shared maps, so discarding a call orphans the reply already in
+  flight: it lands on an object nothing reads while the fresh request records its own.
+  The TypeScript cache needed an explicit generation because its results are keyed in one
+  map that a late reply would write into.
+
 ### Markup is not a value
 
 Shape 3 sometimes means "the host computed some HTML". That does **not** enter this

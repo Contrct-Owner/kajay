@@ -17,6 +17,8 @@ Kajay.Snapshots.UnsupportedSurveySnapshotVersionException
 Kajay.Snapshots.UnsupportedSurveySnapshotVersionException.DeclaredVersion.get -> int
 Kajay.Snapshots.UnsupportedSurveySnapshotVersionException.UnsupportedSurveySnapshotVersionException(int declaredVersion) -> void
 Kajay.Survey.CreateSnapshot() -> Kajay.Snapshots.SurveySnapshot!
+Kajay.Survey.InvalidateAsyncResults(string? name = null) -> void
+Kajay.Survey.InvalidateAsyncResultsAsync(string? name = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Kajay.Survey.RestoreSnapshot(Kajay.Snapshots.SurveySnapshot! snapshot) -> void
 Kajay.Survey.SetHostValue(string! name, Kajay.KajayValue value) -> void
 Kajay.SurveyDefinition.DefinitionDigest.get -> string!

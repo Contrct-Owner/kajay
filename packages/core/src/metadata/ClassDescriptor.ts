@@ -25,6 +25,21 @@ export interface ChildCollectionDescriptor {
    * the round-trip bar is a fixed point rather than byte stability.
    */
   readonly shorthandProperty?: string;
+  /**
+   * The owner's property whose `[[name]]` markers position these children — ADR-0048.
+   *
+   * `template` for a sentence's blanks, and nothing at all for every other collection: a
+   * choice list has an order, a blanks list has *places in prose*. One fact, because a
+   * collection positioned this way says four things at once — the children have to be
+   * drawable in a line, a new one has to be given a place or nobody sees it, a removed
+   * one's marker has to go with it, and a renamed one's marker has to follow. All four
+   * used to be nobody's, so ordinary editing produced definitions the parser rejects.
+   *
+   * Declared rather than derived from the type name, so the Creator asks the registry the
+   * question instead of asking "is this the blanks of a fill-in-the-blank" — which is the
+   * per-type knowledge the collection editor exists not to hold.
+   */
+  readonly markerProperty?: string;
 }
 
 /** Input form of a class registration. */

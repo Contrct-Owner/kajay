@@ -485,7 +485,8 @@
         {
           "property": "blanks",
           "elementBaseType": "question",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": "template"
         }
       ]
     },
@@ -798,12 +799,14 @@
         {
           "property": "columns",
           "elementBaseType": "itemvalue",
-          "shorthandProperty": "value"
+          "shorthandProperty": "value",
+          "markerProperty": null
         },
         {
           "property": "rows",
           "elementBaseType": "itemvalue",
-          "shorthandProperty": "value"
+          "shorthandProperty": "value",
+          "markerProperty": null
         }
       ]
     },
@@ -840,22 +843,26 @@
         {
           "property": "columns",
           "elementBaseType": "question",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         },
         {
           "property": "rows",
           "elementBaseType": "itemvalue",
-          "shorthandProperty": "value"
+          "shorthandProperty": "value",
+          "markerProperty": null
         },
         {
           "property": "detailElements",
           "elementBaseType": "question",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         },
         {
           "property": "totals",
           "elementBaseType": "matrixtotal",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -1013,17 +1020,20 @@
         {
           "property": "columns",
           "elementBaseType": "question",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         },
         {
           "property": "detailElements",
           "elementBaseType": "question",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         },
         {
           "property": "totals",
           "elementBaseType": "matrixtotal",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -1124,7 +1134,8 @@
         {
           "property": "items",
           "elementBaseType": "multipletextitem",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -1238,7 +1249,8 @@
         {
           "property": "validators",
           "elementBaseType": "validator",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -1381,7 +1393,8 @@
         {
           "property": "elements",
           "elementBaseType": "pageelement",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -1526,7 +1539,8 @@
         {
           "property": "elements",
           "elementBaseType": "pageelement",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -1662,7 +1676,8 @@
         {
           "property": "templateElements",
           "elementBaseType": "pageelement",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -1809,7 +1824,8 @@
         {
           "property": "validators",
           "elementBaseType": "validator",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },
@@ -1963,7 +1979,8 @@
         {
           "property": "rateValues",
           "elementBaseType": "itemvalue",
-          "shorthandProperty": "value"
+          "shorthandProperty": "value",
+          "markerProperty": null
         }
       ]
     },
@@ -2205,7 +2222,8 @@
         {
           "property": "choices",
           "elementBaseType": "itemvalue",
-          "shorthandProperty": "value"
+          "shorthandProperty": "value",
+          "markerProperty": null
         }
       ]
     },
@@ -2588,22 +2606,26 @@
         {
           "property": "pages",
           "elementBaseType": "page",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         },
         {
           "property": "calculatedValues",
           "elementBaseType": "calculatedvalue",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         },
         {
           "property": "triggers",
           "elementBaseType": "trigger",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         },
         {
           "property": "completedHtmlOnCondition",
           "elementBaseType": "htmlcondition",
-          "shorthandProperty": null
+          "shorthandProperty": null,
+          "markerProperty": null
         }
       ]
     },

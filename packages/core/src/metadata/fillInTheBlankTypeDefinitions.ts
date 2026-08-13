@@ -32,6 +32,8 @@ export const FILL_IN_THE_BLANK_TYPE_DEFINITIONS: FillInTheBlankTypeDefinitions =
     // Real questions, as a matrix's cell columns and a dynamic panel's template elements
     // already are. A dropdown blank *is* a dropdown, so choices, remote choices,
     // carry-forward and marking arrive with it rather than being rebuilt inside an item.
-    childCollections: [{ property: 'blanks', elementBaseType: 'question' }],
+    childCollections: [
+      { property: 'blanks', elementBaseType: 'question', markerProperty: 'template' },
+    ],
   },
 };

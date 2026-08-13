@@ -283,6 +283,13 @@ fill-in-the-blank that cannot be marked is the feature's least interesting half.
   an inline renderer registration appears in the React adapter, `Kajay.Core` follows, the
   conformance cases grow a multi-select blank, and the Creator's blanks editor becomes a
   type picker. All of it is cheap only while the type is unreleased.
+- **The blanks editor needs the prose, not only the list** — found while building the type
+  picker, and worse than the missing picker: adding, deleting and renaming a blank each
+  left the template behind, and two of the three produced a definition the parser refuses.
+  A collection declares `markerProperty` for it, so the editor asks the registry whether
+  its children are positioned in prose rather than asking whether it is looking at a
+  sentence — and a marker is written into every language, since it is a name rather than
+  words and a translation naming a different set of blanks is an error of its own.
 
 ## Parent and related links
 

@@ -2,6 +2,7 @@ import { isLocalizedText } from '@kajay/core';
 import type { MetadataRegistry, PropertyValue, SurveyElement } from '@kajay/core';
 import type { DesignSurface } from './DesignSurface.js';
 import { renameThroughout } from './fragments.js';
+import { renameMarkers } from './markerEdits.js';
 import { nameRefusal } from './nameRefusal.js';
 import { refuse } from './EditRefusal.js';
 import type { EditRefusal } from './EditRefusal.js';
@@ -192,7 +193,11 @@ export function renameIn(
   }
   const page = surface.page?.name;
   const selected = surface.selection.name;
-  surface.applyEdit(renameThroughout(before, from, trimmed), {
+  // The markers follow too. A blank's name appears twice — in the collection and in the
+  // prose that positions it — and a rename that moved only the first left `[[old]]`
+  // naming a blank nobody declares, which is an error rather than a cosmetic drift.
+  const renamed = renameThroughout(before, from, trimmed);
+  surface.applyEdit(renameMarkers(renamed, surface.registry, from, trimmed), {
     // The renamed thing keeps the selection when it *was* the selection. Renaming a
     // matrix column from the collection editor is not a request to select the column —
     // and always selecting the renamed element would empty the grid the designer is

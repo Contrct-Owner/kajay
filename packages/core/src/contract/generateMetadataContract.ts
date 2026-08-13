@@ -37,6 +37,8 @@ export interface RuntimeMetadataChildCollection {
   readonly property: string;
   readonly elementBaseType: string;
   readonly shorthandProperty: string | null;
+  /** The owner's property whose `[[name]]` markers position these children, or null. */
+  readonly markerProperty: string | null;
 }
 
 export interface RuntimeMetadataClass {
@@ -108,6 +110,7 @@ export function generateMetadataContract(
           property: collection.property,
           elementBaseType: collection.elementBaseType,
           shorthandProperty: collection.shorthandProperty ?? null,
+          markerProperty: collection.markerProperty ?? null,
         })),
       };
     }),

@@ -34,6 +34,8 @@ export interface DefinitionChildCollectionReference {
   readonly property: string;
   readonly elementBaseType: string;
   readonly shorthandProperty: string | null;
+  /** The owner's property whose `[[name]]` markers position these children, or null. */
+  readonly markerProperty: string | null;
   readonly declaredBy: string;
 }
 

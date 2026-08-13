@@ -34,10 +34,14 @@ const implementedExpressionIds = [
 ];
 
 const implementedDefinitionIds = [
+  'element-named-into-the-host-scope-is-reported-and-kept',
   'unsupported-pattern-is-preserved-and-reported',
   'malformed-pattern-is-preserved-and-reported',
 ];
 const implementedScenarioIds = [
+  'host-values-resolve-including-descent-into-structured-values',
+  'a-host-value-write-recomputes-without-being-an-answer-change',
+  'the-host-scope-and-the-answer-scope-are-independent',
   'portable-pattern-matches-and-rejects',
   'pattern-searches-unless-anchored',
   'pattern-classes-and-dot-use-defined-scalars',

@@ -6,6 +6,24 @@ namespace Kajay.Conformance.Tests;
 public sealed class SurveyV2ConformanceTests
 {
     [Fact]
+    public void HostValuesResolveIncludingDescentIntoStructuredValues()
+    {
+        AssertScenario("host-values-resolve-including-descent-into-structured-values");
+    }
+
+    [Fact]
+    public void AHostValueWriteRecomputesWithoutBeingAnAnswerChange()
+    {
+        AssertScenario("a-host-value-write-recomputes-without-being-an-answer-change");
+    }
+
+    [Fact]
+    public void TheHostScopeAndTheAnswerScopeAreIndependent()
+    {
+        AssertScenario("the-host-scope-and-the-answer-scope-are-independent");
+    }
+
+    [Fact]
     public void PortablePatternMatchesAndRejects()
     {
         AssertScenario("portable-pattern-matches-and-rejects");
@@ -44,7 +62,10 @@ public sealed class SurveyV2ConformanceTests
             .Single(candidate => candidate.GetProperty("id").GetString() == scenarioId);
         SurveyDefinitionParseResult parsed = SurveyDefinition.Parse(
             scenario.GetProperty("definition").GetRawText());
-        Survey survey = parsed.Definition.CreateSurvey();
+        Survey survey = parsed.Definition.CreateSurvey(new SurveyOptions
+        {
+            HostValues = ReadHostValues(scenario),
+        });
         var events = new List<ObservedValueChange>();
         survey.ValueChanged += (_, args) => events.Add(
             new ObservedValueChange(args.Name, args.PreviousValue, args.Value));
@@ -81,6 +102,7 @@ public sealed class SurveyV2ConformanceTests
         return action.GetProperty("kind").GetString() switch
         {
             "set-value" => SetValue(survey, action),
+            "set-host-value" => SetHostValue(survey, action),
             "validate-current-page" => survey.Validation.ValidateCurrentPage(),
             "measure-score" => survey.GetQuizScore(),
             _ => throw new InvalidOperationException("Unknown survey action."),
@@ -95,6 +117,30 @@ public sealed class SurveyV2ConformanceTests
             action.GetProperty("name").GetString()!,
             ReadJsonValue(action.GetProperty("value")));
         return null;
+    }
+
+    private static object? SetHostValue(
+        Survey survey,
+        JsonElement action)
+    {
+        survey.SetHostValue(
+            action.GetProperty("name").GetString()!,
+            ReadJsonValue(action.GetProperty("value")));
+        return null;
+    }
+
+    private static Dictionary<string, KajayValue> ReadHostValues(JsonElement scenario)
+    {
+        var values = new Dictionary<string, KajayValue>(StringComparer.Ordinal);
+        if (scenario.TryGetProperty("hostValues", out JsonElement hostValues))
+        {
+            foreach (JsonProperty property in hostValues.EnumerateObject())
+            {
+                values[property.Name] = ReadJsonValue(property.Value);
+            }
+        }
+
+        return values;
     }
 
     private static void AssertDiagnostics(

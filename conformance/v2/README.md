@@ -3,7 +3,7 @@
 - Area: Runtime contract and native SDK portability
 - Status: passing in the TypeScript 2.x candidate and C# adapters
 - Owner: Jarod
-- Last updated: 2026-08-05
+- Last updated: 2026-08-12
 
 This directory fixes the behavior chosen in
 [ADR-0030](../../docs/adr/0030-native-csharp-sdk-and-v2-runtime-semantics.md). It is
@@ -129,7 +129,31 @@ respondent rule. The author can fix it; the respondent is never blocked by it.
 
 ## Current claim
 
-The TypeScript 2.x candidate and C# adapters pass the inherited v1 cases and all 32 new
-v2 cases through their public runtime seams: 25 expression evaluations, 2 definitions,
-and 5 survey scenarios. TypeScript 1.x continues to claim conformance v1 only; these
+The TypeScript 2.x candidate and C# adapters pass the inherited v1 cases and all 36 new
+v2 cases through their public runtime seams: 25 expression evaluations, 3 definitions,
+and 8 survey scenarios. TypeScript 1.x continues to claim conformance v1 only; these
 breaking semantic corrections ship in its next major version.
+
+## The host-value scope
+
+The `{$name}` scope ([ADR-0047](../../docs/adr/0047-host-value-scope.md)) adds one
+semantic action, `set-host-value`, and one optional scenario input, `hostValues`. Both
+belong to the single survey-scenario interface, which is the condition this document
+already set for new actions.
+
+Resolution tests the sigil **before** the answer space, so an answer never shadows a host
+value and an unsigiled reference never reaches one. A reference is resolved whole, so
+`{$profile.plan.tier}` descends. A host value is not an answer: writing one raises no
+value-changed event for the key itself, while what its settle wrote is reported exactly
+as an answer's settle would be. Writing the value already in force reports nothing.
+
+**`undeclared-host-value` is deliberately absent from this corpus.** A diagnostic that
+depends on what the host supplied is not a fact about the definition, a
+`canonicalize-definition` case has nowhere to carry host inputs, and `undeclared-endpoint`
+is already treated the same way. `reserved-name-sigil` is the opposite — a fact about the
+definition alone — and is specified here.
+
+**Not yet covered:** that a host value never reaches the response. Observing submitted
+data needs the `complete` action and the `complete` and `state-changed` events, which the
+v2 survey-scenario adapters do not implement yet; each runtime proves it in its own tests
+meanwhile.

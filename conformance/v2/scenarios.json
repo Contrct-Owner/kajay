@@ -2,6 +2,130 @@
   "contractVersion": 2,
   "scenarios": [
     {
+      "id": "host-values-resolve-including-descent-into-structured-values",
+      "definition": {
+        "calculatedValues": [
+          { "name": "tierEcho", "expression": "{$tier}", "includeIntoResult": true },
+          { "name": "planTier", "expression": "{$profile.plan.tier}", "includeIntoResult": true }
+        ],
+        "pages": [
+          { "name": "p1", "elements": [{ "type": "text", "name": "plan" }] }
+        ]
+      },
+      "hostValues": {
+        "tier": "gold",
+        "profile": { "plan": { "tier": "silver" } }
+      },
+      "expectInitial": { "state": "running", "diagnostics": [] },
+      "steps": [
+        {
+          "action": {
+            "kind": "set-host-value",
+            "name": "profile",
+            "value": { "plan": { "tier": "platinum" } }
+          },
+          "expect": {
+            "state": "running",
+            "events": [
+              {
+                "type": "value-changed",
+                "name": "planTier",
+                "previousValue": { "kind": "json", "value": "silver" },
+                "value": { "kind": "json", "value": "platinum" }
+              }
+            ]
+          }
+        },
+        {
+          "action": { "kind": "set-host-value", "name": "tier", "value": "gold" },
+          "expect": { "state": "running", "events": [] }
+        }
+      ]
+    },
+    {
+      "id": "a-host-value-write-recomputes-without-being-an-answer-change",
+      "definition": {
+        "calculatedValues": [
+          { "name": "tierEcho", "expression": "{$tier}", "includeIntoResult": true }
+        ],
+        "pages": [
+          { "name": "p1", "elements": [{ "type": "text", "name": "plan" }] }
+        ]
+      },
+      "hostValues": { "tier": "bronze" },
+      "expectInitial": { "state": "running", "diagnostics": [] },
+      "steps": [
+        {
+          "action": { "kind": "set-host-value", "name": "tier", "value": "gold" },
+          "expect": {
+            "state": "running",
+            "events": [
+              {
+                "type": "value-changed",
+                "name": "tierEcho",
+                "previousValue": { "kind": "json", "value": "bronze" },
+                "value": { "kind": "json", "value": "gold" }
+              }
+            ]
+          }
+        },
+        {
+          "action": { "kind": "set-host-value", "name": "tier", "value": "gold" },
+          "expect": { "state": "running", "events": [] }
+        }
+      ]
+    },
+    {
+      "id": "the-host-scope-and-the-answer-scope-are-independent",
+      "definition": {
+        "calculatedValues": [
+          { "name": "answerEcho", "expression": "{tier}", "includeIntoResult": true },
+          { "name": "hostEcho", "expression": "{$tier}", "includeIntoResult": true }
+        ],
+        "pages": [
+          { "name": "p1", "elements": [{ "type": "text", "name": "tier" }] }
+        ]
+      },
+      "hostValues": { "tier": "gold" },
+      "expectInitial": { "state": "running", "diagnostics": [] },
+      "steps": [
+        {
+          "action": { "kind": "set-value", "name": "tier", "value": "bronze" },
+          "expect": {
+            "state": "running",
+            "events": [
+              {
+                "type": "value-changed",
+                "name": "tier",
+                "previousValue": { "kind": "undefined" },
+                "value": { "kind": "json", "value": "bronze" }
+              },
+              {
+                "type": "value-changed",
+                "name": "answerEcho",
+                "previousValue": { "kind": "undefined" },
+                "value": { "kind": "json", "value": "bronze" }
+              }
+            ]
+          }
+        },
+        {
+          "action": { "kind": "set-host-value", "name": "tier", "value": "platinum" },
+          "expect": {
+            "state": "running",
+            "events": [
+              {
+                "type": "value-changed",
+                "name": "hostEcho",
+                "previousValue": { "kind": "json", "value": "gold" },
+                "value": { "kind": "json", "value": "platinum" }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
       "id": "portable-pattern-matches-and-rejects",
       "definition": {
         "pages": [

@@ -2,6 +2,27 @@
   "contractVersion": 2,
   "cases": [
     {
+      "id": "element-named-into-the-host-scope-is-reported-and-kept",
+      "input": {
+        "pages": [
+          { "name": "p1", "elements": [{ "type": "text", "name": "$tier" }] }
+        ]
+      },
+      "canonical": {
+        "schemaVersion": 1,
+        "pages": [
+          { "name": "p1", "elements": [{ "type": "text", "name": "$tier" }] }
+        ]
+      },
+      "diagnostics": [
+        {
+          "code": "reserved-name-sigil",
+          "path": "/pages/0/elements/0/name",
+          "severity": "error"
+        }
+      ]
+    },
+    {
       "id": "unsupported-pattern-is-preserved-and-reported",
       "input": {
         "pages": [

@@ -3,7 +3,7 @@
 - Area: Acceptance ledger for SurveyJS feature parity
 - Status: active
 - Owner: Jarod
-- Last updated: 2026-08-12
+- Last updated: 2026-08-13
 
 This is the authoritative acceptance document for the project's overall AC. A row is
 **green only when the named proof passes in CI** — a site acceptance scenario, rendering
@@ -95,6 +95,7 @@ proofs count toward green status.
 | C10 | imagepicker (single/multi, imageFit, contentMode image/video) | ☑ | `parity/C10-imagepicker` (unit + demo). The one select type whose **arity is a property** rather than its type — everywhere else the split is a design-time fact, which is why those semantics live in two base classes. `applySelection` is the single point where the switch happens; a `select` override alongside it changed nothing, which a mutation test proved by surviving its removal. The choice text is every tile's accessible name whether or not `showLabel` draws it: a grid of unlabelled pictures is not an answerable question for anyone who cannot see them |
 | C11 | multipletext (items, itemSize, per-item validation) | ☑ | `parity/C11-multipletext`, `parity/C11-multipletext` (unit + demo). The answer is one object under the question's name, so `{address.city}` reaches a single field with nothing added — the path resolver already walks dotted references. Errors carry a `path` naming the field that earned them, which is what lets a renderer put the message beside the input instead of prefixing every line with a label the field already shows; §F's matrix cells want the same — and now use it. **Two defects surfaced while building F1**, both fixed here: an untouched multipletext reported none of its required items (the question was empty, so the check stopped before reaching them), and a message reported against the question as a whole had no slot to render into. Both are pinned by named tests |
 | C12 | html (display), image (display), expression (read-only computed with displayStyle/format) | ☑ | `parity/C12-display-elements`, `parity/C12-expression-question` (unit); `parity/C12-display-elements`, `parity/C12-expression-question` (demo). `html` and `image` descend from a new `displayelement` base rather than from `question`, so the Creator's generated property grid never offers `isRequired` on a paragraph of text. **Markup is rendered as markup** — that is the feature — so a definition is code at the host's level of trust; a host taking definitions from untrusted authors passes `sanitizeHtml` to `<Survey>`, and none ships here because a sanitizer that is nearly right is worse than none. `expression` formats through a fixed `en-US` locale so the same definition reads the same everywhere; making that follow the survey locale is §J |
+| C13 | Fill-in-the-blank: prose with inline `[[name]]` blanks, per-blank correct answers and partial credit, localizable template | ☐ | Decided by [ADR-0048](./adr/0048-fill-in-the-blank-question.md); **not built**. The first promotion out of §O, on assessment being a stated need rather than a guess. Planned proofs: `parity/C13-template` (unit) for parsing, the answer object, and the three diagnostics — an undeclared `[[name]]` is an error, a declared blank the template never positions is a warning, and **a locale whose template names a different set of blanks is an error**, which is the one that matters: word order moves between languages, so the template must stay one translatable string, and a translator who renames a blank silently changes the answer keys for that locale alone. `parity/C13-scoring` (unit) for per-blank marks through the existing `AnswerScore`, trimmed and case-insensitive by default, both per blank — an assessment marking `paris` wrong is measuring typing rather than geography. `parity/C13-render` and `parity/C13-axe` (browser) for inputs drawn inside the sentence and for each one carrying an accessible name: prose labels a blank visually and not programmatically, so the respondent who most needs the sentence read to them is the one a naive implementation serves worst. `parity/Q12-*` (C#) and conformance v2 cases claimed by **both** adapters are exit conditions, not notes — template parsing and the answer shape are language-neutral, and ADR-0047 learned what a one-sided corpus costs. **Named limits, all deliberate:** a literal `[[name]]` cannot be authored, since `[[` opens a blank only when a valid name and `]]` follow and an escape would put backslashes into every translator's copy; and accent folding, alternative accepted answers and numeric tolerance are out, cheap to add later and impossible to remove |
 
 ## §D — Validation
 
@@ -266,11 +267,15 @@ package; passing the current 31 v1 cases alone is not headless parity.
 
 ## §O — Watch items (SurveyJS 2026 roadmap; not acceptance)
 
-Image Map question; Fill-in-the-Blanks question; CSS-grid matrix overhaul; grid
+Image Map question; CSS-grid matrix overhaul; grid
 layout engine; data-grid question with server-side processing; Tailwind/Bootstrap
 style adapters; AI theme generation; rich-text authoring in Creator; refreshed
 Dashboard/PDF (separate products). Revisit at each phase boundary; promote to a
 lettered section only with evidence a real consumer needs it.
+
+**Promoted 2026-08-13:** the fill-in-the-blank question, on assessment being a stated
+consumer need rather than a guess — the first item to leave this list. It is checklist
+C13, decided by [ADR-0048](./adr/0048-fill-in-the-blank-question.md).
 
 ## Parent and related links
 

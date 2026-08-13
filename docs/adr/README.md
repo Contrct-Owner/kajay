@@ -3,7 +3,7 @@
 - Area: Decision record index
 - Status: established
 - Owner: Jarod
-- Last updated: 2026-08-12
+- Last updated: 2026-08-13
 
 Non-trivial decisions get an ADR. An ADR states the context, the decision, and the
 consequences that follow from it — including the costs accepted. Reversals are
@@ -70,6 +70,7 @@ recorded here (status `superseded`) **and** in the
 | [0045](./0045-focus-repository-on-sdks-and-site.md) | Focus the repository on the SDKs and Kajay.io | accepted | 2026-08-08 |
 | [0046](./0046-nuget-release-walkthrough.md) | The NuGet release walkthrough | accepted | 2026-08-08 |
 | [0047](./0047-host-value-scope.md) | A host-value scope, `{$name}` | accepted, amended; delivered | 2026-08-12 |
+| [0048](./0048-fill-in-the-blank-question.md) | Fill-in-the-blank: prose positions the blanks, a collection declares them | accepted | 2026-08-13 |
 
 ## Parent and related links
 

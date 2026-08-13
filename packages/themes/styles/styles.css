@@ -1420,6 +1420,26 @@
   font-size: 0.875em;
 }
 
+/* --- fill in the blank --------------------------------------------------- */
+
+.kajay-fillintheblank {
+  /* The gaps sit in the run of the text, so the line box has to give them room:
+     without this the inputs are clipped where the prose wraps around them. */
+  line-height: 2.2;
+  margin: 0;
+}
+
+.kajay-fillintheblank__gap {
+  display: inline;
+  white-space: nowrap;
+}
+
+.kajay-fillintheblank__input {
+  display: inline-block;
+  width: auto;
+  vertical-align: baseline;
+}
+
 /* --- imagepicker --------------------------------------------------------- */
 
 .kajay-question--imagepicker {

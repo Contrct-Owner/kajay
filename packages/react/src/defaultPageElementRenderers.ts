@@ -9,6 +9,7 @@ import { ImagePickerRenderer } from './ImagePickerRenderer.js';
 import { MatrixCellsRenderer } from './MatrixCellsRenderer.js';
 import { MatrixDynamicRenderer } from './MatrixDynamicRenderer.js';
 import { MatrixQuestionRenderer } from './MatrixQuestionRenderer.js';
+import { FillInTheBlankQuestionRenderer } from './FillInTheBlankQuestionRenderer.js';
 import { MultipleTextQuestionRenderer } from './MultipleTextQuestionRenderer.js';
 import { PageElementRendererRegistry } from './PageElementRendererRegistry.js';
 import type { ReadonlyPageElementRendererRegistry } from './PageElementRendererRegistry.js';
@@ -27,6 +28,7 @@ function createDefaultRenderers(): ReadonlyPageElementRendererRegistry {
   registry.registerQuestion('boolean', BooleanQuestionRenderer);
   registry.registerQuestion('rating', RatingQuestionRenderer);
   registry.registerQuestion('expression', ExpressionQuestionRenderer);
+  registry.registerQuestion('fillintheblank', FillInTheBlankQuestionRenderer);
   registry.registerQuestion('multipletext', MultipleTextQuestionRenderer);
   registry.registerQuestion('radiogroup', SelectQuestionRenderer);
   registry.registerQuestion('checkbox', SelectQuestionRenderer);

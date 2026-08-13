@@ -13,6 +13,8 @@ import { TextValidator } from '../model/TextValidator.js';
 import { BooleanQuestion } from '../model/BooleanQuestion.js';
 import { CommentQuestion } from '../model/CommentQuestion.js';
 import { ExpressionQuestion } from '../model/ExpressionQuestion.js';
+import { FillInTheBlankItem } from '../model/FillInTheBlankItem.js';
+import { FillInTheBlankQuestion } from '../model/FillInTheBlankQuestion.js';
 import { MultipleTextItem } from '../model/MultipleTextItem.js';
 import { MultipleTextQuestion } from '../model/MultipleTextQuestion.js';
 import { RatingQuestion } from '../model/RatingQuestion.js';
@@ -60,6 +62,8 @@ export const BUILT_IN_TYPE_FACTORIES: Readonly<Record<string, BuiltInTypeFactory
   boolean: () => new BooleanQuestion(),
   rating: () => new RatingQuestion(),
   expression: () => new ExpressionQuestion(),
+  fillintheblankitem: () => new FillInTheBlankItem(),
+  fillintheblank: () => new FillInTheBlankQuestion(),
   multipletextitem: () => new MultipleTextItem(),
   multipletext: () => new MultipleTextQuestion(),
   itemvalue: () => new ItemValue(),

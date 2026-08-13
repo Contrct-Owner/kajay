@@ -1,7 +1,7 @@
 # ADR-0048 — Fill-in-the-blank: prose positions the blanks, a collection declares them
 
 - Area: Core / question types and assessment
-- Status: accepted
+- Status: accepted, amended
 - Owner: Jarod
 - Last updated: 2026-08-13
 
@@ -131,9 +131,18 @@ remove, so it waits for a consumer.
 
 The sentence labels a blank visually and not programmatically: without help, a screen
 reader announces "edit text, blank". Each input takes its accessible name from the blank's
-`label`, rendered visually hidden, and an axe sweep in real Chromium proves it. The
-respondent who most needs the sentence read to them is the one a naive implementation
-serves worst, which is why this is a decision here and not a rendering detail.
+`label`, and a sweep in real Chromium proves it. The respondent who most needs the sentence
+read to them is the one a naive implementation serves worst, which is why this is a
+decision here and not a rendering detail.
+
+**Amended 2026-08-13, on building the renderer.** This first said the label was *rendered
+visually hidden*, and that was wrong in a way the browser suite caught immediately: hiding
+it takes a stylesheet, `@kajay/themes` is an explicit opt-in that no package imports, and a
+host that had declined it would see every label printed inside the prose — "The capital of
+France is Capital city ...". The accessible name is an `aria-label` on the input instead,
+which adds no text at all. **An accessible name must not depend on CSS anyone can decline
+to load**, and the suite that loads no stylesheet is precisely the condition that proves
+it.
 
 ### 8. Both runtimes, this cycle
 

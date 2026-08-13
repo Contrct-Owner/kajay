@@ -206,6 +206,16 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://kajay.io/docs/reference/definition-types/fillintheblank</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/definition-types/fillintheblankitem</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://kajay.io/docs/reference/definition-types/html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -451,6 +461,16 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://kajay.io/docs/reference/properties/blank-size</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/properties/case-sensitive</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://kajay.io/docs/reference/properties/check-errors-mode</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -677,6 +697,11 @@
   </url>
   <url>
     <loc>https://kajay.io/docs/reference/properties/kind</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/properties/label</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -1081,6 +1106,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://kajay.io/docs/reference/properties/template</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://kajay.io/docs/reference/properties/text</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -1097,6 +1127,11 @@
   </url>
   <url>
     <loc>https://kajay.io/docs/reference/properties/title-location</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/properties/trim</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -1891,6 +1926,16 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://kajay.io/docs/reference/api/core/fill-in-the-blank-item</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/api/core/fill-in-the-blank-question</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://kajay.io/docs/reference/api/core/function-registry</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -2072,6 +2117,11 @@
   </url>
   <url>
     <loc>https://kajay.io/docs/reference/api/core/panel-state</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/api/core/parse-blank-template</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -2407,6 +2457,11 @@
   </url>
   <url>
     <loc>https://kajay.io/docs/reference/api/core/tagbox-question</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kajay.io/docs/reference/api/core/template-segment</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

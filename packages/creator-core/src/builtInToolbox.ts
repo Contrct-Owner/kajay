@@ -50,11 +50,18 @@ export interface BuiltInEntry {
  * distinction has somewhere to live — "unset" and "explicitly empty" are already different
  * states, and this is neither.
  */
-type Starters = 'choices' | 'fields' | 'grid' | 'cells' | 'rows' | 'template';
+type Starters = 'choices' | 'fields' | 'grid' | 'cells' | 'rows' | 'template' | 'blanks';
 
 const STARTER: Readonly<Record<Starters, Readonly<Record<string, PropertyValue>>>> = {
   choices: { choices: ['Item 1', 'Item 2', 'Item 3'] },
   fields: { items: [{ name: 'item1', title: 'Item 1' }, { name: 'item2', title: 'Item 2' }] },
+  // A dropped fill-in-the-blank with no template renders *nothing at all*, which is the
+  // clearest case this map exists for: the prose and the blanks it names arrive together,
+  // because either alone is a question nobody can answer.
+  blanks: {
+    template: 'The [[blank1]] is [[blank2]].',
+    blanks: [{ name: 'blank1' }, { name: 'blank2' }],
+  },
   grid: { columns: ['Column 1', 'Column 2', 'Column 3'], rows: ['Row 1', 'Row 2'] },
   cells: {
     columns: [{ type: 'text', name: 'column1', title: 'Column 1' }],
@@ -76,6 +83,8 @@ export const BUILT_IN_TOOLBOX: ReadonlyMap<string, BuiltInEntry> = new Map([
   ['comment', { title: 'Long text', category: TEXT, keywords: ['textarea', 'paragraph'] }],
   ['multipletext', { title: 'Multiple text fields', category: TEXT, keywords: ['group'],
     defaults: STARTER['fields'] }],
+  ['fillintheblank', { title: 'Fill in the blank', category: TEXT,
+    keywords: ['cloze', 'gap', 'quiz', 'assessment'], defaults: STARTER['blanks'] }],
 
   ['radiogroup', { title: 'Radio group', category: CHOICE, keywords: ['single', 'one of'],
     defaults: STARTER['choices'] }],

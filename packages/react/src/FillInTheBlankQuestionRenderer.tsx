@@ -1,66 +1,44 @@
 import { FillInTheBlankQuestion } from '@kajay/core';
-import { TextQuestion } from '@kajay/core';
-import type { Question, SurveyError } from '@kajay/core';
+import type { Question, Survey, SurveyError } from '@kajay/core';
+import { createElement } from 'react';
 import type { ReactElement } from 'react';
-import type { QuestionRendererProps } from './QuestionRendererProps.js';
+import type {
+  PageElementRendererProps,
+  PageElementRendererResolver,
+} from './PageElementRendererRegistry.js';
 import { QuestionErrors } from './QuestionErrors.js';
 import { QuestionTitleContent } from './QuestionTitleContent.js';
 import { useSurveyValue } from './useSurveyState.js';
 import { questionErrorId, questionId } from './questionId.js';
-import { useSurveyComponents } from './SurveyComponents.js';
 import { useIdScope } from './idScope.js';
 
 interface BlankFieldProps {
-  readonly question: FillInTheBlankQuestion;
+  readonly survey: Survey;
   readonly blank: Question;
   readonly errors: readonly SurveyError[];
+  readonly renderers: PageElementRendererResolver;
 }
 
 /**
- * One gap, sitting in the run of the sentence.
+ * One field, sitting in the run of the sentence.
  *
- * **Text blanks only, for now.** A blank is a question as of ADR-0048's amendment, so a
- * dropdown or a multi-select belongs here too — through the inline renderer registration
- * that decision calls for, which is the next piece. Until it exists this draws the case it
- * has always drawn, and core refuses any blank whose type cannot go inline at all.
+ * **Drawn by its own type's inline renderer**, which is a second registration rather than
+ * a mode on the first: a flag would oblige every renderer a host has written to handle a
+ * case it has never heard of, and ignoring it draws a fieldset inside a paragraph. A type
+ * with no inline renderer draws nothing here — core already refuses one at parse, so this
+ * is the same statement made twice rather than a silent hole.
  *
- * **The name comes from `aria-label`, not a hidden `<label>`.** The prose names this blank
- * to anyone reading it and to nobody using a screen reader, which would otherwise hear
- * "edit text, blank" — the respondent who most needs the sentence read aloud learning
- * least from it. A rendered-then-hidden label was the first attempt and was wrong: hiding
- * it takes a stylesheet, `@kajay/themes` is an explicit opt-in, and a host that had not
- * imported it would see every label printed inside the sentence. An accessible name must
- * not depend on CSS anyone can decline to load.
- *
- * Errors sit immediately after their own input rather than under the question. In a
- * sentence that is the only place they can go and still say which word they mean.
+ * Errors sit immediately after their own control. In a sentence that is the only place
+ * they can go and still say which word they mean.
  */
-function BlankField({ question, blank, errors }: BlankFieldProps): ReactElement {
+function BlankField({ survey, blank, errors, renderers }: BlankFieldProps): ReactElement {
   const scope = useIdScope();
-  const { Input } = useSurveyComponents();
-  const inputId = `${questionId(question, scope)}-${blank.name}`;
-  const errorId = `${inputId}-errors`;
-  const size = question.blankSize;
+  const errorId = `${questionId(blank, scope)}-errors`;
+  const inline = renderers.inline?.(blank.type);
 
   return (
-    <span className="kajay-fillintheblank__gap">
-      <Input
-        id={inputId}
-        className="kajay-question__input kajay-fillintheblank__input"
-        type={blank instanceof TextQuestion ? blank.inputType : 'text'}
-        aria-label={blank.title}
-        readOnly={question.isReadOnly}
-        disabled={!question.isEnabled}
-        required={blank.isRequired}
-        aria-required={blank.isRequired}
-        aria-invalid={errors.length > 0 || undefined}
-        aria-describedby={errors.length > 0 ? errorId : undefined}
-        {...(size > 0 ? { size } : {})}
-        value={String(question.getBlankValue(blank.name) ?? '')}
-        onValueChange={(next) => {
-          question.setBlankValue(blank.name, next);
-        }}
-      />
+    <span className="kajay-fillintheblank__gap" data-blank-name={blank.name}>
+      {inline === undefined ? null : createElement(inline, { survey, question: blank })}
       {errors.length > 0 ? (
         <span className="kajay-question__errors" id={errorId} role="alert">
           {errors.map((error) => (
@@ -86,8 +64,10 @@ function BlankField({ question, blank, errors }: BlankFieldProps): ReactElement 
  */
 export function FillInTheBlankQuestionRenderer({
   survey,
-  question,
-}: QuestionRendererProps): ReactElement {
+  element,
+  renderers,
+}: PageElementRendererProps): ReactElement {
+  const question = element;
   const scope = useIdScope();
   useSurveyValue(survey, question.name);
 
@@ -120,9 +100,10 @@ export function FillInTheBlankQuestionRenderer({
           return blank === undefined ? null : (
             <BlankField
               key={`blank-${segment.name}`}
-              question={question}
+              survey={survey}
               blank={blank}
               errors={question.errors.filter((error) => error.path === blank.name)}
+              renderers={renderers}
             />
           );
         })}

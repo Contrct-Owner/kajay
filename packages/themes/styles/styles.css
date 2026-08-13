@@ -1440,6 +1440,11 @@
   vertical-align: baseline;
 }
 
+/* A computed gap is prose, not a control: it states a value mid-clause. */
+.kajay-fillintheblank__computed {
+  font-weight: 600;
+}
+
 /* --- imagepicker --------------------------------------------------------- */
 
 .kajay-question--imagepicker {

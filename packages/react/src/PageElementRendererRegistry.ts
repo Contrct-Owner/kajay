@@ -15,6 +15,17 @@ export type PageElementRenderer = (props: PageElementRendererProps) => ReactElem
 /** The complete capability needed to resolve and draw a page element. */
 export interface PageElementRendererResolver {
   render(survey: Survey, element: PageElement): ReactElement;
+  /**
+   * The renderer for a question drawn *inside* prose, if this type has one.
+   *
+   * Part of resolving rather than a separate table a renderer has to be handed, because a
+   * fill-in-the-blank draws its own blanks and is the only thing that needs it.
+   *
+   * Optional so a host that already implements this interface keeps compiling: adding a
+   * required member to a published type is a breaking change, and a resolver without it
+   * simply draws no inline fields.
+   */
+  inline?(type: string): QuestionRenderer | undefined;
 }
 
 /** A frozen registry can inspect and clone renderers, but cannot register them. */
@@ -27,6 +38,7 @@ export interface ReadonlyPageElementRendererRegistry extends PageElementRenderer
 /** One dispatch table for every element a page may contain. */
 export class PageElementRendererRegistry implements PageElementRendererResolver {
   readonly #renderers: Map<string, PageElementRenderer> = new Map();
+  readonly #inline: Map<string, QuestionRenderer> = new Map();
   #frozen = false;
 
   register(type: string, renderer: PageElementRenderer): void {
@@ -44,6 +56,26 @@ export class PageElementRendererRegistry implements PageElementRendererResolver 
       }
       return createElement(renderer, { survey, question: element });
     });
+  }
+
+  /**
+   * Registers how a type is drawn *inside* a line of prose — checklist C13, ADR-0048.
+   *
+   * **A second registration rather than a mode on the first.** A flag would oblige every
+   * renderer a host has ever written to handle a case it has never heard of, and the
+   * default behaviour of ignoring it is a fieldset drawn inside a paragraph. Absent by
+   * default makes "this type cannot go inline" the same statement here that the definition
+   * diagnostic makes in core.
+   */
+  registerInlineQuestion(type: string, renderer: QuestionRenderer): void {
+    if (this.#frozen) {
+      throw new Error('This page-element renderer registry is frozen; clone it before registering.');
+    }
+    this.#inline.set(type, renderer);
+  }
+
+  inline(type: string): QuestionRenderer | undefined {
+    return this.#inline.get(type);
   }
 
   has(type: string): boolean {
@@ -68,6 +100,9 @@ export class PageElementRendererRegistry implements PageElementRendererResolver 
     const copy = new PageElementRendererRegistry();
     for (const [type, renderer] of this.#renderers) {
       copy.register(type, renderer);
+    }
+    for (const [type, renderer] of this.#inline) {
+      copy.registerInlineQuestion(type, renderer);
     }
     return copy;
   }

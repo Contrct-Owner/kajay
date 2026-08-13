@@ -104,3 +104,83 @@ test('parity/C13-render: an unsupported box is never drawn for a registered type
 
   expect(screen.container.querySelectorAll('.kajay-question--unsupported')).toHaveLength(0);
 });
+
+test('parity/C13-render: a dropdown blank draws a real select inside the sentence', async () => {
+  const survey = build({
+    template: 'The capital of France is [[capital]].',
+    blanks: [
+      { type: 'dropdown', name: 'capital', title: 'Capital city', choices: ['Paris', 'Lyon'] },
+    ],
+  });
+  const screen = await render(<Survey model={survey} />);
+
+  // The whole point of the reframe: a gap is a *question*, so a dropdown blank is a
+  // dropdown and its choices came from the select family rather than from anything
+  // reimplemented inside a private item type.
+  const select = screen.container.querySelector('select');
+  expect(select).not.toBeNull();
+  expect([...(select?.options ?? [])].map((option) => option.text)).toEqual(['', 'Paris', 'Lyon']);
+  await expect.element(screen.getByLabelText('Capital city')).toBeInTheDocument();
+});
+
+test('parity/C13-render: choosing from a dropdown blank records that blank', async () => {
+  const survey = build({
+    template: 'The capital of France is [[capital]].',
+    blanks: [
+      { type: 'dropdown', name: 'capital', title: 'Capital city', choices: ['Paris', 'Lyon'] },
+    ],
+  });
+  const screen = await render(<Survey model={survey} />);
+
+  await screen.getByLabelText('Capital city').selectOptions('Paris');
+
+  expect(survey.data['geography']).toEqual({ capital: 'Paris' });
+});
+
+test('parity/C13-render: a multi-select blank stores an array under its key', async () => {
+  const survey = build({
+    template: 'Its cities include [[cities]].',
+    blanks: [
+      { type: 'tagbox', name: 'cities', title: 'Cities', choices: ['Paris', 'Lyon', 'Nice'] },
+    ],
+  });
+  const screen = await render(<Survey model={survey} />);
+
+  await screen.getByLabelText('Cities').selectOptions(['Paris', 'Nice']);
+
+  // The answer shape already allowed this: one object keyed by blank name, and a
+  // multi-select blank simply stores an array under its key.
+  expect(survey.data['geography']).toEqual({ cities: ['Paris', 'Nice'] });
+});
+
+test('parity/C13-render: a sentence mixes field kinds in the author’s order', async () => {
+  const survey = build({
+    template: 'The capital is [[capital]], and it is [[nice]].',
+    blanks: [
+      { type: 'dropdown', name: 'capital', title: 'Capital city', choices: ['Paris'] },
+      { type: 'boolean', name: 'nice', title: 'Nice place' },
+    ],
+  });
+  const screen = await render(<Survey model={survey} />);
+
+  const controls = [...screen.container.querySelectorAll('select, input')];
+  // A form authored by writing a sentence — which is what the type is actually for.
+  expect(controls.map((node) => node.tagName)).toEqual(['SELECT', 'INPUT']);
+});
+
+test('parity/C13-axe: an inline control is named without printing its title', async () => {
+  const survey = build({
+    template: 'The capital is [[capital]].',
+    blanks: [
+      { type: 'dropdown', name: 'capital', title: 'Capital city', choices: ['Paris'] },
+    ],
+  });
+  const screen = await render(<Survey model={survey} />);
+
+  // The sentence labels the gap on the page; only the accessibility tree needs it said
+  // again, and saying it visibly would print it inside the prose that already did.
+  const question = screen.container.querySelector('[data-question-name="geography"]');
+  expect(question?.textContent).not.toContain('Capital city');
+  await expect.element(screen.getByLabelText('Capital city')).toBeInTheDocument();
+});
+

@@ -34,6 +34,71 @@ public sealed partial class Survey
         return _calculatedValues.TryGetValue(name, out value);
     }
 
+    /// <summary>Gets a host value by exact key, without falling back to an answer.</summary>
+    /// <param name="key">The exact ordinal host-value key, without its sigil.</param>
+    /// <param name="value">The supplied value when present.</param>
+    /// <returns>True when the host supplied this key.</returns>
+    internal bool TryGetHostValue(string key, out KajayValue value)
+    {
+        return _hostValues.TryGetValue(key, out value);
+    }
+
+    /// <summary>Supplies a host value, or replaces the one in force.</summary>
+    /// <param name="name">The exact ordinal host-value key, written without its sigil.</param>
+    /// <param name="value">The value every <c>{$name}</c> reference now resolves to.</param>
+    /// <exception cref="ArgumentException"><paramref name="name"/> is null or empty.</exception>
+    /// <remarks>
+    /// <para>
+    /// The host's context, not the respondent's: it is readable by every expression and is in no
+    /// response. Nothing a respondent does can reach it, which is the whole reason it is not
+    /// <see cref="SetValue"/>.
+    /// </para>
+    /// <para>
+    /// Everything reading the value recomputes before this returns, inside one settle, so a
+    /// handler woken by the change sees a model that has finished reacting to it. Writing the
+    /// value already in force does nothing at all.
+    /// </para>
+    /// </remarks>
+    public void SetHostValue(string name, KajayValue value)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+        if (!_hostValues.Set(name, value))
+        {
+            return;
+        }
+
+        SurveyState previousState = State;
+        List<SurveyValueChangedEventArgs> changes = [];
+        List<SurveyElementStateChangedEventArgs> stateChanges = [];
+        _logicErrors.Reset();
+        // Announced under the reference an author writes, because that is the name every rule
+        // declared its dependency under; the bare key would recompute the rules reading the
+        // answer of that name and none of the ones reading the host value.
+        SettleLogic(
+            [ExpressionPath.FromName(HostValueScope.ToReference(name))],
+            changes,
+            stateChanges);
+        _choiceSources.SettleSynchronous();
+        // The host value itself is never a value change: that event means an answer changed, and
+        // a host value is in no response for a handler to go and read. What the settle wrote —
+        // an included calculated value, a trigger's answer — is announced exactly as it would be
+        // had an answer caused it.
+        foreach (SurveyValueChangedEventArgs change in changes)
+        {
+            ValueChanged?.Invoke(this, change);
+        }
+
+        foreach (SurveyElementStateChangedEventArgs change in stateChanges)
+        {
+            ElementStateChanged?.Invoke(this, change);
+        }
+
+        if (State != previousState && State is SurveyState.Empty or SurveyState.Running)
+        {
+            RaiseStateChanged();
+        }
+    }
+
     /// <summary>Sets or removes one answer and announces an actual change once.</summary>
     /// <param name="name">The exact answer name.</param>
     /// <param name="value">The new value; absent removes the answer.</param>

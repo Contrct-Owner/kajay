@@ -32,8 +32,20 @@ internal sealed class SurveyExpressionValues : IReadOnlyDictionary<string, Kajay
         return TryGetValue(key, out _);
     }
 
+    /// <summary>Resolves the first segment of a reference: a host value, or an answer.</summary>
+    /// <remarks>
+    /// The sigil is tested first, so a host value can never be shadowed by a question and a
+    /// question can never be reached through the host scope. That ordering is what makes the two
+    /// namespaces genuinely separate rather than merely conventionally so, and it is why the
+    /// sigil is reserved in an element name.
+    /// </remarks>
     public bool TryGetValue(string key, out KajayValue value)
     {
+        if (HostValueScope.IsHostValueName(key))
+        {
+            return _survey.TryGetHostValue(HostValueScope.ToKey(key), out value);
+        }
+
         return _additionalValues.TryGetValue(key, out value)
             || _survey.TryGetValue(key, out value);
     }

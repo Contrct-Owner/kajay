@@ -18,5 +18,8 @@ Kajay.Snapshots.UnsupportedSurveySnapshotVersionException.DeclaredVersion.get ->
 Kajay.Snapshots.UnsupportedSurveySnapshotVersionException.UnsupportedSurveySnapshotVersionException(int declaredVersion) -> void
 Kajay.Survey.CreateSnapshot() -> Kajay.Snapshots.SurveySnapshot!
 Kajay.Survey.RestoreSnapshot(Kajay.Snapshots.SurveySnapshot! snapshot) -> void
+Kajay.Survey.SetHostValue(string! name, Kajay.KajayValue value) -> void
 Kajay.SurveyDefinition.DefinitionDigest.get -> string!
+Kajay.SurveyOptions.HostValues.get -> System.Collections.Generic.IReadOnlyDictionary<string!, Kajay.KajayValue>!
+Kajay.SurveyOptions.HostValues.init -> void
 static Kajay.Snapshots.SurveySnapshot.Parse(string! json) -> Kajay.Snapshots.SurveySnapshot!

@@ -17,6 +17,7 @@ public sealed partial class Survey
     private readonly SurveyFileAdapters _fileAdapters;
     private readonly SurveyLogicErrors _logicErrors = new();
     private readonly IReadOnlyDictionary<string, SurveyQuestion> _questionsByName;
+    private readonly SurveyHostValues _hostValues;
     private bool _isLoading;
     private bool _isPreviewing;
     private bool _isCompleted;
@@ -35,6 +36,10 @@ public sealed partial class Survey
         _locale = definition.Locale;
         _timeProvider = timeProvider;
         _expressionFunctions = options.ExpressionFunctions;
+        // Before the calculated values and conditions settle below: a rule reading a host
+        // value on the very first evaluation must see what the host supplied, not an
+        // empty scope it would have to be told about again afterwards.
+        _hostValues = new SurveyHostValues(options.HostValues);
         _asyncFunctionValues = new SurveyAsyncFunctionValues(_expressionFunctions);
         _fileAdapters = new SurveyFileAdapters(options);
         Validation = new SurveyValidation(this, definition, options);

@@ -48,6 +48,12 @@ public sealed class SurveyV2ConformanceTests
     }
 
     [Fact]
+    public void AMultiSelectIsScoredChoiceByChoice()
+    {
+        AssertScenario("a-multi-select-is-scored-choice-by-choice");
+    }
+
+    [Fact]
     public void SurveyScenarioObservesQuizScore()
     {
         AssertScenario("survey-scenario-observes-quiz-score");

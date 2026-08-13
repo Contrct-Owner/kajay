@@ -52,6 +52,18 @@ public abstract class SurveyQuestion
     /// <summary>Gets the current answer, or <see cref="KajayValue.Absent"/>.</summary>
     public KajayValue Value => _survey.GetValue(ValueName);
 
+    /// <summary>Gets the marks this answer earns, out of the marks it could.</summary>
+    /// <returns>Earned and possible marks for this question.</returns>
+    /// <remarks>
+    /// Virtual because what "right" means belongs to the question type: one value compared
+    /// with one value here, and a choice-by-choice reckoning where an answer is a set. A
+    /// scorer that lived outside the model would grow a case per type instead.
+    /// </remarks>
+    internal virtual AnswerScore ScoreAnswer()
+    {
+        return AnswerScore.Single(Value, Definition.CorrectAnswer);
+    }
+
     /// <summary>Gets the current condition-derived state.</summary>
     public SurveyQuestionState State => _survey.TryGetQuestionState(Name, out SurveyQuestionState state)
         ? state

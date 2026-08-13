@@ -63,4 +63,12 @@ public sealed partial class Survey
             _ => new SurveyScalarQuestion(this, definition),
         };
     }
+
+    /// <summary>Scores one question through the type that knows what right means.</summary>
+    /// <param name="name">The exact question name.</param>
+    /// <returns>Earned and possible marks, or nothing when no such question exists.</returns>
+    internal AnswerScore ScoreQuestion(string name)
+    {
+        return GetQuestion(name)?.ScoreAnswer() ?? default;
+    }
 }

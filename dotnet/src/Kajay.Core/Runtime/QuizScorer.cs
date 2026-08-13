@@ -14,9 +14,14 @@ internal static class QuizScorer
                 out SurveyQuestionState state) && state.IsReachable)
             .Where(question => question.HasCorrectAnswer)
             .ToArray();
-        double earned = questions.Count(question =>
-            survey.GetValue(question.ValueKey) == question.CorrectAnswer);
-        double possible = questions.Length;
+        // Asked of the question rather than compared here, so partial credit is the
+        // question type's business: a multi-select is worth a mark per expected choice,
+        // and one comparison in this loop could only ever be worth one.
+        AnswerScore[] scores = questions
+            .Select(question => survey.ScoreQuestion(question.Name))
+            .ToArray();
+        double earned = scores.Sum(score => score.Earned);
+        double possible = scores.Sum(score => score.Possible);
         return new QuizScore(
             earned,
             possible,

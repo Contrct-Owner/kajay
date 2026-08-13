@@ -354,6 +354,83 @@
       ]
     },
     {
+      "id": "a-multi-select-is-scored-choice-by-choice",
+      "definition": {
+        "pages": [
+          {
+            "name": "p1",
+            "elements": [
+              {
+                "type": "checkbox",
+                "name": "picks",
+                "choices": ["a", "b", "c"],
+                "correctAnswer": ["a", "b"]
+              }
+            ]
+          }
+        ]
+      },
+      "expectInitial": { "state": "running", "diagnostics": [] },
+      "steps": [
+        {
+          "action": { "kind": "set-value", "name": "picks", "value": ["a"] },
+          "expect": {
+            "state": "running",
+            "events": [
+              {
+                "type": "value-changed",
+                "name": "picks",
+                "previousValue": { "kind": "undefined" },
+                "value": { "kind": "json", "value": ["a"] }
+              }
+            ]
+          }
+        },
+        {
+          "action": { "kind": "measure-score" },
+          "expect": {
+            "state": "running",
+            "events": [],
+            "observation": {
+              "kind": "score",
+              "earned": 1,
+              "possible": 2,
+              "questionCount": 1,
+              "ratio": 0.5
+            }
+          }
+        },
+        {
+          "action": { "kind": "set-value", "name": "picks", "value": ["a", "b", "c"] },
+          "expect": {
+            "state": "running",
+            "events": [
+              {
+                "type": "value-changed",
+                "name": "picks",
+                "previousValue": { "kind": "json", "value": ["a"] },
+                "value": { "kind": "json", "value": ["a", "b", "c"] }
+              }
+            ]
+          }
+        },
+        {
+          "action": { "kind": "measure-score" },
+          "expect": {
+            "state": "running",
+            "events": [],
+            "observation": {
+              "kind": "score",
+              "earned": 1,
+              "possible": 2,
+              "questionCount": 1,
+              "ratio": 0.5
+            }
+          }
+        }
+      ]
+    },
+    {
       "id": "survey-scenario-observes-quiz-score",
       "definition": {
         "pages": [

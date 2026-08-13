@@ -70,6 +70,51 @@ test('parity/P3-playground: answering the live survey never reaches what is bein
   await expect(page.getByTestId('json-text')).not.toContainText('Ada');
 });
 
+test('parity/P3-playground: the host scope drives the live survey without a restart', async ({
+  page,
+}) => {
+  await page.goto(PLAYGROUND);
+  // The example is opt-in: the starter document is what every visitor lands on and what
+  // the placement scenarios measure, so a feature that needs an example brings its own.
+  await page.getByTestId('host-load-example').click();
+  const accountNotes = live(page).getByLabel('Anything for your account team?');
+
+  // Seeded at `bronze`, so the gated question is not there to begin with. A share link
+  // carries the definition and nothing else, which is why the values are seeded at all.
+  await expect(accountNotes).toBeHidden();
+
+  await page.getByTestId('host-tier').selectOption('gold');
+
+  // No restart, no remount: `setHostValue` settles the survey in place. This is the one
+  // thing in a survey a definition cannot author, so it is the one thing only the host
+  // panel can show.
+  await expect(accountNotes).toBeVisible();
+
+  // Answered *after* the flip, to prove the next assertion is about a survey somebody is
+  // part-way through rather than a fresh one.
+  await live(page).getByLabel('Who should we follow up with?').fill('Ada');
+  await page.getByTestId('host-seats').fill('25');
+
+  // A computed value moves too: the scope is not only for conditions.
+  await expect(live(page).getByText('300')).toBeVisible();
+  await expect(live(page).getByLabel('Who should we follow up with?')).toHaveValue('Ada');
+});
+
+test('parity/P3-playground: host context survives a restart', async ({ page }) => {
+  await page.goto(PLAYGROUND);
+  await page.getByTestId('host-load-example').click();
+  await page.getByTestId('host-tier').selectOption('gold');
+  await expect(live(page).getByLabel('Anything for your account team?')).toBeVisible();
+
+  await page.getByTestId('live-restart').click();
+
+  // A restart re-parses from the seeded defaults and hands back a *new* survey. Without
+  // re-applying what the panel says, a visitor would silently drop back to bronze while
+  // the panel still read gold — the panel would be lying about the survey beside it.
+  await expect(page.getByTestId('host-tier')).toHaveValue('gold');
+  await expect(live(page).getByLabel('Anything for your account team?')).toBeVisible();
+});
+
 test('parity/P3-playground: editing the JSON shows up on the canvas', async ({ page }) => {
   await page.goto(PLAYGROUND);
   await page.getByTestId('editor-mode-json').click();
